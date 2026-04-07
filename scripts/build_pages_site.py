@@ -32,6 +32,7 @@ def app_entries() -> list[dict]:
                 "name": spec["app_name"],
                 "description": spec.get("idea", "").strip(),
                 "delivery_target": spec.get("delivery_target", "installable-pwa"),
+                "theme_color": spec.get("theme_color", "#177e89"),
                 "web_dir": web_dir,
             }
         )
@@ -54,13 +55,144 @@ def write_file(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+def build_collection_icon() -> str:
+    return textwrap.dedent(
+        """\
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+          <rect width="512" height="512" rx="128" fill="#172127" />
+          <defs>
+            <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#f3b14a" />
+              <stop offset="100%" stop-color="#177e89" />
+            </linearGradient>
+          </defs>
+          <rect x="92" y="102" width="140" height="140" rx="42" fill="url(#g1)" />
+          <rect x="280" y="102" width="140" height="140" rx="42" fill="#fff7e8" opacity="0.96" />
+          <rect x="92" y="270" width="140" height="140" rx="42" fill="#fff7e8" opacity="0.96" />
+          <rect x="280" y="270" width="140" height="140" rx="42" fill="url(#g1)" />
+          <path d="M146 176h32l24 28 50-58" fill="none" stroke="#ffffff" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" />
+          <circle cx="350" cy="172" r="20" fill="#172127" />
+          <circle cx="162" cy="340" r="20" fill="#172127" />
+          <path d="M320 338h58" stroke="#ffffff" stroke-width="22" stroke-linecap="round" />
+          <path d="M349 309v58" stroke="#ffffff" stroke-width="22" stroke-linecap="round" />
+          <title>앱 모음</title>
+        </svg>
+        """
+    )
+
+
+def build_root_manifest() -> str:
+    payload = {
+        "name": "앱 모음",
+        "short_name": "앱 모음",
+        "description": "생성된 개인용 앱들을 한곳에 모아 홈 화면에서 바로 여는 런처입니다.",
+        "start_url": "./",
+        "scope": "./",
+        "display": "standalone",
+        "background_color": "#f7f1e8",
+        "theme_color": "#172127",
+        "icons": [
+            {"src": "./collection-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"},
+            {"src": "./apple-touch-icon.svg", "sizes": "180x180", "type": "image/svg+xml"},
+        ],
+    }
+    return json.dumps(payload, indent=2, ensure_ascii=False) + "\n"
+
+
+def build_root_app_js() -> str:
+    return textwrap.dedent(
+        """\
+        const installButton = document.getElementById("install-button");
+        let deferredInstallPrompt = null;
+
+        window.addEventListener("beforeinstallprompt", (event) => {
+          event.preventDefault();
+          deferredInstallPrompt = event;
+          installButton.hidden = false;
+        });
+
+        installButton.addEventListener("click", async () => {
+          if (!deferredInstallPrompt) {
+            return;
+          }
+
+          deferredInstallPrompt.prompt();
+          await deferredInstallPrompt.userChoice;
+          deferredInstallPrompt = null;
+          installButton.hidden = true;
+        });
+
+        if ("serviceWorker" in navigator) {
+          window.addEventListener("load", () => {
+            navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+          });
+        }
+        """
+    )
+
+
+def build_root_service_worker(entries: list[dict]) -> str:
+    cached_paths = [
+        "./",
+        "./index.html",
+        "./manifest.webmanifest",
+        "./collection-icon.svg",
+        "./apple-touch-icon.svg",
+        "./app.js",
+    ]
+    cached_paths.extend(f"./{entry['slug']}/" for entry in entries)
+    assets = ",\n".join(f'  "{path}"' for path in cached_paths)
+    return textwrap.dedent(
+        f"""\
+        const CACHE_NAME = "generated-apps-launcher-v1";
+        const ASSETS = [
+        {assets}
+        ];
+
+        self.addEventListener("install", (event) => {{
+          event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)));
+          self.skipWaiting();
+        }});
+
+        self.addEventListener("activate", (event) => {{
+          event.waitUntil(
+            caches.keys().then((keys) =>
+              Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))),
+            ),
+          );
+          self.clients.claim();
+        }});
+
+        self.addEventListener("fetch", (event) => {{
+          if (event.request.method !== "GET") {{
+            return;
+          }}
+
+          event.respondWith(
+            caches.match(event.request).then((cached) => {{
+              if (cached) {{
+                return cached;
+              }}
+
+              return fetch(event.request).catch(() => caches.match("./index.html"));
+            }}),
+          );
+        }});
+        """
+    )
+
+
 def build_index(entries: list[dict]) -> str:
     cards = []
     for entry in entries:
+        card_icon = entry["name"][:2].upper()
         cards.append(
             f"""
             <a class="card" href="./{entry["slug"]}/">
-              <p class="card-kicker">{entry["delivery_target"]}</p>
+              <div class="card-top">
+                <div class="card-icon" style="--card-accent: {entry["theme_color"]};">{card_icon}</div>
+                <p class="card-kicker">{entry["delivery_target"]}</p>
+              </div>
               <h2>{entry["name"]}</h2>
               <p>{entry["description"]}</p>
               <span>앱 열기</span>
@@ -75,7 +207,11 @@ def build_index(entries: list[dict]) -> str:
           <head>
             <meta charset="utf-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <meta name="theme-color" content="#172127" />
+            <meta name="description" content="생성된 개인용 앱들을 한곳에 모아 홈 화면에서 바로 여는 런처입니다." />
             <title>생성된 앱 목록</title>
+            <link rel="manifest" href="./manifest.webmanifest" />
+            <link rel="apple-touch-icon" href="./apple-touch-icon.svg" />
             <style>
               :root {{
                 --bg: #f7f1e8;
@@ -115,6 +251,17 @@ def build_index(entries: list[dict]) -> str:
                 line-height: 1.6;
                 color: var(--muted);
               }}
+              .install-button {{
+                margin-top: 1rem;
+                border: 0;
+                border-radius: 999px;
+                background: #172127;
+                color: #ffffff;
+                padding: 0.9rem 1.2rem;
+                font: inherit;
+                font-weight: 700;
+                cursor: pointer;
+              }}
               .grid {{
                 display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
@@ -130,6 +277,22 @@ def build_index(entries: list[dict]) -> str:
                 padding: 1.1rem;
                 box-shadow: var(--shadow);
               }}
+              .card-top {{
+                display: flex;
+                align-items: center;
+                gap: 0.8rem;
+              }}
+              .card-icon {{
+                width: 3rem;
+                height: 3rem;
+                border-radius: 1rem;
+                display: grid;
+                place-items: center;
+                font-weight: 800;
+                color: #ffffff;
+                background: var(--card-accent);
+                flex-shrink: 0;
+              }}
               .card-kicker {{
                 color: var(--muted);
                 text-transform: uppercase;
@@ -137,7 +300,7 @@ def build_index(entries: list[dict]) -> str:
                 letter-spacing: 0.08em;
               }}
               .card h2 {{
-                margin-top: 0.5rem;
+                margin-top: 0.8rem;
                 font-size: 1.3rem;
               }}
               .card p {{
@@ -156,16 +319,18 @@ def build_index(entries: list[dict]) -> str:
             <main>
               <section class="hero">
                 <p>Codex Notion App Factory</p>
-                <h1>생성된 앱</h1>
+                <h1>앱 모음</h1>
                 <p>
-                  이 사이트는 저장소에서 생성된 앱 결과물을 모아 GitHub Pages로 배포한 것입니다.
-                  각 카드는 스마트폰에서 바로 쓸 수 있는 앱 셸로 연결됩니다.
+                  생성된 개인용 앱들을 한곳에 모아 홈 화면에서 바로 여는 런처입니다.
+                  자주 쓰는 앱을 빠르게 열 수 있도록 설치 가능한 컬렉션 페이지로 구성했습니다.
                 </p>
+                <button id="install-button" class="install-button" hidden>앱 모음 설치</button>
               </section>
               <section class="grid">
                 {"".join(cards)}
               </section>
             </main>
+            <script src="./app.js"></script>
           </body>
         </html>
         """
@@ -178,6 +343,12 @@ def main() -> None:
     for entry in entries:
         copy_app_web(entry)
     write_file(OUTPUT_DIR / "index.html", build_index(entries))
+    write_file(OUTPUT_DIR / "manifest.webmanifest", build_root_manifest())
+    icon = build_collection_icon()
+    write_file(OUTPUT_DIR / "collection-icon.svg", icon)
+    write_file(OUTPUT_DIR / "apple-touch-icon.svg", icon)
+    write_file(OUTPUT_DIR / "app.js", build_root_app_js())
+    write_file(OUTPUT_DIR / "service-worker.js", build_root_service_worker(entries))
     write_file(OUTPUT_DIR / ".nojekyll", "")
     print(f"Built Pages site with {len(entries)} app(s) at {OUTPUT_DIR}")
 
