@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Focus Launcher</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <p class="eyebrow">Single-action starter</p>
+        <h1>Focus Launcher</h1>
+        <p class="lede">
+          Stop planning. Type the chore and get one concrete first move.
+        </p>
+      </section>
+
+      <section class="panel panel--primary">
+        <form id="launcher-form" class="launcher-form">
+          <label for="task" class="label">What are you avoiding right now?</label>
+          <div class="input-row">
+            <input
+              id="task"
+              name="task"
+              type="text"
+              maxlength="180"
+              placeholder="Clean the kitchen, reply to emails, start studying..."
+              autocomplete="off"
+              required
+            />
+            <button type="submit">Launch</button>
+          </div>
+        </form>
+
+        <article id="result-card" class="result-card" hidden>
+          <p class="result-label">Your first action</p>
+          <h2 id="result-action"></h2>
+          <p class="result-footnote">Do only this. You can stop after it.</p>
+        </article>
+      </section>
+
+      <section class="panel panel--secondary">
+        <div class="panel-header">
+          <h3>Recent launches</h3>
+          <p>Stored locally for fast re-entry.</p>
+        </div>
+        <ul id="history-list" class="history-list"></ul>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

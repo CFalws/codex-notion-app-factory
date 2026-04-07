@@ -1,0 +1,10 @@
+[
+  {
+    "task": "clean the kitchen",
+    "first_action": "Put one item back in place or clear one small surface."
+  },
+  {
+    "task": "reply to emails",
+    "first_action": "Open your inbox and answer the shortest pending message."
+  }
+]

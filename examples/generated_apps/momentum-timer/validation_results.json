@@ -1,0 +1,53 @@
+{
+  "compile_check": {
+    "passed": true,
+    "returncode": 0,
+    "stdout": "Listing '/Users/emil/emil/python/codex-notion-app-factory/examples/generated_apps/momentum-timer'...\nCompiling '/Users/emil/emil/python/codex-notion-app-factory/examples/generated_apps/momentum-timer/validate_sample.py'...\nListing '/Users/emil/emil/python/codex-notion-app-factory/examples/generated_apps/momentum-timer/web'...",
+    "stderr": ""
+  },
+  "generation_checks": [
+    {
+      "task": "clean the kitchen",
+      "expected": "Clear one small surface or put one item back where it belongs.",
+      "actual": "Clear one small surface or put one item back where it belongs.",
+      "timer_seconds": 180,
+      "passed": true
+    },
+    {
+      "task": "reply to emails",
+      "expected": "Open your inbox and answer the shortest pending message first.",
+      "actual": "Open your inbox and answer the shortest pending message first.",
+      "timer_seconds": 180,
+      "passed": true
+    },
+    {
+      "task": "start studying math",
+      "expected": "Open your notes and complete just the first tiny item you see.",
+      "actual": "Open your notes and complete just the first tiny item you see.",
+      "timer_seconds": 180,
+      "passed": true
+    },
+    {
+      "task": "build landing page",
+      "expected": "Open the project and finish the smallest visible code change first.",
+      "actual": "Open the project and finish the smallest visible code change first.",
+      "timer_seconds": 180,
+      "passed": true
+    }
+  ],
+  "history_check": {
+    "passed": true,
+    "reloaded": [
+      {
+        "task": "clean the kitchen",
+        "first_action": "Clear one small surface or put one item back where it belongs.",
+        "timer_seconds": 180
+      },
+      {
+        "task": "reply to emails",
+        "first_action": "Open your inbox and answer the shortest pending message first.",
+        "timer_seconds": 180
+      }
+    ]
+  }
+}
