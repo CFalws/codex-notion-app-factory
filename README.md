@@ -2,7 +2,24 @@
 
 A Codex-driven app implementation environment that uses MCP-connected Notion as the intake queue.
 
-For the fastest inspection path, start with `SHOWCASE.md`.
+For the fastest inspection path, start with `REAL_EXECUTION_SHOWCASE.md`.
+
+## Problem
+
+Most personal app ideas die before implementation because idea capture, scoping, and coding happen in disconnected tools.
+
+I wanted a workflow where I could capture a request in Notion, mark it as executable, and let an agent-driven build loop turn it into planning artifacts and real code.
+
+## What I Built
+
+I designed an execution environment where:
+
+- Notion acts as the intake queue
+- MCP acts as the context bridge
+- Codex acts as the implementation agent
+- local repositories store the generated artifacts and code changes
+
+The result is a repeatable loop from request capture to implemented app.
 
 ## Core Claim
 
@@ -20,6 +37,14 @@ This is not a chatbot demo. It is an operating model for turning idea capture in
 4. Codex extracts the brief, constraints, and expected output
 5. Codex implements the app directly in the local workspace
 6. Codex writes back implementation artifacts such as specs, plans, or status notes
+
+## Key Capabilities
+
+- tagged request intake from Notion
+- explicit request contract and execution rules
+- generated intermediate artifacts such as brief, spec, plan, and tasks
+- local sample apps produced from those requests
+- validation artifacts that make the output inspectable
 
 ## Why This Is Stronger Than A Standard “Agent App”
 
@@ -76,6 +101,13 @@ Each request produces concrete outputs in the local repository:
 - task checklists
 - changelog or delivery summary
 
+## Tech Stack
+
+- Codex as the coding agent
+- MCP-connected Notion integration
+- Markdown-based execution artifacts
+- Python sample apps used as concrete generated outputs
+
 ## Repository Structure
 
 - `AGENTS.md`
@@ -110,11 +142,33 @@ The system produces:
 - a task breakdown
 - actual code changes in the target repository
 
+## Real Execution Proof
+
+This repository includes a real session-backed example:
+
+- a real Notion request page was created
+- that page was fetched back through MCP
+- the fetched content was persisted locally
+- a working sample app called `Momentum Timer` was implemented from that request
+- validation artifacts were saved
+
+See `REAL_EXECUTION_SHOWCASE.md` for the full path.
+
+## My Implementation Scope
+
+I designed the workflow, request contract, execution rules, example artifacts, and the sample generated apps included in this repository.
+
+This is not a mock architecture document. It is a working portfolio repository showing how I structure agent-led product implementation.
+
 ## Portfolio Framing
 
 This repository is best presented as:
 
 > Built a Codex-based agent execution environment where Notion served as the intake queue, MCP handled workspace-context retrieval, and tagged implementation requests were converted into real app specs, plans, and code changes for personal-use software projects.
+
+## Publishing Note
+
+If I were pinning one repository to represent my agent-driven workflow, this would be the first one.
 
 ## Why This Version Is Honest
 
