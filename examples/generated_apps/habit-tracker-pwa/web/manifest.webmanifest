@@ -1,0 +1,23 @@
+{
+  "name": "Habit Tracker PWA",
+  "short_name": "Habit Tracke",
+  "description": "Habit Tracker PWA is a phone-ready personal tracker generated from your idea: A habit tracker for my phone that lets me add daily habits, check them off quickly, and see streaks without needing my laptop runtime.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4efe6",
+  "theme_color": "#177e89",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./apple-touch-icon.svg",
+      "sizes": "180x180",
+      "type": "image/svg+xml"
+    }
+  ]
+}

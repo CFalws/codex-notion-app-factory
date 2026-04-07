@@ -13,6 +13,8 @@ The goal is to make the execution loop consistent and demonstrable:
 5. Implement or update the target app
 6. Summarize delivery output
 
+The default quality bar is that the result should be usable from a phone, not only from the development machine.
+
 ## Trigger Rules
 
 Codex should treat a Notion page as executable work only when it includes one of these tags:
@@ -28,11 +30,18 @@ When reading a tagged request, Codex should identify:
 - project name
 - problem being solved
 - target user or usage context
+- primary device
 - constraints
 - expected deliverable
 - preferred stack if specified
 
 If information is missing, Codex should make the smallest reasonable assumption and proceed.
+
+Default assumptions for personal tools:
+
+- target device is phone first
+- delivery target is installable PWA
+- deployment target is static hosting unless backend features are required
 
 ## Execution Modes
 
@@ -53,7 +62,10 @@ Generate:
 - `spec.md`
 - `implementation_plan.md`
 - `tasks.md`
+- `deploy_plan.md`
 - source code changes in the target workspace
+
+Unless the request says otherwise, produce output that can be launched on a phone without the local desktop runtime remaining active.
 
 ### `codex-review`
 
@@ -74,6 +86,7 @@ For each request, Codex should try to leave behind durable artifacts that make t
 - implementation plan
 - checklist
 - code changes
+- deployment notes
 - final delivery summary
 
 ## Portfolio Principle
@@ -86,3 +99,4 @@ It is about showing a real and defensible execution environment:
 - MCP for context access
 - Codex for implementation
 - repository artifacts as proof of work
+- phone-usable delivery as the default outcome

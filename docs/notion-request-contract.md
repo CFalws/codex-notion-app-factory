@@ -8,6 +8,7 @@ Each implementation request should follow a stable structure so Codex can act on
 - `Problem`
 - `Desired Outcome`
 - `Primary User`
+- `Primary Device`
 - `Tag`
 
 ## Recommended Fields
@@ -17,6 +18,10 @@ Each implementation request should follow a stable structure so Codex can act on
 - `References`
 - `Definition of Done`
 - `Notes`
+- `Launch Surface`
+- `Offline Requirement`
+- `Data Model`
+- `Deployment Target`
 
 ## Tag Semantics
 
@@ -33,6 +38,7 @@ Each implementation request should follow a stable structure so Codex can act on
 - Problem: I procrastinate when starting small chores
 - Desired Outcome: A tiny tool that gives me one concrete first action
 - Primary User: Me
+- Primary Device: iPhone
 - Tag: codex-build
 
 ## Why The Contract Exists

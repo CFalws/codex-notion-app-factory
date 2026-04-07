@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#177e89" />
+    <meta name="description" content="Habit Tracker PWA is a phone-ready personal tracker generated from your idea: A habit tracker for my phone that lets me add daily habits, check them off quickly, and see streaks without needing my laptop runtime." />
+    <title>Habit Tracker PWA</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.svg" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="hero">
+        <p class="eyebrow">Installable personal tool</p>
+        <h1>Habit Tracker PWA</h1>
+        <p class="lede">Habit Tracker PWA is a phone-ready personal tracker generated from your idea: A habit tracker for my phone that lets me add daily habits, check them off quickly, and see streaks without needing my laptop runtime.</p>
+        <button id="install-button" class="install-button" hidden>Install Habit Tracke</button>
+      </header>
+
+      <section class="panel panel--primary">
+        <div class="panel-header">
+          <div>
+            <p class="panel-kicker">Today</p>
+            <h2>Your habits</h2>
+          </div>
+          <p id="today-label" class="today-label"></p>
+        </div>
+
+        <form id="habit-form" class="habit-form">
+          <label class="sr-only" for="habit-name">Habit name</label>
+          <input
+            id="habit-name"
+            name="habit-name"
+            type="text"
+            maxlength="60"
+            placeholder="Add a habit you want to track"
+            autocomplete="off"
+            required
+          />
+          <button type="submit">Add</button>
+        </form>
+
+        <ul id="habit-list" class="habit-list"></ul>
+      </section>
+
+      <section class="panel panel--secondary">
+        <div class="panel-header">
+          <div>
+            <p class="panel-kicker">Overview</p>
+            <h2>Momentum</h2>
+          </div>
+        </div>
+        <div class="stats">
+          <article class="stat-card">
+            <p class="stat-label">Completed today</p>
+            <p id="completed-count" class="stat-value">0</p>
+          </article>
+          <article class="stat-card">
+            <p class="stat-label">Best streak</p>
+            <p id="best-streak" class="stat-value">0</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <template id="habit-item-template">
+      <li class="habit-item">
+        <div class="habit-copy">
+          <p class="habit-name"></p>
+          <p class="habit-meta"></p>
+        </div>
+        <div class="habit-actions">
+          <button class="check-button" type="button">Check in</button>
+          <button class="delete-button" type="button" aria-label="Delete habit">Delete</button>
+        </div>
+      </li>
+    </template>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
