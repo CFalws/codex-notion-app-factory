@@ -32,7 +32,7 @@ def build_index_html(app_name: str, short_name: str, description: str, theme_col
     return textwrap.dedent(
         f"""\
         <!doctype html>
-        <html lang="en">
+        <html lang="ko">
           <head>
             <meta charset="utf-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -46,33 +46,33 @@ def build_index_html(app_name: str, short_name: str, description: str, theme_col
           <body>
             <main class="shell">
               <header class="hero">
-                <p class="eyebrow">Installable personal tool</p>
+                <p class="eyebrow">설치 가능한 개인 도구</p>
                 <h1>{app_name}</h1>
                 <p class="lede">{description}</p>
-                <button id="install-button" class="install-button" hidden>Install {short_name}</button>
+                <button id="install-button" class="install-button" hidden>{short_name} 설치</button>
               </header>
 
               <section class="panel panel--primary">
                 <div class="panel-header">
                   <div>
-                    <p class="panel-kicker">Today</p>
-                    <h2>Your habits</h2>
+                    <p class="panel-kicker">오늘</p>
+                    <h2>내 습관</h2>
                   </div>
                   <p id="today-label" class="today-label"></p>
                 </div>
 
                 <form id="habit-form" class="habit-form">
-                  <label class="sr-only" for="habit-name">Habit name</label>
+                  <label class="sr-only" for="habit-name">습관 이름</label>
                   <input
                     id="habit-name"
                     name="habit-name"
                     type="text"
                     maxlength="60"
-                    placeholder="Add a habit you want to track"
+                    placeholder="추적할 습관을 추가하세요"
                     autocomplete="off"
                     required
                   />
-                  <button type="submit">Add</button>
+                  <button type="submit">추가</button>
                 </form>
 
                 <ul id="habit-list" class="habit-list"></ul>
@@ -81,17 +81,17 @@ def build_index_html(app_name: str, short_name: str, description: str, theme_col
               <section class="panel panel--secondary">
                 <div class="panel-header">
                   <div>
-                    <p class="panel-kicker">Overview</p>
-                    <h2>Momentum</h2>
+                    <p class="panel-kicker">개요</p>
+                    <h2>진행 현황</h2>
                   </div>
                 </div>
                 <div class="stats">
                   <article class="stat-card">
-                    <p class="stat-label">Completed today</p>
+                    <p class="stat-label">오늘 완료</p>
                     <p id="completed-count" class="stat-value">0</p>
                   </article>
                   <article class="stat-card">
-                    <p class="stat-label">Best streak</p>
+                    <p class="stat-label">최고 연속 기록</p>
                     <p id="best-streak" class="stat-value">0</p>
                   </article>
                 </div>
@@ -105,8 +105,8 @@ def build_index_html(app_name: str, short_name: str, description: str, theme_col
                   <p class="habit-meta"></p>
                 </div>
                 <div class="habit-actions">
-                  <button class="check-button" type="button">Check in</button>
-                  <button class="delete-button" type="button" aria-label="Delete habit">Delete</button>
+                  <button class="check-button" type="button">체크</button>
+                  <button class="delete-button" type="button" aria-label="습관 삭제">삭제</button>
                 </div>
               </li>
             </template>
@@ -448,8 +448,8 @@ function render() {
     empty.className = "habit-item";
     empty.innerHTML = `
       <div class="habit-copy">
-        <p class="habit-name">No habits yet</p>
-        <p class="habit-meta">Add one small daily action and check in from your home screen.</p>
+        <p class="habit-name">아직 습관이 없습니다</p>
+        <p class="habit-meta">작은 일상 습관 하나를 추가하고 홈 화면에서 바로 체크하세요.</p>
       </div>
     `;
     habitList.appendChild(empty);
@@ -473,11 +473,11 @@ function render() {
     if (checkedToday) {
       completedToday += 1;
       checkButton.classList.add("is-complete");
-      checkButton.textContent = "Done today";
+      checkButton.textContent = "오늘 완료";
     }
 
     name.textContent = habit.name;
-    meta.textContent = `Current streak ${streak} days · Best ${personalBest}`;
+    meta.textContent = `현재 ${streak}일 연속 · 최고 ${personalBest}일`;
 
     checkButton.addEventListener("click", () => {
       const nextState = readState();
@@ -637,13 +637,16 @@ if __name__ == "__main__":
 
 
 def build_icon(app_name: str, short_name: str, theme_color: str) -> str:
-    initials = "".join(part[0] for part in short_name.split()[:2]).upper() or "A"
     return textwrap.dedent(
         f"""\
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
           <rect width="512" height="512" rx="124" fill="{theme_color}" />
-          <circle cx="256" cy="190" r="110" fill="rgba(255,255,255,0.18)" />
-          <text x="256" y="302" text-anchor="middle" font-size="188" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">{initials}</text>
+          <rect x="96" y="88" width="320" height="336" rx="92" fill="rgba(255,255,255,0.14)" />
+          <rect x="138" y="138" width="236" height="236" rx="68" fill="#ffffff" />
+          <circle cx="196" cy="198" r="18" fill="{theme_color}" />
+          <circle cx="256" cy="198" r="18" fill="{theme_color}" opacity="0.75" />
+          <circle cx="316" cy="198" r="18" fill="{theme_color}" opacity="0.45" />
+          <path d="M184 276l42 42 100-108" fill="none" stroke="{theme_color}" stroke-width="30" stroke-linecap="round" stroke-linejoin="round" />
           <title>{app_name}</title>
         </svg>
         """
@@ -673,20 +676,20 @@ def build_readme(app_name: str, slug: str, description: str) -> str:
         f"""\
         # {app_name}
 
-        This app was generated as a mobile-first PWA scaffold from a single idea statement.
+        이 앱은 하나의 아이디어 문장에서 생성된 모바일 우선 PWA 스캐폴드입니다.
 
-        ## What It Is
+        ## 무엇인가
 
         {description}
 
-        ## Why This Shape
+        ## 왜 이런 형태인가
 
-        - installable from a phone home screen
-        - works as a static deployment
-        - stores data locally by default
-        - does not require your development machine to stay awake
+        - 휴대폰 홈 화면에 설치 가능
+        - 정적 배포로 동작
+        - 기본적으로 로컬에 데이터 저장
+        - 개발용 PC가 켜져 있을 필요 없음
 
-        ## Files
+        ## 파일
 
         - `web/index.html`
         - `web/styles.css`
@@ -696,25 +699,25 @@ def build_readme(app_name: str, slug: str, description: str) -> str:
         - `preview.py`
         - `deploy_plan.md`
 
-        ## Local Preview
+        ## 로컬 미리보기
 
         ```bash
         cd codex-notion-app-factory/examples/generated_apps/{slug}
         python preview.py
         ```
 
-        Then open `http://127.0.0.1:4173`.
+        그다음 `http://127.0.0.1:4173`를 엽니다.
 
-        ## Phone Install
+        ## 휴대폰 설치
 
-        1. Commit and push this repository to GitHub.
-        2. Enable GitHub Pages for the repository and let the Pages workflow deploy your generated apps.
-        3. Open the deployed URL for `/{slug}/` on your phone.
-        4. Use the browser's add-to-home-screen flow.
+        1. 저장소를 GitHub에 커밋하고 push합니다.
+        2. 저장소에서 GitHub Pages를 활성화하고 Pages 워크플로가 생성된 앱을 배포하도록 합니다.
+        3. 휴대폰에서 배포된 `/{slug}/` URL을 엽니다.
+        4. 브라우저의 홈 화면 추가 기능을 사용합니다.
 
-        ## Notes
+        ## 참고
 
-        This scaffold is local-first. If you want cross-device sync later, add a small authenticated backend without changing the mobile shell.
+        이 스캐폴드는 로컬 우선 구조입니다. 나중에 기기 간 동기화가 필요해지면, 모바일 셸은 유지한 채 작은 인증 백엔드만 추가하면 됩니다.
         """
     )
 
@@ -722,29 +725,29 @@ def build_readme(app_name: str, slug: str, description: str) -> str:
 def build_deploy_plan(app_name: str, slug: str) -> str:
     return textwrap.dedent(
         f"""\
-        # Deploy Plan
+        # 배포 계획
 
-        ## Default Target
+        ## 기본 대상
 
-        Deploy `{app_name}` as a static PWA.
+        `{app_name}`를 정적 PWA로 배포합니다.
 
-        Recommended order:
+        권장 순서:
 
         1. GitHub Pages
         2. Cloudflare Pages
         3. Vercel
 
-        ## Deployment Steps
+        ## 배포 단계
 
-        1. Commit and push the repository to GitHub.
-        2. Enable GitHub Pages on the repository.
-        3. Let the GitHub Actions workflow build `.pages-dist` from `examples/generated_apps`.
-        4. Open the deployed `/{slug}/` URL on a phone.
-        5. Add it to the home screen.
+        1. 저장소를 GitHub에 커밋하고 push합니다.
+        2. 저장소에서 GitHub Pages를 활성화합니다.
+        3. GitHub Actions 워크플로가 `examples/generated_apps`를 기준으로 `.pages-dist`를 생성하도록 합니다.
+        4. 휴대폰에서 배포된 `/{slug}/` URL을 엽니다.
+        5. 홈 화면에 추가합니다.
 
-        ## When To Add A Backend
+        ## 백엔드가 필요한 경우
 
-        Add a backend only if one of these becomes necessary:
+        아래 조건이 생길 때만 백엔드를 추가합니다.
 
         - authenticated sync across devices
         - shared data between users
@@ -757,23 +760,23 @@ def build_deploy_plan(app_name: str, slug: str) -> str:
 def build_brief(app_name: str, idea: str) -> str:
     return textwrap.dedent(
         f"""\
-        # Brief
+        # 개요
 
-        ## App Name
+        ## 앱 이름
 
         {app_name}
 
-        ## Idea
+        ## 아이디어
 
         {idea}
 
-        ## Delivery Decision
+        ## 전달 방식 결정
 
-        Build this as an installable PWA first so it can be launched from a phone home screen without a desktop runtime.
+        데스크톱 런타임 없이 휴대폰 홈 화면에서 바로 실행할 수 있도록 우선 설치 가능한 PWA로 만듭니다.
 
-        ## Persistence
+        ## 저장 방식
 
-        Local-first browser storage.
+        브라우저 로컬 우선 저장소.
         """
     )
 

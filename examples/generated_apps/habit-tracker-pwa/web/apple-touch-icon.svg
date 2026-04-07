@@ -1,6 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <rect width="512" height="512" rx="124" fill="#177e89" />
-  <circle cx="256" cy="190" r="110" fill="rgba(255,255,255,0.18)" />
-  <text x="256" y="302" text-anchor="middle" font-size="188" font-family="Arial, sans-serif" font-weight="700" fill="#ffffff">HT</text>
+  <rect x="96" y="88" width="320" height="336" rx="92" fill="rgba(255,255,255,0.14)" />
+  <rect x="138" y="138" width="236" height="236" rx="68" fill="#ffffff" />
+  <circle cx="196" cy="198" r="18" fill="#177e89" />
+  <circle cx="256" cy="198" r="18" fill="#177e89" opacity="0.75" />
+  <circle cx="316" cy="198" r="18" fill="#177e89" opacity="0.45" />
+  <path d="M184 276l42 42 100-108" fill="none" stroke="#177e89" stroke-width="30" stroke-linecap="round" stroke-linejoin="round" />
   <title>Habit Tracker PWA</title>
 </svg>

@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#177e89" />
-    <meta name="description" content="Habit Tracker PWA is a phone-ready personal tracker generated from your idea: A habit tracker for my phone that lets me add daily habits, check them off quickly, and see streaks without needing my laptop runtime." />
+    <meta name="description" content="휴대폰에서 습관을 추가하고 빠르게 체크하며 연속 기록을 확인할 수 있도록 만든 모바일 중심 개인 트래커입니다." />
     <title>Habit Tracker PWA</title>
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.svg" />
@@ -13,33 +13,33 @@
   <body>
     <main class="shell">
       <header class="hero">
-        <p class="eyebrow">Installable personal tool</p>
+        <p class="eyebrow">설치 가능한 개인 도구</p>
         <h1>Habit Tracker PWA</h1>
-        <p class="lede">Habit Tracker PWA is a phone-ready personal tracker generated from your idea: A habit tracker for my phone that lets me add daily habits, check them off quickly, and see streaks without needing my laptop runtime.</p>
-        <button id="install-button" class="install-button" hidden>Install Habit Tracke</button>
+        <p class="lede">휴대폰에서 습관을 추가하고 빠르게 체크하며 연속 기록을 확인할 수 있도록 만든 모바일 중심 개인 트래커입니다.</p>
+        <button id="install-button" class="install-button" hidden>앱 설치</button>
       </header>
 
       <section class="panel panel--primary">
         <div class="panel-header">
           <div>
-            <p class="panel-kicker">Today</p>
-            <h2>Your habits</h2>
+            <p class="panel-kicker">오늘</p>
+            <h2>내 습관</h2>
           </div>
           <p id="today-label" class="today-label"></p>
         </div>
 
         <form id="habit-form" class="habit-form">
-          <label class="sr-only" for="habit-name">Habit name</label>
+          <label class="sr-only" for="habit-name">습관 이름</label>
           <input
             id="habit-name"
             name="habit-name"
             type="text"
             maxlength="60"
-            placeholder="Add a habit you want to track"
+            placeholder="추적할 습관을 추가하세요"
             autocomplete="off"
             required
           />
-          <button type="submit">Add</button>
+          <button type="submit">추가</button>
         </form>
 
         <ul id="habit-list" class="habit-list"></ul>
@@ -48,17 +48,17 @@
       <section class="panel panel--secondary">
         <div class="panel-header">
           <div>
-            <p class="panel-kicker">Overview</p>
-            <h2>Momentum</h2>
+            <p class="panel-kicker">개요</p>
+            <h2>진행 현황</h2>
           </div>
         </div>
         <div class="stats">
           <article class="stat-card">
-            <p class="stat-label">Completed today</p>
+            <p class="stat-label">오늘 완료</p>
             <p id="completed-count" class="stat-value">0</p>
           </article>
           <article class="stat-card">
-            <p class="stat-label">Best streak</p>
+            <p class="stat-label">최고 연속 기록</p>
             <p id="best-streak" class="stat-value">0</p>
           </article>
         </div>
@@ -72,8 +72,8 @@
           <p class="habit-meta"></p>
         </div>
         <div class="habit-actions">
-          <button class="check-button" type="button">Check in</button>
-          <button class="delete-button" type="button" aria-label="Delete habit">Delete</button>
+          <button class="check-button" type="button">체크</button>
+          <button class="delete-button" type="button" aria-label="습관 삭제">삭제</button>
         </div>
       </li>
     </template>

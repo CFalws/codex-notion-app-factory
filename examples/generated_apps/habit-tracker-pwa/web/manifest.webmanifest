@@ -1,7 +1,7 @@
 {
   "name": "Habit Tracker PWA",
   "short_name": "Habit Tracke",
-  "description": "Habit Tracker PWA is a phone-ready personal tracker generated from your idea: A habit tracker for my phone that lets me add daily habits, check them off quickly, and see streaks without needing my laptop runtime.",
+  "description": "휴대폰에서 습관을 추가하고 빠르게 체크하며 연속 기록을 확인할 수 있도록 만든 모바일 중심 개인 트래커입니다.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

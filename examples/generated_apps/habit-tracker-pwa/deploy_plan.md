@@ -1,22 +1,22 @@
-# Deploy Plan
+# 배포 계획
 
-## Default Target
+## 기본 대상
 
-Deploy `Habit Tracker PWA` as a static PWA.
+`Habit Tracker PWA`를 정적 PWA로 배포합니다.
 
-Recommended order:
+권장 순서:
 
 1. GitHub Pages
 2. Cloudflare Pages
 3. Vercel
 
-## Deployment Steps
+## 배포 단계
 
-1. Commit and push the repository to GitHub.
-2. Enable GitHub Pages on the repository.
-3. Let the GitHub Actions workflow build `.pages-dist` from `examples/generated_apps`.
-4. Open the deployed `/habit-tracker-pwa/` URL on a phone.
-5. Add it to the home screen.
+1. 저장소를 GitHub에 커밋하고 push합니다.
+2. 저장소에서 GitHub Pages를 활성화합니다.
+3. GitHub Actions 워크플로가 `examples/generated_apps`를 기준으로 `.pages-dist`를 생성하도록 합니다.
+4. 휴대폰에서 배포된 `/habit-tracker-pwa/` URL을 엽니다.
+5. 홈 화면에 추가합니다.
 
 ## When To Add A Backend
 

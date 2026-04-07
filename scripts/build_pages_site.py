@@ -32,7 +32,6 @@ def app_entries() -> list[dict]:
                 "name": spec["app_name"],
                 "description": spec.get("idea", "").strip(),
                 "delivery_target": spec.get("delivery_target", "installable-pwa"),
-                "source_dir": app_dir,
                 "web_dir": web_dir,
             }
         )
@@ -64,7 +63,7 @@ def build_index(entries: list[dict]) -> str:
               <p class="card-kicker">{entry["delivery_target"]}</p>
               <h2>{entry["name"]}</h2>
               <p>{entry["description"]}</p>
-              <span>Open app</span>
+              <span>앱 열기</span>
             </a>
             """
         )
@@ -72,11 +71,11 @@ def build_index(entries: list[dict]) -> str:
     return textwrap.dedent(
         f"""\
         <!doctype html>
-        <html lang="en">
+        <html lang="ko">
           <head>
             <meta charset="utf-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1" />
-            <title>Generated Apps</title>
+            <title>생성된 앱 목록</title>
             <style>
               :root {{
                 --bg: #f7f1e8;
@@ -157,10 +156,10 @@ def build_index(entries: list[dict]) -> str:
             <main>
               <section class="hero">
                 <p>Codex Notion App Factory</p>
-                <h1>Generated Apps</h1>
+                <h1>생성된 앱</h1>
                 <p>
-                  This site is assembled from the repository's generated app outputs and deployed with GitHub Pages.
-                  Each card links to a phone-usable app shell.
+                  이 사이트는 저장소에서 생성된 앱 결과물을 모아 GitHub Pages로 배포한 것입니다.
+                  각 카드는 스마트폰에서 바로 쓸 수 있는 앱 셸로 연결됩니다.
                 </p>
               </section>
               <section class="grid">

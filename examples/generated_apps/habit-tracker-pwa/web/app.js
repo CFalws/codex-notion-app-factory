@@ -92,8 +92,8 @@ function render() {
     empty.className = "habit-item";
     empty.innerHTML = `
       <div class="habit-copy">
-        <p class="habit-name">No habits yet</p>
-        <p class="habit-meta">Add one small daily action and check in from your home screen.</p>
+        <p class="habit-name">아직 습관이 없습니다</p>
+        <p class="habit-meta">작은 일상 습관 하나를 추가하고 홈 화면에서 바로 체크하세요.</p>
       </div>
     `;
     habitList.appendChild(empty);
@@ -117,11 +117,11 @@ function render() {
     if (checkedToday) {
       completedToday += 1;
       checkButton.classList.add("is-complete");
-      checkButton.textContent = "Done today";
+      checkButton.textContent = "오늘 완료";
     }
 
     name.textContent = habit.name;
-    meta.textContent = `Current streak ${streak} days · Best ${personalBest}`;
+    meta.textContent = `현재 ${streak}일 연속 · 최고 ${personalBest}일`;
 
     checkButton.addEventListener("click", () => {
       const nextState = readState();
