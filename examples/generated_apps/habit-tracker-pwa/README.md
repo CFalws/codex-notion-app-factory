@@ -26,7 +26,7 @@ Habit Tracker PWA는 당신의 아이디어를 바탕으로 생성된 모바일 
 ## 로컬 미리보기
 
 ```bash
-cd codex-notion-app-factory/examples/generated_apps/habit-tracker-pwa
+cd codex-app-factory/examples/generated_apps/habit-tracker-pwa
 python preview.py
 ```
 

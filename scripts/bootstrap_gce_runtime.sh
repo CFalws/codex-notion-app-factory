@@ -6,9 +6,9 @@ if [[ "${EUID}" -ne 0 ]]; then
   exit 1
 fi
 
-REPO_SRC_DEFAULT="/tmp/codex-notion-app-factory"
+REPO_SRC_DEFAULT="/tmp/codex-app-factory"
 REPO_SRC="${1:-$REPO_SRC_DEFAULT}"
-APP_ROOT="/opt/codex-notion-app-factory"
+APP_ROOT="/opt/codex-app-factory"
 SERVICE_FILE_SRC="$APP_ROOT/deploy/gce/codex-factory.service"
 NGINX_CONF_SRC="$APP_ROOT/deploy/gce/nginx-codex-factory.conf"
 ENV_FILE="/etc/codex-factory.env"
@@ -53,7 +53,7 @@ Bootstrap complete.
 
 Next required manual step:
 1. sudo -u codex -H bash
-2. cd /opt/codex-notion-app-factory
+2. cd /opt/codex-app-factory
 3. codex --login
 4. exit
 5. sudo systemctl start codex-factory

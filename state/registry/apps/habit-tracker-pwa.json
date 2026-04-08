@@ -12,7 +12,7 @@
   "delivery_type": "installable-pwa",
   "status": "active",
   "session_id": "",
-  "deployment_url": "https://cfalws.github.io/codex-notion-app-factory/examples/generated_apps/habit-tracker-pwa/",
+  "deployment_url": "https://cfalws.github.io/codex-app-factory/examples/generated_apps/habit-tracker-pwa/",
   "latest_commit": "",
   "last_summary": "Example stateful maintenance lane for the generated Habit Tracker PWA.",
   "created_at": "2026-04-08T16:19:40+00:00",

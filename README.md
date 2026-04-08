@@ -209,9 +209,15 @@ This repository is best presented as:
 
 > Built a Codex-based agent execution environment where requests entered through a phone-friendly runtime console and were converted into real app specs, deployable PWAs, stateful maintenance sessions, and code changes for personal-use software projects.
 
-## Publishing Note
+## Repository Name
 
-If I were pinning one repository to represent my agent-driven workflow, this would still be the first one, but now with a stronger claim: the workflow does not stop at implementation. It drives toward use.
+The intended repository name is `codex-app-factory`.
+
+If the GitHub repository is renamed from `codex-notion-app-factory`, update:
+
+- the GitHub remote URL
+- the GitHub Pages base path
+- any VM deployment path that still points at the old checkout name
 
 ## Why This Version Is Honest
 

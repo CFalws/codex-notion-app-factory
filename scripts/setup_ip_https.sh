@@ -32,7 +32,7 @@ server {
     }
 
     location /ops/ {
-        alias /opt/codex-notion-app-factory/examples/generated_apps/codex-ops-console/web/;
+        alias /opt/codex-app-factory/examples/generated_apps/codex-ops-console/web/;
         try_files \$uri \$uri/ /ops/index.html;
     }
 
@@ -100,7 +100,7 @@ server {
     }
 
     location /ops/ {
-        alias /opt/codex-notion-app-factory/examples/generated_apps/codex-ops-console/web/;
+        alias /opt/codex-app-factory/examples/generated_apps/codex-ops-console/web/;
         try_files \$uri \$uri/ /ops/index.html;
     }
 

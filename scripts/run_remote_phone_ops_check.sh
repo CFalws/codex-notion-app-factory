@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd /opt/codex-notion-app-factory
+cd /opt/codex-app-factory
 
 set -a
 source /etc/codex-factory.env

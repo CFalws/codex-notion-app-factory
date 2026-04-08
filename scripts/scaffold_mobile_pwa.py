@@ -702,7 +702,7 @@ def build_readme(app_name: str, slug: str, description: str) -> str:
         ## 로컬 미리보기
 
         ```bash
-        cd codex-notion-app-factory/examples/generated_apps/{slug}
+        cd codex-app-factory/examples/generated_apps/{slug}
         python preview.py
         ```
 

@@ -40,10 +40,10 @@ This is intended to stay within free-tier or free-credit testing limits where po
 From the VM:
 
 ```bash
-sudo bash /opt/codex-notion-app-factory/scripts/bootstrap_gce_runtime.sh /opt/codex-notion-app-factory
+sudo bash /opt/codex-app-factory/scripts/bootstrap_gce_runtime.sh /opt/codex-app-factory
 sudoedit /etc/codex-factory.env
 sudo -u codex -H bash
-cd /opt/codex-notion-app-factory
+cd /opt/codex-app-factory
 codex --login
 exit
 sudo systemctl start codex-factory
@@ -65,7 +65,7 @@ curl http://127.0.0.1:8787/health
 Once the service is up and Codex is logged in:
 
 ```bash
-cd /opt/codex-notion-app-factory
+cd /opt/codex-app-factory
 API_KEY=your-runtime-key ./scripts/verify_deployed_runtime.sh
 ```
 

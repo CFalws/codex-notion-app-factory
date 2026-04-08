@@ -48,7 +48,7 @@ The Python runtime is the stateful execution layer behind it:
 ## Example
 
 ```bash
-cd /Users/emil/emil/python/codex-notion-app-factory
+cd /Users/emil/emil/python/codex-app-factory
 python -m venv .venv
 source .venv/bin/activate
 pip install -e .
