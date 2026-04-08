@@ -2,18 +2,22 @@
 
 ## Objective
 
-Create a lightweight execution environment where idea capture, prioritization, and implementation happen in a consistent pipeline.
+Create a lightweight but stateful execution environment where idea capture, prioritization, implementation, and later maintenance happen in a consistent pipeline.
 
 ## Main Components
 
-### 1. Notion as the queue
+### 1. Intake surfaces
 
-Notion is used as the front-end request system because it is easy to update, tag, and organize.
+The system currently supports two intake surfaces:
 
-It functions as:
+- Notion, for structured tagged build requests
+- a runtime HTTP API, for direct maintenance requests from a phone-facing web console
+
+Together they function as:
 
 - backlog
 - project request form
+- maintenance console endpoint
 - lightweight product brief store
 
 ### 2. MCP as the context bridge
@@ -34,7 +38,17 @@ Its responsibilities are:
 - implement code changes
 - summarize delivery output
 
-### 4. Local repository as proof of work
+### 4. Codex CLI runtime as the state layer
+
+The persistent Python runtime handles:
+
+- request intake over HTTP
+- app lookup through the local registry
+- session reuse via persisted Codex thread ids
+- launch of `codex exec` or `codex exec resume` in the repository workspace
+- background job tracking for phone-originated changes
+
+### 5. Local repository as proof of work
 
 The repository is where the workflow becomes inspectable.
 
@@ -51,6 +65,7 @@ The value is not merely “used AI to help code.”
 The value is that the overall environment was designed so that:
 
 - requests arrive in a structured place
+- later requests can continue from the same app lane
 - execution happens through a repeatable agent workflow
 - outputs are durable and reviewable
 

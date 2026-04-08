@@ -5,13 +5,17 @@
 1. Capture a new app request in Notion
 2. Add the appropriate Codex execution tag
 3. Record the primary device and launch surface
-4. Open Codex in the target workspace
-5. Let Codex fetch the tagged request through MCP
-6. Codex creates planning artifacts
-7. Codex selects the smallest mobile-usable delivery target
-8. Codex implements the requested app or change
-9. Codex leaves a delivery summary and deployment notes
-10. Request is moved or retagged in Notion after completion
+4. Resolve the request to an existing app workspace when possible
+5. Load the app's stored session record and memory snapshot
+6. Open Codex in the target workspace
+7. Let Codex fetch the tagged request through MCP
+8. Codex creates or updates planning artifacts
+9. Codex selects the smallest mobile-usable delivery target
+10. Codex implements the requested app or change
+11. Codex updates the app session record, memory, and deployment notes
+12. Request is moved or retagged in Notion after completion
+
+The repository can also run a persistent HTTP runtime. In that mode, a phone-facing web console submits a request to a Python API, the API resolves the app id, reuses the stored session id, and runs the task through the local Codex CLI with `exec` or `exec resume`.
 
 ## Why This Loop Works
 
@@ -38,6 +42,7 @@ The workflow becomes weak if:
 
 - requests are too vague
 - tags are inconsistent
+- existing app updates are treated like brand-new work every time
 - artifacts are not saved
 - the implementation environment is not documented
 - the output only works while the development computer is running

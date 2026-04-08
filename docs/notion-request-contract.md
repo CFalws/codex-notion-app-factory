@@ -1,6 +1,10 @@
 # Notion Request Contract
 
-Each implementation request should follow a stable structure so Codex can act on it with minimal clarification.
+Each Notion-based implementation request should follow a stable structure so Codex can act on it with minimal clarification.
+
+This contract applies to the Notion intake path.
+
+The repository also supports a runtime HTTP intake path for phone-triggered follow-up maintenance. That path reuses the app registry instead of requiring a full Notion page every time.
 
 ## Required Fields
 

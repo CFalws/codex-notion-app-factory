@@ -1,0 +1,6 @@
+{
+  "app_id": "habit-tracker-pwa",
+  "title": "Habit Tracker PWA",
+  "workspace_path": "workspaces/habit-tracker-pwa",
+  "source_path": "examples/generated_apps/habit-tracker-pwa"
+}

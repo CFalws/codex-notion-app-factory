@@ -1,0 +1,8 @@
+{
+  "app_name": "Codex Ops Console",
+  "slug": "codex-ops-console",
+  "delivery_target": "installable-pwa",
+  "storage": "remote-runtime",
+  "idea": "A phone-first control console for sending change requests to the stateful Codex runtime and tracking job status.",
+  "theme_color": "#b14a2d"
+}

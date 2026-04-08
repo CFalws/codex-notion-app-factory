@@ -15,6 +15,10 @@ The goal is to make the execution loop consistent and demonstrable:
 
 The default quality bar is that the result should be usable from a phone, not only from the development machine.
 
+For existing apps, Codex should also prefer continuity over restart. A later change request for the same app should first check the stored app session record and memory snapshot.
+
+When the runtime API is used, Codex should assume the request entered through the web console or another HTTP client and preserve the same app session across later follow-up requests.
+
 ## Trigger Rules
 
 Codex should treat a Notion page as executable work only when it includes one of these tags:
@@ -42,6 +46,7 @@ Default assumptions for personal tools:
 - target device is phone first
 - delivery target is installable PWA
 - deployment target is static hosting unless backend features are required
+- existing apps should reuse their stored workspace and session context when possible
 
 ## Execution Modes
 
@@ -66,6 +71,13 @@ Generate:
 - source code changes in the target workspace
 
 Unless the request says otherwise, produce output that can be launched on a phone without the local desktop runtime remaining active.
+
+When the request targets an existing app:
+
+- load the app record from `state/registry/apps/`
+- load the memory snapshot from `state/memory/`
+- reuse the app workspace under `workspaces/`
+- update the session record after the change is complete
 
 ### `codex-review`
 

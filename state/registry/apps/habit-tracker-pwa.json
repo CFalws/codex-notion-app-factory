@@ -1,0 +1,20 @@
+{
+  "app_id": "habit-tracker-pwa",
+  "title": "Habit Tracker PWA",
+  "aliases": [
+    "habit",
+    "tracker",
+    "habits"
+  ],
+  "workspace_path": "workspaces/habit-tracker-pwa",
+  "source_path": "examples/generated_apps/habit-tracker-pwa",
+  "platform": "phone-first-web",
+  "delivery_type": "installable-pwa",
+  "status": "active",
+  "session_id": "",
+  "deployment_url": "https://cfalws.github.io/codex-notion-app-factory/examples/generated_apps/habit-tracker-pwa/",
+  "latest_commit": "",
+  "last_summary": "Example stateful maintenance lane for the generated Habit Tracker PWA.",
+  "created_at": "2026-04-08T16:19:40+00:00",
+  "updated_at": "2026-04-08T20:00:00+00:00"
+}

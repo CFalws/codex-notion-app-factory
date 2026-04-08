@@ -1,0 +1,18 @@
+[Unit]
+Description=Codex Notion App Factory Runtime
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=codex
+Group=codex
+WorkingDirectory=/opt/codex-notion-app-factory
+EnvironmentFile=/etc/codex-factory.env
+ExecStart=/opt/codex-notion-app-factory/.venv/bin/python /opt/codex-notion-app-factory/scripts/run_codex_agents_api.py
+Restart=always
+RestartSec=5
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target

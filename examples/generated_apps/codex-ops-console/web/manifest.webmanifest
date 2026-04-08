@@ -1,0 +1,23 @@
+{
+  "name": "Codex Ops Console",
+  "short_name": "Ops Console",
+  "description": "상태 유지형 Codex 런타임에 수정 요청을 보내는 운영 콘솔입니다.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7efe7",
+  "theme_color": "#201915",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./apple-touch-icon.svg",
+      "sizes": "180x180",
+      "type": "image/svg+xml"
+    }
+  ]
+}

@@ -8,6 +8,8 @@ This file is the fastest way to inspect the end-to-end result.
 - Execution rules: [AGENTS.md](/Users/emil/emil/python/codex-notion-app-factory/AGENTS.md)
 - Operating model: [operating-model.md](/Users/emil/emil/python/codex-notion-app-factory/docs/operating-model.md)
 - Request contract: [notion-request-contract.md](/Users/emil/emil/python/codex-notion-app-factory/docs/notion-request-contract.md)
+- Runtime layer: [agents-sdk-runtime.md](/Users/emil/emil/python/codex-notion-app-factory/docs/agents-sdk-runtime.md)
+- Stateful maintenance: [stateful-session-loop.md](/Users/emil/emil/python/codex-notion-app-factory/docs/stateful-session-loop.md)
 
 ## 2. Sample Intake Request
 
@@ -45,3 +47,10 @@ The shortest credible story for this repository is:
 2. Codex reads the request contract and produces planning artifacts.
 3. Codex implements the sample app in the target workspace.
 4. Validation outputs are written so the result is inspectable.
+
+The current runtime extends that story:
+
+1. Existing apps keep an `app_id`, workspace, session id, and memory snapshot.
+2. A phone-facing runtime console can send a follow-up request over HTTP.
+3. The Python runtime reuses the app session through the local Codex CLI thread id.
+4. The GitHub Pages site continues to host the phone-facing web surfaces.

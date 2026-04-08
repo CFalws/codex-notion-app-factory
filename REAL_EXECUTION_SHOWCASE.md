@@ -2,6 +2,10 @@
 
 This file shows the cleanest proof path for the real Notion-backed sample generated in this session.
 
+It documents the original Notion execution path.
+
+The repository now also includes a runtime HTTP path for later maintenance requests, but this file remains focused on the original real Notion-backed build.
+
 ## 1. Real Notion Intake
 
 - Created page URL: [Notion request](https://www.notion.so/33a75a96562381acab11eb9a05246a0a)

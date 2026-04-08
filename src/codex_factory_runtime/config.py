@@ -1,0 +1,86 @@
+from __future__ import annotations
+
+import json
+import os
+from dataclasses import dataclass
+from pathlib import Path
+
+
+def _env_bool(name: str, default: bool) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _env_list(name: str) -> list[str]:
+    raw = os.getenv(name, "").strip()
+    if not raw:
+        return []
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError:
+        return [item.strip() for item in raw.split(",") if item.strip()]
+    if isinstance(parsed, list):
+        return [str(item) for item in parsed]
+    raise ValueError(f"{name} must be a JSON array or comma-separated list.")
+
+
+def _env_path(name: str) -> Path | None:
+    raw = os.getenv(name, "").strip()
+    if not raw:
+        return None
+    return Path(raw).expanduser().resolve()
+
+
+@dataclass(frozen=True)
+class RuntimeSettings:
+    repo_root: Path
+    state_root: Path
+    registry_root: Path
+    requests_root: Path
+    runtime_root: Path
+    jobs_root: Path
+    proposals_root: Path
+    worktrees_root: Path
+    host: str
+    port: int
+    codex_command: str
+    codex_args: list[str]
+    codex_home: Path | None
+    codex_profile: str
+    codex_model: str
+    codex_sandbox: str
+    codex_skip_git_repo_check: bool
+    cors_allowed_origins: list[str]
+    auto_execute_requests: bool
+    runtime_api_key: str
+
+
+def load_settings() -> RuntimeSettings:
+    repo_root = Path(os.getenv("CODEX_FACTORY_REPO_ROOT", Path(__file__).resolve().parents[2])).resolve()
+    state_root = Path(os.getenv("CODEX_FACTORY_STATE_ROOT", repo_root / "state")).expanduser().resolve()
+    runtime_root = state_root / "runtime"
+    codex_home = _env_path("CODEX_HOME")
+    return RuntimeSettings(
+        repo_root=repo_root,
+        state_root=state_root,
+        registry_root=state_root / "registry" / "apps",
+        requests_root=state_root / "requests",
+        runtime_root=runtime_root,
+        jobs_root=runtime_root / "jobs",
+        proposals_root=runtime_root / "proposals",
+        worktrees_root=runtime_root / "worktrees",
+        host=os.getenv("CODEX_FACTORY_HOST", "0.0.0.0"),
+        port=int(os.getenv("CODEX_FACTORY_PORT", "8787")),
+        codex_command=os.getenv("CODEX_COMMAND", "codex").strip(),
+        codex_args=_env_list("CODEX_ARGS_JSON"),
+        codex_home=codex_home,
+        codex_profile=os.getenv("CODEX_PROFILE", "").strip(),
+        codex_model=os.getenv("CODEX_MODEL", "").strip(),
+        codex_sandbox=os.getenv("CODEX_SANDBOX", "workspace-write").strip(),
+        codex_skip_git_repo_check=_env_bool("CODEX_SKIP_GIT_REPO_CHECK", True),
+        cors_allowed_origins=_env_list("CODEX_FACTORY_CORS_ALLOWED_ORIGINS"),
+        auto_execute_requests=_env_bool("CODEX_FACTORY_AUTO_EXECUTE", True),
+        runtime_api_key=os.getenv("CODEX_FACTORY_API_KEY", "").strip(),
+    )

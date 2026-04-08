@@ -2,7 +2,7 @@
 
 ## Objective
 
-Turn an idea captured in Notion into a personal app that is actually usable from a phone.
+Turn an idea captured in Notion or submitted through the runtime console into a personal app that is actually usable from a phone.
 
 The default assumption is:
 
@@ -62,13 +62,15 @@ For personal apps, this keeps deployment simple and reduces maintenance.
 
 ## Agentic Build Loop
 
-1. Capture the app request in Notion
+1. Capture the app request in Notion or send a follow-up request through the runtime console
 2. Infer the smallest mobile-usable delivery target
 3. Generate `spec.md`, `implementation_plan.md`, and `tasks.md`
 4. Scaffold the app with installability and deployment in mind
 5. Produce a runnable preview
 6. Produce deployment instructions or config
 7. Leave a delivery summary that includes phone install steps
+
+For existing apps, the runtime should also preserve the app session so repeated phone requests can continue from the same maintenance lane.
 
 ## Recommended Output Contract
 
@@ -84,7 +86,7 @@ Each mobile-oriented build should leave behind:
 
 ## Deployment Default
 
-Use static hosting first.
+Use static hosting first for the phone-facing surface.
 
 Recommended order:
 
@@ -97,6 +99,11 @@ If the app needs a backend:
 - add the thinnest possible API layer
 - prefer serverless or edge functions
 - keep the mobile client usable even if sync is unavailable
+
+For this repository, the default split is:
+
+- GitHub Pages for installable PWA surfaces
+- a persistent Python runtime on an always-on machine or VPS for stateful maintenance
 
 ## Example
 

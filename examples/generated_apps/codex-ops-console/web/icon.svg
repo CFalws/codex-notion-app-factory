@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="128" fill="#201915" />
+  <defs>
+    <linearGradient id="opsGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f2a65a" />
+      <stop offset="100%" stop-color="#b14a2d" />
+    </linearGradient>
+  </defs>
+  <rect x="88" y="112" width="336" height="288" rx="44" fill="#fff6ee" opacity="0.96" />
+  <rect x="120" y="146" width="272" height="52" rx="20" fill="url(#opsGradient)" />
+  <circle cx="160" cy="278" r="22" fill="#201915" />
+  <path d="M214 278h126" stroke="#201915" stroke-width="20" stroke-linecap="round" />
+  <circle cx="160" cy="344" r="22" fill="#201915" />
+  <path d="M214 344h88" stroke="#201915" stroke-width="20" stroke-linecap="round" />
+  <path d="M344 318l18 18 36-42" fill="none" stroke="#b14a2d" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" />
+  <title>Codex Ops Console</title>
+</svg>
