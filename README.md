@@ -48,10 +48,8 @@ This is not a chatbot demo. It is an operating model for turning idea capture in
 
 - runtime HTTP intake for phone-triggered maintenance
 - explicit request contract and execution rules
-- generated intermediate artifacts such as brief, spec, plan, and tasks
+- generated planning artifacts such as brief, spec, plan, and tasks
 - mobile-first scaffolding for installable PWAs
-- local sample apps produced from those requests
-- validation artifacts that make the output inspectable
 - app-specific workspace and session state management
 - GitHub Pages deployment for the phone-facing static surfaces
 
@@ -166,8 +164,6 @@ Each request produces concrete outputs in the local repository:
   Dedicated app-specific workspaces used for stateful maintenance.
 - `templates/app_request.md`
   A reusable request template for structured app requests.
-- `examples/generated_apps/sample-focus-launcher/`
-  Example artifacts showing what a single intake request can produce.
 - `examples/generated_apps/habit-tracker-pwa/`
   Example output generated for a mobile habit tracker.
 - `examples/generated_apps/codex-ops-console/`
@@ -193,22 +189,17 @@ The system produces:
 - actual code changes in the target repository
 - a delivery target that can be launched from a phone
 
-## Real Execution Proof
+## Current Surfaces
 
-This repository includes real session-backed examples and a mobile-first scaffold:
+The repository keeps only the current operator-facing surfaces:
 
-- a real runtime request was submitted
-- the request was persisted locally
-- a working sample app called `Momentum Timer` was implemented from that request
-- validation artifacts were saved
-- a mobile habit tracker scaffold can be generated into an installable PWA shell
-- a phone-facing operator console can submit follow-up requests to the runtime
-
-See `REAL_EXECUTION_SHOWCASE.md` for the full path.
+- `codex-ops-console` for mobile request submission
+- `habit-tracker-pwa` as the maintained example app lane
+- runtime state, workspaces, and deployment scripts that support the live maintenance loop
 
 ## My Implementation Scope
 
-I designed the workflow, request contract, execution rules, example artifacts, and the sample generated apps included in this repository.
+I designed the workflow, request contract, execution rules, runtime, deployment path, and the current operator and example app surfaces included in this repository.
 
 This is not a mock architecture document. It is a working portfolio repository showing how I structure agent-led product implementation.
 
