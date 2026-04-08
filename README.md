@@ -159,7 +159,7 @@ Each request produces concrete outputs in the local repository:
 - `scripts/build_pages_site.py`
   Assembles generated app outputs into a Pages-ready static bundle.
 - `state/`
-  Durable registry, memory, and request history for existing apps.
+  Durable registry, memory, engineering logs, and request history for existing apps.
 - `workspaces/`
   Dedicated app-specific workspaces used for stateful maintenance.
 - `templates/app_request.md`

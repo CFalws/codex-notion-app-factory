@@ -79,6 +79,37 @@ class RuntimeState:
         memory_path.parent.mkdir(parents=True, exist_ok=True)
         memory_path.write_text(updated, encoding="utf-8")
 
+    def append_engineering_log(
+        self,
+        *,
+        app_id: str,
+        title: str,
+        job_id: str,
+        request_id: str,
+        summary: dict[str, Any],
+    ) -> None:
+        log_path = self.settings.state_root / "engineering-log.md"
+        existing = (
+            log_path.read_text(encoding="utf-8")
+            if log_path.exists()
+            else "# Engineering Log\n\nThis file is appended automatically after runtime jobs and proposal applies.\n"
+        )
+        sections = [
+            f"## {utc_now()} · {app_id} · {title}",
+            f"- job_id: `{job_id}`",
+            f"- request_id: `{request_id}`",
+            f"- goal: {summary.get('goal', '').strip() or '(not provided)'}",
+            f"- system_area: {summary.get('system_area', '').strip() or '(not provided)'}",
+            f"- decision: {summary.get('decision', '').strip() or '(not provided)'}",
+            f"- why: {summary.get('why', '').strip() or '(not provided)'}",
+            f"- tradeoff: {summary.get('tradeoff', '').strip() or '(not provided)'}",
+            f"- issue_encountered: {summary.get('issue_encountered', '').strip() or '(none)'}",
+            f"- verification: {summary.get('verification', '').strip() or '(not provided)'}",
+            f"- follow_up: {summary.get('follow_up', '').strip() or '(none)'}",
+        ]
+        updated = existing.rstrip() + "\n\n" + "\n".join(sections) + "\n"
+        log_path.write_text(updated, encoding="utf-8")
+
     def create_request(
         self,
         *,
@@ -122,6 +153,7 @@ class RuntimeState:
             "completed_at": "",
             "error": "",
             "result_summary": "",
+            "decision_summary": {},
         }
         self._write_json(self.settings.jobs_root / f"{job_id}.json", payload)
         return payload

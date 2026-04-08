@@ -10,6 +10,19 @@ from typing import Any
 from .config import RuntimeSettings
 from .state import RuntimeState, utc_now
 
+ENGINEERING_LOG_START = "ENGINEERING_LOG_JSON_START"
+ENGINEERING_LOG_END = "ENGINEERING_LOG_JSON_END"
+ENGINEERING_LOG_FIELDS = (
+    "goal",
+    "system_area",
+    "decision",
+    "why",
+    "tradeoff",
+    "issue_encountered",
+    "verification",
+    "follow_up",
+)
+
 
 class CodexAgentsRuntime:
     def __init__(self, settings: RuntimeSettings, state: RuntimeState) -> None:
@@ -100,6 +113,15 @@ After completing the work, provide:
 1. the key code changes,
 2. any deployment-impacting notes,
 3. the next best follow-up action if the work should continue.
+
+Then append a machine-readable engineering log block at the very end of your final answer.
+Rules for the block:
+- Use the exact marker line {ENGINEERING_LOG_START}
+- Follow it with a valid JSON object
+- Use only these keys: goal, system_area, decision, why, tradeoff, issue_encountered, verification, follow_up
+- Put plain strings in every field
+- Do not wrap the JSON in markdown fences
+- Close with the exact marker line {ENGINEERING_LOG_END}
 {proposal_tail if proposal_tail else ""}
 """.strip()
 
@@ -171,6 +193,86 @@ After completing the work, provide:
                 return str(payload["thread_id"])
         return ""
 
+    def _extract_engineering_log_json(self, final_output: str) -> tuple[str, dict[str, Any] | None]:
+        start = final_output.find(ENGINEERING_LOG_START)
+        if start == -1:
+            return final_output.strip(), None
+        end = final_output.find(ENGINEERING_LOG_END, start)
+        if end == -1:
+            return final_output.strip(), None
+
+        json_text = final_output[start + len(ENGINEERING_LOG_START) : end].strip()
+        prefix = final_output[:start].rstrip()
+        suffix = final_output[end + len(ENGINEERING_LOG_END) :].strip()
+        clean_output = prefix if not suffix else f"{prefix}\n\n{suffix}".strip()
+
+        try:
+            payload = json.loads(json_text)
+        except json.JSONDecodeError:
+            return clean_output, None
+        if not isinstance(payload, dict):
+            return clean_output, None
+        return clean_output, payload
+
+    def _default_decision_summary(
+        self,
+        request_payload: dict[str, Any],
+        *,
+        clean_summary: str = "",
+        error_message: str = "",
+        system_area: str = "execution",
+        decision: str = "",
+        why: str = "",
+        verification: str = "",
+        follow_up: str = "",
+    ) -> dict[str, str]:
+        summary_first_line = next((line.strip() for line in clean_summary.splitlines() if line.strip()), "")
+        return {
+            "goal": str(request_payload.get("title") or request_payload.get("request_text") or "Continue the requested app work.").strip(),
+            "system_area": system_area,
+            "decision": decision or summary_first_line or ("Run failed before a final summary." if error_message else "Applied the requested change."),
+            "why": why or "Keep the app lane moving with the smallest reasonable change.",
+            "tradeoff": "",
+            "issue_encountered": error_message,
+            "verification": verification or ("job failed" if error_message else "job completed"),
+            "follow_up": follow_up,
+        }
+
+    def _normalize_decision_summary(
+        self,
+        request_payload: dict[str, Any],
+        parsed: dict[str, Any] | None,
+        *,
+        clean_summary: str,
+        error_message: str = "",
+        system_area: str = "execution",
+        decision: str = "",
+        why: str = "",
+        verification: str = "",
+        follow_up: str = "",
+    ) -> dict[str, str]:
+        summary = self._default_decision_summary(
+            request_payload,
+            clean_summary=clean_summary,
+            error_message=error_message,
+            system_area=system_area,
+            decision=decision,
+            why=why,
+            verification=verification,
+            follow_up=follow_up,
+        )
+        if not parsed:
+            return summary
+        for field in ENGINEERING_LOG_FIELDS:
+            value = parsed.get(field, "")
+            if isinstance(value, list):
+                text = ", ".join(str(item).strip() for item in value if str(item).strip())
+            else:
+                text = str(value).strip()
+            if text:
+                summary[field] = text
+        return summary
+
     def _build_failure_message(self, returncode: int, stdout_text: str, stderr_text: str) -> str:
         for source in (stderr_text, stdout_text):
             for line in reversed(source.splitlines()):
@@ -219,6 +321,7 @@ After completing the work, provide:
         git_show_stat: str = "",
         base_commit: str = "",
         head_commit: str = "",
+        decision_summary: dict[str, str] | None = None,
     ) -> dict[str, Any]:
         return {
             "job_id": job_id,
@@ -234,6 +337,7 @@ After completing the work, provide:
             "restart_service": str(record.get("restart_service") or "").strip(),
             "allowed_paths": record.get("allowed_paths") or [],
             "result_summary": result_summary,
+            "decision_summary": decision_summary or {},
             "git_status": git_status,
             "git_show_stat": git_show_stat,
             "created_at": utc_now(),
@@ -247,6 +351,7 @@ After completing the work, provide:
         request_payload: dict[str, Any],
         job_context: dict[str, str],
         final_output: str,
+        decision_summary: dict[str, str],
     ) -> dict[str, Any]:
         worktree_path = Path(job_context["worktree_path"])
         head_commit = await self._git_output(worktree_path, "rev-parse", "HEAD")
@@ -264,6 +369,7 @@ After completing the work, provide:
             git_show_stat=diff_stat,
             base_commit=base_commit,
             head_commit=head_commit,
+            decision_summary=decision_summary,
         )
         self.state.save_proposal(proposal)
         return proposal
@@ -295,11 +401,49 @@ After completing the work, provide:
                 f"Applied proposal commit but failed to schedule restart for {service_name}: {(stderr_text or stdout_text).strip()}"
             )
 
-    async def run_request(self, app_id: str, job_id: str, request_payload: dict[str, Any]) -> dict[str, Any]:
-        if not self.settings.codex_command:
-            raise RuntimeError("CODEX_COMMAND is not configured.")
+    def _append_engineering_log(
+        self,
+        *,
+        app_id: str,
+        title: str,
+        job_id: str,
+        request_id: str,
+        decision_summary: dict[str, str],
+    ) -> None:
+        self.state.append_engineering_log(
+            app_id=app_id,
+            title=title,
+            job_id=job_id,
+            request_id=request_id,
+            summary=decision_summary,
+        )
 
+    async def run_request(self, app_id: str, job_id: str, request_payload: dict[str, Any]) -> dict[str, Any]:
         record = self.state.get_app(app_id)
+        if not self.settings.codex_command:
+            decision_summary = self._default_decision_summary(
+                request_payload,
+                error_message="CODEX_COMMAND is not configured.",
+                decision="Runtime could not start Codex.",
+                why="The runtime requires a configured Codex CLI command before executing jobs.",
+                verification="job failed before execution",
+                follow_up="Set CODEX_COMMAND and retry the request.",
+            )
+            self._append_engineering_log(
+                app_id=app_id,
+                title=request_payload["title"],
+                job_id=job_id,
+                request_id=request_payload["request_id"],
+                decision_summary=decision_summary,
+            )
+            return self.state.update_job(
+                job_id,
+                status="failed",
+                completed_at=utc_now(),
+                error="CODEX_COMMAND is not configured.",
+                decision_summary=decision_summary,
+            )
+
         session_id = str(record.get("session_id", "")).strip()
         output_path = self.settings.jobs_root / f"{job_id}.last-message.txt"
         job_context: dict[str, str] | None = None
@@ -335,22 +479,75 @@ After completing the work, provide:
 
             if returncode != 0:
                 error_message = self._build_failure_message(returncode, stdout_text, stderr_text)
+                decision_summary = self._default_decision_summary(
+                    request_payload,
+                    clean_summary=final_output,
+                    error_message=error_message,
+                    decision="Codex execution failed.",
+                    why="The runtime attempted the request but the Codex CLI returned a non-zero exit status.",
+                    verification="job failed after codex exec returned an error",
+                    follow_up="Inspect the job error and retry after fixing the underlying issue.",
+                )
                 self.state.save_app(record)
+                self._append_engineering_log(
+                    app_id=app_id,
+                    title=request_payload["title"],
+                    job_id=job_id,
+                    request_id=request_payload["request_id"],
+                    decision_summary=decision_summary,
+                )
+                if job_context is not None:
+                    proposal = self._proposal_payload(
+                        record,
+                        job_id,
+                        request_payload,
+                        job_context,
+                        status="failed",
+                        result_summary=final_output,
+                        decision_summary=decision_summary,
+                    )
+                    self.state.save_proposal(proposal)
                 return self.state.update_job(
                     job_id,
                     status="failed",
                     completed_at=utc_now(),
                     error=error_message,
+                    result_summary=final_output,
+                    decision_summary=decision_summary,
                 )
 
             final_output = final_output or "Codex run completed without a final message."
-            record["last_summary"] = final_output
+            clean_summary, parsed_summary = self._extract_engineering_log_json(final_output)
+            clean_summary = clean_summary or "Codex run completed without a final message."
+            decision_summary = self._normalize_decision_summary(
+                request_payload,
+                parsed_summary,
+                clean_summary=clean_summary,
+                system_area="execution",
+                verification="job completed",
+            )
+
+            record["last_summary"] = clean_summary
             self.state.save_app(record)
-            self.state.append_memory(app_id, f"Agent Run {utc_now()}", final_output)
+            self.state.append_memory(app_id, f"Agent Run {utc_now()}", clean_summary)
+            self._append_engineering_log(
+                app_id=app_id,
+                title=request_payload["title"],
+                job_id=job_id,
+                request_id=request_payload["request_id"],
+                decision_summary=decision_summary,
+            )
 
             extra_fields: dict[str, Any] = {}
             if job_context is not None:
-                proposal = await self._finalize_proposal(record, job_id, request_payload, job_context, final_output)
+                proposal = await self._finalize_proposal(
+                    record,
+                    job_id,
+                    request_payload,
+                    job_context,
+                    clean_summary,
+                    decision_summary,
+                )
                 extra_fields["proposal"] = {
                     "job_id": proposal["job_id"],
                     "branch_name": proposal["branch_name"],
@@ -362,11 +559,29 @@ After completing the work, provide:
                 job_id,
                 status="completed",
                 completed_at=utc_now(),
-                result_summary=final_output,
+                result_summary=clean_summary,
                 error="",
+                decision_summary=decision_summary,
                 **extra_fields,
             )
-        except Exception:
+        except Exception as exc:
+            error_message = str(exc)
+            decision_summary = self._default_decision_summary(
+                request_payload,
+                error_message=error_message,
+                decision="Runtime failed before the job could finish.",
+                why="A runtime exception interrupted the normal Codex execution flow.",
+                verification="job failed because of a runtime exception",
+                follow_up="Inspect the server traceback and retry once the runtime issue is fixed.",
+            )
+            self.state.save_app(record)
+            self._append_engineering_log(
+                app_id=app_id,
+                title=request_payload["title"],
+                job_id=job_id,
+                request_id=request_payload["request_id"],
+                decision_summary=decision_summary,
+            )
             if job_context is not None:
                 proposal = self._proposal_payload(
                     record,
@@ -374,9 +589,16 @@ After completing the work, provide:
                     request_payload,
                     job_context,
                     status="failed",
+                    decision_summary=decision_summary,
                 )
                 self.state.save_proposal(proposal)
-            raise
+            return self.state.update_job(
+                job_id,
+                status="failed",
+                completed_at=utc_now(),
+                error=error_message,
+                decision_summary=decision_summary,
+            )
 
     async def apply_proposal(self, job_id: str) -> dict[str, Any]:
         proposal = self.state.get_proposal(job_id)
@@ -395,6 +617,27 @@ After completing the work, provide:
 
         proposal["status"] = "applied"
         proposal["applied_at"] = utc_now()
+        decision_summary = self._normalize_decision_summary(
+            {
+                "title": proposal.get("title") or f"Apply proposal {job_id}",
+                "request_text": proposal.get("result_summary") or "",
+            },
+            proposal.get("decision_summary") if isinstance(proposal.get("decision_summary"), dict) else None,
+            clean_summary=str(proposal.get("result_summary") or "").strip(),
+            system_area="approval, deployment",
+            decision="Applied an approved proposal branch to the runtime repository.",
+            why="Proposal mode keeps self-edits reviewable before they change the running system.",
+            verification="proposal merged into the repository; restart scheduled" if restart_service else "proposal merged into the repository",
+            follow_up="Confirm the service is healthy after the restart completes." if restart_service else "Confirm the merged change behaves as expected.",
+        )
+        proposal["decision_summary"] = decision_summary
         self.state.save_proposal(proposal)
+        self._append_engineering_log(
+            app_id=str(proposal.get("app_id") or "factory-runtime"),
+            title=f"Apply proposal: {proposal.get('title') or job_id}",
+            job_id=job_id,
+            request_id=str(proposal.get("request_id") or job_id),
+            decision_summary=decision_summary,
+        )
         await self._cleanup_proposal_worktree(proposal["worktree_path"], proposal["branch_name"])
         return proposal

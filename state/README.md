@@ -6,6 +6,7 @@ Tracked:
 
 - `registry/apps/`
 - `memory/`
+- `engineering-log.md`
 - `requests/.gitkeep`
 
 Ignored:

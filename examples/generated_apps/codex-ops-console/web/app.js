@@ -12,8 +12,21 @@ const selectedAppUrl = document.getElementById("selected-app-url");
 const statusOutput = document.getElementById("status-output");
 const jobMeta = document.getElementById("job-meta");
 const installButton = document.getElementById("install-button");
+const learningSummary = document.getElementById("learning-summary");
+const learningMeta = document.getElementById("learning-meta");
 
 const STORAGE_KEY = "codex-ops-console";
+const DECISION_FIELDS = [
+  ["goal", "문제"],
+  ["system_area", "영향 범위"],
+  ["decision", "선택"],
+  ["why", "왜 이 방식인가"],
+  ["tradeoff", "트레이드오프"],
+  ["issue_encountered", "실제 문제"],
+  ["verification", "검증"],
+  ["follow_up", "다음 단계"],
+];
+
 let deferredInstallPrompt = null;
 let pollingTimer = null;
 let latestProposalJobId = "";
@@ -133,6 +146,40 @@ function describeJob(payload) {
   return lines.join("\n");
 }
 
+function clearLearningSummary(message = "작업이 끝나면 여기에서 설계 판단과 검증 내용을 바로 읽을 수 있습니다.") {
+  learningMeta.textContent = "아직 기록된 학습 로그가 없습니다.";
+  learningSummary.innerHTML = `<p class="learning-empty">${message}</p>`;
+}
+
+function renderLearningSummary(payload, heading) {
+  const summary = payload && typeof payload.decision_summary === "object" ? payload.decision_summary : null;
+  const cards = [];
+  if (summary) {
+    for (const [key, label] of DECISION_FIELDS) {
+      const value = typeof summary[key] === "string" ? summary[key].trim() : "";
+      if (!value) {
+        continue;
+      }
+      cards.push(`
+        <article class="learning-card">
+          <p class="learning-label">${label}</p>
+          <p class="learning-value">${value}</p>
+        </article>
+      `);
+    }
+  }
+
+  if (!cards.length) {
+    clearLearningSummary("이번 작업에는 아직 구조화된 학습 로그가 없습니다.");
+    return;
+  }
+
+  const title = payload?.title ? `${heading} · ${payload.title}` : heading;
+  const status = payload?.status ? payload.status.toUpperCase() : "RECORDED";
+  learningMeta.textContent = `${status} · ${title}`;
+  learningSummary.innerHTML = cards.join("");
+}
+
 async function loadApps() {
   const baseUrl = normalizeBaseUrl();
   if (!baseUrl) {
@@ -161,6 +208,7 @@ async function loadApps() {
       updateSelectedAppCard();
       setStatus("등록된 앱이 없습니다. 서버의 state/registry/apps를 확인하세요.");
       setJobMeta("앱이 등록되면 여기에서 작업 상태를 추적합니다.");
+      clearLearningSummary();
       return;
     }
 
@@ -190,6 +238,7 @@ async function pollJob(jobId) {
     const payload = await fetchJson(`${baseUrl}/api/jobs/${jobId}`);
     setStatus(describeJob(payload));
     setJobMeta(`${payload.status.toUpperCase()} · ${payload.job_id}`);
+    renderLearningSummary(payload, "이번 작업에서 배운 점");
     latestProposalJobId = payload.proposal ? payload.proposal.job_id : "";
     updateProposalButton();
 
@@ -208,6 +257,7 @@ async function pollJob(jobId) {
     setJobMeta("작업 상태 조회 실패");
     latestProposalJobId = "";
     updateProposalButton();
+    clearLearningSummary("작업 상태 조회에 실패해서 학습 로그를 불러오지 못했습니다.");
   }
 }
 
@@ -238,6 +288,7 @@ async function sendRequest() {
   sendRequestButton.disabled = true;
   latestProposalJobId = "";
   updateProposalButton();
+  clearLearningSummary("작업이 끝나면 이번 수정의 판단 근거와 검증 결과가 여기에 정리됩니다.");
   setStatus("에이전트 작업을 등록하는 중...");
   setJobMeta(`${app.title} · 요청 전송 중`);
 
@@ -274,6 +325,7 @@ async function sendRequest() {
   } catch (error) {
     setStatus(`요청 전송에 실패했습니다.\n\n${error.message}`);
     setJobMeta("요청 전송 실패");
+    clearLearningSummary("요청이 실패해서 학습 로그가 생성되지 않았습니다.");
   } finally {
     sendRequestButton.disabled = false;
   }
@@ -308,10 +360,12 @@ async function applyProposal() {
       ].join("\n"),
     );
     setJobMeta(`APPLIED · ${payload.job_id}`);
+    renderLearningSummary(payload, "제안 적용에서 배운 점");
   } catch (error) {
     setStatus(`proposal 적용에 실패했습니다.\n\n${error.message}`);
     setJobMeta("proposal 적용 실패");
     updateProposalButton();
+    clearLearningSummary("proposal 적용이 실패해서 새 학습 로그를 표시하지 못했습니다.");
   }
 }
 
@@ -361,6 +415,7 @@ applyProposalButton.addEventListener("click", applyProposal);
 loadSettings();
 updateSelectedAppCard();
 updateProposalButton();
+clearLearningSummary();
 if (backendInput.value) {
   loadApps();
 }
