@@ -1,4 +1,4 @@
-const CACHE_NAME = "codex-ops-console-v1";
+const CACHE_NAME = "codex-ops-console-v2";
 const ASSETS = [
   "./",
   "./index.html",
@@ -25,6 +25,31 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") {
+    return;
+  }
+
+  const url = new URL(event.request.url);
+  const sameOrigin = url.origin === self.location.origin;
+  const isAppShellAsset =
+    sameOrigin &&
+    (url.pathname.endsWith("/ops/") ||
+      url.pathname.endsWith("/ops/index.html") ||
+      url.pathname.endsWith("/ops/app.js") ||
+      url.pathname.endsWith("/ops/styles.css") ||
+      url.pathname.endsWith("/ops/service-worker.js"));
+
+  if (isAppShellAsset) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const responseClone = response.clone();
+          event.waitUntil(
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone)),
+          );
+          return response;
+        })
+        .catch(() => caches.match(event.request)),
+    );
     return;
   }
 

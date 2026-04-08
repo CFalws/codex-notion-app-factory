@@ -401,6 +401,22 @@ Rules for the block:
                 f"Applied proposal commit but failed to schedule restart for {service_name}: {(stderr_text or stdout_text).strip()}"
             )
 
+    async def _push_applied_branch(self) -> tuple[bool, str]:
+        repo_root = self.settings.repo_root
+        returncode, stdout_text, stderr_text = await self._run_command(
+            [
+                "git",
+                "push",
+                self.settings.push_remote,
+                f"HEAD:{self.settings.push_branch}",
+            ],
+            cwd=repo_root,
+        )
+        detail = (stderr_text or stdout_text).strip()
+        if returncode == 0 and not detail:
+            detail = f"Pushed HEAD to {self.settings.push_remote}/{self.settings.push_branch}."
+        return returncode == 0, detail
+
     def _append_engineering_log(
         self,
         *,
@@ -615,8 +631,19 @@ Rules for the block:
         if restart_service:
             await self._schedule_restart(restart_service)
 
-        proposal["status"] = "applied"
+        push_status = "skipped"
+        push_message = "Push after apply is disabled."
+        if self.settings.push_after_apply:
+            pushed, push_message = await self._push_applied_branch()
+            push_status = "pushed" if pushed else "failed"
+
+        proposal["status"] = "applied" if push_status != "failed" else "applied_local_push_failed"
         proposal["applied_at"] = utc_now()
+        proposal["push_status"] = push_status
+        proposal["push_remote"] = self.settings.push_remote
+        proposal["push_branch"] = self.settings.push_branch
+        proposal["push_message"] = push_message
+        proposal["pushed_at"] = utc_now() if push_status == "pushed" else ""
         decision_summary = self._normalize_decision_summary(
             {
                 "title": proposal.get("title") or f"Apply proposal {job_id}",
@@ -625,10 +652,36 @@ Rules for the block:
             proposal.get("decision_summary") if isinstance(proposal.get("decision_summary"), dict) else None,
             clean_summary=str(proposal.get("result_summary") or "").strip(),
             system_area="approval, deployment",
-            decision="Applied an approved proposal branch to the runtime repository.",
+            decision=(
+                f"Applied the approved proposal locally and pushed {self.settings.push_remote}/{self.settings.push_branch}."
+                if push_status == "pushed"
+                else "Applied the approved proposal locally, but the remote Git push failed."
+                if push_status == "failed"
+                else "Applied the approved proposal locally without pushing to the remote repository."
+            ),
             why="Proposal mode keeps self-edits reviewable before they change the running system.",
-            verification="proposal merged into the repository; restart scheduled" if restart_service else "proposal merged into the repository",
-            follow_up="Confirm the service is healthy after the restart completes." if restart_service else "Confirm the merged change behaves as expected.",
+            verification=(
+                f"proposal merged locally, restart scheduled, and pushed to {self.settings.push_remote}/{self.settings.push_branch}"
+                if restart_service and push_status == "pushed"
+                else f"proposal merged locally and pushed to {self.settings.push_remote}/{self.settings.push_branch}"
+                if push_status == "pushed"
+                else "proposal merged locally and restart scheduled, but remote push failed"
+                if restart_service and push_status == "failed"
+                else "proposal merged locally, but remote push failed"
+                if push_status == "failed"
+                else "proposal merged locally and restart scheduled; remote push skipped"
+                if restart_service
+                else "proposal merged locally; remote push skipped"
+            ),
+            follow_up=(
+                "Confirm GitHub Pages picks up the new push and that the service is healthy after restart."
+                if push_status == "pushed" and restart_service
+                else "Confirm GitHub received the new commit."
+                if push_status == "pushed"
+                else "Configure Git credentials on the server and push the updated main branch manually so GitHub Pages can redeploy."
+                if push_status == "failed"
+                else "Push the updated main branch later if GitHub should reflect the local runtime change."
+            ),
         )
         proposal["decision_summary"] = decision_summary
         self.state.save_proposal(proposal)

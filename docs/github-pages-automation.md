@@ -28,6 +28,8 @@ This automation only covers the static web surfaces.
 
 It does not deploy the stateful Python runtime. The runtime is expected to run separately on a VPS or another always-on machine.
 
+When self-edit proposals are applied on the VPS runtime, the local server checkout can optionally push `main` back to GitHub so Pages redeploys automatically. That requires Git credentials to be configured on the server-side checkout.
+
 ## Required Repository Setup
 
 1. Push the repository to GitHub.

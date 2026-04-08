@@ -55,6 +55,9 @@ class RuntimeSettings:
     cors_allowed_origins: list[str]
     auto_execute_requests: bool
     runtime_api_key: str
+    push_after_apply: bool
+    push_remote: str
+    push_branch: str
 
 
 def load_settings() -> RuntimeSettings:
@@ -83,4 +86,7 @@ def load_settings() -> RuntimeSettings:
         cors_allowed_origins=_env_list("CODEX_FACTORY_CORS_ALLOWED_ORIGINS"),
         auto_execute_requests=_env_bool("CODEX_FACTORY_AUTO_EXECUTE", True),
         runtime_api_key=os.getenv("CODEX_FACTORY_API_KEY", "").strip(),
+        push_after_apply=_env_bool("CODEX_FACTORY_PUSH_AFTER_APPLY", True),
+        push_remote=os.getenv("CODEX_FACTORY_PUSH_REMOTE", "origin").strip() or "origin",
+        push_branch=os.getenv("CODEX_FACTORY_PUSH_BRANCH", "main").strip() or "main",
     )
