@@ -16,6 +16,7 @@ const learningSummary = document.getElementById("learning-summary");
 const learningMeta = document.getElementById("learning-meta");
 
 const STORAGE_KEY = "codex-ops-console";
+const FIXED_RUNTIME_URL = "https://34.40.112.33";
 const DECISION_FIELDS = [
   ["goal", "문제"],
   ["system_area", "영향 범위"],
@@ -35,7 +36,6 @@ function saveSettings() {
   localStorage.setItem(
     STORAGE_KEY,
     JSON.stringify({
-      backendUrl: backendInput.value.trim(),
       apiKey: apiKeyInput.value.trim(),
       selectedAppId: appSelect.value,
       autoOpen: autoOpenInput.checked,
@@ -51,7 +51,6 @@ function loadSettings() {
 
   try {
     const payload = JSON.parse(raw);
-    backendInput.value = payload.backendUrl || "";
     apiKeyInput.value = payload.apiKey || "";
     autoOpenInput.checked = Boolean(payload.autoOpen);
     appSelect.dataset.savedAppId = payload.selectedAppId || "";
@@ -61,7 +60,7 @@ function loadSettings() {
 }
 
 function normalizeBaseUrl() {
-  return backendInput.value.trim().replace(/\/+$/, "");
+  return FIXED_RUNTIME_URL.replace(/\/+$/, "");
 }
 
 function setStatus(message) {
@@ -182,11 +181,6 @@ function renderLearningSummary(payload, heading) {
 
 async function loadApps() {
   const baseUrl = normalizeBaseUrl();
-  if (!baseUrl) {
-    setStatus("런타임 URL을 먼저 입력하세요.");
-    return;
-  }
-
   saveSettings();
   setStatus("앱 목록을 불러오는 중...");
 
@@ -267,10 +261,6 @@ async function sendRequest() {
   const title = requestTitleInput.value.trim();
   const requestText = requestTextInput.value.trim();
 
-  if (!baseUrl) {
-    setStatus("런타임 URL을 입력하세요.");
-    return;
-  }
   if (!apiKeyInput.value.trim()) {
     setStatus("API key를 입력하세요.");
     return;
@@ -333,10 +323,6 @@ async function sendRequest() {
 
 async function applyProposal() {
   const baseUrl = normalizeBaseUrl();
-  if (!baseUrl) {
-    setStatus("런타임 URL을 입력하세요.");
-    return;
-  }
   if (!latestProposalJobId) {
     setStatus("적용할 proposal이 없습니다.");
     return;
@@ -400,7 +386,6 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-backendInput.addEventListener("change", saveSettings);
 apiKeyInput.addEventListener("change", saveSettings);
 appSelect.addEventListener("change", () => {
   updateSelectedAppCard();
@@ -413,9 +398,8 @@ openAppButton.addEventListener("click", openSelectedApp);
 applyProposalButton.addEventListener("click", applyProposal);
 
 loadSettings();
+backendInput.value = FIXED_RUNTIME_URL;
 updateSelectedAppCard();
 updateProposalButton();
 clearLearningSummary();
-if (backendInput.value) {
-  loadApps();
-}
+loadApps();
