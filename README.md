@@ -16,7 +16,7 @@ That solved the build problem, but a second problem remained: many generated too
 
 I designed an execution environment where:
 
-- a runtime HTTP API can also accept follow-up maintenance requests
+- a runtime HTTP API can accept conversation-based follow-up maintenance requests
 - Codex acts as the implementation agent
 - local repositories store the generated artifacts and code changes
 - the default delivery target is an installable mobile-first PWA unless the request clearly requires native APIs
@@ -46,7 +46,7 @@ This is not a chatbot demo. It is an operating model for turning idea capture in
 
 ## Key Capabilities
 
-- runtime HTTP intake for phone-triggered maintenance
+- runtime HTTP intake for phone-triggered maintenance and multi-turn conversations
 - explicit request contract and execution rules
 - generated planning artifacts such as brief, spec, plan, and tasks
 - mobile-first scaffolding for installable PWAs
@@ -105,9 +105,9 @@ Codex should prefer these delivery targets in order:
 
 The persistent runtime uses:
 
-- FastAPI for request intake
+- FastAPI for request intake and conversation state
 - `X-API-Key` request authentication for `/api/*`
-- the local Codex CLI for session-backed execution
+- the local Codex CLI for session-backed execution inside conversation-aware app lanes
 - persisted Codex thread ids for app-specific conversation continuity
 - app registry and memory files for durable state outside the model context window
 
@@ -167,7 +167,7 @@ Each request produces concrete outputs in the local repository:
 - `examples/generated_apps/habit-tracker-pwa/`
   Example output generated for a mobile habit tracker.
 - `examples/generated_apps/codex-ops-console/`
-  Phone-first operator console that stores the runtime URL and API key locally, submits requests to the runtime server, polls jobs, and opens the target app after completion.
+  Phone-first operator console that opens app-scoped conversations, submits multi-turn requests to the runtime server, shows conversation events and learning logs, and opens the target app after completion.
 
 ## Example Workflow
 

@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#201915" />
     <meta
       name="description"
-      content="상태 유지형 Codex 런타임에 앱 수정 요청을 보내고 작업 상태를 추적하는 운영 콘솔입니다."
+      content="상태 유지형 Codex 런타임과 대화하며 앱 수정 요청을 보내고 작업 상태를 추적하는 운영 콘솔입니다."
     />
     <title>Codex Ops Console</title>
     <link rel="manifest" href="./manifest.webmanifest" />
@@ -16,10 +16,10 @@
   <body>
     <main class="shell">
       <section class="hero">
-        <p class="kicker">Stateful Runtime</p>
+        <p class="kicker">Conversation Runtime</p>
         <h1>Codex Ops Console</h1>
         <p class="lede">
-          폰에서 수정 요청을 보내면 서버의 Codex CLI 런타임이 같은 앱 세션으로 이어서 작업합니다.
+          폰에서 대화형으로 수정 요청을 보내면 서버의 Codex CLI 런타임이 같은 앱 세션을 이어받아 작업합니다.
         </p>
         <button id="install-button" class="install-button" hidden>홈 화면에 추가</button>
       </section>
@@ -49,6 +49,28 @@
           <p class="label">배포 링크</p>
           <p id="selected-app-url" class="app-url">앱을 선택하면 여기에서 바로 열 수 있습니다.</p>
         </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <h2>대화 세션</h2>
+          <p id="conversation-meta" class="meta">아직 대화 세션이 없습니다.</p>
+        </div>
+        <div class="row conversation-row">
+          <label class="field">
+            <span>대화 선택</span>
+            <select id="conversation-select"></select>
+          </label>
+          <button id="new-conversation" class="secondary">새 대화</button>
+        </div>
+        <div id="conversation-timeline" class="timeline"></div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <h2>메시지 보내기</h2>
+          <p class="meta">대화 중간에 요청 방향을 계속 조정할 수 있습니다.</p>
+        </div>
 
         <label class="field">
           <span>요청 제목</span>
@@ -56,11 +78,11 @@
         </label>
 
         <label class="field">
-          <span>요청 내용</span>
+          <span>메시지</span>
           <textarea
             id="request-text"
-            rows="8"
-            placeholder="어떤 앱을 어떻게 바꾸고, 폰에서 어떻게 확인할지 자연어로 적어주세요."
+            rows="7"
+            placeholder="무엇을 어떻게 바꾸고, 폰에서 어떻게 확인할지 자연어로 적어주세요."
           ></textarea>
         </label>
 
@@ -70,7 +92,7 @@
         </label>
 
         <div class="actions">
-          <button id="send-request">에이전트 실행</button>
+          <button id="send-request">메시지 보내기</button>
           <button id="open-app" class="secondary">선택한 앱 열기</button>
           <button id="apply-proposal" class="secondary" disabled>제안 적용</button>
         </div>

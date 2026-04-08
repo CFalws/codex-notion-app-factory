@@ -29,6 +29,7 @@ class RuntimeState:
             self.settings.jobs_root,
             self.settings.proposals_root,
             self.settings.worktrees_root,
+            self.settings.conversations_root,
         ]
         if self.settings.codex_home is not None:
             paths.append(self.settings.codex_home)
@@ -110,6 +111,105 @@ class RuntimeState:
         updated = existing.rstrip() + "\n\n" + "\n".join(sections) + "\n"
         log_path.write_text(updated, encoding="utf-8")
 
+    def conversation_path(self, conversation_id: str) -> Path:
+        return self.settings.conversations_root / f"{conversation_id}.json"
+
+    def create_conversation(self, *, app_id: str, title: str, source: str) -> dict[str, Any]:
+        conversation_id = uuid4().hex
+        payload = {
+            "conversation_id": conversation_id,
+            "app_id": app_id,
+            "title": title.strip() or app_id,
+            "source": source,
+            "status": "active",
+            "created_at": utc_now(),
+            "updated_at": utc_now(),
+            "latest_job_id": "",
+            "messages": [],
+            "events": [],
+        }
+        self._write_json(self.conversation_path(conversation_id), payload)
+        return payload
+
+    def get_conversation(self, conversation_id: str) -> dict[str, Any]:
+        path = self.conversation_path(conversation_id)
+        if not path.exists():
+            raise KeyError(f"Unknown conversation_id: {conversation_id}")
+        return self._read_json(path)
+
+    def save_conversation(self, conversation: dict[str, Any]) -> dict[str, Any]:
+        conversation["updated_at"] = utc_now()
+        self._write_json(self.conversation_path(conversation["conversation_id"]), conversation)
+        return conversation
+
+    def list_conversations(self, *, app_id: str | None = None) -> list[dict[str, Any]]:
+        records: list[dict[str, Any]] = []
+        for path in sorted(self.settings.conversations_root.glob("*.json")):
+            try:
+                payload = self._read_json(path)
+            except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+                logger.warning("Skipping unreadable conversation file %s: %s", path, exc)
+                continue
+            if app_id and payload.get("app_id") != app_id:
+                continue
+            records.append(payload)
+        records.sort(key=lambda item: item.get("updated_at", ""), reverse=True)
+        return records
+
+    def append_conversation_message(
+        self,
+        conversation_id: str,
+        *,
+        role: str,
+        body: str,
+        title: str = "",
+        job_id: str = "",
+        message_type: str = "message",
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        conversation = self.get_conversation(conversation_id)
+        message = {
+            "message_id": uuid4().hex,
+            "role": role,
+            "type": message_type,
+            "title": title,
+            "body": body,
+            "job_id": job_id,
+            "created_at": utc_now(),
+            "metadata": metadata or {},
+        }
+        conversation.setdefault("messages", []).append(message)
+        if job_id:
+            conversation["latest_job_id"] = job_id
+        self.save_conversation(conversation)
+        return message
+
+    def append_conversation_event(
+        self,
+        conversation_id: str,
+        *,
+        event_type: str,
+        body: str,
+        status: str = "info",
+        job_id: str = "",
+        data: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        conversation = self.get_conversation(conversation_id)
+        event = {
+            "event_id": uuid4().hex,
+            "type": event_type,
+            "status": status,
+            "body": body,
+            "job_id": job_id,
+            "created_at": utc_now(),
+            "data": data or {},
+        }
+        conversation.setdefault("events", []).append(event)
+        if job_id:
+            conversation["latest_job_id"] = job_id
+        self.save_conversation(conversation)
+        return event
+
     def create_request(
         self,
         *,
@@ -118,11 +218,13 @@ class RuntimeState:
         request_text: str,
         source: str,
         status: str = "pending",
+        conversation_id: str = "",
     ) -> dict[str, Any]:
         request_id = utc_now().replace(":", "-")
         payload = {
             "request_id": request_id,
             "app_id": app_id,
+            "conversation_id": conversation_id,
             "status": status,
             "title": title,
             "request_text": request_text,
@@ -139,12 +241,20 @@ class RuntimeState:
         )
         return payload
 
-    def create_job(self, *, app_id: str, request_id: str, title: str) -> dict[str, Any]:
+    def create_job(
+        self,
+        *,
+        app_id: str,
+        request_id: str,
+        title: str,
+        conversation_id: str = "",
+    ) -> dict[str, Any]:
         job_id = uuid4().hex
         payload = {
             "job_id": job_id,
             "app_id": app_id,
             "request_id": request_id,
+            "conversation_id": conversation_id,
             "title": title,
             "status": "queued",
             "created_at": utc_now(),
