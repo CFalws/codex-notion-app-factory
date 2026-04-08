@@ -1,6 +1,6 @@
-# Codex Notion App Factory
+# Codex App Factory
 
-A stateful Codex app implementation environment that supports both MCP-connected Notion intake and a runtime HTTP control surface.
+A stateful Codex app implementation environment with a runtime HTTP control surface.
 
 The current target is not only "working code." The target is personal apps that are actually usable from a phone without your laptop staying awake.
 
@@ -8,7 +8,7 @@ The current target is not only "working code." The target is personal apps that 
 
 Most personal app ideas die before implementation because idea capture, scoping, coding, and later maintenance happen in disconnected tools.
 
-I wanted a workflow where I could capture a request in Notion, or send one from a phone-friendly control console, and let an agent-driven build loop turn it into planning artifacts and real code.
+I wanted a workflow where I could send a request from a phone-friendly control console and let an agent-driven build loop turn it into planning artifacts and real code.
 
 That solved the build problem, but a second problem remained: many generated tools still depended on a local desktop runtime. This repository now treats that as a design bug.
 
@@ -16,9 +16,7 @@ That solved the build problem, but a second problem remained: many generated too
 
 I designed an execution environment where:
 
-- Notion can act as the intake queue
 - a runtime HTTP API can also accept follow-up maintenance requests
-- MCP acts as the context bridge for tool access
 - Codex acts as the implementation agent
 - local repositories store the generated artifacts and code changes
 - the default delivery target is an installable mobile-first PWA unless the request clearly requires native APIs
@@ -32,13 +30,13 @@ The next layer on top of that loop is stateful maintenance: each app should keep
 
 This repository is designed to support one clear portfolio message:
 
-**I built an agent execution environment where tagged requests can enter through Notion or a runtime control console, Codex executes through MCP-connected tooling, and personal-use apps are implemented with phone-usable delivery as the default.**
+**I built an agent execution environment where requests enter through a runtime control console, Codex executes through a persistent local CLI runtime, and personal-use apps are implemented with phone-usable delivery as the default.**
 
 This is not a chatbot demo. It is an operating model for turning idea capture into implemented software that can actually be launched on a phone.
 
 ## What The System Does
 
-1. I capture a new request in Notion or send it through the runtime console
+1. I send a new request through the runtime console
 2. The request is resolved to a new app or an existing app lane
 3. Codex loads the app session record and memory when available
 4. Codex extracts the brief, constraints, and expected output
@@ -48,7 +46,6 @@ This is not a chatbot demo. It is an operating model for turning idea capture in
 
 ## Key Capabilities
 
-- tagged request intake from Notion
 - runtime HTTP intake for phone-triggered maintenance
 - explicit request contract and execution rules
 - generated intermediate artifacts such as brief, spec, plan, and tasks
@@ -62,9 +59,7 @@ This is not a chatbot demo. It is an operating model for turning idea capture in
 
 The important point is not just model usage. The important point is the workflow design:
 
-- Notion and the runtime console are used as operational intake layers
 - Codex is used as the execution engine
-- MCP is used as the bridge between request management and implementation
 - the system is optimized for building real personal-use tools, not generic chat interactions
 - output is judged by deployability and accessibility, not only by local correctness
 
@@ -74,7 +69,7 @@ This creates a durable app-building loop rather than a one-off automation.
 
 ### Intake Layer
 
-Notion pages and the runtime HTTP API are used as structured implementation requests.
+The runtime HTTP API is used as the structured implementation intake.
 
 Each request contains:
 
@@ -88,17 +83,11 @@ Each request contains:
 
 ### Trigger Layer
 
-A request becomes executable either when a predefined tag is added in Notion or when the runtime API receives an app-scoped maintenance request.
-
-Recommended tags:
-
-- `codex-build`
-- `codex-review`
-- `codex-spec`
+A request becomes executable when the runtime API receives an app-scoped maintenance request with a clear mode and target app.
 
 ### Execution Layer
 
-Codex reads tagged requests through the Notion MCP connection or receives a runtime request from the API layer, then performs one of the following:
+Codex receives a runtime request from the API layer, then performs one of the following:
 
 - generate a spec
 - generate an implementation plan
@@ -139,7 +128,6 @@ Each request produces concrete outputs in the local repository:
 
 - Codex as the coding agent
 - local Codex CLI as the persistent runtime layer
-- MCP-connected Notion integration
 - Markdown-based execution artifacts
 - installable PWA scaffolds for phone-first delivery
 - Python utilities used for local generation, preview, and runtime orchestration
@@ -147,15 +135,15 @@ Each request produces concrete outputs in the local repository:
 ## Repository Structure
 
 - `AGENTS.md`
-  Execution rules for how Codex should interpret tagged Notion requests.
+  Execution rules for how Codex should interpret incoming app requests.
 - `docs/system-design.md`
   High-level architecture and reasoning behind the workflow.
 - `docs/mobile-first-operating-model.md`
   Delivery rules for apps that must be usable on a phone.
 - `docs/github-pages-automation.md`
   Explains how generated apps are assembled and deployed to GitHub Pages.
-- `docs/notion-request-contract.md`
-  Defines the structure of a valid Notion app request.
+- `docs/request-contract.md`
+  Defines the structure of a valid app request.
 - `docs/agents-sdk-runtime.md`
   Explains the Python runtime that accepts maintenance requests and reuses app sessions through the local Codex CLI.
 - `docs/operating-model.md`
@@ -176,8 +164,8 @@ Each request produces concrete outputs in the local repository:
   Durable registry, memory, and request history for existing apps.
 - `workspaces/`
   Dedicated app-specific workspaces used for stateful maintenance.
-- `templates/notion_app_request.md`
-  A reusable request template for Notion pages.
+- `templates/app_request.md`
+  A reusable request template for structured app requests.
 - `examples/generated_apps/sample-focus-launcher/`
   Example artifacts showing what a single intake request can produce.
 - `examples/generated_apps/habit-tracker-pwa/`
@@ -187,13 +175,13 @@ Each request produces concrete outputs in the local repository:
 
 ## Example Workflow
 
-### Notion Request
+### Runtime Request
 
-A page is created in Notion using the request template and marked with `codex-build`.
+A request is submitted through the runtime console with a target app id, title, and full change description.
 
 ### Codex Execution
 
-Codex reads the tagged page through MCP, extracts the brief, and creates or updates the local app workspace.
+Codex reads the request payload, extracts the brief, and creates or updates the local app workspace.
 
 ### Result
 
@@ -209,9 +197,8 @@ The system produces:
 
 This repository includes real session-backed examples and a mobile-first scaffold:
 
-- a real Notion request page was created
-- that page was fetched back through MCP
-- the fetched content was persisted locally
+- a real runtime request was submitted
+- the request was persisted locally
 - a working sample app called `Momentum Timer` was implemented from that request
 - validation artifacts were saved
 - a mobile habit tracker scaffold can be generated into an installable PWA shell
@@ -229,7 +216,7 @@ This is not a mock architecture document. It is a working portfolio repository s
 
 This repository is best presented as:
 
-> Built a Codex-based agent execution environment where requests could enter through Notion or a phone-friendly runtime console, MCP handled workspace-context retrieval, and implementation requests were converted into real app specs, deployable PWAs, stateful maintenance sessions, and code changes for personal-use software projects.
+> Built a Codex-based agent execution environment where requests entered through a phone-friendly runtime console and were converted into real app specs, deployable PWAs, stateful maintenance sessions, and code changes for personal-use software projects.
 
 ## Publishing Note
 
@@ -239,7 +226,7 @@ If I were pinning one repository to represent my agent-driven workflow, this wou
 
 This repository reflects the workflow I actually use:
 
-- I capture requests in Notion or send maintenance requests through the runtime console
+- I send maintenance requests through the runtime console
 - I use Codex as the implementation agent
 - I rely on MCP-connected tools for context retrieval
 - I use the environment to build real personal apps for myself

@@ -50,6 +50,6 @@
 
 [Optional links, screenshots, notes]
 
-# Tag
+# Mode
 
-`codex-build`
+`build`

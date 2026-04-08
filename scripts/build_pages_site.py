@@ -318,7 +318,7 @@ def build_index(entries: list[dict]) -> str:
           <body>
             <main>
               <section class="hero">
-                <p>Codex Notion App Factory</p>
+                <p>Codex App Factory</p>
                 <h1>앱 모음</h1>
                 <p>
                   생성된 개인용 앱들을 한곳에 모아 홈 화면에서 바로 여는 런처입니다.

@@ -29,4 +29,4 @@ It returns one concrete first action such as:
 
 This sample shows the intended pipeline shape:
 
-Notion request -> Codex planning artifacts -> implemented local app
+structured request -> Codex planning artifacts -> implemented local app

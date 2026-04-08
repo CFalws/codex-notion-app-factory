@@ -2,7 +2,7 @@
 
 ## Objective
 
-Turn an idea captured in Notion or submitted through the runtime console into a personal app that is actually usable from a phone.
+Turn an idea submitted through the runtime console into a personal app that is actually usable from a phone.
 
 The default assumption is:
 
@@ -62,7 +62,7 @@ For personal apps, this keeps deployment simple and reduces maintenance.
 
 ## Agentic Build Loop
 
-1. Capture the app request in Notion or send a follow-up request through the runtime console
+1. Capture the app request through the runtime console
 2. Infer the smallest mobile-usable delivery target
 3. Generate `spec.md`, `implementation_plan.md`, and `tasks.md`
 4. Scaffold the app with installability and deployment in mind

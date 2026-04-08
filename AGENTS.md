@@ -2,11 +2,11 @@
 
 ## Purpose
 
-This repository documents how Codex should operate when a Notion page becomes an app implementation request.
+This repository documents how Codex should operate when a structured app implementation request enters the runtime.
 
 The goal is to make the execution loop consistent and demonstrable:
 
-1. Find a tagged Notion request
+1. Find the active app request
 2. Read the request in full
 3. Extract the implementation brief
 4. Produce execution artifacts
@@ -21,15 +21,15 @@ When the runtime API is used, Codex should assume the request entered through th
 
 ## Trigger Rules
 
-Codex should treat a Notion page as executable work only when it includes one of these tags:
+Codex should treat a request as executable work only when its execution mode is clear:
 
-- `codex-build`
-- `codex-spec`
-- `codex-review`
+- `build`
+- `spec`
+- `review`
 
 ## Request Interpretation
 
-When reading a tagged request, Codex should identify:
+When reading a request, Codex should identify:
 
 - project name
 - problem being solved
@@ -50,7 +50,7 @@ Default assumptions for personal tools:
 
 ## Execution Modes
 
-### `codex-spec`
+### `spec`
 
 Generate:
 
@@ -58,9 +58,9 @@ Generate:
 - `implementation_plan.md`
 - `tasks.md`
 
-Do not start coding unless the page explicitly asks for implementation.
+Do not start coding unless the request explicitly asks for implementation.
 
-### `codex-build`
+### `build`
 
 Generate:
 
@@ -79,7 +79,7 @@ When the request targets an existing app:
 - reuse the app workspace under `workspaces/`
 - update the session record after the change is complete
 
-### `codex-review`
+### `review`
 
 Perform code review against the requested project or diff.
 
@@ -107,8 +107,8 @@ This repository is not about maximizing autonomy claims.
 
 It is about showing a real and defensible execution environment:
 
-- Notion for intake
-- MCP for context access
+- runtime HTTP intake for execution
+- repository state for context access
 - Codex for implementation
 - repository artifacts as proof of work
 - phone-usable delivery as the default outcome

@@ -2,7 +2,7 @@
 
 ## Intake
 
-The request was treated as a tagged implementation request with `codex-build`.
+The request was treated as a direct implementation request with `build` mode.
 
 ## Planning Artifacts Produced
 

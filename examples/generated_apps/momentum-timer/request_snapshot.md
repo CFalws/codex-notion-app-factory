@@ -1,14 +1,10 @@
-# Notion Request Snapshot
+# Request Snapshot
 
-## Notion Page
-
-`https://www.notion.so/33a75a96562381acab11eb9a05246a0a`
-
-## Fetched Title
+## Request Title
 
 Codex Build Request - Momentum Timer
 
-## Fetched Content
+## Request Content
 
 # Project Name
 Momentum Timer
@@ -36,5 +32,5 @@ Python backend with a minimal browser UI.
 - app starts a 3-minute timer immediately
 - recent launches are stored locally
 
-# Tag
-`codex-build`
+# Mode
+`build`

@@ -1,6 +1,6 @@
 # Sample Focus Launcher
 
-This is a real sample app produced from the example Notion request in this repository.
+This is a real sample app produced from the example structured request in this repository.
 
 For request provenance and execution notes, see:
 
@@ -36,6 +36,6 @@ Then open `http://127.0.0.1:8031`.
 - `web/app.js`
   Frontend interaction logic.
 - `request_snapshot.md`
-  Simulated tagged Notion intake page content.
+  Simulated structured intake request content.
 - `execution_trace.md`
   Build and validation trace for this sample.

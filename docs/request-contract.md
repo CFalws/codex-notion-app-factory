@@ -1,10 +1,8 @@
-# Notion Request Contract
+# Request Contract
 
-Each Notion-based implementation request should follow a stable structure so Codex can act on it with minimal clarification.
+Each implementation request should follow a stable structure so Codex can act on it with minimal clarification.
 
-This contract applies to the Notion intake path.
-
-The repository also supports a runtime HTTP intake path for phone-triggered follow-up maintenance. That path reuses the app registry instead of requiring a full Notion page every time.
+This contract applies to the runtime HTTP intake path.
 
 ## Required Fields
 
@@ -13,7 +11,7 @@ The repository also supports a runtime HTTP intake path for phone-triggered foll
 - `Desired Outcome`
 - `Primary User`
 - `Primary Device`
-- `Tag`
+- `Mode`
 
 ## Recommended Fields
 
@@ -27,13 +25,13 @@ The repository also supports a runtime HTTP intake path for phone-triggered foll
 - `Data Model`
 - `Deployment Target`
 
-## Tag Semantics
+## Mode Semantics
 
-- `codex-build`
+- `build`
   Build or modify the app directly
-- `codex-spec`
+- `spec`
   Create planning artifacts only
-- `codex-review`
+- `review`
   Review an implementation or code change
 
 ## Minimum Viable Request Example
@@ -43,7 +41,7 @@ The repository also supports a runtime HTTP intake path for phone-triggered foll
 - Desired Outcome: A tiny tool that gives me one concrete first action
 - Primary User: Me
 - Primary Device: iPhone
-- Tag: codex-build
+- Mode: build
 
 ## Why The Contract Exists
 

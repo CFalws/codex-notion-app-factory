@@ -1,1 +1,1 @@
-"""Runtime package for the Codex Notion App Factory."""
+"""Runtime package for the Codex App Factory."""

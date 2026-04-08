@@ -1,16 +1,15 @@
 # Real Execution Showcase
 
-This file shows the cleanest proof path for the real Notion-backed sample generated in this session.
+This file shows the cleanest proof path for a real request-driven sample generated in this repository.
 
-It documents the original Notion execution path.
+It documents the original structured intake execution path.
 
-The repository now also includes a runtime HTTP path for later maintenance requests, but this file remains focused on the original real Notion-backed build.
+The repository now also includes a runtime HTTP path for later maintenance requests, but this file remains focused on the original request-to-build path.
 
-## 1. Real Notion Intake
+## 1. Original Intake
 
-- Created page URL: [Notion request](https://www.notion.so/33a75a96562381acab11eb9a05246a0a)
-- Local request snapshot: [notion_request_snapshot.md](/Users/emil/emil/python/codex-notion-app-factory/examples/generated_apps/momentum-timer/notion_request_snapshot.md)
-- MCP provenance note: [mcp_fetch_trace.md](/Users/emil/emil/python/codex-notion-app-factory/examples/generated_apps/momentum-timer/mcp_fetch_trace.md)
+- Local request snapshot: [request_snapshot.md](/Users/emil/emil/python/codex-notion-app-factory/examples/generated_apps/momentum-timer/request_snapshot.md)
+- Intake provenance note: [intake_trace.md](/Users/emil/emil/python/codex-notion-app-factory/examples/generated_apps/momentum-timer/intake_trace.md)
 
 ## 2. Planning Artifacts Produced
 
@@ -37,7 +36,7 @@ The repository now also includes a runtime HTTP path for later maintenance reque
 
 ## 5. Shortest Credible Story
 
-1. A real Notion page was created.
+1. A real structured request was captured.
 2. The page was fetched back through MCP.
 3. Its contents were persisted locally as a request snapshot.
 4. A concrete app was implemented from that request.

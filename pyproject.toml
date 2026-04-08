@@ -1,5 +1,5 @@
 [project]
-name = "codex-notion-app-factory"
+name = "codex-app-factory"
 version = "0.1.0"
 description = "Stateful personal app factory with a Codex CLI runtime and a GitHub Pages console."
 requires-python = ">=3.11"

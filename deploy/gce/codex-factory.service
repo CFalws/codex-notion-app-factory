@@ -1,5 +1,5 @@
 [Unit]
-Description=Codex Notion App Factory Runtime
+Description=Codex App Factory Runtime
 After=network-online.target
 Wants=network-online.target
 

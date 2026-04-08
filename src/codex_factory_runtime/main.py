@@ -35,7 +35,7 @@ def create_app(settings: RuntimeSettings | None = None) -> FastAPI:
     runtime = CodexAgentsRuntime(settings, state)
 
     app = FastAPI(
-        title="Codex Notion App Factory Runtime",
+        title="Codex App Factory Runtime",
         version="0.1.0",
         summary="Stateful Codex CLI runtime for personal app maintenance.",
     )

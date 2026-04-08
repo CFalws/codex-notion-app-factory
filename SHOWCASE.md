@@ -7,7 +7,7 @@ This file is the fastest way to inspect the end-to-end result.
 - System overview: [README.md](/Users/emil/emil/python/codex-notion-app-factory/README.md)
 - Execution rules: [AGENTS.md](/Users/emil/emil/python/codex-notion-app-factory/AGENTS.md)
 - Operating model: [operating-model.md](/Users/emil/emil/python/codex-notion-app-factory/docs/operating-model.md)
-- Request contract: [notion-request-contract.md](/Users/emil/emil/python/codex-notion-app-factory/docs/notion-request-contract.md)
+- Request contract: [request-contract.md](/Users/emil/emil/python/codex-notion-app-factory/docs/request-contract.md)
 - Runtime layer: [agents-sdk-runtime.md](/Users/emil/emil/python/codex-notion-app-factory/docs/agents-sdk-runtime.md)
 - Stateful maintenance: [stateful-session-loop.md](/Users/emil/emil/python/codex-notion-app-factory/docs/stateful-session-loop.md)
 
@@ -43,7 +43,7 @@ This file is the fastest way to inspect the end-to-end result.
 
 The shortest credible story for this repository is:
 
-1. A request is captured in Notion and tagged for execution.
+1. A structured request is captured and marked with an execution mode.
 2. Codex reads the request contract and produces planning artifacts.
 3. Codex implements the sample app in the target workspace.
 4. Validation outputs are written so the result is inspectable.

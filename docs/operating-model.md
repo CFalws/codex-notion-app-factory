@@ -2,18 +2,16 @@
 
 ## End-to-End Loop
 
-1. Capture a new app request in Notion
-2. Add the appropriate Codex execution tag
-3. Record the primary device and launch surface
-4. Resolve the request to an existing app workspace when possible
-5. Load the app's stored session record and memory snapshot
-6. Open Codex in the target workspace
-7. Let Codex fetch the tagged request through MCP
-8. Codex creates or updates planning artifacts
-9. Codex selects the smallest mobile-usable delivery target
-10. Codex implements the requested app or change
-11. Codex updates the app session record, memory, and deployment notes
-12. Request is moved or retagged in Notion after completion
+1. Capture a new app request through the runtime console or another HTTP client
+2. Record the execution mode, primary device, and launch surface
+3. Resolve the request to an existing app workspace when possible
+4. Load the app's stored session record and memory snapshot
+5. Open Codex in the target workspace
+6. Codex reads the request payload from the runtime layer
+7. Codex creates or updates planning artifacts
+8. Codex selects the smallest mobile-usable delivery target
+9. Codex implements the requested app or change
+10. Codex updates the app session record, memory, and deployment notes
 
 The repository can also run a persistent HTTP runtime. In that mode, a phone-facing web console submits a request to a Python API, the API resolves the app id, reuses the stored session id, and runs the task through the local Codex CLI with `exec` or `exec resume`.
 

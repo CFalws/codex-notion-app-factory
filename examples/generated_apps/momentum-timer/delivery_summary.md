@@ -13,8 +13,7 @@ Build a tiny personal web app that starts a 3-minute momentum timer and shows on
 
 ## Proof Path
 
-1. real Notion request page created
-2. MCP fetch performed against that page
-3. request snapshot persisted locally
-4. app implemented in this folder
-5. validation outputs generated and saved
+1. structured request captured
+2. request snapshot persisted locally
+3. app implemented in this folder
+4. validation outputs generated and saved

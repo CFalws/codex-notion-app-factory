@@ -1,12 +1,11 @@
 # Momentum Timer
 
-This sample app was implemented from a real Notion request page created and fetched through MCP during this session.
+This sample app was implemented from a real structured request captured during this session.
 
 ## Source Request
 
-- Notion page: `https://www.notion.so/33a75a96562381acab11eb9a05246a0a`
-- Local request snapshot: `notion_request_snapshot.md`
-- Local fetch trace: `mcp_fetch_trace.md`
+- Local request snapshot: `request_snapshot.md`
+- Local intake trace: `intake_trace.md`
 
 ## What It Does
 

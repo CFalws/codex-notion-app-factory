@@ -2,7 +2,7 @@
 
 ## Source
 
-Simulated Notion intake page using the request contract in `templates/notion_app_request.md`.
+Simulated structured intake request using the request contract in `templates/app_request.md`.
 
 ## Project Name
 
@@ -36,6 +36,6 @@ Python backend with a very small browser UI.
 - one concrete first action
 - recent history
 
-## Tag
+## Mode
 
-`codex-build`
+`build`

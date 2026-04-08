@@ -8,12 +8,11 @@ Create a lightweight but stateful execution environment where idea capture, prio
 
 ### 1. Intake surfaces
 
-The system currently supports two intake surfaces:
+The system currently uses one intake surface:
 
-- Notion, for structured tagged build requests
 - a runtime HTTP API, for direct maintenance requests from a phone-facing web console
 
-Together they function as:
+It functions as:
 
 - backlog
 - project request form

@@ -293,7 +293,7 @@ def build_parser() -> argparse.ArgumentParser:
     request_parser.add_argument("--app-id", required=True)
     request_parser.add_argument("--title", required=True)
     request_parser.add_argument("--request-text", required=True)
-    request_parser.add_argument("--source", default="notion-mobile")
+    request_parser.add_argument("--source", default="runtime-console")
     request_parser.add_argument("--status", default="pending")
     request_parser.add_argument("--request-id")
     request_parser.set_defaults(func=command_add_request)
