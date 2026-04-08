@@ -103,8 +103,8 @@ Continue work on the existing app lane.
 
 App id: {record["app_id"]}
 App title: {record["title"]}
-Request title: {request_payload["title"]}
 Request source: {request_payload["source"]}
+Conversation id: {request_payload.get("conversation_id", "") or "(new conversation)"}
 
 Request:
 {request_payload["request_text"]}
@@ -290,7 +290,8 @@ Rules for the block:
     async def _prepare_proposal_worktree(self, record: dict[str, Any], job_id: str, title: str) -> dict[str, str]:
         repo_root = self.settings.repo_root
         base_branch = str(record.get("base_branch") or "main").strip() or "main"
-        slug = "".join(char.lower() if char.isalnum() else "-" for char in title).strip("-") or "proposal"
+        slug_source = title or job_id
+        slug = "".join(char.lower() if char.isalnum() else "-" for char in slug_source).strip("-") or "proposal"
         branch_name = f"codex/{record['app_id']}-{slug[:32]}-{job_id[:8]}"
         worktree_path = self.settings.worktrees_root / job_id
         if worktree_path.exists():

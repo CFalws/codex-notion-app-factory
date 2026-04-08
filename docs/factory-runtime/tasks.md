@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Locate the current runtime URL input and request code path.
-- [x] Hardcode the stable runtime base URL in the static ops console.
-- [x] Remove unnecessary runtime URL persistence and manual-entry checks.
-- [x] Update operator-facing documentation for the fixed URL behavior.
-- [x] Verify the JavaScript file parses and the proposal branch has one coherent change set.
+- [x] Locate the current request-title field across the ops console and runtime API.
+- [x] Remove the title input from the mobile console so operators send message text only.
+- [x] Add server-side fallback labeling so title-less requests still create readable jobs and proposal branches.
+- [x] Update operator-facing documentation for the conversation-first request flow.
+- [x] Verify the proposal branch has one coherent change set and no backend restart requirement.

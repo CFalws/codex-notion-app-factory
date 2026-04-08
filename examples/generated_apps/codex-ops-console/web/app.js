@@ -6,7 +6,6 @@ const conversationSelect = document.getElementById("conversation-select");
 const newConversationButton = document.getElementById("new-conversation");
 const conversationMeta = document.getElementById("conversation-meta");
 const conversationTimeline = document.getElementById("conversation-timeline");
-const requestTitleInput = document.getElementById("request-title");
 const requestTextInput = document.getElementById("request-text");
 const sendRequestButton = document.getElementById("send-request");
 const openAppButton = document.getElementById("open-app");
@@ -142,7 +141,7 @@ function describeJob(payload) {
   const lines = [
     `job_id: ${payload.job_id}`,
     `status: ${payload.status}`,
-    `title: ${payload.title}`,
+    payload.title ? `label: ${payload.title}` : "",
     `created_at: ${payload.created_at}`,
     payload.started_at ? `started_at: ${payload.started_at}` : "",
     payload.completed_at ? `completed_at: ${payload.completed_at}` : "",
@@ -224,7 +223,7 @@ function renderConversation(conversation) {
 
       return `
         <article class="timeline-item message ${item.role || "assistant"}">
-          <p class="timeline-kind">${item.role === "user" ? "사용자" : "에이전트"}${item.title ? ` · ${item.title}` : ""}</p>
+          <p class="timeline-kind">${item.role === "user" ? "사용자" : "에이전트"}${item.role !== "user" && item.title ? ` · ${item.title}` : ""}</p>
           <p class="timeline-body">${item.body}</p>
           <p class="timeline-meta">${item.created_at}${item.job_id ? ` · ${item.job_id}` : ""}</p>
         </article>
@@ -355,7 +354,6 @@ async function ensureConversation() {
     method: "POST",
     body: JSON.stringify({
       app_id: app.appId,
-      title: `${app.title} Conversation`,
       source: "mobile-ops-console",
     }),
   });
@@ -419,7 +417,6 @@ async function pollCurrentState() {
 
 async function sendMessage() {
   const app = selectedAppData();
-  const title = requestTitleInput.value.trim();
   const messageText = requestTextInput.value.trim();
 
   if (!apiKeyInput.value.trim()) {
@@ -430,8 +427,8 @@ async function sendMessage() {
     setStatus("대상 앱을 선택하세요.");
     return;
   }
-  if (!title || !messageText) {
-    setStatus("요청 제목과 메시지를 모두 입력하세요.");
+  if (!messageText) {
+    setStatus("메시지를 입력하세요.");
     return;
   }
 
@@ -448,7 +445,6 @@ async function sendMessage() {
     const payload = await fetchJson(`${normalizeBaseUrl()}/api/conversations/${conversationId}/messages`, {
       method: "POST",
       body: JSON.stringify({
-        title,
         message_text: messageText,
         source: "mobile-ops-console",
         execute_now: true,
@@ -457,7 +453,6 @@ async function sendMessage() {
 
     currentConversationId = conversationId;
     currentJobId = payload.job.job_id;
-    requestTitleInput.value = "";
     requestTextInput.value = "";
     renderConversation(payload.conversation);
     setStatus(

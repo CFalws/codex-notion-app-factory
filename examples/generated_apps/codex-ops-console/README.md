@@ -21,4 +21,4 @@ Set this value inside the app before sending a request:
 
 - `X-API-Key` value configured on the server
 
-The console stores the API key and lane preferences locally on the phone, lets you choose an existing app lane, sends a maintenance request, polls the job, and keeps the target app link ready so you can open the updated PWA immediately after the job completes.
+The console stores the API key and lane preferences locally on the phone, lets you choose an existing app lane, starts or resumes a conversation session, sends a maintenance message without a separate request title field, polls the job, and keeps the target app link ready so you can open the updated PWA immediately after the job completes.

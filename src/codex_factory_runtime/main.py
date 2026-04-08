@@ -15,7 +15,7 @@ from .state import RuntimeState, utc_now
 
 class CreateRequestBody(BaseModel):
     app_id: str = Field(..., description="Registered app id to continue.")
-    title: str = Field(..., description="Short title for the requested change.")
+    title: str = Field(default="", description="Optional short label for compatibility with older clients.")
     request_text: str = Field(..., description="Full natural-language change request.")
     source: str = Field(default="ops-console", description="Origin label for traceability.")
     execute_now: bool = Field(default=True, description="Whether to start the agent run immediately.")
@@ -29,7 +29,7 @@ class CreateConversationBody(BaseModel):
 
 
 class ConversationMessageBody(BaseModel):
-    title: str = Field(..., description="Short title for the requested change.")
+    title: str = Field(default="", description="Optional short label for compatibility with older clients.")
     message_text: str = Field(..., description="Full natural-language message for the conversation.")
     source: str = Field(default="ops-console", description="Origin label for traceability.")
     execute_now: bool = Field(default=True, description="Whether to start the agent run immediately.")
@@ -112,6 +112,15 @@ def create_app(settings: RuntimeSettings | None = None) -> FastAPI:
         app_record = state.get_app(app_id)
         return f"{app_record.get('title') or app_id} Conversation"
 
+    def _resolve_request_title(explicit_title: str, request_text: str) -> str:
+        if explicit_title.strip():
+            return explicit_title.strip()
+        first_line = next((line.strip() for line in request_text.splitlines() if line.strip()), "")
+        compact = " ".join(first_line.split())
+        if len(compact) > 72:
+            compact = compact[:69].rstrip() + "..."
+        return compact or "Conversation update"
+
     def enqueue_request(
         *,
         app_id: str,
@@ -122,9 +131,10 @@ def create_app(settings: RuntimeSettings | None = None) -> FastAPI:
         background_tasks: BackgroundTasks,
         conversation_id: str = "",
     ) -> dict[str, Any]:
+        resolved_title = _resolve_request_title(title, request_text)
         request_payload = state.create_request(
             app_id=app_id,
-            title=title,
+            title=resolved_title,
             request_text=request_text,
             source=source,
             conversation_id=conversation_id,
@@ -132,7 +142,7 @@ def create_app(settings: RuntimeSettings | None = None) -> FastAPI:
         job = state.create_job(
             app_id=app_id,
             request_id=request_payload["request_id"],
-            title=title,
+            title=resolved_title,
             conversation_id=conversation_id,
         )
         append_event(
@@ -141,7 +151,7 @@ def create_app(settings: RuntimeSettings | None = None) -> FastAPI:
             status="queued",
             body=f"요청이 접수되어 job {job['job_id']}를 만들었습니다.",
             job_id=job["job_id"],
-            data={"title": title, "request_id": request_payload["request_id"]},
+            data={"title": resolved_title, "request_id": request_payload["request_id"]},
         )
         if execute_now and settings.auto_execute_requests:
             background_tasks.add_task(run_job, job["job_id"], app_id, request_payload)
@@ -286,7 +296,7 @@ def create_app(settings: RuntimeSettings | None = None) -> FastAPI:
         state.append_conversation_message(
             conversation_id,
             role="user",
-            title=body.title,
+            title=_resolve_request_title(body.title, body.message_text),
             body=body.message_text,
             message_type="request",
             metadata={"source": body.source},

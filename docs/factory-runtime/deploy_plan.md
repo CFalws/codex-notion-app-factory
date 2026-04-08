@@ -2,10 +2,10 @@
 
 ## Deployment Impact
 
-This changes only the static Codex Ops Console assets and request documentation. No runtime service restart or backend migration is required.
+This changes the static Codex Ops Console assets, the runtime's request normalization logic, and the request documentation. The deployed web console needs a normal GitHub Pages publish, while the backend runtime code change only takes effect when the proposal is applied through the usual runtime lane.
 
 ## Rollout Notes
 
 1. Apply the proposal commit onto `main`.
-2. Publish the updated static site through the existing GitHub Pages flow if the deployed console should reflect the fixed URL immediately.
-3. Validate from a phone that the console auto-loads app lanes without asking for a backend URL.
+2. Publish the updated static site through the existing GitHub Pages flow so the deployed console reflects the no-title message composer.
+3. Validate from a phone that a conversation message can be sent without a separate title field and that job status still renders normally.

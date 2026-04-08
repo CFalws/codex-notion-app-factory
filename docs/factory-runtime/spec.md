@@ -2,13 +2,13 @@
 
 ## Request
 
-- title: `런타임 URL은 고정하자`
+- title: `대화 세션 기준으로 요청 제목 제거`
 - source: `mobile-ops-console`
 - execution mode: `build`
 
 ## Problem
 
-The Codex Ops Console currently asks the operator to type the runtime URL before loading apps or sending a request. For this runtime lane the backend IP is stable, so repeating that step adds friction on phone.
+The Codex Ops Console still asks the operator to provide a request title for each message. In a conversation-driven maintenance flow that extra field adds friction on phone and duplicates the role of the conversation session itself.
 
 ## Target User
 
@@ -22,4 +22,4 @@ The primary user is the phone operator maintaining apps through the personal app
 
 ## Deliverable
 
-Update the Codex Ops Console so it uses a fixed runtime base URL by default and no longer depends on re-entering the backend endpoint for each session.
+Update the Codex Ops Console and runtime request handling so operators can send a message without a separate request title while preserving conversation continuity and proposal-mode compatibility.
