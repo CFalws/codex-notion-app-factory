@@ -39,12 +39,18 @@ let currentJobId = "";
 let conversationCache = null;
 
 function saveSettings() {
+  const selectedConversationId =
+    currentConversationId ||
+    conversationSelect.value ||
+    conversationSelect.dataset.savedConversationId ||
+    "";
+
   localStorage.setItem(
     STORAGE_KEY,
     JSON.stringify({
       apiKey: apiKeyInput.value.trim(),
       selectedAppId: appSelect.value,
-      selectedConversationId: currentConversationId,
+      selectedConversationId,
       autoOpen: autoOpenInput.checked,
     }),
   );
@@ -240,7 +246,6 @@ function renderConversation(conversation) {
 
 async function loadApps() {
   const baseUrl = normalizeBaseUrl();
-  saveSettings();
   setStatus("앱 목록을 불러오는 중...");
 
   try {
@@ -286,18 +291,23 @@ async function loadApps() {
 async function loadConversations() {
   const baseUrl = normalizeBaseUrl();
   const app = selectedAppData();
+  const preferredConversationId =
+    currentConversationId ||
+    conversationSelect.value ||
+    conversationSelect.dataset.savedConversationId ||
+    "";
+
   conversationSelect.innerHTML = "";
-  currentConversationId = "";
   conversationCache = null;
 
   if (!app) {
+    currentConversationId = "";
     renderConversation(null);
     return;
   }
 
   try {
     const conversations = await fetchJson(`${baseUrl}/api/apps/${app.appId}/conversations`);
-    const savedConversationId = conversationSelect.dataset.savedConversationId || "";
 
     for (const conversation of conversations) {
       const option = document.createElement("option");
@@ -306,26 +316,32 @@ async function loadConversations() {
       conversationSelect.append(option);
     }
 
-    if (savedConversationId) {
-      conversationSelect.value = savedConversationId;
+    if (preferredConversationId) {
+      conversationSelect.value = preferredConversationId;
     }
     if (!conversationSelect.value && conversations.length) {
       conversationSelect.selectedIndex = 0;
     }
 
     if (conversationSelect.value) {
+      conversationSelect.dataset.savedConversationId = conversationSelect.value;
       await fetchConversation(conversationSelect.value);
     } else {
+      currentConversationId = "";
+      currentJobId = "";
       renderConversation(null);
       conversationMeta.textContent = "이 앱에는 아직 대화가 없습니다.";
     }
   } catch (error) {
+    currentConversationId = "";
+    currentJobId = "";
     renderConversation(null);
     conversationMeta.textContent = `대화를 불러오지 못했습니다: ${error.message}`;
   }
 }
 
-async function fetchConversation(conversationId) {
+async function fetchConversation(conversationId, options = {}) {
+  const { syncJob = true } = options;
   const baseUrl = normalizeBaseUrl();
   if (!conversationId) {
     renderConversation(null);
@@ -334,9 +350,25 @@ async function fetchConversation(conversationId) {
   const conversation = await fetchJson(`${baseUrl}/api/conversations/${conversationId}`);
   currentConversationId = conversation.conversation_id;
   conversationSelect.value = currentConversationId;
+  conversationSelect.dataset.savedConversationId = currentConversationId;
   renderConversation(conversation);
+
+  if (!syncJob) {
+    return;
+  }
+
   if (conversation.latest_job_id) {
     currentJobId = conversation.latest_job_id;
+    const payload = await syncLatestJob();
+    if (payload && payload.status !== "completed" && payload.status !== "failed") {
+      ensurePollingForJob();
+    } else {
+      currentJobId = "";
+    }
+  } else {
+    currentJobId = "";
+    latestProposalJobId = "";
+    updateProposalButton();
   }
 }
 
@@ -374,28 +406,47 @@ async function createConversation() {
   }
 }
 
-async function pollCurrentState() {
-  if (currentConversationId) {
-    try {
-      await fetchConversation(currentConversationId);
-    } catch (_) {
-      // Keep the last rendered conversation and let the job panel carry the visible error if needed.
-    }
+async function syncLatestJob() {
+  if (!currentJobId) {
+    return null;
   }
 
-  if (!currentJobId) {
+  const payload = await fetchJson(`${normalizeBaseUrl()}/api/jobs/${currentJobId}`);
+  setStatus(describeJob(payload));
+  setJobMeta(`${payload.status.toUpperCase()} · ${payload.job_id}`);
+  latestProposalJobId = payload.proposal ? payload.proposal.job_id : "";
+  updateProposalButton();
+
+  if (payload.decision_summary) {
+    renderLearningSummary(payload.decision_summary, payload.title || "이번 작업에서 배운 점", payload.status || "RECORDED");
+  }
+
+  return payload;
+}
+
+function ensurePollingForJob() {
+  if (!currentJobId || pollingTimer) {
     return;
   }
+  pollingTimer = setInterval(() => {
+    pollCurrentState();
+  }, 3000);
+}
 
+async function pollCurrentState() {
   try {
-    const payload = await fetchJson(`${normalizeBaseUrl()}/api/jobs/${currentJobId}`);
-    setStatus(describeJob(payload));
-    setJobMeta(`${payload.status.toUpperCase()} · ${payload.job_id}`);
-    latestProposalJobId = payload.proposal ? payload.proposal.job_id : "";
-    updateProposalButton();
+    const payload = await syncLatestJob();
 
-    if (payload.decision_summary) {
-      renderLearningSummary(payload.decision_summary, payload.title || "이번 작업에서 배운 점", payload.status || "RECORDED");
+    if (currentConversationId) {
+      try {
+        await fetchConversation(currentConversationId, { syncJob: false });
+      } catch (_) {
+        // Keep the last rendered conversation and let the job panel carry the visible error if needed.
+      }
+    }
+
+    if (!payload) {
+      return;
     }
 
     if (payload.status === "completed" || payload.status === "failed") {
@@ -407,7 +458,9 @@ async function pollCurrentState() {
         clearInterval(pollingTimer);
         pollingTimer = null;
       }
-      await fetchConversation(currentConversationId);
+      if (currentConversationId) {
+        await fetchConversation(currentConversationId, { syncJob: false });
+      }
     }
   } catch (error) {
     setStatus(`작업 상태를 가져오지 못했습니다.\n\n${error.message}`);
@@ -469,9 +522,7 @@ async function sendMessage() {
       clearInterval(pollingTimer);
     }
     await pollCurrentState();
-    pollingTimer = setInterval(() => {
-      pollCurrentState();
-    }, 3000);
+    ensurePollingForJob();
   } catch (error) {
     setStatus(`메시지 전송에 실패했습니다.\n\n${error.message}`);
     setJobMeta("메시지 전송 실패");
