@@ -21,9 +21,9 @@ This is intended to stay within free-tier or free-credit testing limits where po
 
 ## Files
 
-- [bootstrap_gce_runtime.sh](/Users/emil/emil/python/codex-notion-app-factory/scripts/bootstrap_gce_runtime.sh)
-- [codex-factory.service](/Users/emil/emil/python/codex-notion-app-factory/deploy/gce/codex-factory.service)
-- [nginx-codex-factory.conf](/Users/emil/emil/python/codex-notion-app-factory/deploy/gce/nginx-codex-factory.conf)
+- [bootstrap_gce_runtime.sh](/Users/emil/emil/python/codex-app-factory/scripts/bootstrap_gce_runtime.sh)
+- [codex-factory.service](/Users/emil/emil/python/codex-app-factory/deploy/gce/codex-factory.service)
+- [nginx-codex-factory.conf](/Users/emil/emil/python/codex-app-factory/deploy/gce/nginx-codex-factory.conf)
 
 ## Bootstrap Flow
 
