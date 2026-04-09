@@ -55,6 +55,13 @@ function setSecondaryPanelOpen(isOpen) {
   document.body.dataset.secondaryPanelOpen = isOpen ? "true" : "false";
 }
 
+function syncNavOpsSection() {
+  if (!dom.navOpsSection) {
+    return;
+  }
+  dom.navOpsSection.open = window.innerWidth > 860;
+}
+
 function syncComposerMeta() {
   const app = selectedAppData(dom);
   const text = dom.requestTextInput.value;
@@ -259,6 +266,7 @@ function wireEvents() {
     } else {
       setSecondaryPanelOpen(false);
     }
+    syncNavOpsSection();
   });
   dom.appSelect.addEventListener("change", async () => {
     await conversationController.handleAppChange();
@@ -356,6 +364,7 @@ function init() {
   renderWorkspaceSummary(dom, "앱 목록과 최근 대화를 불러오면 현재 세션 맥락이 여기에 정리됩니다.");
   clearAutonomySummary(dom);
   clearLearningSummary(dom);
+  syncNavOpsSection();
   syncComposerMeta();
   syncDraftStatus();
   initControllers();

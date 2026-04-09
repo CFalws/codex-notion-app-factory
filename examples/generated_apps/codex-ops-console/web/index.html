@@ -28,29 +28,35 @@
           <button id="install-button" class="install-button" hidden>홈 화면에 추가</button>
         </div>
 
-        <section class="sidebar-section">
-          <div class="section-head compact">
-            <h2>앱</h2>
-            <button id="refresh-apps" class="secondary small">새로고침</button>
-          </div>
-          <label class="field compact-field">
-            <span>대상 앱</span>
-            <select id="app-select"></select>
-          </label>
-          <div class="sidebar-app-card">
-            <p class="label">배포 링크</p>
-            <p id="selected-app-url" class="app-url">앱을 선택하면 여기에서 바로 열 수 있습니다.</p>
-            <button id="open-app" class="secondary">선택한 앱 열기</button>
-          </div>
-        </section>
-
-        <section class="sidebar-section sidebar-section-fill">
+        <section class="sidebar-section sidebar-section-fill sidebar-primary-nav">
           <div class="section-head compact">
             <h2>대화</h2>
             <button id="new-conversation" class="secondary small">새 대화</button>
           </div>
           <div id="conversation-list" class="conversation-list"></div>
         </section>
+
+        <details id="nav-ops-section" class="sidebar-section sidebar-ops-details" open>
+          <summary id="nav-ops-summary" class="nav-ops-summary">
+            <span>앱과 운영</span>
+            <span class="nav-ops-summary-meta">앱 선택, 새로고침, 배포 링크</span>
+          </summary>
+          <div class="nav-ops-content">
+            <div class="section-head compact">
+              <h2>앱</h2>
+              <button id="refresh-apps" class="secondary small">새로고침</button>
+            </div>
+            <label class="field compact-field">
+              <span>대상 앱</span>
+              <select id="app-select"></select>
+            </label>
+            <div class="sidebar-app-card">
+              <p class="label">배포 링크</p>
+              <p id="selected-app-url" class="app-url">앱을 선택하면 여기에서 바로 열 수 있습니다.</p>
+              <button id="open-app" class="secondary">선택한 앱 열기</button>
+            </div>
+          </div>
+        </details>
 
       </aside>
       <button id="nav-sheet-scrim" class="nav-sheet-scrim" type="button" hidden aria-label="네비게이션 닫기"></button>

@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep the current selected-conversation SSE path, left rail markers, composer-adjacent activity bar, collapsed secondary panel, and mobile drawer unchanged.
-- [x] Replace the prose-heavy composer heading with a compact chat-style composer toolbar.
-- [x] Make send the primary composer action while keeping proposal and auto-open controls accessible but visually demoted.
-- [x] Preserve bottom composer reachability on desktop and phone widths without changing the existing activity bar path.
-- [x] Extend focused verification so future sessions can prove the composer remains chat-style and no longer reads like an admin form.
+- [x] Keep the current selected-conversation SSE path, center conversation pane, footer activity bar, and desktop left rail behavior unchanged.
+- [x] Make the mobile nav sheet lead with the conversation list and keep 새 대화 visible at the top of that primary section.
+- [x] Move app selector, refresh, deployment link, and related operator controls into a collapsible secondary section.
+- [x] Preserve selected and live thread markers in the first-visible conversation list so switching threads stays one tap from the mobile sheet.
+- [x] Extend focused verification so future sessions can prove phone navigation remains conversation-first while app-level controls stay reachable.

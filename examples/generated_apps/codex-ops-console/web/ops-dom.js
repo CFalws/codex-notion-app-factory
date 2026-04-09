@@ -2,6 +2,8 @@ export const dom = {
   navSheetToggle: document.getElementById("nav-sheet-toggle"),
   navSheetClose: document.getElementById("nav-sheet-close"),
   navSheetScrim: document.getElementById("nav-sheet-scrim"),
+  navOpsSection: document.getElementById("nav-ops-section"),
+  navOpsSummary: document.getElementById("nav-ops-summary"),
   secondaryPanel: document.getElementById("secondary-panel"),
   secondaryPanelToggle: document.getElementById("secondary-panel-toggle"),
   secondaryPanelClose: document.getElementById("secondary-panel-close"),

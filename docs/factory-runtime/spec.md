@@ -8,7 +8,7 @@
 
 ## Problem
 
-The workspace now has a stronger realtime handoff inside the transcript and a cleaner active-thread header, but the bottom interaction surface still reads like an admin form. The remaining friction is a prose-heavy composer with competing controls that makes message entry feel secondary to proposal operations.
+The workspace now has a stronger active conversation pane and a more compact composer, but phone-width navigation still opens into app-level controls before thread switching. The remaining friction is a mobile nav sheet that feels like an admin sidebar instead of a conversation-first session switcher.
 
 ## Target User
 
@@ -23,4 +23,4 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 ## Deliverable
 
-Convert the footer into a compact chat-style session composer where the textarea is the dominant surface, send is the primary action, proposal controls stay accessible but demoted, and the existing composer-adjacent activity bar remains the only live-status surface in the active pane.
+On phone widths, make the nav sheet lead with the conversation list and new-conversation action, while moving app selector, deploy link, and related operator controls into a collapsed secondary section that remains reachable without displacing thread switching.
