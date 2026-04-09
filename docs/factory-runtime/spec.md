@@ -8,7 +8,7 @@
 
 ## Problem
 
-Autonomous iterations still rely too much on prose to tell whether success happened through the intended path or only through a degraded fallback. That makes continuation policy and later inspection less trustworthy than they should be.
+Autonomous iterations now record structured intended-path verdicts, but verifier reviews still leave path acceptability implicit. Operators can see that a degraded signal occurred, yet verifier evidence does not explicitly say whether that path was acceptable or disqualifying.
 
 ## Target User
 
@@ -22,4 +22,4 @@ The primary user is the operator relying on unattended runtime self-improvement 
 
 ## Deliverable
 
-Persist one iteration-level intended-path verdict containing the expected execution path, degraded signals, and final verdict, then make autonomous continuation consume that structured contract instead of inferring path health from prose alone.
+Pass the structured intended-path verdict into autonomous verifier prompts, persist an explicit verifier `path_acceptability` judgment in review state, and verify that healthy and degraded iterations leave clearly different verification evidence.

@@ -80,6 +80,19 @@ This contract answers a different question than `goal_review`.
 
 Continuation policy should consume both contracts. A positive review is not enough if the iteration only succeeded through a degraded path.
 
+## Verifier Path-Acceptability Contract
+
+Each autonomous verifier review should also state whether the observed intended path was acceptable:
+
+- `path_acceptability`
+
+Allowed values:
+
+- `acceptable`
+- `disqualifying`
+
+This keeps verifier evidence aligned with the iteration's structured intended-path verdict instead of leaving that judgment implicit in prose.
+
 ## Iteration Failure Contract
 
 Iteration failure and goal failure are different things.

@@ -25,6 +25,7 @@ AUTONOMY_REVIEW_FIELDS = (
 )
 AUTONOMY_VERIFY_FIELDS = (
     "verdict",
+    "path_acceptability",
     "evidence",
     "residual_risk",
     "follow_up",
@@ -84,6 +85,8 @@ def normalize_verify_json(parsed: dict[str, Any] | None) -> dict[str, str]:
     normalized = normalize_fields(parsed, AUTONOMY_VERIFY_FIELDS)
     verdict = normalized["verdict"].lower()
     normalized["verdict"] = "pass" if verdict == "pass" else "fail"
+    acceptability = normalized["path_acceptability"].lower()
+    normalized["path_acceptability"] = acceptability if acceptability in {"acceptable", "disqualifying"} else ""
     return normalized
 
 
@@ -203,7 +206,10 @@ Execution rules:
         implementation_summary: str,
         *,
         verifier_name: str,
+        intended_path: dict[str, Any] | None = None,
     ) -> str:
+        path = intended_path or {}
+        degraded_signals = ", ".join(path.get("degraded_signals") or []) or "(none)"
         return f"""
 You are {verifier_name} in an autonomous software-improvement pipeline.
 
@@ -219,9 +225,15 @@ Success criteria: {proposal.get("success_criteria", "")}
 Implementation summary:
 {implementation_summary.strip() or "(no summary)"}
 
+Structured intended-path verdict:
+- expected_path: {str(path.get("expected_path") or "").strip() or "(missing)"}
+- degraded_signals: {degraded_signals}
+- verdict: {str(path.get("verdict") or "").strip() or "(missing)"}
+
 Rules:
 - Inspect the current proposal worktree.
 - Pass only if the approved hypothesis is actually satisfied.
+- Explicitly judge whether the observed execution path was acceptable or disqualifying.
 - Fail if the change is incomplete, too broad, or risky.
 - Do not modify files.
 - Reply with one short summary sentence.
@@ -229,6 +241,6 @@ Rules:
 
 JSON verification block:
 {AUTONOMY_VERIFY_START}
-{{"verdict":"pass or fail","evidence":"...","residual_risk":"...","follow_up":"..."}}
+{{"verdict":"pass or fail","path_acceptability":"acceptable or disqualifying","evidence":"...","residual_risk":"...","follow_up":"..."}}
 {AUTONOMY_VERIFY_END}
 """.strip()

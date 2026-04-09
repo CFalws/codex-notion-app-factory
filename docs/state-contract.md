@@ -118,6 +118,20 @@ Required fields:
 - `degraded_signals`
 - `verdict`
 
+### Goal Iteration Verification Review Shape
+
+Optional field when verifier reviews are present:
+
+- `verification_reviews`
+
+Each verifier review should include:
+
+- `verdict`
+- `path_acceptability`
+- `evidence`
+- `residual_risk`
+- `follow_up`
+
 ## Proposal Record
 
 Path: `state/runtime/proposals/<job_id>.json`

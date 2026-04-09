@@ -150,6 +150,11 @@ When an autonomous iteration records a structured intended-path verdict, verific
 - the healthy path records `verdict=expected`
 - the degraded path records the concrete degraded signals instead of looking like normal success
 
+When autonomous verifier reviews are present, verification should also assert that:
+
+- healthy iterations record `path_acceptability=acceptable`
+- degraded iterations record `path_acceptability=disqualifying`
+
 Review or verification rejection should fail verification only if the loop incorrectly pauses, stops, or loses state when policy says it should continue exploring.
 
 ## Commit And Deploy Policy

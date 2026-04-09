@@ -262,6 +262,7 @@ class RuntimeApiContext:
         app_record: dict[str, Any],
         proposal: dict[str, str],
         implementation_summary: str,
+        intended_path: dict[str, Any],
         conversation_id: str,
         iteration_number: int,
         verifier_name: str,
@@ -273,6 +274,7 @@ class RuntimeApiContext:
             proposal,
             implementation_summary,
             verifier_name=verifier_name,
+            intended_path=intended_path,
         )
         slug = verifier_name.lower().replace(" ", "-")
         self.append_event(
@@ -866,6 +868,7 @@ class RuntimeApiContext:
                             app_record=app_record,
                             proposal=proposal_plan,
                             implementation_summary=str(job.get("result_summary") or ""),
+                            intended_path=goal["iterations"][-1].get("intended_path", {}),
                             conversation_id=conversation_id,
                             iteration_number=iteration_number,
                             verifier_name=verifier_name,

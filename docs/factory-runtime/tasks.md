@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Choose one bounded intended-path verdict hypothesis instead of broad autonomy refactoring.
-- [x] Persist a structured iteration-level intended-path verdict into goal iteration state.
-- [x] Gate autonomous continuation on that verdict instead of prose-only interpretation.
-- [x] Verify both healthy intended-path success and fallback-only success in the runtime contract test.
+- [x] Choose one bounded verifier path-acceptability hypothesis instead of broad verification redesign.
+- [x] Extend autonomous verifier prompts and review schema with explicit path acceptability.
+- [x] Persist verifier path-acceptability judgments into goal iteration review state.
+- [x] Verify both healthy acceptable attestation and degraded disqualifying attestation in the runtime contract test.
 - [x] Update the `factory-runtime` docs to match the current runtime iteration.

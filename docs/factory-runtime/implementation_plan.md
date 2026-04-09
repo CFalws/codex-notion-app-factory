@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Treat structured intended-path verdicts as the single bounded hypothesis for this iteration.
-2. Add a small iteration-level contract with `expected_path`, `degraded_signals`, and `verdict`.
-3. Compute that verdict from durable runtime signals the controller already owns instead of from prose.
-4. Make continuation fail closed when the intended-path verdict is missing or degraded.
-5. Prove both the healthy intended path and a fallback-only success path in the runtime contract test.
+1. Treat verifier path-acceptability attestation as the single bounded hypothesis for this iteration.
+2. Extend the verifier prompt and JSON schema with an explicit `path_acceptability` field.
+3. Feed the structured intended-path verdict into the verifier prompt so the verifier can judge it directly instead of inferring from prose.
+4. Persist that attestation into iteration verification reviews without broadening controller policy.
+5. Prove both healthy acceptable attestation and degraded disqualifying attestation in the runtime contract test.

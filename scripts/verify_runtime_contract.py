@@ -232,6 +232,7 @@ async def fake_run_advisory_prompt(
             ),
         )
     if AUTONOMY_VERIFY_START in prompt:
+        degraded = "verdict: degraded" in prompt or "codex_exec_retrying" in prompt
         return (
             0,
             '{"type":"thread.started","thread_id":"advisory-verify"}\n',
@@ -240,7 +241,11 @@ async def fake_run_advisory_prompt(
                 [
                     "Verification verdict ready.",
                     AUTONOMY_VERIFY_START,
-                    '{"verdict":"pass","evidence":"The implementation summary matches the approved bounded change.","residual_risk":"Low","follow_up":"Continue with the next bounded improvement if the goal review recommends it."}',
+                    (
+                        '{"verdict":"fail","path_acceptability":"disqualifying","evidence":"The iteration only succeeded through degraded intended-path signals.","residual_risk":"The fallback path should not count as healthy autonomous progress.","follow_up":"Fix the degraded execution path before allowing unattended continuation."}'
+                        if degraded
+                        else '{"verdict":"pass","path_acceptability":"acceptable","evidence":"The implementation summary matches the approved bounded change through the expected path.","residual_risk":"Low","follow_up":"Continue with the next bounded improvement if the goal review recommends it."}'
+                    ),
                     AUTONOMY_VERIFY_END,
                 ]
             ),
@@ -551,10 +556,11 @@ def verify_goal_continues_after_verification_rejection(settings: RuntimeSettings
                 "suggested_adjustment": "",
             }
 
-        async def fake_verifier(self, *, goal, app_record, proposal, implementation_summary, conversation_id, iteration_number, verifier_name, cwd):
+        async def fake_verifier(self, *, goal, app_record, proposal, implementation_summary, intended_path, conversation_id, iteration_number, verifier_name, cwd):
             verdict = "fail" if iteration_number == 1 else "pass"
             return {
                 "verdict": verdict,
+                "path_acceptability": "disqualifying" if verdict == "fail" else "acceptable",
                 "evidence": f"{verifier_name} produced {verdict} on iteration {iteration_number}.",
                 "residual_risk": "Needs another bounded option." if verdict == "fail" else "Low",
                 "follow_up": "Explore a different bounded hypothesis." if verdict == "fail" else "Stop after success.",
@@ -596,6 +602,10 @@ def verify_goal_continues_after_verification_rejection(settings: RuntimeSettings
             require(
                 any(review.get("verdict") == "fail" for review in first_iteration.get("verification_reviews") or []),
                 f"first iteration should capture failed verification reviews: {first_iteration}",
+            )
+            require(
+                all(review.get("path_acceptability") == "disqualifying" for review in first_iteration.get("verification_reviews") or []),
+                f"failed verification reviews should record disqualifying path acceptability: {first_iteration}",
             )
             event_types = [event["type"] for event in context.state.get_conversation(created["conversation"]["conversation_id"])["events"]]
             require("goal.iteration.verification_rejected" in event_types, f"verification rejection should emit recovery event: {event_types}")
@@ -845,6 +855,10 @@ def main() -> None:
                 proposal_goal["iterations"][0]["intended_path"]["verdict"] == "expected",
                 f"healthy proposal iteration should keep expected intended-path verdict: {proposal_goal['iterations'][0]}",
             )
+            require(
+                all(review.get("path_acceptability") == "acceptable" for review in proposal_goal["iterations"][0].get("verification_reviews") or []),
+                f"healthy proposal iteration should record acceptable path attestation: {proposal_goal['iterations'][0]}",
+            )
 
             degraded_goal_response = request(
                 client,
@@ -867,6 +881,40 @@ def main() -> None:
             require(
                 "codex_exec_retrying" in (degraded_path.get("degraded_signals") or []),
                 f"degraded retry signal should be visible in intended-path state: {degraded_goal['iterations'][0]}",
+            )
+
+            degraded_proposal_goal_response = request(
+                client,
+                "POST",
+                "/api/goals",
+                json={
+                    "app_id": "factory-runtime",
+                    "objective": "SIMULATE_DEGRADED_RETRY: proposal-mode verification should attest that fallback-only success is disqualifying.",
+                    "source": "contract-test",
+                    "max_iterations": 1,
+                    "autostart": True,
+                    "auto_apply_proposals": True,
+                    "auto_resume_after_apply": False,
+                },
+            )
+            require(
+                degraded_proposal_goal_response.status_code == 200,
+                f"degraded proposal goal creation failed: {degraded_proposal_goal_response.text}",
+            )
+            degraded_proposal_goal = wait_for_goal_status(client, degraded_proposal_goal_response.json()["goal"]["goal_id"], "paused")
+            require(
+                degraded_proposal_goal["stop_reason"] == "verification_not_approved",
+                f"degraded proposal goal should pause on verification rejection: {degraded_proposal_goal}",
+            )
+            degraded_reviews = degraded_proposal_goal["iterations"][0].get("verification_reviews") or []
+            require(degraded_reviews, f"degraded proposal goal should persist verifier reviews: {degraded_proposal_goal}")
+            require(
+                all(review.get("path_acceptability") == "disqualifying" for review in degraded_reviews),
+                f"degraded proposal verifier reviews should record disqualifying path attestation: {degraded_proposal_goal['iterations'][0]}",
+            )
+            require(
+                all(review.get("verdict") == "fail" for review in degraded_reviews),
+                f"degraded proposal verifier reviews should fail when intended path is degraded: {degraded_proposal_goal['iterations'][0]}",
             )
 
     finally:
