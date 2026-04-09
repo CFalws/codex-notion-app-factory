@@ -649,36 +649,22 @@ body[data-secondary-panel-open="true"] .desktop-shell {
 
 .session-strip {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.8rem 1rem;
+  justify-content: flex-start;
+  gap: 0.55rem;
   width: 100%;
   margin: 0;
-  padding: 0.72rem 0.85rem 0.78rem;
+  padding: 0.66rem 0.8rem;
   border: 1px solid var(--line);
   border-radius: 1rem;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 243, 237, 0.9));
   box-shadow: 0 12px 24px rgba(44, 25, 6, 0.06);
 }
 
-.session-strip-main,
-.session-strip-side {
-  display: grid;
-  gap: 0.24rem;
-}
-
-.session-strip-main {
-  min-width: 0;
-}
-
-.session-strip-side {
-  flex-shrink: 0;
-  justify-items: end;
-  text-align: right;
-}
-
 .session-strip-toggle {
   min-width: 5.8rem;
+  margin-left: auto;
 }
 
 .session-strip-state,
@@ -739,8 +725,14 @@ body[data-secondary-panel-open="true"] .desktop-shell {
 .session-strip-detail {
   color: var(--muted);
   font-size: 0.73rem;
-  line-height: 1.2;
+  line-height: 1;
   letter-spacing: 0.04em;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.24rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .session-strip-meta {
@@ -1303,11 +1295,6 @@ body[data-secondary-panel-open="true"] .secondary-panel {
   .session-strip {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .session-strip-side {
-    justify-items: start;
-    text-align: left;
   }
 
   .jump-to-latest {

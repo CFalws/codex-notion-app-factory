@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep the current selected-conversation SSE path, deployed workspace gate, transcript-first center pane, phone conversation-first sheet behavior, and footer live rail unchanged in ownership.
-- [x] Restructure the composer footer so send stands alone as the primary conversation control.
-- [x] Move proposal apply and auto-open into a compact secondary utility cluster.
-- [x] Preserve the same proposal behavior and transcript plus composer reachability on desktop and phone widths.
-- [x] Extend focused verification so future sessions can prove the composer stays conversation-first while utility controls remain secondary.
+- [x] Keep the current selected-conversation SSE path, deployed workspace gate, transcript-first center pane, and footer live rail unchanged in ownership.
+- [x] Replace the split session-strip layout with one compact inline activity bar.
+- [x] Preserve the same machine-readable datasets, phase mappings, and secondary-panel detail path.
+- [x] Keep transcript and composer reachability intact on desktop and phone widths while reducing explanatory strip weight.
+- [x] Extend focused verification so future sessions can prove the live activity bar stays chip-first and inline.
