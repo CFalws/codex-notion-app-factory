@@ -437,6 +437,71 @@ class RuntimeApiContext:
                 data={"error": f"orphaned_running_job: {reason}"},
             )
 
+    def reconcile_running_goals(self) -> None:
+        now = datetime.now(timezone.utc)
+        for goal in self.state.list_goals():
+            if goal.get("status") != "running":
+                continue
+            if goal.get("halt_requested"):
+                continue
+            goal_id = str(goal.get("goal_id") or "").strip()
+            conversation_id = str(goal.get("conversation_id") or "").strip()
+            current_job_id = str(goal.get("current_job_id") or "").strip()
+            last_job_id = str(goal.get("last_job_id") or "").strip()
+            phase = str(goal.get("current_phase") or "").strip()
+            timestamp = str(goal.get("updated_at") or goal.get("last_resumed_at") or goal.get("started_at") or "")
+            stale_seconds = 0.0
+            if timestamp:
+                try:
+                    stale_seconds = max(
+                        0.0,
+                        (now - datetime.fromisoformat(timestamp.replace("Z", "+00:00"))).total_seconds(),
+                    )
+                except ValueError:
+                    stale_seconds = float(self.settings.running_job_grace_seconds + 1)
+
+            active_job_id = current_job_id or last_job_id
+            active_job_running = False
+            missing_active_job = False
+            if active_job_id:
+                try:
+                    job = self.state.get_job(active_job_id)
+                except KeyError:
+                    job = {}
+                    missing_active_job = True
+                runner_pid = int(job.get("runner_pid") or 0)
+                if job.get("status") == "running" and runner_pid > 0 and self._process_exists(runner_pid):
+                    active_job_running = True
+
+            if active_job_running:
+                continue
+            if goal.get("awaiting_restart_resume"):
+                continue
+            if not missing_active_job and stale_seconds <= float(self.settings.running_job_grace_seconds):
+                continue
+
+            reason = (
+                f"running goal references missing current_job_id={active_job_id}"
+                if missing_active_job
+                else (
+                    f"running goal made no progress for {int(stale_seconds)} seconds"
+                    f" and has no live codex process for current_job_id={current_job_id or '(none)'}"
+                )
+            )
+            goal["status"] = "paused"
+            goal["stop_reason"] = "stale_running_goal"
+            goal["completed_at"] = utc_now()
+            goal["current_phase"] = ""
+            goal["current_job_id"] = ""
+            self.state.save_goal(goal)
+            self.append_event(
+                conversation_id,
+                event_type="goal.paused",
+                body=f"자율 목표 {goal_id}를 stale running goal로 정리했습니다. {reason}",
+                status="paused",
+                data={"goal_id": goal_id, "stop_reason": "stale_running_goal", "reason": reason},
+            )
+
     def resume_running_goals(self) -> None:
         for goal in self.state.list_goals():
             if goal.get("status") != "running":

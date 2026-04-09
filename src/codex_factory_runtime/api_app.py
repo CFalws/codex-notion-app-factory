@@ -57,6 +57,7 @@ def create_app(settings: RuntimeSettings | None = None) -> FastAPI:
     @app.on_event("startup")
     async def resume_running_goals() -> None:
         context.reconcile_running_jobs()
+        context.reconcile_running_goals()
         context.resume_running_goals()
 
     @app.middleware("http")

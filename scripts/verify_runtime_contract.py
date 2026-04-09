@@ -635,6 +635,48 @@ def verify_reconcile_orphaned_running_job(settings: RuntimeSettings, state: Runt
     require("orphaned_running_job" in reconciled["error"], f"reconciled job should record orphaned reason: {reconciled}")
 
 
+def verify_reconcile_stale_running_goal(settings: RuntimeSettings, state: RuntimeState) -> None:
+    conversation = state.create_conversation(app_id="factory-runtime", title="Stale Goal", source="contract-test")
+    goal = state.create_goal(
+        app_id="factory-runtime",
+        title="Stale Goal",
+        objective="Detect stale running goals without a live job process.",
+        source="contract-test",
+        conversation_id=conversation["conversation_id"],
+        max_iterations=0,
+        auto_apply_proposals=True,
+        auto_resume_after_apply=True,
+    )
+    goal["status"] = "running"
+    goal["started_at"] = "2026-01-01T00:00:00+00:00"
+    goal["updated_at"] = "2026-01-01T00:00:00+00:00"
+    goal["current_iteration"] = 3
+    goal["current_phase"] = "implementation"
+    goal["current_job_id"] = "missing-job"
+    goal["last_job_id"] = "missing-job"
+    state.save_goal(goal)
+
+    context = RuntimeApiContext(
+        settings=settings,
+        state=state,
+        runtime=api_app.CodexAgentsRuntime(settings, state),
+        goals=GoalRuntime(),
+        autonomy=api_app.AutonomyRuntime(),
+    )
+    context.reconcile_running_goals()
+
+    reconciled = state.get_goal(goal["goal_id"])
+    require(reconciled["status"] == "paused", f"stale running goal should be paused: {reconciled}")
+    require(reconciled["stop_reason"] == "stale_running_goal", f"stale running goal should record stop reason: {reconciled}")
+    require(reconciled["current_phase"] == "", f"stale running goal should clear current phase: {reconciled}")
+    require(reconciled["current_job_id"] == "", f"stale running goal should clear current job id: {reconciled}")
+    refreshed_conversation = state.get_conversation(conversation["conversation_id"])
+    require(
+        any(event.get("type") == "goal.paused" and "stale running goal" in str(event.get("body") or "") for event in refreshed_conversation.get("events") or []),
+        f"stale running goal should append a paused event: {refreshed_conversation}",
+    )
+
+
 def verify_retryable_advisory_phase(settings: RuntimeSettings, state: RuntimeState) -> None:
     async def _run() -> None:
         context = RuntimeApiContext(
@@ -901,6 +943,7 @@ def main() -> None:
             verify_blocker_precedence_contract()
             verify_goal_task_lifecycle(settings, state)
             verify_reconcile_orphaned_running_job(settings, state)
+            verify_reconcile_stale_running_goal(settings, state)
             verify_retryable_advisory_phase(settings, state)
             verify_goal_continues_after_review_rejection(settings, state)
             verify_goal_continues_after_verification_rejection(settings, state)
