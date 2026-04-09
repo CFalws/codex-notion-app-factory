@@ -1,4 +1,4 @@
-import { FIXED_RUNTIME_URL, STORAGE_KEY } from "./ops-constants.js";
+import { DRAFTS_KEY, FIXED_RUNTIME_URL, STORAGE_KEY } from "./ops-constants.js";
 
 export const state = {
   deferredInstallPrompt: null,
@@ -7,7 +7,48 @@ export const state = {
   currentConversationId: "",
   currentJobId: "",
   conversationCache: null,
+  draftCache: {},
 };
+
+export function draftKey(appId, conversationId = "") {
+  return `${appId || "no-app"}::${conversationId || "new-conversation"}`;
+}
+
+export function loadDrafts() {
+  const raw = localStorage.getItem(DRAFTS_KEY);
+  if (!raw) {
+    return {};
+  }
+
+  try {
+    const payload = JSON.parse(raw);
+    return payload && typeof payload === "object" ? payload : {};
+  } catch (_) {
+    localStorage.removeItem(DRAFTS_KEY);
+    return {};
+  }
+}
+
+export function saveDrafts(currentState) {
+  localStorage.setItem(DRAFTS_KEY, JSON.stringify(currentState.draftCache || {}));
+}
+
+export function setDraft(currentState, appId, conversationId, text) {
+  currentState.draftCache ||= {};
+  const key = draftKey(appId, conversationId);
+  const value = String(text || "");
+  if (value.trim()) {
+    currentState.draftCache[key] = value;
+  } else {
+    delete currentState.draftCache[key];
+  }
+  saveDrafts(currentState);
+}
+
+export function getDraft(currentState, appId, conversationId) {
+  const drafts = currentState.draftCache || {};
+  return drafts[draftKey(appId, conversationId)] || drafts[draftKey(appId, "")] || "";
+}
 
 export function normalizeBaseUrl() {
   return FIXED_RUNTIME_URL.replace(/\/+$/, "");
@@ -31,6 +72,7 @@ export function saveSettings(dom, currentState) {
 }
 
 export function loadSettings(dom) {
+  state.draftCache = loadDrafts();
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) {
     return;

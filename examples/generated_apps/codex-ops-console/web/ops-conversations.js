@@ -17,6 +17,10 @@ export function createConversationController(deps) {
     ensurePollingForJob,
     stopPolling,
     normalizeBaseUrl,
+    updateHeroState,
+    renderWorkspaceSummary,
+    restoreDraft,
+    syncDraftStatus,
   } = deps;
 
   async function loadConversations() {
@@ -32,7 +36,13 @@ export function createConversationController(deps) {
 
     if (!app) {
       state.currentConversationId = "";
+      updateHeroState(dom, {
+        appName: "앱 미선택",
+        conversationState: "대화 준비 전",
+        jobState: "IDLE",
+      });
       renderConversation(dom, state, null, persistSettings);
+      restoreDraft();
       return;
     }
 
@@ -62,11 +72,18 @@ export function createConversationController(deps) {
       state.currentJobId = "";
       renderConversation(dom, state, null, persistSettings);
       dom.conversationMeta.textContent = "이 앱에는 아직 대화가 없습니다.";
+      updateHeroState(dom, {
+        appName: app.title,
+        conversationState: "새 대화 필요",
+      });
+      renderWorkspaceSummary(dom, `${app.title}에는 아직 대화가 없습니다. 메시지를 보내면 현재 앱 레인에서 새 세션이 시작됩니다.`);
+      restoreDraft();
     } catch (error) {
       state.currentConversationId = "";
       state.currentJobId = "";
       renderConversation(dom, state, null, persistSettings);
       dom.conversationMeta.textContent = `대화를 불러오지 못했습니다: ${error.message}`;
+      restoreDraft();
     }
   }
 
@@ -82,6 +99,8 @@ export function createConversationController(deps) {
     dom.conversationSelect.value = state.currentConversationId;
     dom.conversationSelect.dataset.savedConversationId = state.currentConversationId;
     renderConversation(dom, state, conversation, persistSettings);
+    restoreDraft();
+    syncDraftStatus();
 
     if (!syncJob) {
       return;
@@ -184,11 +203,14 @@ export function createConversationController(deps) {
     stopPolling();
     await loadConversations();
     persistSettings();
+    restoreDraft();
   }
 
   async function handleConversationChange() {
     if (dom.conversationSelect.value) {
       await fetchConversation(dom.conversationSelect.value);
+    } else {
+      restoreDraft();
     }
     persistSettings();
   }

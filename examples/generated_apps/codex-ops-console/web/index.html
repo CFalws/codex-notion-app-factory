@@ -21,6 +21,20 @@
         <p class="lede">
           폰에서 대화형으로 수정 요청을 보내면 서버의 Codex CLI 런타임이 같은 앱 세션을 이어받아 작업합니다.
         </p>
+        <div class="hero-strip">
+          <article class="hero-chip">
+            <p class="hero-chip-label">활성 앱</p>
+            <p id="hero-app-name" class="hero-chip-value">앱을 불러오는 중입니다.</p>
+          </article>
+          <article class="hero-chip">
+            <p class="hero-chip-label">대화 상태</p>
+            <p id="hero-conversation-state" class="hero-chip-value">대화 준비 전</p>
+          </article>
+          <article class="hero-chip">
+            <p class="hero-chip-label">작업 포커스</p>
+            <p id="hero-job-state" class="hero-chip-value">IDLE</p>
+          </article>
+        </div>
         <button id="install-button" class="install-button" hidden>홈 화면에 추가</button>
       </section>
 
@@ -45,6 +59,17 @@
           <p class="label">배포 링크</p>
           <p id="selected-app-url" class="app-url">앱을 선택하면 여기에서 바로 열 수 있습니다.</p>
         </div>
+
+        <div id="workspace-summary" class="workspace-summary">
+          <article class="workspace-card">
+            <p class="workspace-label">현재 작업 컨텍스트</p>
+            <p id="workspace-summary-text" class="workspace-value">앱과 대화를 고르면 이번 세션의 작업 맥락이 정리됩니다.</p>
+          </article>
+          <article class="workspace-card">
+            <p class="workspace-label">작성 초안</p>
+            <p id="draft-status" class="workspace-value">아직 저장된 초안이 없습니다.</p>
+          </article>
+        </div>
       </section>
 
       <section class="panel">
@@ -65,7 +90,15 @@
       <section class="panel">
         <div class="section-head">
           <h2>메시지 보내기</h2>
-          <p class="meta">대화 세션 안에서 메시지만 보내면 요청 방향을 계속 조정할 수 있습니다.</p>
+          <p class="meta">대화 세션 안에서 메시지만 보내면 요청 방향을 계속 조정할 수 있습니다. `Ctrl/Cmd + Enter`로 즉시 전송됩니다.</p>
+        </div>
+
+        <div class="prompt-lab">
+          <div class="prompt-lab-head">
+            <p class="prompt-lab-title">빠른 시작</p>
+            <p class="prompt-lab-meta">Codex Desktop처럼 바로 이어서 지시할 수 있게 자주 쓰는 작업 틀을 준비했습니다.</p>
+          </div>
+          <div id="quick-prompts" class="prompt-chips"></div>
         </div>
 
         <label class="field">
@@ -76,6 +109,11 @@
             placeholder="무엇을 어떻게 바꾸고, 폰에서 어떻게 확인할지 자연어로 적어주세요."
           ></textarea>
         </label>
+
+        <div class="composer-meta">
+          <p id="composer-hint" class="composer-hint">앱을 고르면 추천 작업 프롬프트와 저장된 초안이 여기 반영됩니다.</p>
+          <p id="composer-count" class="composer-count">0자</p>
+        </div>
 
         <label class="toggle">
           <input id="auto-open-app" type="checkbox" />

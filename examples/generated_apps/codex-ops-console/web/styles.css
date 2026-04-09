@@ -6,9 +6,10 @@
   --line: rgba(32, 25, 21, 0.1);
   --accent: #b14a2d;
   --accent-strong: #8b341a;
+  --accent-warm: #f3bf7c;
   --accent-soft: rgba(177, 74, 45, 0.12);
   --shadow: 0 20px 50px rgba(32, 25, 21, 0.12);
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-family: "IBM Plex Sans", "Pretendard", ui-sans-serif, system-ui, sans-serif;
 }
 
 * {
@@ -33,6 +34,37 @@ body {
 
 .hero {
   padding: 1rem 0 1.5rem;
+}
+
+.hero-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1.2rem;
+}
+
+.hero-chip {
+  padding: 0.95rem 1rem;
+  border: 1px solid rgba(139, 52, 26, 0.16);
+  border-radius: 1.2rem;
+  background: linear-gradient(180deg, rgba(255, 250, 245, 0.88), rgba(248, 233, 220, 0.92));
+  box-shadow: 0 10px 24px rgba(32, 25, 21, 0.08);
+}
+
+.hero-chip-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hero-chip-value {
+  margin: 0.35rem 0 0;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
 .kicker {
@@ -132,9 +164,18 @@ textarea {
   font: inherit;
 }
 
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible {
+  outline: 2px solid rgba(177, 74, 45, 0.45);
+  outline-offset: 2px;
+}
+
 textarea {
   resize: vertical;
   min-height: 8rem;
+  line-height: 1.55;
 }
 
 .row,
@@ -172,6 +213,124 @@ textarea {
   color: var(--ink);
   line-height: 1.45;
   word-break: break-word;
+}
+
+.workspace-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.9rem;
+}
+
+.workspace-card {
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.workspace-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.workspace-value {
+  margin: 0.45rem 0 0;
+  line-height: 1.5;
+}
+
+.prompt-lab {
+  margin-top: 0.2rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.56);
+}
+
+.prompt-lab-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.prompt-lab-title,
+.prompt-lab-meta {
+  margin: 0;
+}
+
+.prompt-lab-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.prompt-lab-meta {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.prompt-chips {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin-top: 0.8rem;
+}
+
+.prompt-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid rgba(177, 74, 45, 0.18);
+  border-radius: 1rem;
+  background: linear-gradient(180deg, rgba(255, 248, 242, 0.96), rgba(245, 232, 221, 0.88));
+  transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+}
+
+.prompt-chip:hover,
+.prompt-chip:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(177, 74, 45, 0.35);
+  box-shadow: 0 10px 20px rgba(177, 74, 45, 0.12);
+  outline: none;
+}
+
+.prompt-chip-title {
+  font-weight: 700;
+}
+
+.prompt-chip-hint {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  text-align: left;
+}
+
+.composer-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.65rem;
+}
+
+.composer-hint,
+.composer-count {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.composer-count {
+  flex-shrink: 0;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(32, 25, 21, 0.06);
 }
 
 .toggle {
@@ -326,6 +485,7 @@ textarea {
 }
 
 .timeline-item.message.user {
+  border-color: rgba(177, 74, 45, 0.18);
   background: rgba(177, 74, 45, 0.1);
 }
 
@@ -407,6 +567,9 @@ textarea {
 }
 
 @media (max-width: 640px) {
+  .hero-strip,
+  .workspace-summary,
+  .prompt-chips,
   .row,
   .actions,
   .grid.two-up,
@@ -417,5 +580,15 @@ textarea {
 
   .section-head {
     display: block;
+  }
+
+  .prompt-lab-head,
+  .composer-meta {
+    display: block;
+  }
+
+  .composer-count {
+    display: inline-block;
+    margin-top: 0.5rem;
   }
 }

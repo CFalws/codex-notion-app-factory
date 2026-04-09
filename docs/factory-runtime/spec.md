@@ -2,17 +2,17 @@
 
 ## Request
 
-- title: `대화 세션 기준으로 요청 제목 제거`
+- title: `앱의 사용성의 극대화`
 - source: `mobile-ops-console`
 - execution mode: `build`
 
 ## Problem
 
-The Codex Ops Console still asks the operator to provide a request title for each message. In a conversation-driven maintenance flow that extra field adds friction on phone and duplicates the role of the conversation session itself.
+The Codex Ops Console works functionally, but it still feels like a thin admin page rather than a polished Codex Desktop-style workspace. Operators need better context retention, lower-friction message composition, and clearer sense of the active app lane without sacrificing phone usability.
 
 ## Target User
 
-The primary user is the phone operator maintaining apps through the personal app factory runtime.
+The primary user is the phone operator maintaining apps through the personal app factory runtime, with a secondary need for a denser desktop-grade control surface.
 
 ## Constraints
 
@@ -22,4 +22,4 @@ The primary user is the phone operator maintaining apps through the personal app
 
 ## Deliverable
 
-Update the Codex Ops Console and runtime request handling so operators can send a message without a separate request title while preserving conversation continuity and proposal-mode compatibility.
+Upgrade the Codex Ops Console into a more desktop-like conversation workspace by improving composition flow, context visibility, and session continuity using the existing runtime API.
