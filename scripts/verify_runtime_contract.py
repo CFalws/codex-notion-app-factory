@@ -26,6 +26,7 @@ from codex_factory_runtime import api_app
 from codex_factory_runtime.auth import IAP_JWT_HEADER, TAILSCALE_LOGIN_HEADER, TAILSCALE_NAME_HEADER, IapIdentityProvider
 from codex_factory_runtime.config import RuntimeSettings
 from codex_factory_runtime.runtime_cli import CodexCliRunner
+from codex_factory_runtime.runtime_engineering import build_prompt
 from codex_factory_runtime.runtime_proposals import ProposalRuntime
 from codex_factory_runtime.state import RuntimeState, utc_now
 
@@ -248,6 +249,30 @@ def seed_apps(state: RuntimeState) -> None:
             "allowed_paths": ["workspaces/habit-tracker-pwa"],
         }
     )
+
+
+def verify_prompt_contract(settings: RuntimeSettings, state: RuntimeState) -> None:
+    app_record = state.get_app("habit-tracker-pwa")
+    prompt = build_prompt(
+        settings,
+        app_record,
+        {
+            "title": "Prompt contract smoke",
+            "request_text": "Reply with exactly one line and do not modify files.",
+            "source": "verify-runtime-contract",
+            "conversation_id": "contract-conversation",
+            "intent_summary": {
+                "explicit_request": "Reply with exactly one line and do not modify files.",
+                "interpreted_outcome": "Return a bounded no-op response.",
+                "assumptions": "No file edits required.",
+                "ambiguity": "Low",
+                "success_signal": "A non-empty prompt is produced for codex exec.",
+            },
+        },
+    )
+    require(isinstance(prompt, str), "build_prompt must return a string")
+    require(bool(prompt.strip()), "build_prompt must return a non-empty prompt")
+    require("Request:" in prompt, "build_prompt must include the request body")
     state.save_app(
         {
             "app_id": "factory-runtime",
@@ -282,6 +307,7 @@ def main() -> None:
             settings = build_settings(temp_root)
             state = RuntimeState(settings)
             seed_apps(state)
+            verify_prompt_contract(settings, state)
             client = TestClient(api_app.create_app(settings))
 
             runner = CodexCliRunner(settings)

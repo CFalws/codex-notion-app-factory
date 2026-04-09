@@ -114,38 +114,6 @@ Interpreted intent:
 - Ambiguity: {intent_summary.get("ambiguity", "(not set)")}
 - Success signal: {intent_summary.get("success_signal", "(not set)")}
 """.strip()
-
-
-_ABSOLUTE_PATH_PREFIXES = (
-    "/var/lib/codex-factory/state/runtime/worktrees/",
-    "/opt/codex-app-factory/",
-    "/Users/emil/emil/python/codex-app-factory/",
-    "/Users/emil/emil/python/codex-notion-app-factory/",
-)
-
-
-def sanitize_user_facing_text(text: str) -> str:
-    cleaned = str(text or "").strip()
-    if not cleaned:
-        return ""
-
-    cleaned = re.sub(
-        r"\[([^\]]+)\]\((/var/lib/codex-factory/state/runtime/worktrees/[^)]+|/opt/codex-app-factory/[^)]+|/Users/emil/emil/python/codex-(?:notion-)?app-factory/[^)]+)\)",
-        r"\1",
-        cleaned,
-    )
-    cleaned = re.sub(r"`([^`]+)`", r"\1", cleaned)
-    cleaned = cleaned.replace("**", "")
-    cleaned = cleaned.replace("### ", "").replace("## ", "").replace("# ", "")
-    cleaned = re.sub(r"/var/lib/codex-factory/state/runtime/worktrees/[0-9a-f]+/", "", cleaned)
-    for prefix in _ABSOLUTE_PATH_PREFIXES[1:]:
-        cleaned = cleaned.replace(prefix, "")
-    cleaned = cleaned.replace(
-        "https://cfalws.github.io/codex-notion-app-factory/examples/generated_apps/",
-        "https://cfalws.github.io/codex-app-factory/",
-    )
-    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
-    return cleaned.strip()
     proposal_tail = ""
     if is_proposal_mode(record):
         proposal_tail = """
@@ -200,6 +168,38 @@ Rules for the block:
 - Close with the exact marker line {ENGINEERING_LOG_END}
 {proposal_tail if proposal_tail else ""}
 """.strip()
+
+
+_ABSOLUTE_PATH_PREFIXES = (
+    "/var/lib/codex-factory/state/runtime/worktrees/",
+    "/opt/codex-app-factory/",
+    "/Users/emil/emil/python/codex-app-factory/",
+    "/Users/emil/emil/python/codex-notion-app-factory/",
+)
+
+
+def sanitize_user_facing_text(text: str) -> str:
+    cleaned = str(text or "").strip()
+    if not cleaned:
+        return ""
+
+    cleaned = re.sub(
+        r"\[([^\]]+)\]\((/var/lib/codex-factory/state/runtime/worktrees/[^)]+|/opt/codex-app-factory/[^)]+|/Users/emil/emil/python/codex-(?:notion-)?app-factory/[^)]+)\)",
+        r"\1",
+        cleaned,
+    )
+    cleaned = re.sub(r"`([^`]+)`", r"\1", cleaned)
+    cleaned = cleaned.replace("**", "")
+    cleaned = cleaned.replace("### ", "").replace("## ", "").replace("# ", "")
+    cleaned = re.sub(r"/var/lib/codex-factory/state/runtime/worktrees/[0-9a-f]+/", "", cleaned)
+    for prefix in _ABSOLUTE_PATH_PREFIXES[1:]:
+        cleaned = cleaned.replace(prefix, "")
+    cleaned = cleaned.replace(
+        "https://cfalws.github.io/codex-notion-app-factory/examples/generated_apps/",
+        "https://cfalws.github.io/codex-app-factory/",
+    )
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    return cleaned.strip()
 
 
 def infer_intent_summary(record: dict[str, Any], request_payload: dict[str, Any]) -> dict[str, str]:
