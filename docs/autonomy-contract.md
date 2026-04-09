@@ -37,6 +37,7 @@ When auto-apply is enabled:
 - the proposal must still go through the normal proposal/apply path
 - apply and push status must be recorded in state
 - if apply schedules a service restart, the goal should remain `running`
+- a goal waiting for restart-resume should record that pending state explicitly
 - the runtime should resume any `running` goals on startup so unattended loops survive restarts
 
 ## Goal Review Contract

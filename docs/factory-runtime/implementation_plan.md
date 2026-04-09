@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Remove the parts of the previous pass that added visual weight without improving flow.
-2. Replace dropdown-centric conversation switching with a direct conversation list and a clearer thread-focused layout.
-3. Keep the strongest usability wins from the prior pass, especially draft persistence and keyboard send.
-4. Preserve GitHub Pages compatibility by keeping the change inside the static console.
-5. Refresh the app docs so the recorded intent matches this iteration.
+1. Treat unattended restart-resume observability as the single bounded hypothesis for this iteration.
+2. Extend the goal state payload with explicit restart-resume markers instead of overloading plain `running`.
+3. Mark those fields when auto-applied proposals schedule restart and automatic continuation is enabled.
+4. Clear and annotate that state when startup recovery reattaches the loop.
+5. Prove the intended path with a runtime contract test that simulates restart by creating a fresh app instance against the same state root.

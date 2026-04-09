@@ -2,24 +2,24 @@
 
 ## Request
 
-- title: `앱의 사용성의 극대화`
-- source: `mobile-ops-console`
-- execution mode: `build`
+- title: `Unattended Runtime Supervisor`
+- source: `goal-loop`
+- execution mode: `proposal`
 
 ## Problem
 
-The previous UX pass added more UI, but not better flow. The console still feels like a collection of admin panels instead of a Codex-style conversation workspace. Dropdown-based conversation selection and fragmented action panels keep slowing down the main loop of read context, type, send, and verify.
+Unattended proposal-mode improvement already has auto-apply and startup resume hooks, but the restart-resume path is too implicit. A goal can remain `running` while actually waiting for service restart, which weakens observability and makes it hard to verify whether continuation happened through the intended path.
 
 ## Target User
 
-The primary user is the phone operator maintaining apps through the personal app factory runtime, with a secondary need for a denser desktop-grade control surface.
+The primary user is the operator relying on unattended runtime self-improvement and needing durable evidence that proposal apply, restart, and continuation happened correctly.
 
 ## Constraints
 
-- Preserve continuity of the existing `factory-runtime` lane.
-- Keep the web app deployable as a static GitHub Pages-compatible app.
-- Limit edits to the allowed proposal paths.
+- Preserve continuity of the existing `factory-runtime` proposal lane.
+- Keep the change inside the allowed proposal paths.
+- Prefer a bounded state/verification improvement over broad supervisor automation.
 
 ## Deliverable
 
-Reshape the Codex Ops Console into a chat-first workspace: remove low-value prompt scaffolding, make conversation browsing direct, keep the timeline central, and keep composition fast on both phone and desktop.
+Make restart-resume explicit in goal state, surface why a goal resumed after startup, and verify that unattended proposal loops continue through the intended restart-recovery path.

@@ -191,6 +191,11 @@ def build_goal(
         "best_summary": "",
         "stop_reason": "",
         "halt_requested": False,
+        "awaiting_restart_resume": False,
+        "awaiting_restart_iteration": 0,
+        "awaiting_restart_job_id": "",
+        "last_resume_reason": "",
+        "last_resumed_at": "",
         "policy": {
             "require_verification": True,
             "auto_apply_proposals": auto_apply_proposals,

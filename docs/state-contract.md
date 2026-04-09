@@ -257,6 +257,20 @@ Expected fields:
 - `mobile_risk`
 - `verification_steps`
 
+## Goal Restart-Resume Markers
+
+Path: `state/runtime/goals/<goal_id>.json`
+
+When a goal auto-applies a proposal that schedules service restart and policy allows automatic continuation, the goal should also expose:
+
+- `awaiting_restart_resume`
+- `awaiting_restart_iteration`
+- `awaiting_restart_job_id`
+- `last_resume_reason`
+- `last_resumed_at`
+
+These fields let later sessions distinguish a loop that is intentionally waiting for startup recovery from one that is actively executing.
+
 ## Attachment Ref Shape
 
 `attachments` is optional and should appear on requests, jobs, and request-type conversation messages when screenshots or other UI evidence are uploaded.

@@ -185,12 +185,29 @@ class RuntimeApiContext:
             if goal.get("halt_requested"):
                 continue
             conversation_id = str(goal.get("conversation_id") or "").strip()
+            resume_reason = "restart_resume" if goal.get("awaiting_restart_resume") else "startup_recovery"
+            iteration = int(goal.get("awaiting_restart_iteration") or 0)
+            goal["last_resume_reason"] = resume_reason
+            goal["last_resumed_at"] = utc_now()
+            if goal.get("awaiting_restart_resume"):
+                goal["awaiting_restart_resume"] = False
+                goal["awaiting_restart_iteration"] = 0
+                goal["awaiting_restart_job_id"] = ""
+            self.state.save_goal(goal)
             self.append_event(
                 conversation_id,
                 event_type="goal.resumed",
-                body="서버 시작 후 실행 중이던 자율 목표 루프를 다시 붙였습니다.",
+                body=(
+                    "서비스 재시작 뒤 대기 중이던 자율 목표 루프를 다시 붙였습니다."
+                    if resume_reason == "restart_resume"
+                    else "서버 시작 후 실행 중이던 자율 목표 루프를 다시 붙였습니다."
+                ),
                 status="running",
-                data={"goal_id": goal.get("goal_id", "")},
+                data={
+                    "goal_id": goal.get("goal_id", ""),
+                    "resume_reason": resume_reason,
+                    "iteration": iteration,
+                },
             )
             self.spawn_goal_loop(str(goal["goal_id"]))
 
@@ -637,6 +654,9 @@ class RuntimeApiContext:
                     goal["status"] = "running"
                     goal["stop_reason"] = ""
                     goal["completed_at"] = ""
+                    goal["awaiting_restart_resume"] = True
+                    goal["awaiting_restart_iteration"] = iteration_number
+                    goal["awaiting_restart_job_id"] = payload["job"]["job_id"]
                     self.state.save_goal(goal)
                     self.append_event(
                         conversation_id,
@@ -644,7 +664,11 @@ class RuntimeApiContext:
                         body="서비스 재시작 후 자율 목표 루프를 자동으로 다시 시작합니다.",
                         status="running",
                         job_id=payload["job"]["job_id"],
-                        data={"goal_id": goal_id, "iteration": iteration_number},
+                        data={
+                            "goal_id": goal_id,
+                            "iteration": iteration_number,
+                            "resume_reason": "restart_resume",
+                        },
                     )
                     return
 
