@@ -2,10 +2,10 @@
 
 ## Deployment Impact
 
-This changes the static Codex Ops Console assets, the runtime's request normalization logic, and the request documentation. The deployed web console needs a normal GitHub Pages publish, while the backend runtime code change only takes effect when the proposal is applied through the usual runtime lane.
+This changes only the static Codex Ops Console assets plus the app-scoped delivery docs. Backend runtime behavior is unchanged, so the visible UX improvements appear after the proposal is applied and the GitHub Pages/static asset publish path runs normally.
 
 ## Rollout Notes
 
 1. Apply the proposal commit onto `main`.
-2. Publish the updated static site through the existing GitHub Pages flow so the deployed console reflects the no-title message composer.
-3. Validate from a phone that a conversation message can be sent without a separate title field and that job status still renders normally.
+2. Publish the updated static site through the existing GitHub Pages flow so the deployed console reflects the richer compose workspace.
+3. Validate from both phone and desktop that drafts persist, quick prompts insert correctly, and `Ctrl/Cmd + Enter` sends a message without breaking the current conversation lane.

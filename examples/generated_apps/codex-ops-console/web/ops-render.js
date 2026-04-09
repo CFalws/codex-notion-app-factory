@@ -8,6 +8,33 @@ export function setJobMeta(dom, message) {
   dom.jobMeta.textContent = message;
 }
 
+export function updateHeroState(dom, { appName = "", conversationState = "", jobState = "" }) {
+  if (appName) {
+    dom.heroAppName.textContent = appName;
+  }
+  if (conversationState) {
+    dom.heroConversationState.textContent = conversationState;
+  }
+  if (jobState) {
+    dom.heroJobState.textContent = jobState;
+  }
+}
+
+export function renderWorkspaceSummary(dom, summary) {
+  dom.workspaceSummaryText.textContent = summary;
+}
+
+export function renderDraftStatus(dom, message) {
+  dom.draftStatus.textContent = message;
+}
+
+export function renderComposerMeta(dom, { hint = "", count = 0 }) {
+  if (hint) {
+    dom.composerHint.textContent = hint;
+  }
+  dom.composerCount.textContent = `${count}자`;
+}
+
 function phaseLabel(status, eventType = "") {
   const normalizedStatus = String(status || "").toLowerCase();
   if (eventType.startsWith("proposal.")) {
@@ -40,6 +67,7 @@ export function renderJobActivity(dom, conversation, currentJobId, jobPayload = 
   const phase = phaseLabel(jobPayload?.status || latestEvent?.status || "", latestEvent?.type || "");
   dom.jobPhase.textContent = phase;
   dom.jobPhase.className = `activity-phase ${phase.toLowerCase()}`;
+  updateHeroState(dom, { jobState: phase });
 
   if (!recentEvents.length) {
     dom.jobEvents.innerHTML = '<p class="activity-empty">작업이 시작되면 최근 실행 이벤트가 여기에 표시됩니다.</p>';
@@ -65,12 +93,19 @@ export function updateSelectedAppCard(dom, app) {
 
   if (!app) {
     dom.selectedAppUrl.textContent = "앱을 선택하면 여기에서 바로 열 수 있습니다.";
+    updateHeroState(dom, {
+      appName: "앱 미선택",
+      conversationState: "대화 준비 전",
+      jobState: "IDLE",
+    });
+    renderWorkspaceSummary(dom, "앱을 고르면 현재 작업 라인, 최근 대화, 배포 진입점이 여기에 요약됩니다.");
     return;
   }
 
   dom.selectedAppUrl.textContent = hasDeployment
     ? app.deploymentUrl
     : "deployment_url이 아직 등록되지 않았습니다.";
+  updateHeroState(dom, { appName: app.title || app.appId });
 }
 
 export function updateProposalButton(dom, latestProposalJobId) {
@@ -132,6 +167,11 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   if (!conversation) {
     dom.conversationMeta.textContent = "아직 대화 세션이 없습니다.";
     dom.conversationTimeline.innerHTML = '<p class="timeline-empty">새 대화를 만들면 요청과 이벤트가 여기 쌓입니다.</p>';
+    updateHeroState(dom, {
+      conversationState: "새 대화 필요",
+      jobState: currentState.currentJobId ? "RUNNING" : "IDLE",
+    });
+    renderWorkspaceSummary(dom, "아직 대화가 없습니다. 새 대화를 만들거나 바로 메시지를 보내면 현재 앱 레인에서 이어서 작업합니다.");
     renderJobActivity(dom, null, "");
     return;
   }
@@ -144,6 +184,18 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   ].sort((a, b) => (a.sortAt < b.sortAt ? -1 : 1));
 
   dom.conversationMeta.textContent = `${conversation.title} · ${items.length} items`;
+  updateHeroState(dom, {
+    conversationState: `${conversation.title} · ${items.length} items`,
+  });
+  renderWorkspaceSummary(
+    dom,
+    [
+      conversation.title,
+      conversation.latest_job_id ? `최근 job: ${conversation.latest_job_id}` : "최근 job 없음",
+      messages.length ? `메시지 ${messages.length}개` : "메시지 없음",
+      events.length ? `이벤트 ${events.length}개` : "이벤트 없음",
+    ].join(" · "),
+  );
 
   if (!items.length) {
     dom.conversationTimeline.innerHTML = '<p class="timeline-empty">아직 메시지가 없습니다.</p>';

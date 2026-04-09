@@ -15,15 +15,20 @@ import { createJobController } from "./ops-jobs.js";
 import {
   clearLearningSummary,
   describeJob,
+  renderComposerMeta,
+  renderDraftStatus,
   renderJobActivity,
   renderLearningSummary,
   renderConversation,
+  renderWorkspaceSummary,
   setJobMeta,
   setStatus,
+  updateHeroState,
   updateProposalButton,
   updateSelectedAppCard,
 } from "./ops-render.js";
-import { loadSettings, normalizeBaseUrl, saveSettings, state } from "./ops-store.js";
+import { QUICK_PROMPTS } from "./ops-constants.js";
+import { getDraft, loadSettings, normalizeBaseUrl, saveSettings, setDraft, state } from "./ops-store.js";
 
 function persistSettings() {
   saveSettings(dom, state);
@@ -31,6 +36,75 @@ function persistSettings() {
 
 let conversationController;
 let jobController;
+
+function currentAppId() {
+  return selectedAppData(dom)?.appId || "";
+}
+
+function syncComposerMeta() {
+  const app = selectedAppData(dom);
+  const text = dom.requestTextInput.value;
+  renderComposerMeta(dom, {
+    hint: app
+      ? `${app.title}에 이어서 보낼 지시입니다. 필요하면 현재 대화 맥락을 짧게 적고, 검증 방법을 마지막 줄에 남기세요.`
+      : "먼저 앱을 고르면 이 입력창이 앱 레인에 연결됩니다.",
+    count: text.length,
+  });
+}
+
+function syncDraftStatus() {
+  const app = selectedAppData(dom);
+  if (!app) {
+    renderDraftStatus(dom, "앱을 고르면 앱별 초안이 자동 저장됩니다.");
+    return;
+  }
+  const text = dom.requestTextInput.value.trim();
+  if (text) {
+    renderDraftStatus(dom, `${app.title} · ${state.currentConversationId || "새 대화"} 초안을 이 기기에 저장 중입니다.`);
+    return;
+  }
+  const savedDraft = getDraft(state, app.appId, state.currentConversationId);
+  renderDraftStatus(
+    dom,
+    savedDraft ? `${app.title}에 저장된 초안이 있습니다. 필요하면 이어서 작성하세요.` : `${app.title}에 저장된 초안이 없습니다.`,
+  );
+}
+
+function persistDraft() {
+  const appId = currentAppId();
+  if (!appId) {
+    syncComposerMeta();
+    return;
+  }
+  setDraft(state, appId, state.currentConversationId, dom.requestTextInput.value);
+  syncComposerMeta();
+  syncDraftStatus();
+}
+
+function restoreDraft() {
+  const appId = currentAppId();
+  dom.requestTextInput.value = appId ? getDraft(state, appId, state.currentConversationId) : "";
+  syncComposerMeta();
+  syncDraftStatus();
+}
+
+function fillQuickPrompts() {
+  dom.quickPrompts.innerHTML = QUICK_PROMPTS.map(
+    (prompt) => `
+      <button type="button" class="prompt-chip" data-prompt-id="${prompt.id}" data-template="${encodeURIComponent(prompt.template)}">
+        <span class="prompt-chip-title">${prompt.label}</span>
+        <span class="prompt-chip-hint">${prompt.hint}</span>
+      </button>
+    `,
+  ).join("");
+}
+
+function applyPromptTemplate(template) {
+  const existing = dom.requestTextInput.value.trim();
+  dom.requestTextInput.value = existing ? `${existing}\n\n${template}` : template;
+  dom.requestTextInput.focus();
+  persistDraft();
+}
 
 async function sendMessage() {
   const app = selectedAppData(dom);
@@ -66,7 +140,11 @@ async function sendMessage() {
 
     state.currentConversationId = conversationId;
     state.currentJobId = payload.job.job_id;
+    setDraft(state, app.appId, "", "");
+    setDraft(state, app.appId, conversationId, "");
     dom.requestTextInput.value = "";
+    syncComposerMeta();
+    syncDraftStatus();
     renderConversation(dom, state, payload.conversation, persistSettings);
     setStatus(
       dom,
@@ -177,6 +255,20 @@ function wireEvents() {
   dom.sendRequestButton.addEventListener("click", sendMessage);
   dom.openAppButton.addEventListener("click", openSelectedApp);
   dom.applyProposalButton.addEventListener("click", applyProposal);
+  dom.requestTextInput.addEventListener("input", persistDraft);
+  dom.requestTextInput.addEventListener("keydown", (event) => {
+    if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+      event.preventDefault();
+      sendMessage();
+    }
+  });
+  dom.quickPrompts.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-template]");
+    if (!button) {
+      return;
+    }
+    applyPromptTemplate(decodeURIComponent(button.dataset.template || ""));
+  });
 }
 
 function initControllers() {
@@ -212,6 +304,10 @@ function initControllers() {
     syncLatestJob: jobController.syncLatestJob,
     updateProposalButton,
     updateSelectedAppCard,
+    updateHeroState,
+    renderWorkspaceSummary,
+    restoreDraft,
+    syncDraftStatus,
     conversationUrl,
   });
 }
@@ -219,9 +315,18 @@ function initControllers() {
 function init() {
   loadSettings(dom);
   dom.backendInput.value = FIXED_RUNTIME_URL;
+  fillQuickPrompts();
   updateSelectedAppCard(dom, selectedAppData(dom));
   updateProposalButton(dom, state.latestProposalJobId);
+  updateHeroState(dom, {
+    appName: "앱을 불러오는 중입니다.",
+    conversationState: "대화 준비 전",
+    jobState: "IDLE",
+  });
+  renderWorkspaceSummary(dom, "앱 목록과 최근 대화를 불러오면 현재 세션 맥락이 여기에 정리됩니다.");
   clearLearningSummary(dom);
+  syncComposerMeta();
+  syncDraftStatus();
   initControllers();
   wireInstallPrompt();
   wireServiceWorker();
