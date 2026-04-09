@@ -156,7 +156,65 @@ function transcriptLiveTone(liveRun) {
   return "neutral";
 }
 
+function renderInlineSessionBlock(conversation, currentState, liveRun, handoffState) {
+  const appendStream = currentState.appendStream || {};
+  const conversationId = String(conversation?.conversation_id || "");
+  const streamConversationId = String(appendStream.conversationId || "");
+  const renderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
+  const transport = String(appendStream.transport || "polling").toLowerCase();
+  const status = String(appendStream.status || "offline").toLowerCase();
+  const sseLiveOwner =
+    conversationId &&
+    streamConversationId === conversationId &&
+    transport === "sse" &&
+    renderSource === "sse";
+
+  if (handoffState?.stage === "pending-assistant") {
+    return `
+      <section class="session-inline-block" data-selected-thread-live-block="true" data-live-block-stage="pending-assistant" data-live-block-source="accepted-event">
+        <p class="session-inline-kicker">In Flight Assistant</p>
+        <div class="session-inline-row">
+          <span class="session-inline-chip" data-tone="neutral">ASSISTANT</span>
+          <span class="session-inline-chip" data-tone="neutral">ACCEPTED</span>
+        </div>
+        <p class="session-inline-body">첫 응답을 준비 중입니다. 선택된 대화의 handoff가 이미 확인되었고, 실제 assistant append를 기다리고 있습니다.</p>
+        <p class="session-inline-meta">selected thread · ACCEPTED · ${escapeHtml(status.toUpperCase())}</p>
+      </section>
+    `;
+  }
+
+  if (
+    !sseLiveOwner ||
+    !liveRun?.visible ||
+    liveRun.terminal ||
+    !liveRun.phase ||
+    liveRun.phase === "IDLE" ||
+    liveRun.state === "sending" ||
+    liveRun.state === "generating"
+  ) {
+    return "";
+  }
+
+  const tone = transcriptLiveTone(liveRun);
+  const detail = simplifyText(phaseDetailHint(liveRun) || liveRun.detail || "");
+  const appendId = Number(appendStream.lastLiveAppendId || appendStream.lastAppendId || 0);
+  return `
+    <section class="session-inline-block" data-selected-thread-live-block="true" data-live-block-stage="${escapeHtml(liveRun.state)}" data-live-block-source="sse">
+      <p class="session-inline-kicker">Selected Thread Session</p>
+      <div class="session-inline-row">
+        <span class="session-inline-chip" data-tone="neutral">LIVE</span>
+        <span class="session-inline-chip" data-tone="${escapeHtml(tone)}">${escapeHtml(String(liveRun.phase || "LIVE").toUpperCase())}</span>
+      </div>
+      <p class="session-inline-body">${escapeHtml(detail || "선택된 대화의 최신 live 진행 상태를 표시하는 중입니다.")}</p>
+      <p class="session-inline-meta">selected thread · SSE · ${escapeHtml(status.toUpperCase())} · append #${appendId || 0}${liveRun.jobId ? ` · ${escapeHtml(liveRun.jobId)}` : ""}</p>
+    </section>
+  `;
+}
+
 function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
+  if (liveRun?.visible && !liveRun?.terminal) {
+    return "";
+  }
   const appendStream = currentState.appendStream || {};
   const conversationId = String(conversation?.conversation_id || "");
   const streamConversationId = String(appendStream.conversationId || "");
@@ -1219,6 +1277,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   });
 
   const liveRun = deriveLiveRunState(conversation, currentState);
+  const inlineSessionBlock = renderInlineSessionBlock(conversation, currentState, liveRun, handoffState);
   if (dom.threadScroller) {
     dom.threadScroller.dataset.pendingConversationId = "";
     dom.threadScroller.dataset.pendingHandoffStage = handoffState.stage;
@@ -1258,13 +1317,13 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
     ].join(" · "),
   );
 
-  if (!items.length) {
+  if (!items.length && !inlineSessionBlock) {
     dom.conversationTimeline.innerHTML = '<p class="timeline-empty">아직 메시지가 없습니다.</p>';
     return;
   }
 
   const liveActivityTurn = renderTranscriptLiveActivity(conversation, currentState, liveRun);
-  dom.conversationTimeline.innerHTML = items
+  dom.conversationTimeline.innerHTML = inlineSessionBlock + items
     .map((item) => {
       if (item.kind === "event") {
         return `

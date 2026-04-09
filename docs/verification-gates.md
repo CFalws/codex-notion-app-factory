@@ -211,6 +211,7 @@ For the feature-flagged active-conversation append SSE path, verification should
 - on phone widths, the active conversation should remain the first visible workspace surface and app or thread navigation should open through an explicit drawer or sheet rather than occupying the top of the reading flow
 - on phone widths, closing the nav sheet or choosing a thread or app from it should return focus to the selected conversation surface so the transcript and composer resume as the default workspace owner
 - the selected-thread live rail should map healthy SSE events such as `goal.proposal.phase.started`, `goal.review.phase.started`, `goal.verify.phase.started`, `goal.proposal.auto_apply.started`, `proposal.ready`, and `codex.exec.applied` into explicit machine-readable phase labels so the central workspace no longer collapses them into generic thinking or done wording
+- the selected-thread center pane should expose one conversation-first workspace marker and one inline selected-thread session block that appears only for pending assistant handoff or active SSE-owned live progress, then clears on terminal resolution or thread switch without becoming a second multi-thread status surface
 
 ## Commit And Deploy Policy
 

@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Keep the current selected-conversation SSE path, composer-adjacent live strip, transcript-tail live activity turn, left rail, and live-follow behavior unchanged.
-2. Normalize selected-thread handoff rendering into one bounded transcript contract: exactly one pending outbound user turn after submit, then exactly one temporary assistant placeholder after acceptance.
-3. Clear that temporary handoff state on first real assistant SSE append, terminal resolution, idle reset, or thread switch, and expose the singular handoff stage through machine-readable transcript datasets.
-4. Preserve transcript plus composer reachability and keep the handoff state compact on phone widths.
-5. Extend the focused verifier and docs so future sessions can prove the transcript handoff stage stays singular, selected-thread-local, and cleanly cleared.
+1. Keep the current selected-conversation SSE path, left rail, and live-follow behavior unchanged.
+2. Rework the selected-thread center pane into one conversation-first session surface with the transcript and composer aligned to the same column.
+3. Render one inline selected-thread session block inside the transcript flow that appears for pending-assistant handoff or active SSE-owned live progress, advances through the existing selected-thread phase state, and clears on terminal resolution.
+4. Preserve anchored composer reachability on desktop and phone widths while making the secondary operator panel feel more compact and less competitive with the transcript.
+5. Extend the focused verifier and docs so future sessions can prove the new inline selected-thread session block and conversation-first workspace markers remain present.
