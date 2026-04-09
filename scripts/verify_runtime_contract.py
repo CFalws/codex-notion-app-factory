@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import base64
+import asyncio
 import os
 import sys
 import tempfile
@@ -25,6 +26,7 @@ except ModuleNotFoundError:
     raise
 
 from codex_factory_runtime import api_app
+from codex_factory_runtime.api_runtime_context import RuntimeApiContext
 from codex_factory_runtime.auth import IAP_JWT_HEADER, TAILSCALE_LOGIN_HEADER, TAILSCALE_NAME_HEADER, IapIdentityProvider
 from codex_factory_runtime.config import RuntimeSettings
 from codex_factory_runtime.runtime_cli import CodexCliRunner
@@ -37,6 +39,7 @@ from codex_factory_runtime.runtime_autonomy import (
     AUTONOMY_VERIFY_START,
 )
 from codex_factory_runtime.runtime_engineering import build_prompt
+from codex_factory_runtime.runtime_goals import GoalRuntime
 from codex_factory_runtime.runtime_proposals import ProposalRuntime
 from codex_factory_runtime.state import RuntimeState, utc_now
 
@@ -250,6 +253,7 @@ def build_settings(temp_root: Path) -> RuntimeSettings:
         codex_profile="",
         codex_model="",
         codex_sandbox="workspace-write",
+        advisory_timeout_seconds=180,
         codex_skip_git_repo_check=True,
         cors_allowed_origins=[],
         auto_execute_requests=True,
@@ -289,6 +293,7 @@ def build_iap_settings(temp_root: Path) -> RuntimeSettings:
         codex_profile=settings.codex_profile,
         codex_model=settings.codex_model,
         codex_sandbox=settings.codex_sandbox,
+        advisory_timeout_seconds=settings.advisory_timeout_seconds,
         codex_skip_git_repo_check=settings.codex_skip_git_repo_check,
         cors_allowed_origins=settings.cors_allowed_origins,
         auto_execute_requests=settings.auto_execute_requests,
@@ -423,6 +428,51 @@ def wait_for_goal_status(client: TestClient, goal_id: str, expected_status: str,
     raise AssertionFailed(f"goal {goal_id} did not reach {expected_status}: {last_goal}")
 
 
+def verify_goal_task_lifecycle(settings: RuntimeSettings, state: RuntimeState) -> None:
+    async def _run() -> None:
+        original_run_goal_loop = RuntimeApiContext.run_goal_loop
+        context = RuntimeApiContext(
+            settings=settings,
+            state=state,
+            runtime=api_app.CodexAgentsRuntime(settings, state),
+            goals=GoalRuntime(),
+            autonomy=api_app.AutonomyRuntime(),
+        )
+
+        started = asyncio.Event()
+        release = asyncio.Event()
+
+        async def fake_goal_loop(self, goal_id: str) -> None:
+            started.set()
+            await release.wait()
+
+        RuntimeApiContext.run_goal_loop = fake_goal_loop
+        try:
+            context.spawn_goal_loop("goal-task-contract")
+            await asyncio.wait_for(started.wait(), timeout=1.0)
+            require(
+                "goal-task-contract" in context.goal_tasks,
+                f"spawned goal task should be retained until completion: {context.goal_tasks.keys()}",
+            )
+            first_task = context.goal_tasks["goal-task-contract"]
+            context.spawn_goal_loop("goal-task-contract")
+            require(
+                context.goal_tasks["goal-task-contract"] is first_task,
+                "spawn_goal_loop should not replace an already running task for the same goal",
+            )
+            release.set()
+            await asyncio.wait_for(first_task, timeout=1.0)
+            await asyncio.sleep(0)
+            require(
+                "goal-task-contract" not in context.goal_tasks,
+                "completed goal task should be removed from the retained task table",
+            )
+        finally:
+            RuntimeApiContext.run_goal_loop = original_run_goal_loop
+
+    asyncio.run(_run())
+
+
 def main() -> None:
     original_run_request = api_app.CodexAgentsRuntime.run_request
     original_apply_proposal = api_app.CodexAgentsRuntime.apply_proposal
@@ -438,6 +488,7 @@ def main() -> None:
             state = RuntimeState(settings)
             seed_apps(state)
             verify_prompt_contract(settings, state)
+            verify_goal_task_lifecycle(settings, state)
             client = TestClient(api_app.create_app(settings))
 
             runner = CodexCliRunner(settings)
@@ -745,6 +796,7 @@ def main() -> None:
                 codex_profile=settings.codex_profile,
                 codex_model=settings.codex_model,
                 codex_sandbox=settings.codex_sandbox,
+                advisory_timeout_seconds=settings.advisory_timeout_seconds,
                 codex_skip_git_repo_check=settings.codex_skip_git_repo_check,
                 cors_allowed_origins=settings.cors_allowed_origins,
                 auto_execute_requests=settings.auto_execute_requests,

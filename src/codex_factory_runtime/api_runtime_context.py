@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 import asyncio
 from pathlib import Path
@@ -30,6 +30,7 @@ class RuntimeApiContext:
     runtime: CodexAgentsRuntime
     goals: GoalRuntime
     autonomy: AutonomyRuntime
+    goal_tasks: dict[str, asyncio.Task[Any]] = field(default_factory=dict)
 
     def append_event(
         self,
@@ -313,8 +314,16 @@ class RuntimeApiContext:
         return review
 
     def spawn_goal_loop(self, goal_id: str) -> None:
+        existing = self.goal_tasks.get(goal_id)
+        if existing is not None and not existing.done():
+            return
         task = asyncio.create_task(self.run_goal_loop(goal_id))
-        task.add_done_callback(lambda finished: self._handle_goal_task_result(goal_id, finished))
+        self.goal_tasks[goal_id] = task
+        task.add_done_callback(lambda finished: self._finalize_goal_task(goal_id, finished))
+
+    def _finalize_goal_task(self, goal_id: str, task: asyncio.Task[Any]) -> None:
+        self.goal_tasks.pop(goal_id, None)
+        self._handle_goal_task_result(goal_id, task)
 
     def _handle_goal_task_result(self, goal_id: str, task: asyncio.Task[Any]) -> None:
         if task.cancelled():

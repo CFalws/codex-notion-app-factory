@@ -63,6 +63,7 @@ class CodexCliRunner:
         *,
         cwd: Path,
         capture_output: bool = True,
+        timeout_seconds: int | None = None,
     ) -> tuple[int, str, str]:
         process = await asyncio.create_subprocess_exec(
             *command,
@@ -72,7 +73,16 @@ class CodexCliRunner:
             stdout=asyncio.subprocess.PIPE if capture_output else asyncio.subprocess.DEVNULL,
             stderr=asyncio.subprocess.PIPE if capture_output else asyncio.subprocess.DEVNULL,
         )
-        stdout_bytes, stderr_bytes = await process.communicate()
+        try:
+            stdout_bytes, stderr_bytes = await asyncio.wait_for(process.communicate(), timeout=timeout_seconds)
+        except TimeoutError:
+            process.kill()
+            stdout_bytes, stderr_bytes = await process.communicate()
+            stdout_text = stdout_bytes.decode("utf-8", errors="replace") if stdout_bytes else ""
+            stderr_text = stderr_bytes.decode("utf-8", errors="replace") if stderr_bytes else ""
+            timeout_message = f"Command timed out after {timeout_seconds} seconds."
+            stderr_text = f"{stderr_text}\n{timeout_message}".strip() if stderr_text else timeout_message
+            return 124, stdout_text, stderr_text
         stdout_text = stdout_bytes.decode("utf-8", errors="replace") if stdout_bytes else ""
         stderr_text = stderr_bytes.decode("utf-8", errors="replace") if stderr_bytes else ""
         return process.returncode, stdout_text, stderr_text
@@ -87,6 +97,7 @@ class CodexCliRunner:
         cwd: Path,
         image_paths: list[str] | None = None,
         sandbox: str | None = None,
+        timeout_seconds: int | None = None,
     ) -> tuple[int, str, str, str]:
         command = self.build_command(
             session_id,
@@ -96,7 +107,11 @@ class CodexCliRunner:
             image_paths=image_paths,
             sandbox=sandbox,
         )
-        returncode, stdout_text, stderr_text = await self.run_command(command, cwd=cwd)
+        returncode, stdout_text, stderr_text = await self.run_command(
+            command,
+            cwd=cwd,
+            timeout_seconds=timeout_seconds,
+        )
         final_output = output_path.read_text(encoding="utf-8").strip() if output_path.exists() else ""
         return returncode, stdout_text, stderr_text, final_output
 

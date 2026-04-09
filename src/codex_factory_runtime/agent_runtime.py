@@ -376,6 +376,7 @@ class CodexAgentsRuntime:
             use_resume=False,
             cwd=cwd,
             sandbox=sandbox,
+            timeout_seconds=self.settings.advisory_timeout_seconds,
         )
 
     async def apply_proposal(self, job_id: str) -> dict[str, Any]:
