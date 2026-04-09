@@ -745,6 +745,10 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const lastRenderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
   const lastLiveAppendId = Number(appendStream.lastLiveAppendId || 0);
   const liveRun = deriveLiveRunState(conversation, currentState);
+  const sseLiveOwner =
+    appendStream.transport === "sse" &&
+    String(appendStream.conversationId || "") === conversationId &&
+    lastRenderSource === "sse";
   currentState.sessionRail ||= { conversationId: "", expanded: false };
 
   if (!conversationId) {
@@ -811,7 +815,16 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const transportState = transportChip(status, presentation);
   const phaseState = phaseChip(liveRun, presentation);
   const proposalState = proposalChip(liveRun);
-  dom.sessionStrip.hidden = false;
+  const showComposerLiveStrip =
+    sseLiveOwner &&
+    !liveRun.terminal &&
+    liveRun.visible &&
+    liveRun.phase &&
+    liveRun.phase !== "IDLE" &&
+    liveRun.state !== "sending" &&
+    liveRun.state !== "generating";
+  dom.sessionStrip.hidden = !showComposerLiveStrip;
+  dom.sessionStrip.dataset.liveOwned = showComposerLiveStrip ? "true" : "false";
   dom.sessionStrip.dataset.sessionPresentation = presentation;
   dom.sessionStrip.dataset.sessionTerminal = liveRun.terminal ? "true" : "false";
   dom.sessionStrip.dataset.sessionCollapsed = shouldCollapse ? "true" : "false";
@@ -832,7 +845,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
     `<span class="session-chip" data-tone="${escapeHtml(proposalState.tone)}">${escapeHtml(proposalState.label)}</span>`,
   ].join("");
   dom.sessionStripMeta.textContent = sessionProvenance(status, lastAppendId, lastLiveAppendId, liveRun);
-  dom.sessionStripDetail.textContent = composerActionHint(status, presentation, liveRun);
+  dom.sessionStripDetail.textContent = phaseDetailHint(liveRun);
   if (dom.sessionStripToggle) {
     dom.sessionStripToggle.hidden = true;
     dom.sessionStripToggle.textContent = "세부 보기";

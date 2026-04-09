@@ -8,7 +8,7 @@
 
 ## Problem
 
-The selected-thread workspace already exposes exact SSE-driven phase progression and better phone shell behavior, but live progress still sits at the workspace edges. The remaining friction is inside the transcript itself: the active conversation should show the current selected-thread live phase and detail in the message flow instead of making the operator scan to header or footer status surfaces.
+The selected-thread transcript already carries one compact live activity turn, but typing and watching progress still require too much eye travel between the composer and the workspace edges. The remaining friction is immediately above the input area: the active conversation needs one compact composer-adjacent live strip that keeps current phase and latest SSE detail visible where the operator types, without lingering after terminal resolution.
 
 ## Target User
 
@@ -19,9 +19,9 @@ The primary user is the operator or developer using the phone-friendly workspace
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
 - Reuse the existing selected-conversation SSE route instead of widening transport scope.
-- Constrain this iteration to the selected transcript and its composer-adjacent live-state mirror inside the existing center pane.
+- Constrain this iteration to the composer-adjacent live strip inside the existing selected conversation footer shell.
 - Leave selected-thread transport ownership, non-selected thread rendering, deployed verification gate, and polling fallback rules unchanged in this iteration.
 
 ## Deliverable
 
-Keep the existing selected-conversation SSE path and workspace shell, but add one compact transcript-tail live activity turn that mirrors the current selected-thread SSE-derived phase and detail, updates in place during active execution, and disappears cleanly when the live state is no longer selected-thread-SSE-owned.
+Keep the existing selected-conversation SSE path, transcript-tail live turn, and workspace shell, but add one compact composer-adjacent live session strip that appears only while selected-thread SSE is actively driving a run, mirrors the current phase and detail in place, and hides cleanly on terminal resolution.

@@ -714,6 +714,13 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   box-shadow: 0 12px 24px rgba(44, 25, 6, 0.06);
 }
 
+.session-strip[data-live-owned="true"] {
+  gap: 0.48rem;
+  padding: 0.58rem 0.72rem;
+  border-color: rgba(31, 120, 224, 0.16);
+  background: linear-gradient(180deg, rgba(238, 245, 255, 0.9), rgba(255, 255, 255, 0.96));
+}
+
 .session-strip-toggle {
   min-width: 5.8rem;
   margin-left: auto;
