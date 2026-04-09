@@ -47,9 +47,9 @@ The persistent Python runtime handles:
 - launch of `codex exec` or `codex exec resume` in the repository workspace
 - background job tracking for phone-originated changes
 
-### 5. Local repository as proof of work
+### 5. Local repository as the durable execution surface
 
-The repository is where the workflow becomes inspectable.
+The repository is where the workflow becomes inspectable and maintainable.
 
 Every meaningful request should leave behind:
 
@@ -68,4 +68,4 @@ The value is that the overall environment was designed so that:
 - execution happens through a repeatable agent workflow
 - outputs are durable and reviewable
 
-That is what makes it portfolio-worthy.
+That is what makes the environment durable and reviewable.

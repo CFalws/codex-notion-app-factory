@@ -28,11 +28,9 @@ The next layer on top of that loop is stateful maintenance: each app should keep
 
 ## Core Claim
 
-This repository is designed to support one clear portfolio message:
+**This repository is a stateful agentic coding environment where requests enter through a runtime control console, Codex executes through a persistent local CLI runtime, and app changes are carried through implementation, verification, and deployment with phone-usable delivery as the default.**
 
-**I built an agent execution environment where requests enter through a runtime control console, Codex executes through a persistent local CLI runtime, and personal-use apps are implemented with phone-usable delivery as the default.**
-
-This is not a chatbot demo. It is an operating model for turning idea capture into implemented software that can actually be launched on a phone.
+This is not a chatbot demo. It is an execution environment for turning requests into implemented software that can actually be launched on a phone.
 
 ## What The System Does
 
@@ -53,15 +51,16 @@ This is not a chatbot demo. It is an operating model for turning idea capture in
 - app-specific workspace and session state management
 - GitHub Pages deployment for the phone-facing static surfaces
 
-## Why This Is Stronger Than A Standard “Agent App”
+## Why This Structure Matters
 
 The important point is not just model usage. The important point is the workflow design:
 
 - Codex is used as the execution engine
-- the system is optimized for building real personal-use tools, not generic chat interactions
+- the system is optimized for building and maintaining real software, not generic chat interactions
 - output is judged by deployability and accessibility, not only by local correctness
+- later sessions can continue from durable state instead of restarting cold
 
-This creates a durable app-building loop rather than a one-off automation.
+This creates a durable coding environment rather than a one-off automation.
 
 ## Architecture
 
@@ -227,17 +226,11 @@ The repository keeps only the current operator-facing surfaces:
 - `habit-tracker-pwa` as the maintained example app lane
 - runtime state, workspaces, and deployment scripts that support the live maintenance loop
 
-## My Implementation Scope
+## Implementation Scope
 
-I designed the workflow, request contract, execution rules, runtime, deployment path, and the current operator and example app surfaces included in this repository.
+This repository includes the workflow, request contract, execution rules, runtime, deployment path, verification gates, and the current operator and example app surfaces needed to run the environment end to end.
 
-This is not a mock architecture document. It is a working portfolio repository showing how I structure agent-led product implementation.
-
-## Portfolio Framing
-
-This repository is best presented as:
-
-> Built a Codex-based agent execution environment where requests entered through a phone-friendly runtime console and were converted into real app specs, deployable PWAs, stateful maintenance sessions, and code changes for personal-use software projects.
+It is a working system, not a mock architecture document.
 
 ## Repository Name
 
@@ -249,14 +242,12 @@ If the GitHub repository is renamed from `codex-notion-app-factory`, update:
 - the GitHub Pages base path
 - any VM deployment path that still points at the old checkout name
 
-## Why This Version Is Honest
+## Operating Principles
 
-This repository reflects the workflow I actually use:
+This repository reflects the workflow the environment is built to support:
 
-- I send maintenance requests through the runtime console
-- I use Codex as the implementation agent
-- I rely on MCP-connected tools for context retrieval
-- I use the environment to build real personal apps for myself
-- I care whether those apps can be launched comfortably from my phone
-
-That is a stronger and more credible portfolio story than claiming a generic autonomous framework that I do not actually use.
+- maintenance requests enter through the runtime console
+- Codex acts as the implementation agent
+- durable state preserves continuity across sessions
+- verification gates protect commit and deployment paths
+- delivery should remain usable from a phone whenever the request allows it

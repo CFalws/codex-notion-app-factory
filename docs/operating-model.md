@@ -45,9 +45,9 @@ The workflow becomes weak if:
 - the implementation environment is not documented
 - the output only works while the development computer is running
 
-## What Makes It Portfolio-Ready
+## What Makes It Operational
 
-A strong portfolio entry should show:
+A robust environment should show:
 
 - the intake contract
 - the execution rules
