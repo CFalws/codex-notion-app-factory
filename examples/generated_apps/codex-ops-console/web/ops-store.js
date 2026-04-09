@@ -29,6 +29,12 @@ export const state = {
     lastRenderSource: "snapshot",
     lastLiveAppendId: 0,
   },
+  liveFollow: {
+    conversationId: "",
+    isFollowing: true,
+    jumpVisible: false,
+    lastAppendId: 0,
+  },
 };
 
 export function maxConversationAppendId(conversation) {

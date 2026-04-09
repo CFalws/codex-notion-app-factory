@@ -8,7 +8,7 @@
 
 ## Problem
 
-The workspace now has a stronger active conversation pane and a more compact composer, but phone-width navigation still opens into app-level controls before thread switching. The remaining friction is a mobile nav sheet that feels like an admin sidebar instead of a conversation-first session switcher.
+The workspace now has stronger phone-width navigation and a tighter active pane, but the transcript still behaves like a static log during live generation. The remaining friction is that users can lose the newest SSE append when they are not pinned to the bottom, and there is no compact return-to-latest affordance when they intentionally scroll away.
 
 ## Target User
 
@@ -23,4 +23,4 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 ## Deliverable
 
-On phone widths, make the nav sheet lead with the conversation list and new-conversation action, while moving app selector, deploy link, and related operator controls into a collapsed secondary section that remains reachable without displacing thread switching.
+Add conversation-local live-follow behavior so the selected transcript stays pinned to the newest append while the user is already near the bottom, preserves manual reading position when they scroll up, and shows one compact jump-to-latest control that restores the newest append without changing the existing SSE, composer, or navigation structure.

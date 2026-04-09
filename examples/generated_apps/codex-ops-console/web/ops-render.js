@@ -68,6 +68,50 @@ export function renderDraftStatus(dom, message) {
   dom.draftStatus.textContent = message;
 }
 
+function isThreadNearBottom(threadScroller) {
+  if (!threadScroller) {
+    return true;
+  }
+  return threadScroller.scrollTop + threadScroller.clientHeight >= threadScroller.scrollHeight - 72;
+}
+
+function syncJumpToLatest(dom, currentState, conversationId, renderSource) {
+  if (!dom.jumpToLatestButton) {
+    return;
+  }
+  const liveFollow = currentState.liveFollow || {};
+  const isVisible = Boolean(conversationId && liveFollow.jumpVisible);
+  dom.jumpToLatestButton.hidden = !isVisible;
+  dom.jumpToLatestButton.dataset.followConversationId = conversationId || "";
+  dom.jumpToLatestButton.dataset.followMode = liveFollow.isFollowing ? "following" : "paused";
+  dom.jumpToLatestButton.dataset.followRenderSource = renderSource || "snapshot";
+}
+
+export function updateLiveFollowFromScroll(dom, currentState) {
+  const liveFollow = currentState.liveFollow || {};
+  const isNearBottom = isThreadNearBottom(dom.threadScroller);
+  currentState.liveFollow = {
+    ...liveFollow,
+    isFollowing: isNearBottom,
+    jumpVisible: Boolean(liveFollow.conversationId && !isNearBottom),
+  };
+  syncJumpToLatest(dom, currentState, liveFollow.conversationId || "", dom.threadScroller?.dataset.renderSource || "snapshot");
+}
+
+export function jumpToLatest(dom, currentState) {
+  if (!dom.threadScroller) {
+    return;
+  }
+  dom.threadScroller.scrollTop = dom.threadScroller.scrollHeight;
+  const liveFollow = currentState.liveFollow || {};
+  currentState.liveFollow = {
+    ...liveFollow,
+    isFollowing: true,
+    jumpVisible: false,
+  };
+  syncJumpToLatest(dom, currentState, liveFollow.conversationId || "", dom.threadScroller.dataset.renderSource || "snapshot");
+}
+
 function deriveLiveRunState(conversation, currentState) {
   const jobId = String(currentState.currentJobId || conversation?.latest_job_id || "");
   const events = Array.isArray(conversation?.events) ? conversation.events : [];
@@ -568,6 +612,9 @@ export function renderLearningSummary(dom, summary, heading, status = "RECORDED"
 }
 
 export function renderConversation(dom, currentState, conversation, onPersist) {
+  const previousFollow = currentState.liveFollow || {};
+  const previousConversationId = previousFollow.conversationId || "";
+  const wasNearBottom = isThreadNearBottom(dom.threadScroller);
   currentState.conversationCache = conversation;
   currentState.currentConversationId = conversation ? conversation.conversation_id : "";
   if (conversation) {
@@ -586,6 +633,13 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
       dom.threadScroller.dataset.pendingConversationId ||= "";
     }
     renderSessionStrip(dom, currentState, null);
+    currentState.liveFollow = {
+      conversationId: "",
+      isFollowing: true,
+      jumpVisible: false,
+      lastAppendId: 0,
+    };
+    syncJumpToLatest(dom, currentState, "", "snapshot");
     updateHeroState(dom, {
       conversationState: "새 대화 필요",
       jobState: currentState.currentJobId ? "RUNNING" : "IDLE",
@@ -643,6 +697,20 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
     dom.threadScroller.dataset.pendingConversationId = "";
   }
   renderSessionStrip(dom, currentState, conversation);
+  const latestAppendId = maxConversationAppendId(conversation);
+  const isSameConversation = previousConversationId === conversation.conversation_id;
+  const renderSource = String(currentState.appendStream?.lastRenderSource || "snapshot").toLowerCase();
+  const sessionTerminal = String(dom.threadScroller?.dataset.sessionTerminal || "false") === "true";
+  const shouldKeepFollowing = !isSameConversation || previousFollow.isFollowing || wasNearBottom;
+  const shouldShowJump = isSameConversation
+    ? !sessionTerminal && !shouldKeepFollowing && (renderSource === "sse" || latestAppendId > Number(previousFollow.lastAppendId || 0))
+    : false;
+  currentState.liveFollow = {
+    conversationId: conversation.conversation_id,
+    isFollowing: shouldKeepFollowing,
+    jumpVisible: shouldShowJump,
+    lastAppendId: latestAppendId,
+  };
   updateHeroState(dom, {
     conversationState: `${messages.length} msgs · ${events.length} evts`,
   });
@@ -682,9 +750,10 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
       `;
     })
     .join("");
-  if (dom.threadScroller) {
+  if (dom.threadScroller && currentState.liveFollow.isFollowing) {
     dom.threadScroller.scrollTop = dom.threadScroller.scrollHeight;
   }
+  syncJumpToLatest(dom, currentState, conversation.conversation_id, renderSource);
 
   renderJobActivity(dom, conversation, currentState.currentJobId || conversation.latest_job_id || "");
 

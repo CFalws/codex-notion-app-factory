@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Keep the current selected-conversation SSE path, center conversation pane, footer activity bar, and desktop left rail behavior unchanged.
-2. Reorder the mobile nav sheet so the conversation section is the first actionable surface and keeps new-conversation visible at the top.
-3. Move app selector, refresh, deployment link, and related operator controls into a dedicated collapsible operator section that can stay open on desktop and collapsed on phone widths.
-4. Preserve selected and live thread markers in the first-visible conversation list so thread switching remains one tap from the mobile sheet.
-5. Extend the focused verifier and docs so future sessions can prove phone navigation stays conversation-first without losing access to app-level controls.
+1. Keep the current selected-conversation SSE path, navigation structure, composer-adjacent activity bar, and footer composer unchanged.
+2. Add transcript-local follow state so the selected conversation stays pinned to the newest append while the user is already near the bottom.
+3. Stop forced scrolling when the user scrolls upward and expose one compact jump-to-latest control that restores the newest append and follow mode.
+4. Clear the affordance on thread switch, empty or terminal reset, and when the user returns to the bottom.
+5. Extend the focused verifier and docs so future sessions can prove live progress stays bound to the existing append SSE path without adding more status chrome.

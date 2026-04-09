@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep the current selected-conversation SSE path, center conversation pane, footer activity bar, and desktop left rail behavior unchanged.
-- [x] Make the mobile nav sheet lead with the conversation list and keep 새 대화 visible at the top of that primary section.
-- [x] Move app selector, refresh, deployment link, and related operator controls into a collapsible secondary section.
-- [x] Preserve selected and live thread markers in the first-visible conversation list so switching threads stays one tap from the mobile sheet.
-- [x] Extend focused verification so future sessions can prove phone navigation remains conversation-first while app-level controls stay reachable.
+- [x] Keep the current selected-conversation SSE path, navigation structure, composer-adjacent activity bar, and footer composer unchanged.
+- [x] Add transcript-local follow state so the selected conversation stays pinned while the user is already near the bottom.
+- [x] Stop forced scrolling when the user scrolls upward and show one compact jump-to-latest control to resume follow mode.
+- [x] Clear the affordance on thread switch, empty or terminal reset, and when the user returns to the bottom.
+- [x] Extend focused verification so future sessions can prove the live-follow affordance stays bound to the existing selected-conversation append path.

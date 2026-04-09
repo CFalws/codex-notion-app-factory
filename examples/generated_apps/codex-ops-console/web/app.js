@@ -24,9 +24,11 @@ import {
   renderLearningSummary,
   renderConversation,
   renderAutonomySummary,
+  jumpToLatest,
   renderWorkspaceSummary,
   setJobMeta,
   setStatus,
+  updateLiveFollowFromScroll,
   updateHeroState,
   updateProposalButton,
   updateSelectedAppCard,
@@ -291,6 +293,8 @@ function wireEvents() {
       sendMessage();
     }
   });
+  dom.threadScroller?.addEventListener("scroll", () => updateLiveFollowFromScroll(dom, state));
+  dom.jumpToLatestButton?.addEventListener("click", () => jumpToLatest(dom, state));
   dom.conversationList.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-conversation-id]");
     if (!button) {
