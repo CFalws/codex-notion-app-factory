@@ -60,19 +60,17 @@ summary="$(printf '%s' "$job" | python3 -c 'import json,sys; print(json.load(sys
 echo "$summary" | grep -q 'DEPLOYED_CONVERSATION_OK'
 
 conversation_after="$(api GET "/api/conversations/$conversation_id")"
-printf '%s' "$conversation_after" | python3 - <<'PY'
-import json, sys
-payload = json.load(sys.stdin)
-events = {event["type"] for event in payload.get("events", [])}
-required = {"conversation.created", "message.accepted", "job.queued", "job.running", "job.completed"}
-missing = sorted(required - events)
+printf '%s' "$conversation_after" | python3 -c 'import json,sys
+payload=json.load(sys.stdin)
+events={event["type"] for event in payload.get("events", [])}
+required={"conversation.created","message.accepted","job.queued","job.running","job.completed"}
+missing=sorted(required-events)
 if missing:
     raise SystemExit(f"missing conversation events: {missing}")
-messages = payload.get("messages", [])
-roles = [message["role"] for message in messages]
+messages=payload.get("messages", [])
+roles=[message["role"] for message in messages]
 if roles[:2] != ["user", "assistant"]:
-    raise SystemExit(f"unexpected message roles: {roles}")
-PY
+    raise SystemExit(f"unexpected message roles: {roles}")'
 
 echo "conversation_id=$conversation_id"
 echo "job_id=$job_id"
