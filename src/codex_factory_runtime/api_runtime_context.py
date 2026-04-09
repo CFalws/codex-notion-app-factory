@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Any
 import asyncio
 
-from fastapi import BackgroundTasks, HTTPException
+from fastapi import BackgroundTasks, HTTPException, UploadFile
 
 from .agent_runtime import CodexAgentsRuntime
 from .config import RuntimeSettings
@@ -77,6 +77,60 @@ class RuntimeApiContext:
             compact = compact[:69].rstrip() + "..."
         return compact or "Conversation update"
 
+    async def store_conversation_attachments(
+        self,
+        conversation_id: str,
+        files: list[UploadFile],
+    ) -> list[dict[str, Any]]:
+        if not files:
+            raise HTTPException(status_code=400, detail="At least one image attachment is required.")
+        stored: list[dict[str, Any]] = []
+        for upload in files:
+            content_type = str(upload.content_type or "").strip().lower()
+            if not content_type.startswith("image/"):
+                raise HTTPException(
+                    status_code=415,
+                    detail=f"Only image attachments are supported. Got: {content_type or '(none)'}",
+                )
+            content = await upload.read()
+            if not content:
+                raise HTTPException(status_code=400, detail=f"Attachment {upload.filename or '(unnamed)'} is empty.")
+            metadata = self.state.save_conversation_attachment(
+                conversation_id,
+                filename=upload.filename or "",
+                content_type=content_type,
+                content=content,
+            )
+            stored.append(self.state.public_attachment_ref(metadata))
+
+        self.append_event(
+            conversation_id,
+            event_type="attachment.saved",
+            body=f"스크린샷 {len(stored)}개를 대화 맥락에 저장했습니다.",
+            status="info",
+            data={"attachments": stored},
+        )
+        return stored
+
+    def resolve_attachment_inputs(
+        self,
+        conversation_id: str,
+        attachments: list[dict[str, Any]] | None,
+    ) -> tuple[list[dict[str, Any]], list[str]]:
+        public_refs: list[dict[str, Any]] = []
+        image_paths: list[str] = []
+        for item in attachments or []:
+            attachment_id = str(item.get("attachment_id") or "").strip()
+            if not attachment_id:
+                continue
+            try:
+                metadata = self.state.get_conversation_attachment(conversation_id, attachment_id)
+            except KeyError as exc:
+                raise HTTPException(status_code=404, detail=str(exc)) from exc
+            public_refs.append(self.state.public_attachment_ref(metadata))
+            image_paths.append(str(metadata["stored_path"]))
+        return public_refs, image_paths
+
     def require_app(self, app_id: str) -> dict[str, Any]:
         try:
             return self.state.get_app(app_id)
@@ -133,6 +187,7 @@ class RuntimeApiContext:
         source: str,
         conversation_id: str = "",
         ux_context: dict[str, Any] | None = None,
+        attachments: list[dict[str, Any]] | None = None,
     ) -> dict[str, str]:
         record = self.require_app(app_id)
         return infer_intent_summary(
@@ -143,6 +198,7 @@ class RuntimeApiContext:
                 "source": source,
                 "conversation_id": conversation_id,
                 "ux_context": ux_context or {},
+                "attachments": attachments or [],
             },
         )
 
@@ -158,8 +214,12 @@ class RuntimeApiContext:
         conversation_id: str = "",
         intent_summary: dict[str, str] | None = None,
         ux_context: dict[str, Any] | None = None,
+        attachments: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
+        if attachments and not conversation_id:
+            raise HTTPException(status_code=409, detail="Screenshot attachments require a conversation_id.")
         resolved_title = self.resolve_request_title(title, request_text)
+        public_attachments, attachment_paths = self.resolve_attachment_inputs(conversation_id, attachments)
         resolved_intent = intent_summary or self.interpret_intent(
             app_id=app_id,
             title=resolved_title,
@@ -167,6 +227,7 @@ class RuntimeApiContext:
             source=source,
             conversation_id=conversation_id,
             ux_context=ux_context,
+            attachments=public_attachments,
         )
         request_payload = self.state.create_request(
             app_id=app_id,
@@ -176,6 +237,7 @@ class RuntimeApiContext:
             conversation_id=conversation_id,
             intent_summary=resolved_intent,
             ux_context=ux_context,
+            attachments=public_attachments,
         )
         job = self.state.create_job(
             app_id=app_id,
@@ -184,6 +246,7 @@ class RuntimeApiContext:
             conversation_id=conversation_id,
             intent_summary=resolved_intent,
             ux_context=ux_context,
+            attachments=public_attachments,
         )
         self.append_event(
             conversation_id,
@@ -203,10 +266,13 @@ class RuntimeApiContext:
                 "title": resolved_title,
                 "request_id": request_payload["request_id"],
                 "intent_summary": resolved_intent,
+                "attachments": public_attachments,
             },
         )
         if execute_now and self.settings.auto_execute_requests:
-            background_tasks.add_task(self.run_job, job["job_id"], app_id, request_payload)
+            runtime_request = dict(request_payload)
+            runtime_request["attachment_paths"] = attachment_paths
+            background_tasks.add_task(self.run_job, job["job_id"], app_id, runtime_request)
         return {
             "request": request_payload,
             "job": job,

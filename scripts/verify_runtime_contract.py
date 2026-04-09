@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import base64
 import os
 import sys
 import tempfile
@@ -172,6 +173,7 @@ def build_settings(temp_root: Path) -> RuntimeSettings:
         registry_root=state_root / "registry" / "apps",
         requests_root=state_root / "requests",
         runtime_root=runtime_root,
+        attachments_root=runtime_root / "attachments",
         jobs_root=runtime_root / "jobs",
         proposals_root=runtime_root / "proposals",
         worktrees_root=runtime_root / "worktrees",
@@ -210,6 +212,7 @@ def build_iap_settings(temp_root: Path) -> RuntimeSettings:
         registry_root=settings.registry_root,
         requests_root=settings.requests_root,
         runtime_root=settings.runtime_root,
+        attachments_root=settings.attachments_root,
         jobs_root=settings.jobs_root,
         proposals_root=settings.proposals_root,
         worktrees_root=settings.worktrees_root,
@@ -311,6 +314,33 @@ def verify_prompt_contract(settings: RuntimeSettings, state: RuntimeState) -> No
     )
     require("UX_REVIEW_JSON_START" in ui_prompt, "UI-oriented prompt must require a UX review block")
     require("User-reported UX friction:" in ui_prompt, "UI-oriented prompt must include structured UX context")
+    screenshot_prompt = build_prompt(
+        settings,
+        state.get_app("factory-runtime"),
+        {
+            "title": "Screenshot-backed UX review",
+            "request_text": "Use the screenshot evidence to simplify the operator console.",
+            "source": "verify-runtime-contract",
+            "conversation_id": "contract-conversation",
+            "attachments": [
+                {
+                    "attachment_id": "shot1",
+                    "filename": "operator-console.png",
+                    "content_type": "image/png",
+                    "size_bytes": 1024,
+                    "api_path": "/api/conversations/contract-conversation/attachments/shot1",
+                }
+            ],
+            "intent_summary": {
+                "explicit_request": "Use the screenshot evidence to simplify the operator console.",
+                "interpreted_outcome": "Reduce visible friction in the operator console based on the screenshot.",
+                "assumptions": "Treat the screenshot as the current UI truth.",
+                "ambiguity": "Medium",
+                "success_signal": "The UI should better match the visible friction in the screenshot.",
+            },
+        },
+    )
+    require("Attached screenshots:" in screenshot_prompt, "screenshot-backed prompt must include attached screenshot evidence")
 
 
 def request(client: TestClient, method: str, path: str, *, api_key: bool = True, **kwargs: Any):
@@ -341,9 +371,19 @@ def main() -> None:
                 "Reply with exactly CONTRACT_RESUME_OK.",
                 temp_root / "resume-last-message.txt",
                 use_resume=True,
+                image_paths=["/tmp/contract-image.png"],
             )
             require("--sandbox" not in resume_command, f"resume command must not include --sandbox: {resume_command}")
             require("resume" in resume_command, f"resume command should include resume subcommand: {resume_command}")
+            require("--image" in resume_command, f"resume command should include --image for screenshot review: {resume_command}")
+            fresh_command = runner.build_command(
+                "",
+                "Reply with exactly CONTRACT_FRESH_OK.",
+                temp_root / "fresh-last-message.txt",
+                use_resume=False,
+                image_paths=["/tmp/contract-image.png"],
+            )
+            require("--image" in fresh_command, f"fresh exec command should include --image for screenshot review: {fresh_command}")
 
             health = client.get("/health")
             require(health.status_code == 200, f"health failed: {health.text}")
@@ -366,6 +406,20 @@ def main() -> None:
             conversation = conversation_response.json()
             conversation_id = conversation["conversation_id"]
 
+            png_bytes = base64.b64decode(
+                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO2Z3ioAAAAASUVORK5CYII="
+            )
+            upload_response = request(
+                client,
+                "POST",
+                f"/api/conversations/{conversation_id}/attachments",
+                files={"files": ("contract-shot.png", png_bytes, "image/png")},
+            )
+            require(upload_response.status_code == 200, f"attachment upload failed: {upload_response.text}")
+            uploaded_attachments = upload_response.json()["attachments"]
+            require(len(uploaded_attachments) == 1, f"expected 1 uploaded attachment, got {uploaded_attachments}")
+            require(uploaded_attachments[0]["api_path"], "uploaded attachment should expose an api_path")
+
             message_response = request(
                 client,
                 "POST",
@@ -379,6 +433,7 @@ def main() -> None:
                         "note": "It feels noisy and I cannot tell where to tap first.",
                         "desired_feel": "calmer and more obvious",
                     },
+                    "attachments": uploaded_attachments,
                 },
             )
             require(message_response.status_code == 200, f"message failed: {message_response.text}")
@@ -388,9 +443,15 @@ def main() -> None:
             require(payload["request"]["intent_summary"]["explicit_request"], "request should include interpreted intent")
             require(payload["job"]["intent_summary"]["interpreted_outcome"], "job should include interpreted outcome")
             require(payload["request"]["ux_context"]["affected_surface"] == "conversation list", "request should persist ux_context")
+            require(payload["request"]["attachments"], "request should persist uploaded attachment refs")
+            require(payload["job"]["attachments"], "job should persist uploaded attachment refs")
             require(
                 payload["conversation"]["messages"][0]["metadata"]["ux_context"]["desired_feel"] == "calmer and more obvious",
                 "conversation request message should persist ux_context",
+            )
+            require(
+                payload["conversation"]["messages"][0]["metadata"]["attachments"][0]["filename"] == "contract-shot.png",
+                "conversation request message should persist uploaded screenshot refs",
             )
 
             job_response = request(client, "GET", f"/api/jobs/{job_id}")
@@ -504,6 +565,7 @@ def main() -> None:
                 registry_root=(temp_root / "tailscale" / "state" / "registry" / "apps"),
                 requests_root=(temp_root / "tailscale" / "state" / "requests"),
                 runtime_root=(temp_root / "tailscale" / "state" / "runtime"),
+                attachments_root=(temp_root / "tailscale" / "state" / "runtime" / "attachments"),
                 jobs_root=(temp_root / "tailscale" / "state" / "runtime" / "jobs"),
                 proposals_root=(temp_root / "tailscale" / "state" / "runtime" / "proposals"),
                 worktrees_root=(temp_root / "tailscale" / "state" / "runtime" / "worktrees"),

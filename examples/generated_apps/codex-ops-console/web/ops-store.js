@@ -8,6 +8,7 @@ export const state = {
   currentJobId: "",
   conversationCache: null,
   draftCache: {},
+  pendingAttachmentPreviews: [],
 };
 
 export function draftKey(appId, conversationId = "") {

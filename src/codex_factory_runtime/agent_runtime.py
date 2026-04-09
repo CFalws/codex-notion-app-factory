@@ -127,6 +127,7 @@ class CodexAgentsRuntime:
                 data={"cwd": str(cwd)},
             )
         prompt = build_prompt(self.settings, record, request_payload, job_context=job_context)
+        image_paths = [str(path) for path in request_payload.get("attachment_paths") or [] if str(path).strip()]
         self.state.update_job(job_id, status="running", started_at=utc_now())
 
         try:
@@ -144,6 +145,7 @@ class CodexAgentsRuntime:
                 output_path,
                 use_resume=bool(session_id),
                 cwd=cwd,
+                image_paths=image_paths,
             )
             if returncode != 0 and session_id:
                 self._emit_event(
@@ -160,6 +162,7 @@ class CodexAgentsRuntime:
                     output_path,
                     use_resume=False,
                     cwd=cwd,
+                    image_paths=image_paths,
                 )
 
             discovered_thread_id = self.cli.extract_thread_id(stdout_text)

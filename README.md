@@ -189,7 +189,7 @@ Each request produces concrete outputs in the local repository:
 - `examples/generated_apps/habit-tracker-pwa/`
   Example output generated for a mobile habit tracker.
 - `examples/generated_apps/codex-ops-console/`
-  Phone-first operator console that opens app-scoped conversations, submits multi-turn requests to the runtime server, shows conversation events and learning logs, and opens the target app after completion.
+  Phone-first operator console that opens app-scoped conversations, submits multi-turn requests to the runtime server, accepts screenshot-backed UX feedback, shows conversation events and learning logs, and opens the target app after completion.
 
 ## Example Workflow
 

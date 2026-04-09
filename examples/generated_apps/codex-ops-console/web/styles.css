@@ -323,6 +323,88 @@ textarea {
   margin-top: 0.95rem;
 }
 
+.attachment-field {
+  margin-top: 0;
+}
+
+.attachment-input {
+  padding: 0.7rem 0.85rem;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.attachment-note {
+  margin-top: 0.45rem;
+}
+
+.attachment-preview-grid,
+.timeline-attachments {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.attachment-preview-grid {
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  margin-top: 0.75rem;
+}
+
+.attachment-preview-card,
+.timeline-attachment {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.attachment-preview-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.attachment-preview-thumb,
+.timeline-attachment img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 0.7rem;
+  border: 1px solid rgba(33, 24, 21, 0.08);
+  background: rgba(33, 24, 21, 0.05);
+}
+
+.attachment-preview-name,
+.attachment-preview-meta,
+.timeline-attachment span {
+  margin: 0;
+  line-height: 1.35;
+}
+
+.attachment-preview-name,
+.timeline-attachment span {
+  color: var(--ink);
+  font-size: 0.82rem;
+  word-break: break-word;
+}
+
+.attachment-preview-meta {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.timeline-attachments {
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  margin-top: 0.7rem;
+}
+
+.timeline-attachment {
+  text-decoration: none;
+}
+
+.timeline-attachment.compact {
+  padding: 0.55rem;
+}
+
 .ux-pain-field {
   margin: 0;
   padding: 0;

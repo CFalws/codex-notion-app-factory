@@ -4,6 +4,40 @@ from typing import Any
 from uuid import uuid4
 
 
+def build_attachment_metadata(
+    *,
+    attachment_id: str,
+    conversation_id: str,
+    filename: str,
+    content_type: str,
+    size_bytes: int,
+    stored_path: str,
+    api_path: str,
+    now: str,
+) -> dict[str, Any]:
+    return {
+        "attachment_id": attachment_id,
+        "conversation_id": conversation_id,
+        "filename": filename,
+        "content_type": content_type,
+        "size_bytes": size_bytes,
+        "stored_path": stored_path,
+        "api_path": api_path,
+        "created_at": now,
+    }
+
+
+def build_attachment_ref(metadata: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "attachment_id": metadata.get("attachment_id", ""),
+        "filename": metadata.get("filename", ""),
+        "content_type": metadata.get("content_type", ""),
+        "size_bytes": metadata.get("size_bytes", 0),
+        "api_path": metadata.get("api_path", ""),
+        "created_at": metadata.get("created_at", ""),
+    }
+
+
 def build_conversation(*, app_id: str, title: str, source: str, now: str) -> dict[str, Any]:
     conversation_id = uuid4().hex
     return {
@@ -74,6 +108,7 @@ def build_request(
     conversation_id: str = "",
     intent_summary: dict[str, Any] | None = None,
     ux_context: dict[str, Any] | None = None,
+    attachments: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     return {
         "request_id": request_id,
@@ -85,6 +120,7 @@ def build_request(
         "source": source,
         "intent_summary": intent_summary or {},
         "ux_context": ux_context or {},
+        "attachments": attachments or [],
         "created_at": now,
         "updated_at": now,
     }
@@ -100,6 +136,7 @@ def build_job(
     conversation_id: str = "",
     intent_summary: dict[str, Any] | None = None,
     ux_context: dict[str, Any] | None = None,
+    attachments: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     return {
         "job_id": job_id,
@@ -109,6 +146,7 @@ def build_job(
         "title": title,
         "intent_summary": intent_summary or {},
         "ux_context": ux_context or {},
+        "attachments": attachments or [],
         "status": "queued",
         "created_at": now,
         "updated_at": now,

@@ -40,6 +40,7 @@ class RuntimeSettings:
     registry_root: Path
     requests_root: Path
     runtime_root: Path
+    attachments_root: Path
     jobs_root: Path
     proposals_root: Path
     worktrees_root: Path
@@ -82,6 +83,7 @@ def load_settings() -> RuntimeSettings:
         registry_root=state_root / "registry" / "apps",
         requests_root=state_root / "requests",
         runtime_root=runtime_root,
+        attachments_root=runtime_root / "attachments",
         jobs_root=runtime_root / "jobs",
         proposals_root=runtime_root / "proposals",
         worktrees_root=runtime_root / "worktrees",

@@ -21,6 +21,22 @@ export async function fetchJson(dom, url, options = {}) {
   return response.json();
 }
 
+export async function uploadConversationAttachments(dom, conversationId, files) {
+  const formData = new FormData();
+  for (const file of files) {
+    formData.append("files", file);
+  }
+  const response = await fetch(conversationAttachmentsUrl(conversationId), {
+    method: "POST",
+    body: formData,
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || `HTTP ${response.status}`);
+  }
+  return response.json();
+}
+
 export function selectedAppData(dom) {
   const option = dom.appSelect.selectedOptions[0];
   if (!option) {
@@ -48,6 +64,10 @@ export function conversationUrl(conversationId) {
 
 export function conversationMessagesUrl(conversationId) {
   return `${conversationUrl(conversationId)}/messages`;
+}
+
+export function conversationAttachmentsUrl(conversationId) {
+  return `${conversationUrl(conversationId)}/attachments`;
 }
 
 export function proposalsApplyUrl(jobId) {

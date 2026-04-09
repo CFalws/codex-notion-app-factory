@@ -8,6 +8,7 @@ import {
   jobUrl,
   appConversationsUrl,
   conversationUrl,
+  uploadConversationAttachments,
 } from "./ops-api.js";
 import { FIXED_RUNTIME_URL } from "./ops-constants.js";
 import { createConversationController } from "./ops-conversations.js";
@@ -19,6 +20,7 @@ import {
   renderDraftStatus,
   renderJobActivity,
   renderLearningSummary,
+  renderPendingAttachments,
   renderConversation,
   renderWorkspaceSummary,
   setJobMeta,
@@ -51,6 +53,23 @@ function collectUxContext() {
   return Object.values(payload).some((value) => (Array.isArray(value) ? value.length : value)) ? payload : null;
 }
 
+function clearPendingAttachmentPreviewUrls() {
+  for (const preview of state.pendingAttachmentPreviews || []) {
+    URL.revokeObjectURL(preview.objectUrl);
+  }
+  state.pendingAttachmentPreviews = [];
+}
+
+function syncPendingAttachments() {
+  clearPendingAttachmentPreviewUrls();
+  const files = Array.from(dom.uxScreenshotInput.files || []);
+  state.pendingAttachmentPreviews = files.map((file) => ({
+    file,
+    objectUrl: URL.createObjectURL(file),
+  }));
+  renderPendingAttachments(dom, state.pendingAttachmentPreviews);
+}
+
 function clearUxContextInputs() {
   dom.uxSurfaceInput.value = "";
   dom.uxDesiredFeelInput.value = "";
@@ -58,6 +77,9 @@ function clearUxContextInputs() {
   dom.uxPainPoints.forEach((input) => {
     input.checked = false;
   });
+  dom.uxScreenshotInput.value = "";
+  clearPendingAttachmentPreviewUrls();
+  renderPendingAttachments(dom, []);
 }
 
 function syncComposerMeta() {
@@ -130,6 +152,13 @@ async function sendMessage() {
 
   try {
     const conversationId = await conversationController.ensureConversation();
+    const files = Array.from(dom.uxScreenshotInput.files || []);
+    let attachments = [];
+    if (files.length) {
+      setStatus(dom, "스크린샷을 업로드하는 중...");
+      const uploadPayload = await uploadConversationAttachments(dom, conversationId, files);
+      attachments = uploadPayload.attachments || [];
+    }
     const payload = await fetchJson(dom, conversationMessagesUrl(conversationId), {
       method: "POST",
       body: JSON.stringify({
@@ -137,6 +166,7 @@ async function sendMessage() {
         source: "mobile-ops-console",
         execute_now: true,
         ux_context: collectUxContext(),
+        attachments,
       }),
     });
 
@@ -266,6 +296,7 @@ function wireEvents() {
       sendMessage();
     }
   });
+  dom.uxScreenshotInput.addEventListener("change", syncPendingAttachments);
   dom.conversationList.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-conversation-id]");
     if (!button) {
@@ -329,6 +360,7 @@ function init() {
   });
   renderWorkspaceSummary(dom, "앱 목록과 최근 대화를 불러오면 현재 세션 맥락이 여기에 정리됩니다.");
   clearLearningSummary(dom);
+  renderPendingAttachments(dom, []);
   syncComposerMeta();
   syncDraftStatus();
   initControllers();

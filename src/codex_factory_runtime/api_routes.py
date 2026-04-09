@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
-from fastapi import BackgroundTasks, FastAPI, HTTPException
+from fastapi import BackgroundTasks, FastAPI, File, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 
 from .api_models import ConversationMessageBody, CreateConversationBody, CreateGoalBody, CreateRequestBody
 from .api_runtime_context import RuntimeApiContext
@@ -53,6 +55,27 @@ def register_routes(app: FastAPI, context: RuntimeApiContext) -> None:
     async def get_conversation(conversation_id: str) -> dict[str, Any]:
         return context.require_conversation(conversation_id)
 
+    @app.post("/api/conversations/{conversation_id}/attachments")
+    async def upload_conversation_attachments(
+        conversation_id: str,
+        files: list[UploadFile] = File(...),
+    ) -> dict[str, Any]:
+        context.require_conversation(conversation_id)
+        attachments = await context.store_conversation_attachments(conversation_id, files)
+        return {"conversation_id": conversation_id, "attachments": attachments}
+
+    @app.get("/api/conversations/{conversation_id}/attachments/{attachment_id}")
+    async def get_conversation_attachment(conversation_id: str, attachment_id: str) -> FileResponse:
+        try:
+            metadata = context.state.get_conversation_attachment(conversation_id, attachment_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        return FileResponse(
+            Path(str(metadata["stored_path"])),
+            media_type=str(metadata.get("content_type") or "application/octet-stream"),
+            filename=str(metadata.get("filename") or attachment_id),
+        )
+
     @app.post("/api/goals")
     async def create_goal(body: CreateGoalBody) -> dict[str, Any]:
         context.require_app(body.app_id)
@@ -84,6 +107,10 @@ def register_routes(app: FastAPI, context: RuntimeApiContext) -> None:
         background_tasks: BackgroundTasks,
     ) -> dict[str, Any]:
         conversation = context.require_conversation(conversation_id)
+        public_attachments, _ = context.resolve_attachment_inputs(
+            conversation_id,
+            [attachment.model_dump() for attachment in body.attachments],
+        )
         intent_summary = context.interpret_intent(
             app_id=str(conversation["app_id"]),
             title=context.resolve_request_title(body.title, body.message_text),
@@ -91,6 +118,7 @@ def register_routes(app: FastAPI, context: RuntimeApiContext) -> None:
             source=body.source,
             conversation_id=conversation_id,
             ux_context=body.ux_context.model_dump() if body.ux_context else {},
+            attachments=public_attachments,
         )
         context.state.append_conversation_message(
             conversation_id,
@@ -102,6 +130,7 @@ def register_routes(app: FastAPI, context: RuntimeApiContext) -> None:
                 "source": body.source,
                 "intent_summary": intent_summary,
                 "ux_context": body.ux_context.model_dump() if body.ux_context else {},
+                "attachments": public_attachments,
             },
         )
         context.append_event(
@@ -120,6 +149,7 @@ def register_routes(app: FastAPI, context: RuntimeApiContext) -> None:
             conversation_id=conversation_id,
             intent_summary=intent_summary,
             ux_context=body.ux_context.model_dump() if body.ux_context else {},
+            attachments=public_attachments,
         )
         return {
             "conversation": context.state.get_conversation(conversation_id),
@@ -155,4 +185,5 @@ def register_routes(app: FastAPI, context: RuntimeApiContext) -> None:
             background_tasks=background_tasks,
             conversation_id=conversation_id,
             ux_context=body.ux_context.model_dump() if body.ux_context else {},
+            attachments=[attachment.model_dump() for attachment in body.attachments],
         )

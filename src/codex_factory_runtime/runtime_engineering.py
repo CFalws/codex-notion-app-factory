@@ -133,6 +133,7 @@ def build_prompt(
 ) -> str:
     intent_summary = request_payload.get("intent_summary") or {}
     ux_context = request_payload.get("ux_context") or {}
+    attachments = request_payload.get("attachments") or []
     interpreted_intent = ""
     if intent_summary:
         interpreted_intent = f"""
@@ -153,6 +154,20 @@ User-reported UX friction:
 - Pain points: {pain_lines}
 - Desired feel: {ux_context.get("desired_feel", "(not set)")}
 - Note: {ux_context.get("note", "(not set)")}
+""".strip()
+    attachment_text = ""
+    if attachments:
+        attachment_lines = []
+        for attachment in attachments:
+            filename = str(attachment.get("filename") or "unnamed image").strip()
+            content_type = str(attachment.get("content_type") or "image").strip()
+            attachment_lines.append(f"- {filename} ({content_type})")
+        attachment_text = f"""
+Attached screenshots:
+{chr(10).join(attachment_lines)}
+
+Use the screenshots as primary visual evidence for layout, hierarchy, tap targets, information density, and state visibility.
+If the screenshots and the request conflict, explain the tension explicitly in the UX review.
 """.strip()
     proposal_tail = ""
     if is_proposal_mode(record):
@@ -203,6 +218,7 @@ Request:
 
 {interpreted_intent if interpreted_intent else ""}
 {ux_context_text if ux_context_text else ""}
+{attachment_text if attachment_text else ""}
 
 After completing the work, provide:
 1. the key code changes,
@@ -257,6 +273,8 @@ def sanitize_user_facing_text(text: str) -> str:
 
 
 def requires_ux_review(record: dict[str, Any], request_payload: dict[str, Any]) -> bool:
+    if request_payload.get("attachments"):
+        return True
     if request_payload.get("ux_context"):
         return True
     haystack = " ".join(
@@ -272,6 +290,7 @@ def requires_ux_review(record: dict[str, Any], request_payload: dict[str, Any]) 
 def infer_intent_summary(record: dict[str, Any], request_payload: dict[str, Any]) -> dict[str, str]:
     request_text = str(request_payload.get("request_text") or "").strip()
     ux_context = request_payload.get("ux_context") or {}
+    attachments = request_payload.get("attachments") or []
     explicit_title = str(request_payload.get("title") or "").strip()
     first_line = next((line.strip() for line in request_text.splitlines() if line.strip()), "")
     explicit_request = explicit_title or first_line or "Continue the current app lane."
@@ -323,6 +342,15 @@ def infer_intent_summary(record: dict[str, Any], request_payload: dict[str, Any]
         success_signal = (
             f"The {affected_surface} flow should feel measurably clearer on a phone, and the result summary should explain "
             "what friction was removed and how to verify the improvement."
+        )
+    if attachments:
+        assumptions = (
+            "Treat the attached screenshots as current visual evidence, preserve phone usability, and prioritize removing "
+            "the visible friction before adding new UI complexity."
+        )
+        success_signal = (
+            "The implemented UI should address the friction visible in the attached screenshots, and the UX review should "
+            "explicitly describe what changed and how to verify the improvement on a phone."
         )
 
     return {

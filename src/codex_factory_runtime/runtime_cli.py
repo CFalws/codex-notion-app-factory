@@ -12,8 +12,20 @@ class CodexCliRunner:
     def __init__(self, settings: RuntimeSettings) -> None:
         self.settings = settings
 
-    def build_command(self, session_id: str, prompt: str, output_path: Path, *, use_resume: bool) -> list[str]:
+    def build_command(
+        self,
+        session_id: str,
+        prompt: str,
+        output_path: Path,
+        *,
+        use_resume: bool,
+        image_paths: list[str] | None = None,
+    ) -> list[str]:
         args = [self.settings.codex_command, *self.settings.codex_args, "exec"]
+        image_args: list[str] = []
+        for image_path in image_paths or []:
+            if image_path:
+                image_args.extend(["--image", image_path])
         if use_resume and session_id:
             if self.settings.codex_profile:
                 args.extend(["--profile", self.settings.codex_profile])
@@ -22,6 +34,7 @@ class CodexCliRunner:
                 args.extend(["--model", self.settings.codex_model])
             if self.settings.codex_skip_git_repo_check:
                 args.append("--skip-git-repo-check")
+            args.extend(image_args)
             args.extend(["--output-last-message", str(output_path), "--json", prompt])
             return args
         if self.settings.codex_profile:
@@ -32,6 +45,7 @@ class CodexCliRunner:
             args.extend(["--sandbox", self.settings.codex_sandbox])
         if self.settings.codex_skip_git_repo_check:
             args.append("--skip-git-repo-check")
+        args.extend(image_args)
         args.extend(["--output-last-message", str(output_path), "--json", prompt])
         return args
 
@@ -69,8 +83,9 @@ class CodexCliRunner:
         *,
         use_resume: bool,
         cwd: Path,
+        image_paths: list[str] | None = None,
     ) -> tuple[int, str, str, str]:
-        command = self.build_command(session_id, prompt, output_path, use_resume=use_resume)
+        command = self.build_command(session_id, prompt, output_path, use_resume=use_resume, image_paths=image_paths)
         returncode, stdout_text, stderr_text = await self.run_command(command, cwd=cwd)
         final_output = output_path.read_text(encoding="utf-8").strip() if output_path.exists() else ""
         return returncode, stdout_text, stderr_text, final_output

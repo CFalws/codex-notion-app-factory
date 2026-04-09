@@ -41,6 +41,7 @@ Required fields:
 - `source`
 - `intent_summary`
 - `ux_context`
+- `attachments`
 - `created_at`
 - `updated_at`
 
@@ -57,6 +58,7 @@ Required fields:
 - `title`
 - `intent_summary`
 - `ux_context`
+- `attachments`
 - `status`
 - `created_at`
 - `updated_at`
@@ -176,6 +178,7 @@ Expected metadata fields when the message type is `request`:
 - `source`
 - `intent_summary`
 - `ux_context`
+- `attachments`
 
 ### Conversation Event Shape
 
@@ -253,3 +256,15 @@ Expected fields:
 - `simplification`
 - `mobile_risk`
 - `verification_steps`
+
+## Attachment Ref Shape
+
+`attachments` is optional and should appear on requests, jobs, and request-type conversation messages when screenshots or other UI evidence are uploaded.
+
+Expected fields:
+
+- `attachment_id`
+- `filename`
+- `content_type`
+- `size_bytes`
+- `api_path`

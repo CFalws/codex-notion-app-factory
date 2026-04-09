@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import mimetypes
 import re
 from datetime import datetime, timezone
 from pathlib import Path
@@ -10,6 +11,8 @@ from uuid import uuid4
 
 from .config import RuntimeSettings
 from .state_payloads import (
+    build_attachment_metadata,
+    build_attachment_ref,
     build_conversation,
     build_conversation_event,
     build_conversation_message,
@@ -35,6 +38,7 @@ class RuntimeState:
             self.settings.registry_root,
             self.settings.requests_root,
             self.settings.runtime_root,
+            self.settings.attachments_root,
             self.settings.jobs_root,
             self.settings.proposals_root,
             self.settings.worktrees_root,
@@ -154,6 +158,54 @@ class RuntimeState:
     def conversation_path(self, conversation_id: str) -> Path:
         return self.settings.conversations_root / f"{conversation_id}.json"
 
+    def attachment_files_root(self, conversation_id: str) -> Path:
+        return self.settings.attachments_root / conversation_id / "files"
+
+    def attachment_meta_path(self, conversation_id: str, attachment_id: str) -> Path:
+        return self.settings.attachments_root / conversation_id / "meta" / f"{attachment_id}.json"
+
+    def save_conversation_attachment(
+        self,
+        conversation_id: str,
+        *,
+        filename: str,
+        content_type: str,
+        content: bytes,
+    ) -> dict[str, Any]:
+        attachment_id = uuid4().hex
+        safe_name = Path(filename or "").name or f"{attachment_id}.bin"
+        suffix = Path(safe_name).suffix
+        if not suffix:
+            suffix = mimetypes.guess_extension(content_type or "") or ".bin"
+        stored_path = self.attachment_files_root(conversation_id) / f"{attachment_id}{suffix}"
+        stored_path.parent.mkdir(parents=True, exist_ok=True)
+        stored_path.write_bytes(content)
+        metadata = build_attachment_metadata(
+            attachment_id=attachment_id,
+            conversation_id=conversation_id,
+            filename=safe_name,
+            content_type=content_type,
+            size_bytes=len(content),
+            stored_path=str(stored_path),
+            api_path=f"/api/conversations/{conversation_id}/attachments/{attachment_id}",
+            now=utc_now(),
+        )
+        self._write_json(self.attachment_meta_path(conversation_id, attachment_id), metadata)
+        return metadata
+
+    def get_conversation_attachment(self, conversation_id: str, attachment_id: str) -> dict[str, Any]:
+        path = self.attachment_meta_path(conversation_id, attachment_id)
+        if not path.exists():
+            raise KeyError(f"Unknown attachment_id: {attachment_id}")
+        metadata = self._read_json(path)
+        stored_path = Path(str(metadata.get("stored_path") or "")).expanduser()
+        if not stored_path.exists():
+            raise KeyError(f"Attachment file is missing for attachment_id: {attachment_id}")
+        return metadata
+
+    def public_attachment_ref(self, metadata: dict[str, Any]) -> dict[str, Any]:
+        return build_attachment_ref(metadata)
+
     def create_conversation(self, *, app_id: str, title: str, source: str) -> dict[str, Any]:
         payload = build_conversation(app_id=app_id, title=title, source=source, now=utc_now())
         self._write_json(self.conversation_path(payload["conversation_id"]), payload)
@@ -247,6 +299,7 @@ class RuntimeState:
         conversation_id: str = "",
         intent_summary: dict[str, Any] | None = None,
         ux_context: dict[str, Any] | None = None,
+        attachments: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         request_id = utc_now().replace(":", "-")
         payload = build_request(
@@ -260,6 +313,7 @@ class RuntimeState:
             conversation_id=conversation_id,
             intent_summary=intent_summary,
             ux_context=ux_context,
+            attachments=attachments,
         )
         requests_dir = self.settings.requests_root / app_id
         self._write_json(requests_dir / f"{request_id}.json", payload)
@@ -279,6 +333,7 @@ class RuntimeState:
         conversation_id: str = "",
         intent_summary: dict[str, Any] | None = None,
         ux_context: dict[str, Any] | None = None,
+        attachments: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         job_id = uuid4().hex
         payload = build_job(
@@ -290,6 +345,7 @@ class RuntimeState:
             conversation_id=conversation_id,
             intent_summary=intent_summary,
             ux_context=ux_context,
+            attachments=attachments,
         )
         self._write_json(self.settings.jobs_root / f"{job_id}.json", payload)
         return payload
