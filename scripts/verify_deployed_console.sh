@@ -3,6 +3,8 @@ set -euo pipefail
 
 BASE_URL="${BASE_URL:-https://codex-factory-vm.tail1b6dd1.ts.net}"
 APP_ID="${APP_ID:-habit-tracker-pwa}"
+WORKSPACE_APP_ID="${WORKSPACE_APP_ID:-factory-runtime}"
+OPS_URL="${OPS_URL:-$BASE_URL/ops/}"
 API_KEY="${API_KEY:-${CODEX_FACTORY_API_KEY:-}}"
 POLL_INTERVAL="${POLL_INTERVAL:-2}"
 MAX_POLLS="${MAX_POLLS:-120}"
@@ -80,4 +82,6 @@ echo "conversation_id=$conversation_id"
 echo "job_id=$job_id"
 echo "status=completed"
 echo "summary=$summary"
+BASE_URL="$BASE_URL" OPS_URL="$OPS_URL" API_KEY="$API_KEY" APP_ID="$WORKSPACE_APP_ID" \
+  python3 ./scripts/verify_deployed_workspace_gate.py
 echo "verify_deployed_console=ok"
