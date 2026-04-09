@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep the current selected-conversation SSE path, deployed workspace gate, transcript-first center pane, phone conversation-first sheet behavior, and existing jump-to-latest affordance unchanged in ownership.
-- [x] Tighten the selected-thread live-follow contract so scrolling away suppresses auto-follow until unseen live content arrives.
-- [x] Preserve the same selected-thread appendStream and scroll-state inputs so no new polling-owned or inferred state path is introduced.
-- [x] Let the existing jump-to-latest control and active composer re-engage follow mode.
-- [x] Extend focused verification so future sessions can prove the transcript only auto-follows while the user stays near the latest append.
+- [x] Keep the current selected-conversation SSE path, deployed workspace gate, transcript-first center pane, phone conversation-first sheet behavior, and footer live rail unchanged in ownership.
+- [x] Restructure the composer footer so send stands alone as the primary conversation control.
+- [x] Move proposal apply and auto-open into a compact secondary utility cluster.
+- [x] Preserve the same proposal behavior and transcript plus composer reachability on desktop and phone widths.
+- [x] Extend focused verification so future sessions can prove the composer stays conversation-first while utility controls remain secondary.

@@ -891,19 +891,29 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   font-size: 0.86rem;
 }
 
-.composer-actions {
+.composer-utility-cluster {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: flex-end;
   gap: 0.7rem;
   flex-wrap: wrap;
 }
 
 .composer-send-primary {
-  min-width: 8.5rem;
+  min-width: 9.5rem;
+  padding-inline: 1.15rem;
+  flex-shrink: 0;
 }
 
 .composer-secondary-action {
+  order: 1;
+  padding-inline: 0.92rem;
+}
+
+.composer-utility-toggle {
   order: 2;
+  font-size: 0.84rem;
+  padding: 0.56rem 0.72rem;
 }
 
 .toggle.inline {
@@ -1307,12 +1317,12 @@ body[data-secondary-panel-open="true"] .secondary-panel {
 
   .composer-toolbar,
   .composer-footer,
-  .composer-actions,
+  .composer-utility-cluster,
   .section-head {
     display: grid;
   }
 
-  .composer-actions button,
+  .composer-utility-cluster button,
   .toggle.inline,
   .secondary,
   button {
