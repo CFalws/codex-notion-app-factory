@@ -8,6 +8,13 @@ from typing import Any
 from uuid import uuid4
 
 from .config import RuntimeSettings
+from .state_payloads import (
+    build_conversation,
+    build_conversation_event,
+    build_conversation_message,
+    build_job,
+    build_request,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -115,20 +122,8 @@ class RuntimeState:
         return self.settings.conversations_root / f"{conversation_id}.json"
 
     def create_conversation(self, *, app_id: str, title: str, source: str) -> dict[str, Any]:
-        conversation_id = uuid4().hex
-        payload = {
-            "conversation_id": conversation_id,
-            "app_id": app_id,
-            "title": title.strip() or app_id,
-            "source": source,
-            "status": "active",
-            "created_at": utc_now(),
-            "updated_at": utc_now(),
-            "latest_job_id": "",
-            "messages": [],
-            "events": [],
-        }
-        self._write_json(self.conversation_path(conversation_id), payload)
+        payload = build_conversation(app_id=app_id, title=title, source=source, now=utc_now())
+        self._write_json(self.conversation_path(payload["conversation_id"]), payload)
         return payload
 
     def get_conversation(self, conversation_id: str) -> dict[str, Any]:
@@ -168,16 +163,15 @@ class RuntimeState:
         metadata: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         conversation = self.get_conversation(conversation_id)
-        message = {
-            "message_id": uuid4().hex,
-            "role": role,
-            "type": message_type,
-            "title": title,
-            "body": body,
-            "job_id": job_id,
-            "created_at": utc_now(),
-            "metadata": metadata or {},
-        }
+        message = build_conversation_message(
+            role=role,
+            body=body,
+            now=utc_now(),
+            title=title,
+            job_id=job_id,
+            message_type=message_type,
+            metadata=metadata,
+        )
         conversation.setdefault("messages", []).append(message)
         if job_id:
             conversation["latest_job_id"] = job_id
@@ -195,15 +189,14 @@ class RuntimeState:
         data: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         conversation = self.get_conversation(conversation_id)
-        event = {
-            "event_id": uuid4().hex,
-            "type": event_type,
-            "status": status,
-            "body": body,
-            "job_id": job_id,
-            "created_at": utc_now(),
-            "data": data or {},
-        }
+        event = build_conversation_event(
+            event_type=event_type,
+            body=body,
+            now=utc_now(),
+            status=status,
+            job_id=job_id,
+            data=data,
+        )
         conversation.setdefault("events", []).append(event)
         if job_id:
             conversation["latest_job_id"] = job_id
@@ -221,17 +214,16 @@ class RuntimeState:
         conversation_id: str = "",
     ) -> dict[str, Any]:
         request_id = utc_now().replace(":", "-")
-        payload = {
-            "request_id": request_id,
-            "app_id": app_id,
-            "conversation_id": conversation_id,
-            "status": status,
-            "title": title,
-            "request_text": request_text,
-            "source": source,
-            "created_at": utc_now(),
-            "updated_at": utc_now(),
-        }
+        payload = build_request(
+            request_id=request_id,
+            app_id=app_id,
+            title=title,
+            request_text=request_text,
+            source=source,
+            now=utc_now(),
+            status=status,
+            conversation_id=conversation_id,
+        )
         requests_dir = self.settings.requests_root / app_id
         self._write_json(requests_dir / f"{request_id}.json", payload)
         self.append_memory(
@@ -250,21 +242,14 @@ class RuntimeState:
         conversation_id: str = "",
     ) -> dict[str, Any]:
         job_id = uuid4().hex
-        payload = {
-            "job_id": job_id,
-            "app_id": app_id,
-            "request_id": request_id,
-            "conversation_id": conversation_id,
-            "title": title,
-            "status": "queued",
-            "created_at": utc_now(),
-            "updated_at": utc_now(),
-            "started_at": "",
-            "completed_at": "",
-            "error": "",
-            "result_summary": "",
-            "decision_summary": {},
-        }
+        payload = build_job(
+            job_id=job_id,
+            app_id=app_id,
+            request_id=request_id,
+            title=title,
+            now=utc_now(),
+            conversation_id=conversation_id,
+        )
         self._write_json(self.settings.jobs_root / f"{job_id}.json", payload)
         return payload
 

@@ -140,6 +140,10 @@ Each request produces concrete outputs in the local repository:
   Delivery rules for apps that must be usable on a phone.
 - `docs/github-pages-automation.md`
   Explains how generated apps are assembled and deployed to GitHub Pages.
+- `docs/verification-gates.md`
+  Defines the required verification gates before commit and deployment.
+- `docs/change-boundaries.md`
+  Describes which module owns which kind of change so refactors stay local and reviewable.
 - `docs/request-contract.md`
   Defines the structure of a valid app request.
 - `docs/agents-sdk-runtime.md`
@@ -188,6 +192,22 @@ The system produces:
 - a task breakdown
 - actual code changes in the target repository
 - a delivery target that can be launched from a phone
+
+## Verification
+
+Before commit, the default gate is:
+
+```bash
+make verify
+```
+
+For high-risk runtime, proposal, auth, deployment, or operator-console changes, run the deployed smoke test as well:
+
+```bash
+API_KEY=<runtime-api-key> make verify-deployed
+```
+
+The policy and risk levels are documented in [`docs/verification-gates.md`](docs/verification-gates.md).
 
 ## Current Surfaces
 
