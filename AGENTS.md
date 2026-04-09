@@ -10,6 +10,7 @@ The active goal is not only to implement app changes, but to do so in a way that
 - robust under deployment and self-edit flows
 - usable from a phone
 - inspectable through durable state and verification artifacts
+- faithful to the user's intended outcome even when the request wording is incomplete
 
 ## Operating Model
 
@@ -64,6 +65,27 @@ Before editing code, decide which module owns the behavior.
 Reference: `docs/change-boundaries.md`
 
 If a change crosses more than one boundary, prefer moving logic into the owning module instead of adding more coupling to the caller.
+
+## Intent Fidelity Rule
+
+The runtime should not treat the user's latest sentence as the whole task.
+
+Before implementation, the agent should form a compact interpretation of:
+
+- the explicit request
+- the intended outcome
+- the assumptions being made
+- the remaining ambiguity
+- the user-visible success signal
+
+Reference: `docs/intent-contract.md`
+
+If the request is underspecified, the default behavior is:
+
+1. make the smallest reasonable assumption,
+2. record that assumption in durable state,
+3. implement toward the interpreted outcome,
+4. verify against the likely user-visible success condition.
 
 ## State Contract Rule
 

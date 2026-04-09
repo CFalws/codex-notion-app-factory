@@ -17,6 +17,13 @@ ENGINEERING_LOG_FIELDS = (
     "verification",
     "follow_up",
 )
+INTENT_SUMMARY_FIELDS = (
+    "explicit_request",
+    "interpreted_outcome",
+    "assumptions",
+    "ambiguity",
+    "success_signal",
+)
 
 
 def is_proposal_mode(record: dict[str, Any]) -> bool:
@@ -84,6 +91,17 @@ def build_prompt(
     *,
     job_context: dict[str, str] | None = None,
 ) -> str:
+    intent_summary = request_payload.get("intent_summary") or {}
+    interpreted_intent = ""
+    if intent_summary:
+        interpreted_intent = f"""
+Interpreted intent:
+- Explicit request: {intent_summary.get("explicit_request", "(not set)")}
+- Interpreted outcome: {intent_summary.get("interpreted_outcome", "(not set)")}
+- Assumptions: {intent_summary.get("assumptions", "(not set)")}
+- Ambiguity: {intent_summary.get("ambiguity", "(not set)")}
+- Success signal: {intent_summary.get("success_signal", "(not set)")}
+""".strip()
     proposal_tail = ""
     if is_proposal_mode(record):
         proposal_tail = """
@@ -106,6 +124,8 @@ Conversation id: {request_payload.get("conversation_id", "") or "(new conversati
 Request:
 {request_payload["request_text"]}
 
+{interpreted_intent if interpreted_intent else ""}
+
 After completing the work, provide:
 1. the key code changes,
 2. any deployment-impacting notes,
@@ -121,6 +141,56 @@ Rules for the block:
 - Close with the exact marker line {ENGINEERING_LOG_END}
 {proposal_tail if proposal_tail else ""}
 """.strip()
+
+
+def infer_intent_summary(record: dict[str, Any], request_payload: dict[str, Any]) -> dict[str, str]:
+    request_text = str(request_payload.get("request_text") or "").strip()
+    explicit_title = str(request_payload.get("title") or "").strip()
+    first_line = next((line.strip() for line in request_text.splitlines() if line.strip()), "")
+    explicit_request = explicit_title or first_line or "Continue the current app lane."
+    compact_request = " ".join(explicit_request.split())
+    if len(compact_request) > 96:
+        compact_request = compact_request[:93].rstrip() + "..."
+
+    app_title = str(record.get("title") or record.get("app_id") or "the current app").strip()
+    interpreted_outcome = (
+        f"Update {app_title} so the requested behavior is reflected without breaking the existing app lane."
+    )
+
+    lower_text = request_text.lower()
+    assumptions = (
+        "Treat this as continuation work in the existing app lane, preserve phone usability, and prefer the smallest "
+        "change that satisfies the request."
+    )
+    if any(word in lower_text for word in ("backend", "server", "database", "auth", "login")):
+        assumptions = (
+            "Treat this as continuation work, but allow backend or auth changes if the request clearly requires them. "
+            "Preserve deployability and existing operator flow."
+        )
+
+    ambiguity = "Low: the request names a concrete change and target lane."
+    if len(request_text.split()) < 8:
+        ambiguity = "High: the request is short and may hide unstated acceptance criteria."
+    elif not any(token in lower_text for token in ("when", "after", "so that", "because", "verify", "show", "open")):
+        ambiguity = "Medium: the change is clear enough to start, but acceptance criteria are still partly implicit."
+
+    success_signal = (
+        "The visible app or operator flow should match the requested outcome, and the result summary should explain "
+        "what changed plus how to verify it from the user side."
+    )
+    if any(word in lower_text for word in ("do not modify", "no file", "summarize", "explain")):
+        success_signal = (
+            "The response should satisfy the request without unnecessary file edits, and the result summary should stay "
+            "aligned with the no-change intent."
+        )
+
+    return {
+        "explicit_request": compact_request or "Continue the current app lane.",
+        "interpreted_outcome": interpreted_outcome,
+        "assumptions": assumptions,
+        "ambiguity": ambiguity,
+        "success_signal": success_signal,
+    }
 
 
 def extract_engineering_log_json(final_output: str) -> tuple[str, dict[str, Any] | None]:

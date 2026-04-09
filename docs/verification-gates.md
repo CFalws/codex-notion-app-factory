@@ -92,6 +92,7 @@ It proves:
 - apps can be listed
 - conversations can be created
 - conversation messages create jobs
+- interpreted intent is persisted onto request, job, and conversation message state
 - job completion updates the conversation timeline
 - proposal-mode apps still emit proposals
 - proposal apply still updates conversation state

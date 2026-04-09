@@ -306,19 +306,36 @@ def main() -> None:
             payload = message_response.json()
             job_id = payload["job"]["job_id"]
             require(payload["job"]["status"] == "queued", "job should be queued before background execution completes")
+            require(payload["request"]["intent_summary"]["explicit_request"], "request should include interpreted intent")
+            require(payload["job"]["intent_summary"]["interpreted_outcome"], "job should include interpreted outcome")
 
             job_response = request(client, "GET", f"/api/jobs/{job_id}")
             job = job_response.json()
             require(job["status"] == "completed", f"expected completed job, got {job['status']}")
             require(job["result_summary"].startswith("SIMULATED_OK:"), f"unexpected job summary: {job['result_summary']}")
             require(job["decision_summary"]["verification"], "decision summary should include verification evidence")
+            require(job["intent_summary"]["success_signal"], "job intent summary should include success signal")
 
             conversation_after = request(client, "GET", f"/api/conversations/{conversation_id}").json()
             message_types = [message["role"] for message in conversation_after["messages"]]
             event_types = [event["type"] for event in conversation_after["events"]]
             require(message_types == ["user", "assistant"], f"unexpected conversation message roles: {message_types}")
             require(
-                all(name in event_types for name in ["conversation.created", "message.accepted", "job.queued", "job.running", "job.completed"]),
+                conversation_after["messages"][0]["metadata"]["intent_summary"]["explicit_request"],
+                "user conversation message should preserve interpreted intent",
+            )
+            require(
+                all(
+                    name in event_types
+                    for name in [
+                        "conversation.created",
+                        "message.accepted",
+                        "intent.interpreted",
+                        "job.queued",
+                        "job.running",
+                        "job.completed",
+                    ]
+                ),
                 f"conversation events missing expected transitions: {event_types}",
             )
             require("codex.exec.retrying" not in event_types, f"unexpected degraded retry event in contract flow: {event_types}")

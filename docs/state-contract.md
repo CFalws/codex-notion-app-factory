@@ -39,6 +39,7 @@ Required fields:
 - `title`
 - `request_text`
 - `source`
+- `intent_summary`
 - `created_at`
 - `updated_at`
 
@@ -53,6 +54,7 @@ Required fields:
 - `request_id`
 - `conversation_id`
 - `title`
+- `intent_summary`
 - `status`
 - `created_at`
 - `updated_at`
@@ -125,6 +127,11 @@ Required fields:
 - `created_at`
 - `metadata`
 
+Expected metadata fields when the message type is `request`:
+
+- `source`
+- `intent_summary`
+
 ### Conversation Event Shape
 
 Required fields:
@@ -165,3 +172,15 @@ If a change needs to alter one of these shapes:
 2. update the code that creates the payload
 3. update the verification contract if the shape is externally visible
 4. document whether old state files remain readable
+
+## Intent Summary Shape
+
+`intent_summary` is the current persisted interpretation layer between raw user wording and implementation.
+
+Required fields:
+
+- `explicit_request`
+- `interpreted_outcome`
+- `assumptions`
+- `ambiguity`
+- `success_signal`

@@ -212,6 +212,7 @@ class RuntimeState:
         source: str,
         status: str = "pending",
         conversation_id: str = "",
+        intent_summary: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         request_id = utc_now().replace(":", "-")
         payload = build_request(
@@ -223,6 +224,7 @@ class RuntimeState:
             now=utc_now(),
             status=status,
             conversation_id=conversation_id,
+            intent_summary=intent_summary,
         )
         requests_dir = self.settings.requests_root / app_id
         self._write_json(requests_dir / f"{request_id}.json", payload)
@@ -240,6 +242,7 @@ class RuntimeState:
         request_id: str,
         title: str,
         conversation_id: str = "",
+        intent_summary: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         job_id = uuid4().hex
         payload = build_job(
@@ -249,6 +252,7 @@ class RuntimeState:
             title=title,
             now=utc_now(),
             conversation_id=conversation_id,
+            intent_summary=intent_summary,
         )
         self._write_json(self.settings.jobs_root / f"{job_id}.json", payload)
         return payload

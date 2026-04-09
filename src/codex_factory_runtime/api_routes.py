@@ -55,13 +55,20 @@ def register_routes(app: FastAPI, context: RuntimeApiContext) -> None:
         background_tasks: BackgroundTasks,
     ) -> dict[str, Any]:
         conversation = context.require_conversation(conversation_id)
+        intent_summary = context.interpret_intent(
+            app_id=str(conversation["app_id"]),
+            title=context.resolve_request_title(body.title, body.message_text),
+            request_text=body.message_text,
+            source=body.source,
+            conversation_id=conversation_id,
+        )
         context.state.append_conversation_message(
             conversation_id,
             role="user",
             title=context.resolve_request_title(body.title, body.message_text),
             body=body.message_text,
             message_type="request",
-            metadata={"source": body.source},
+            metadata={"source": body.source, "intent_summary": intent_summary},
         )
         context.append_event(
             conversation_id,
@@ -77,6 +84,7 @@ def register_routes(app: FastAPI, context: RuntimeApiContext) -> None:
             execute_now=body.execute_now,
             background_tasks=background_tasks,
             conversation_id=conversation_id,
+            intent_summary=intent_summary,
         )
         return {
             "conversation": context.state.get_conversation(conversation_id),

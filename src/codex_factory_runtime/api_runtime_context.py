@@ -7,6 +7,7 @@ from fastapi import BackgroundTasks, HTTPException
 
 from .agent_runtime import CodexAgentsRuntime
 from .config import RuntimeSettings
+from .runtime_engineering import infer_intent_summary
 from .state import RuntimeState, utc_now
 
 
@@ -111,6 +112,26 @@ class RuntimeApiContext:
             "allowed_user_emails": self.settings.allowed_user_emails,
         }
 
+    def interpret_intent(
+        self,
+        *,
+        app_id: str,
+        title: str,
+        request_text: str,
+        source: str,
+        conversation_id: str = "",
+    ) -> dict[str, str]:
+        record = self.require_app(app_id)
+        return infer_intent_summary(
+            record,
+            {
+                "title": title,
+                "request_text": request_text,
+                "source": source,
+                "conversation_id": conversation_id,
+            },
+        )
+
     def enqueue_request(
         self,
         *,
@@ -121,20 +142,38 @@ class RuntimeApiContext:
         execute_now: bool,
         background_tasks: BackgroundTasks,
         conversation_id: str = "",
+        intent_summary: dict[str, str] | None = None,
     ) -> dict[str, Any]:
         resolved_title = self.resolve_request_title(title, request_text)
-        request_payload = self.state.create_request(
+        resolved_intent = intent_summary or self.interpret_intent(
             app_id=app_id,
             title=resolved_title,
             request_text=request_text,
             source=source,
             conversation_id=conversation_id,
         )
+        request_payload = self.state.create_request(
+            app_id=app_id,
+            title=resolved_title,
+            request_text=request_text,
+            source=source,
+            conversation_id=conversation_id,
+            intent_summary=resolved_intent,
+        )
         job = self.state.create_job(
             app_id=app_id,
             request_id=request_payload["request_id"],
             title=resolved_title,
             conversation_id=conversation_id,
+            intent_summary=resolved_intent,
+        )
+        self.append_event(
+            conversation_id,
+            event_type="intent.interpreted",
+            status="intent",
+            body="사용자 요청을 실행 가능한 의도로 해석했습니다.",
+            job_id=job["job_id"],
+            data=resolved_intent,
         )
         self.append_event(
             conversation_id,
@@ -142,7 +181,11 @@ class RuntimeApiContext:
             status="queued",
             body=f"요청이 접수되어 job {job['job_id']}를 만들었습니다.",
             job_id=job["job_id"],
-            data={"title": resolved_title, "request_id": request_payload["request_id"]},
+            data={
+                "title": resolved_title,
+                "request_id": request_payload["request_id"],
+                "intent_summary": resolved_intent,
+            },
         )
         if execute_now and self.settings.auto_execute_requests:
             background_tasks.add_task(self.run_job, job["job_id"], app_id, request_payload)

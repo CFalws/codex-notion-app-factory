@@ -72,6 +72,7 @@ def build_request(
     now: str,
     status: str = "pending",
     conversation_id: str = "",
+    intent_summary: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     return {
         "request_id": request_id,
@@ -81,6 +82,7 @@ def build_request(
         "title": title,
         "request_text": request_text,
         "source": source,
+        "intent_summary": intent_summary or {},
         "created_at": now,
         "updated_at": now,
     }
@@ -94,6 +96,7 @@ def build_job(
     title: str,
     now: str,
     conversation_id: str = "",
+    intent_summary: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     return {
         "job_id": job_id,
@@ -101,6 +104,7 @@ def build_job(
         "request_id": request_id,
         "conversation_id": conversation_id,
         "title": title,
+        "intent_summary": intent_summary or {},
         "status": "queued",
         "created_at": now,
         "updated_at": now,

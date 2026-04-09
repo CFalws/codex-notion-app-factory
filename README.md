@@ -26,6 +26,8 @@ The result is a repeatable loop from request capture to implemented app and mobi
 
 The next layer on top of that loop is stateful maintenance: each app should keep its own workspace and durable session record so later changes can continue from context instead of restarting cold.
 
+The next layer after stateful maintenance is intent fidelity: the runtime should not only execute requests, but also preserve its current interpretation of the user's intended outcome so future turns and future agents can inspect, question, and improve that interpretation.
+
 ## Core Claim
 
 **This repository is a stateful agentic coding environment where requests enter through a runtime control console, Codex executes through a persistent local CLI runtime, and app changes are carried through implementation, verification, and deployment with phone-usable delivery as the default.**
@@ -45,6 +47,7 @@ This is not a chatbot demo. It is an execution environment for turning requests 
 ## Key Capabilities
 
 - runtime HTTP intake for phone-triggered maintenance and multi-turn conversations
+- persisted intent interpretation between raw user wording and executable work
 - private operator access over a Tailscale tailnet
 - explicit request contract and execution rules
 - generated planning artifacts such as brief, spec, plan, and tasks
@@ -60,6 +63,7 @@ The important point is not just model usage. The important point is the workflow
 - the system is optimized for building and maintaining real software, not generic chat interactions
 - output is judged by deployability and accessibility, not only by local correctness
 - later sessions can continue from durable state instead of restarting cold
+- the system can improve not only implementation quality, but also how it interprets under-specified user intent
 
 This creates a durable coding environment rather than a one-off automation.
 
@@ -146,6 +150,8 @@ Each request produces concrete outputs in the local repository:
   Describes the authentication abstraction and the preferred Tailscale deployment model.
 - `docs/state-contract.md`
   Defines the file-backed state shapes that runtime changes must preserve.
+- `docs/intent-contract.md`
+  Defines how raw requests are translated into persisted interpreted intent.
 - `docs/change-boundaries.md`
   Defines which module owns which class of change.
 - `docs/change-boundaries.md`
