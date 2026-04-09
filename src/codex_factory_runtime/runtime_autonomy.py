@@ -137,31 +137,26 @@ Proposal block rules:
 You are {reviewer_name} in an autonomous software-improvement pipeline.
 
 Target app: {app_record.get("title") or app_record.get("app_id")}
-Goal objective:
-{str(goal.get("objective") or "").strip()}
+Goal objective: {str(goal.get("objective") or "").strip()}
 
-Proposed bounded change:
-- Hypothesis: {proposal.get("hypothesis", "")}
-- Target area: {proposal.get("target_area", "")}
-- Change outline: {proposal.get("change_outline", "")}
-- Success criteria: {proposal.get("success_criteria", "")}
-- Why now: {proposal.get("why_now", "")}
+Review this bounded proposal:
+Hypothesis: {proposal.get("hypothesis", "")}
+Target area: {proposal.get("target_area", "")}
+Change outline: {proposal.get("change_outline", "")}
+Success criteria: {proposal.get("success_criteria", "")}
+Why now: {proposal.get("why_now", "")}
 
-Your task:
-- Review this proposal for alignment and safety.
-- Approve only if the change is bounded, useful, and unlikely to degrade the app.
-- Reject if the proposal is too broad, under-verified, or misaligned.
+Rules:
+- Approve only if the proposal is bounded, useful, and low risk.
+- Reject if it is too broad, vague, or likely to degrade the app.
 - Do not modify files.
+- Reply with one short summary sentence.
+- Then output a JSON review block.
 
-Return a concise human summary followed by a machine-readable review block.
-
-Review block rules:
-- Use the exact marker line {AUTONOMY_REVIEW_START}
-- Follow it with a valid JSON object
-- Use only these keys: verdict, rationale, blocking_issue, suggested_adjustment
-- `verdict` must be either approve or reject
-- Put plain strings in every field
-- Close with the exact marker line {AUTONOMY_REVIEW_END}
+JSON review block:
+{AUTONOMY_REVIEW_START}
+{{"verdict":"approve or reject","rationale":"...","blocking_issue":"...","suggested_adjustment":"..."}}
+{AUTONOMY_REVIEW_END}
 """.strip()
 
     def build_implementation_request(
@@ -213,30 +208,27 @@ Execution rules:
 You are {verifier_name} in an autonomous software-improvement pipeline.
 
 Target app: {app_record.get("title") or app_record.get("app_id")}
-Goal objective:
-{str(goal.get("objective") or "").strip()}
+Goal objective: {str(goal.get("objective") or "").strip()}
 
-Approved hypothesis:
-- Hypothesis: {proposal.get("hypothesis", "")}
-- Target area: {proposal.get("target_area", "")}
-- Change outline: {proposal.get("change_outline", "")}
-- Success criteria: {proposal.get("success_criteria", "")}
+Verify this implementation against the approved hypothesis:
+Hypothesis: {proposal.get("hypothesis", "")}
+Target area: {proposal.get("target_area", "")}
+Change outline: {proposal.get("change_outline", "")}
+Success criteria: {proposal.get("success_criteria", "")}
 
 Implementation summary:
 {implementation_summary.strip() or "(no summary)"}
 
-Your task:
-- Inspect the current proposal worktree and decide whether the implementation actually satisfies the approved hypothesis.
-- Fail if the change is incomplete, too broad, or introduces meaningful residual risk.
+Rules:
+- Inspect the current proposal worktree.
+- Pass only if the approved hypothesis is actually satisfied.
+- Fail if the change is incomplete, too broad, or risky.
 - Do not modify files.
+- Reply with one short summary sentence.
+- Then output a JSON verification block.
 
-Return a concise human summary followed by a machine-readable verification block.
-
-Verification block rules:
-- Use the exact marker line {AUTONOMY_VERIFY_START}
-- Follow it with a valid JSON object
-- Use only these keys: verdict, evidence, residual_risk, follow_up
-- `verdict` must be either pass or fail
-- Put plain strings in every field
-- Close with the exact marker line {AUTONOMY_VERIFY_END}
+JSON verification block:
+{AUTONOMY_VERIFY_START}
+{{"verdict":"pass or fail","evidence":"...","residual_risk":"...","follow_up":"..."}}
+{AUTONOMY_VERIFY_END}
 """.strip()
