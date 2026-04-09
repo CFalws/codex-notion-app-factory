@@ -143,6 +143,54 @@ function runStateSnapshot({
   return { visible, state, phase, detail, source, tone, jobId, terminal };
 }
 
+function transcriptLiveTone(liveRun) {
+  if (liveRun?.tone === "done") {
+    return "healthy";
+  }
+  if (liveRun?.tone === "waiting") {
+    return "warning";
+  }
+  if (liveRun?.tone === "running") {
+    return "danger";
+  }
+  return "neutral";
+}
+
+function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
+  const appendStream = currentState.appendStream || {};
+  const conversationId = String(conversation?.conversation_id || "");
+  const streamConversationId = String(appendStream.conversationId || "");
+  const renderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
+  const transport = String(appendStream.transport || "polling").toLowerCase();
+  const status = String(appendStream.status || "offline").toLowerCase();
+  if (!conversationId || streamConversationId !== conversationId) {
+    return "";
+  }
+  if (transport !== "sse" || renderSource !== "sse") {
+    return "";
+  }
+  if (!liveRun?.visible || !liveRun.phase || liveRun.phase === "IDLE") {
+    return "";
+  }
+  if (liveRun.state === "sending" || liveRun.state === "generating") {
+    return "";
+  }
+  const tone = transcriptLiveTone(liveRun);
+  const detail = simplifyText(phaseDetailHint(liveRun) || liveRun.detail || "");
+  const appendId = Number(appendStream.lastLiveAppendId || appendStream.lastAppendId || 0);
+  return `
+    <article class="timeline-item live-activity" data-live-activity-turn="true" data-live-run-state="${escapeHtml(liveRun.state)}" data-live-run-phase="${escapeHtml(liveRun.phase)}" data-live-run-source="${escapeHtml(liveRun.source)}" data-append-id="${appendId}" data-append-source="sse-live-activity">
+      <p class="timeline-kind">실시간 진행</p>
+      <div class="timeline-live-row">
+        <span class="timeline-live-chip" data-tone="neutral">LIVE</span>
+        <span class="timeline-live-chip" data-tone="${escapeHtml(tone)}">${escapeHtml(String(liveRun.phase || "LIVE").toUpperCase())}</span>
+      </div>
+      <p class="timeline-body">${escapeHtml(detail || "선택된 대화의 최신 live 진행 상태를 반영하는 중입니다.")}</p>
+      <p class="timeline-meta">selected thread · ${escapeHtml(status.toUpperCase())}${liveRun.jobId ? ` · ${escapeHtml(liveRun.jobId)}` : ""} · <span class="timeline-provenance">SSE LIVE</span></p>
+    </article>
+  `;
+}
+
 function syncJumpToLatest(dom, currentState, conversationId, renderSource) {
   if (!dom.jumpToLatestButton) {
     return;
@@ -1166,6 +1214,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
     return;
   }
 
+  const liveActivityTurn = renderTranscriptLiveActivity(conversation, currentState, liveRun);
   dom.conversationTimeline.innerHTML = items
     .map((item) => {
       if (item.kind === "event") {
@@ -1186,7 +1235,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
         </article>
       `;
     })
-    .join("");
+    .join("") + liveActivityTurn;
   if (dom.threadScroller && currentState.liveFollow.isFollowing) {
     dom.threadScroller.scrollTop = dom.threadScroller.scrollHeight;
   }

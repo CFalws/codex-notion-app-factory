@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep the current selected-conversation SSE path, deployed workspace gate, desktop shell, and selected-thread live rendering unchanged.
-- [x] Keep the phone nav sheet thread-first and collapse app or operator controls behind a secondary section.
-- [x] Return focus to the selected conversation surface after closing the drawer or choosing a thread or app on phone widths.
-- [x] Preserve transcript plus composer reachability and selected-thread ownership on desktop and phone widths.
-- [x] Extend focused verification so future sessions can prove the explicit conversation-drawer contract.
+- [x] Keep the current selected-conversation SSE path, header phase chip, left rail, footer dock, and live-follow behavior unchanged.
+- [x] Mirror the selected-thread live-run phase and detail into one compact transcript-tail activity item for the active conversation only.
+- [x] Restrict that tail item to selected-thread SSE-owned state and let it resolve without duplicate transcript-tail items across rerenders.
+- [x] Preserve transcript plus composer reachability and keep non-selected threads snapshot-only on desktop and phone widths.
+- [x] Extend focused verification so future sessions can prove the transcript-tail activity turn remains selected-thread-SSE-owned.

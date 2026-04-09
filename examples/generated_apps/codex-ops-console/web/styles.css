@@ -855,6 +855,52 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   background: rgba(182, 75, 65, 0.08);
 }
 
+.timeline-item.live-activity {
+  max-width: min(44rem, 90%);
+  margin-right: auto;
+  border-color: rgba(31, 120, 224, 0.18);
+  background: linear-gradient(180deg, rgba(238, 245, 255, 0.96) 0%, rgba(255, 255, 255, 0.98) 100%);
+}
+
+.timeline-live-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
+}
+
+.timeline-live-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.24rem 0.56rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--accent-ink);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.timeline-live-chip[data-tone="healthy"] {
+  border-color: rgba(47, 138, 89, 0.24);
+  background: rgba(47, 138, 89, 0.1);
+  color: var(--success);
+}
+
+.timeline-live-chip[data-tone="warning"] {
+  border-color: rgba(178, 114, 24, 0.24);
+  background: rgba(178, 114, 24, 0.1);
+  color: var(--warning);
+}
+
+.timeline-live-chip[data-tone="danger"] {
+  border-color: rgba(182, 75, 65, 0.24);
+  background: rgba(182, 75, 65, 0.1);
+  color: var(--danger);
+}
+
 .timeline-kind {
   color: var(--accent-ink);
 }
