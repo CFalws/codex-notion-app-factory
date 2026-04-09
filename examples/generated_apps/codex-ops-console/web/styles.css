@@ -737,17 +737,12 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   font-size: 0.8rem;
 }
 
-.composer-header,
+.composer-toolbar,
 .composer-footer {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.85rem;
-}
-
-.composer-header h3 {
-  margin: 0;
-  font-size: 1rem;
 }
 
 .composer-field {
@@ -769,11 +764,23 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   font-size: 0.78rem;
 }
 
+.composer-hint-compact {
+  font-size: 0.86rem;
+}
+
 .composer-actions {
   display: flex;
   align-items: center;
   gap: 0.7rem;
   flex-wrap: wrap;
+}
+
+.composer-send-primary {
+  min-width: 8.5rem;
+}
+
+.composer-secondary-action {
+  order: 2;
 }
 
 .toggle.inline {
@@ -1102,7 +1109,7 @@ body[data-secondary-panel-open="true"] .secondary-panel {
     text-align: left;
   }
 
-  .composer-header,
+  .composer-toolbar,
   .composer-footer,
   .composer-actions,
   .section-head {

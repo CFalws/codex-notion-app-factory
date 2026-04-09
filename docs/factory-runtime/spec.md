@@ -8,7 +8,7 @@
 
 ## Problem
 
-The workspace now has a stronger realtime handoff inside the transcript, but the active-thread header still duplicates live and autonomy status above the conversation. The remaining friction is top-of-pane dashboard chrome that competes with the transcript instead of letting the thread begin immediately.
+The workspace now has a stronger realtime handoff inside the transcript and a cleaner active-thread header, but the bottom interaction surface still reads like an admin form. The remaining friction is a prose-heavy composer with competing controls that makes message entry feel secondary to proposal operations.
 
 ## Target User
 
@@ -23,4 +23,4 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 ## Deliverable
 
-Reduce the active-thread header to conversation identity and navigation only, remove duplicated live and autonomy status from above the timeline, and keep deeper state in the existing composer-adjacent activity bar, left-rail markers, and secondary panel.
+Convert the footer into a compact chat-style session composer where the textarea is the dominant surface, send is the primary action, proposal controls stay accessible but demoted, and the existing composer-adjacent activity bar remains the only live-status surface in the active pane.

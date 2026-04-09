@@ -88,11 +88,8 @@
                 </div>
               </section>
 
-              <div class="composer-header">
-                <div>
-                  <h3>메시지 보내기</h3>
-                  <p id="composer-hint" class="composer-hint">앱과 대화를 고르면 저장된 초안을 바로 이어서 쓸 수 있습니다.</p>
-                </div>
+              <div class="composer-toolbar">
+                <p id="composer-hint" class="composer-hint composer-hint-compact">현재 대화에 바로 이어서 지시를 입력하세요.</p>
                 <p id="composer-count" class="composer-count">0자</p>
               </div>
 
@@ -106,12 +103,12 @@
 
               <div class="composer-footer">
                 <div class="composer-actions">
+                  <button id="send-request" class="composer-send-primary">메시지 보내기</button>
+                  <button id="apply-proposal" class="secondary composer-secondary-action" disabled>제안 적용</button>
                   <label class="toggle inline">
                     <input id="auto-open-app" type="checkbox" />
                     <span>완료 후 앱 열기 유지</span>
                   </label>
-                  <button id="apply-proposal" class="secondary" disabled>제안 적용</button>
-                  <button id="send-request">메시지 보내기</button>
                 </div>
               </div>
             </div>
