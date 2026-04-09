@@ -35,10 +35,6 @@ async function sendMessage() {
   const app = selectedAppData(dom);
   const messageText = dom.requestTextInput.value.trim();
 
-  if (!dom.apiKeyInput.value.trim()) {
-    setStatus(dom, "API key를 입력하세요.");
-    return;
-  }
   if (!app) {
     setStatus(dom, "대상 앱을 선택하세요.");
     return;
@@ -172,7 +168,6 @@ function wireServiceWorker() {
 }
 
 function wireEvents() {
-  dom.apiKeyInput.addEventListener("change", persistSettings);
   dom.appSelect.addEventListener("change", conversationController.handleAppChange);
   dom.conversationSelect.addEventListener("change", conversationController.handleConversationChange);
   dom.autoOpenInput.addEventListener("change", persistSettings);

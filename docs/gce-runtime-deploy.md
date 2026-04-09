@@ -33,7 +33,7 @@ This is intended to stay within free-tier or free-credit testing limits where po
 4. Configure runtime auth in `/etc/codex-factory.env`.
 5. Log in to Codex once as the `codex` user.
 6. Start the `codex-factory` systemd service.
-7. Verify `http://<vm-ip>/health`.
+7. Verify `http://127.0.0.1:8787/health` from the VM.
 
 ## Minimal Manual Commands
 
@@ -50,21 +50,20 @@ sudo systemctl start codex-factory
 curl http://127.0.0.1:8787/health
 ```
 
-Example auth configuration for an IAP front door:
+Example auth configuration for a Tailscale-only front door:
 
 ```bash
-CODEX_FACTORY_AUTH_PROVIDERS=["loopback","iap"]
-CODEX_FACTORY_IAP_AUDIENCE=/projects/PROJECT_NUMBER/global/backendServices/BACKEND_SERVICE_ID
-CODEX_FACTORY_ALLOWED_USER_EMAILS=["you@example.com"]
+CODEX_FACTORY_AUTH_PROVIDERS=["loopback","tailscale"]
+CODEX_FACTORY_ALLOWED_USER_EMAILS=["akdlzmf1123@gmail.com"]
 ```
 
 ## Security Notes
 
 - The sample nginx config is only a bootstrap path, not the preferred long-term front door.
-- For production on GCP, prefer an HTTPS load balancer plus Identity-Aware Proxy in front of the VM.
-- Configure the runtime with `CODEX_FACTORY_AUTH_PROVIDERS=["loopback","iap"]` so server-local smoke tests continue to work while operator traffic is authenticated through IAP.
-- Set `CODEX_FACTORY_IAP_AUDIENCE` and `CODEX_FACTORY_ALLOWED_USER_EMAILS` before exposing the runtime through the load balancer.
-- Keep `CODEX_FACTORY_API_KEY` only as a compatibility path while migrating older tooling.
+- For private personal use, prefer Tailscale on the VM and operator devices, plus `tailscale serve` pointing at `http://127.0.0.1:8787`.
+- Configure the runtime with `CODEX_FACTORY_AUTH_PROVIDERS=["loopback","tailscale"]` so server-local smoke tests continue to work while operator traffic is authenticated through the tailnet.
+- Set `CODEX_FACTORY_ALLOWED_USER_EMAILS` to your Tailscale login email.
+- Remove the VM `http-server` tag or otherwise close public 80/443 ingress so tailnet headers cannot be spoofed through a public reverse proxy.
 
 ## Verification
 
@@ -72,7 +71,7 @@ Once the service is up and Codex is logged in:
 
 ```bash
 cd /opt/codex-app-factory
-API_KEY=your-runtime-key ./scripts/verify_deployed_runtime.sh
+./scripts/verify_gce_runtime.sh
 ```
 
-That verification hits the already running service, sends real authenticated HTTP requests, and confirms both a read-only Codex run and a file-edit Codex run.
+That verification hits the already running service through loopback on the VM, sends real HTTP requests, and confirms both a read-only Codex run and a file-edit Codex run.

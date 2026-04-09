@@ -23,7 +23,6 @@ export function saveSettings(dom, currentState) {
   localStorage.setItem(
     STORAGE_KEY,
     JSON.stringify({
-      apiKey: dom.apiKeyInput.value.trim(),
       selectedAppId: dom.appSelect.value,
       selectedConversationId,
       autoOpen: dom.autoOpenInput.checked,
@@ -39,7 +38,6 @@ export function loadSettings(dom) {
 
   try {
     const payload = JSON.parse(raw);
-    dom.apiKeyInput.value = payload.apiKey || "";
     dom.autoOpenInput.checked = Boolean(payload.autoOpen);
     dom.appSelect.dataset.savedAppId = payload.selectedAppId || "";
     dom.conversationSelect.dataset.savedConversationId = payload.selectedConversationId || "";

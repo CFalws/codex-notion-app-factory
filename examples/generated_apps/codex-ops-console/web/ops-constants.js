@@ -1,5 +1,5 @@
 export const STORAGE_KEY = "codex-ops-console";
-export const FIXED_RUNTIME_URL = "https://34.40.112.33";
+export const FIXED_RUNTIME_URL = "https://codex-factory-vm.tail1b6dd1.ts.net";
 export const DECISION_FIELDS = [
   ["goal", "문제"],
   ["system_area", "영향 범위"],

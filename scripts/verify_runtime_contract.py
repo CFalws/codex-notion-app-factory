@@ -23,7 +23,7 @@ except ModuleNotFoundError:
     raise
 
 from codex_factory_runtime import api_app
-from codex_factory_runtime.auth import IAP_JWT_HEADER, IapIdentityProvider
+from codex_factory_runtime.auth import IAP_JWT_HEADER, TAILSCALE_LOGIN_HEADER, TAILSCALE_NAME_HEADER, IapIdentityProvider
 from codex_factory_runtime.config import RuntimeSettings
 from codex_factory_runtime.state import RuntimeState, utc_now
 
@@ -318,6 +318,43 @@ def main() -> None:
 
             engineering_log = (settings.state_root / "engineering-log.md").read_text(encoding="utf-8")
             require("Simulated the runtime contract without invoking the Codex CLI." in engineering_log, "engineering log missing expected entry")
+
+            tailscale_settings = RuntimeSettings(
+                repo_root=settings.repo_root,
+                state_root=(temp_root / "tailscale" / "state"),
+                registry_root=(temp_root / "tailscale" / "state" / "registry" / "apps"),
+                requests_root=(temp_root / "tailscale" / "state" / "requests"),
+                runtime_root=(temp_root / "tailscale" / "state" / "runtime"),
+                jobs_root=(temp_root / "tailscale" / "state" / "runtime" / "jobs"),
+                proposals_root=(temp_root / "tailscale" / "state" / "runtime" / "proposals"),
+                worktrees_root=(temp_root / "tailscale" / "state" / "runtime" / "worktrees"),
+                conversations_root=(temp_root / "tailscale" / "state" / "runtime" / "conversations"),
+                host=settings.host,
+                port=settings.port,
+                codex_command=settings.codex_command,
+                codex_args=settings.codex_args,
+                codex_home=settings.codex_home,
+                codex_profile=settings.codex_profile,
+                codex_model=settings.codex_model,
+                codex_sandbox=settings.codex_sandbox,
+                codex_skip_git_repo_check=settings.codex_skip_git_repo_check,
+                cors_allowed_origins=settings.cors_allowed_origins,
+                auto_execute_requests=settings.auto_execute_requests,
+                auth_providers=["tailscale"],
+                runtime_api_key="",
+                allowed_user_emails=["owner@example.com"],
+                iap_expected_audience="",
+                push_after_apply=settings.push_after_apply,
+                push_remote=settings.push_remote,
+                push_branch=settings.push_branch,
+            )
+            tailscale_state = RuntimeState(tailscale_settings)
+            seed_apps(tailscale_state)
+            tailscale_client = TestClient(api_app.create_app(tailscale_settings))
+            tailscale_unauthorized = tailscale_client.get("/api/apps")
+            require(tailscale_unauthorized.status_code == 401, f"expected 401 without tailscale headers, got {tailscale_unauthorized.status_code}")
+            tailscale_authorized = tailscale_client.get("/api/apps", headers={TAILSCALE_LOGIN_HEADER: "owner@example.com", TAILSCALE_NAME_HEADER: "Owner"})
+            require(tailscale_authorized.status_code == 200, f"tailscale auth failed: {tailscale_authorized.text}")
 
             iap_settings = build_iap_settings(temp_root / "iap")
             iap_state = RuntimeState(iap_settings)

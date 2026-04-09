@@ -1,15 +1,10 @@
 import { normalizeBaseUrl } from "./ops-store.js";
 
-export function requestHeaders(dom, extraHeaders = {}) {
-  const headers = {
+export function requestHeaders(_dom, extraHeaders = {}) {
+  return {
     "Content-Type": "application/json",
     ...extraHeaders,
   };
-  const apiKey = dom.apiKeyInput.value.trim();
-  if (apiKey) {
-    headers["X-API-Key"] = apiKey;
-  }
-  return headers;
 }
 
 export async function fetchJson(dom, url, options = {}) {

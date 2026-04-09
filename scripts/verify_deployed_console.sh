@@ -1,22 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BASE_URL="${BASE_URL:-https://34.40.112.33}"
+BASE_URL="${BASE_URL:-https://codex-factory-vm.tail1b6dd1.ts.net}"
 APP_ID="${APP_ID:-habit-tracker-pwa}"
 API_KEY="${API_KEY:-${CODEX_FACTORY_API_KEY:-}}"
 POLL_INTERVAL="${POLL_INTERVAL:-2}"
 MAX_POLLS="${MAX_POLLS:-120}"
 
-if [[ -z "$API_KEY" ]]; then
-  echo "API_KEY or CODEX_FACTORY_API_KEY is required" >&2
-  exit 1
-fi
-
 api() {
   local method="$1"
   local path="$2"
   local body="${3:-}"
-  local -a args=(-sS -X "$method" "$BASE_URL$path" -H "X-API-Key: $API_KEY")
+  local -a args=(-sS -X "$method" "$BASE_URL$path")
+  if [[ -n "$API_KEY" ]]; then
+    args+=(-H "X-API-Key: $API_KEY")
+  fi
   if [[ -n "$body" ]]; then
     args+=(-H 'Content-Type: application/json' -d "$body")
   fi
@@ -25,9 +23,6 @@ api() {
 
 health="$(curl -sS "$BASE_URL/health")"
 echo "$health" | grep -q '"ok":true'
-
-status_code="$(curl -s -o /dev/null -w '%{http_code}' "$BASE_URL/api/apps")"
-[[ "$status_code" == "401" ]]
 
 apps="$(api GET /api/apps)"
 echo "$apps" | grep -q '"app_id"'

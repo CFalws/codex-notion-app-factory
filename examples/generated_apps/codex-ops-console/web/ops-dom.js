@@ -1,6 +1,5 @@
 export const dom = {
   backendInput: document.getElementById("backend-url"),
-  apiKeyInput: document.getElementById("api-key"),
   appSelect: document.getElementById("app-select"),
   refreshAppsButton: document.getElementById("refresh-apps"),
   conversationSelect: document.getElementById("conversation-select"),

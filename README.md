@@ -45,6 +45,7 @@ This is not a chatbot demo. It is an execution environment for turning requests 
 ## Key Capabilities
 
 - runtime HTTP intake for phone-triggered maintenance and multi-turn conversations
+- private operator access over a Tailscale tailnet
 - explicit request contract and execution rules
 - generated planning artifacts such as brief, spec, plan, and tasks
 - mobile-first scaffolding for installable PWAs
@@ -105,7 +106,7 @@ Codex should prefer these delivery targets in order:
 The persistent runtime uses:
 
 - FastAPI for request intake and conversation state
-- pluggable request authentication through trusted identity providers
+- pluggable request authentication through trusted identity providers, with Tailscale as the preferred operator path
 - the local Codex CLI for session-backed execution inside conversation-aware app lanes
 - persisted Codex thread ids for app-specific conversation continuity
 - app registry and memory files for durable state outside the model context window
@@ -142,7 +143,7 @@ Each request produces concrete outputs in the local repository:
 - `docs/verification-gates.md`
   Defines the required verification gates before commit and deployment.
 - `docs/auth-architecture.md`
-  Describes the authentication abstraction and the recommended GCP IAP deployment model.
+  Describes the authentication abstraction and the preferred Tailscale deployment model.
 - `docs/state-contract.md`
   Defines the file-backed state shapes that runtime changes must preserve.
 - `docs/change-boundaries.md`

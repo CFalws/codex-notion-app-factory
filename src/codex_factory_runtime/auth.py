@@ -11,6 +11,8 @@ from .config import RuntimeSettings
 IAP_JWT_HEADER = "x-goog-iap-jwt-assertion"
 IAP_ISSUERS = {"https://cloud.google.com/iap"}
 LOOPBACK_HOSTS = {"127.0.0.1", "::1", "localhost", "testclient"}
+TAILSCALE_LOGIN_HEADER = "tailscale-user-login"
+TAILSCALE_NAME_HEADER = "tailscale-user-name"
 
 
 @dataclass(frozen=True)
@@ -36,6 +38,8 @@ class Authenticator:
                 providers.append(ApiKeyIdentityProvider(settings))
             elif normalized == "iap":
                 providers.append(IapIdentityProvider(settings))
+            elif normalized == "tailscale":
+                providers.append(TailscaleIdentityProvider())
             else:
                 raise ValueError(f"Unsupported auth provider: {name}")
         return providers
@@ -99,6 +103,25 @@ class ApiKeyIdentityProvider(IdentityProvider):
             email="",
             auth_source=self.name,
             claims={},
+        )
+
+
+class TailscaleIdentityProvider(IdentityProvider):
+    name = "tailscale"
+
+    def authenticate(self, request: Request) -> AuthenticatedIdentity | None:
+        login = request.headers.get(TAILSCALE_LOGIN_HEADER, "").strip()
+        if not login:
+            return None
+        display_name = request.headers.get(TAILSCALE_NAME_HEADER, "").strip()
+        return AuthenticatedIdentity(
+            subject=login,
+            email=login,
+            auth_source=self.name,
+            claims={
+                "login": login,
+                "name": display_name,
+            },
         )
 
 
