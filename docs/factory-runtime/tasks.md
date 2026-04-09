@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep the current selected-conversation SSE path, deployed workspace gate, rail rendering, and footer live rail ownership unchanged.
-- [x] Reuse the existing selected-thread live-run state derivation, but surface exact proposal, review, verify, auto-apply, ready, and applied progression in the header and live rail.
-- [x] Add one phase-specific detail helper so the selected-thread header and live rail stay consistent with the same SSE-driven state.
-- [x] Preserve non-selected rows as snapshot-only and keep transcript plus composer reachability intact on desktop and phone widths.
-- [x] Extend focused verification so future sessions can prove visible phase progression still comes from the selected-thread SSE path.
+- [x] Keep the current selected-conversation SSE path, deployed workspace gate, desktop shell, and selected-thread live rendering unchanged.
+- [x] Keep the phone nav sheet thread-first and collapse app or operator controls behind a secondary section.
+- [x] Return focus to the selected conversation surface after closing the drawer or choosing a thread or app on phone widths.
+- [x] Preserve transcript plus composer reachability and selected-thread ownership on desktop and phone widths.
+- [x] Extend focused verification so future sessions can prove the explicit conversation-drawer contract.

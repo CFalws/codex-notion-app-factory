@@ -47,9 +47,48 @@ function currentAppId() {
   return selectedAppData(dom)?.appId || "";
 }
 
+function isPhoneViewport() {
+  return window.innerWidth <= 860;
+}
+
+function focusPrimaryNavAction() {
+  if (!isPhoneViewport()) {
+    return;
+  }
+  const firstConversationButton = dom.conversationList?.querySelector("[data-conversation-id]");
+  const primaryAction = firstConversationButton || dom.newConversationButton;
+  if (!primaryAction) {
+    return;
+  }
+  window.requestAnimationFrame(() => {
+    primaryAction.focus({ preventScroll: true });
+  });
+}
+
+function returnFocusToConversationSurface() {
+  if (!isPhoneViewport()) {
+    return;
+  }
+  const preferredTarget = dom.requestTextInput?.value.trim() ? dom.requestTextInput : dom.threadScroller;
+  if (!preferredTarget) {
+    return;
+  }
+  window.requestAnimationFrame(() => {
+    preferredTarget.focus({ preventScroll: true });
+  });
+}
+
+function syncMobileWorkspaceMode() {
+  document.body.dataset.mobileNavMode = isPhoneViewport() ? "drawer" : "desktop";
+}
+
 function setNavigationOpen(isOpen) {
+  syncMobileWorkspaceMode();
   document.body.dataset.navOpen = isOpen ? "true" : "false";
   document.body.dataset.mobileWorkspace = isOpen ? "navigation" : "conversation";
+  if (dom.navOpsSection && isPhoneViewport()) {
+    dom.navOpsSection.open = false;
+  }
   if (dom.navSheetScrim) {
     dom.navSheetScrim.hidden = !isOpen;
   }
@@ -63,6 +102,11 @@ function setNavigationOpen(isOpen) {
   if (navSheet) {
     navSheet.setAttribute("aria-hidden", isOpen ? "false" : "true");
   }
+  if (isOpen) {
+    focusPrimaryNavAction();
+  } else {
+    returnFocusToConversationSurface();
+  }
 }
 
 function setSecondaryPanelOpen(isOpen) {
@@ -73,7 +117,7 @@ function syncNavOpsSection() {
   if (!dom.navOpsSection) {
     return;
   }
-  dom.navOpsSection.open = window.innerWidth > 860;
+  dom.navOpsSection.open = !isPhoneViewport();
 }
 
 function syncComposerMeta() {
@@ -285,6 +329,7 @@ function wireEvents() {
   dom.secondaryPanelToggle?.addEventListener("click", () => setSecondaryPanelOpen(true));
   dom.secondaryPanelClose?.addEventListener("click", () => setSecondaryPanelOpen(false));
   window.addEventListener("resize", () => {
+    syncMobileWorkspaceMode();
     if (window.innerWidth > 860) {
       setNavigationOpen(false);
     } else {
@@ -380,6 +425,7 @@ function initControllers() {
 }
 
 function init() {
+  syncMobileWorkspaceMode();
   setNavigationOpen(false);
   setSecondaryPanelOpen(false);
   loadSettings(dom, state);

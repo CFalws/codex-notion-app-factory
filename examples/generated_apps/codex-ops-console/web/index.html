@@ -15,7 +15,13 @@
   </head>
   <body>
     <main class="desktop-shell">
-      <aside id="nav-sheet" class="sidebar panel" data-mobile-surface="sheet" aria-hidden="true">
+      <aside
+        id="nav-sheet"
+        class="sidebar panel"
+        data-mobile-surface="sheet"
+        data-mobile-nav-priority="conversations"
+        aria-hidden="true"
+      >
         <div class="sidebar-brand">
           <div class="sidebar-brand-head">
             <div>
@@ -28,7 +34,7 @@
           <button id="install-button" class="install-button" hidden>홈 화면에 추가</button>
         </div>
 
-        <section class="sidebar-section sidebar-section-fill sidebar-primary-nav">
+        <section class="sidebar-section sidebar-section-fill sidebar-primary-nav" data-nav-primary="threads">
           <div class="section-head compact">
             <h2>대화</h2>
             <button id="new-conversation" class="secondary small">새 대화</button>
@@ -36,7 +42,7 @@
           <div id="conversation-list" class="conversation-list"></div>
         </section>
 
-        <details id="nav-ops-section" class="sidebar-section sidebar-ops-details" open>
+        <details id="nav-ops-section" class="sidebar-section sidebar-ops-details" data-nav-secondary="ops" open>
           <summary id="nav-ops-summary" class="nav-ops-summary">
             <span>앱과 운영</span>
             <span class="nav-ops-summary-meta">앱 선택, 새로고침, 배포 링크</span>
@@ -90,7 +96,7 @@
         </header>
 
         <div class="thread-surface">
-          <div id="thread-scroller" class="thread-scroller">
+          <div id="thread-scroller" class="thread-scroller" tabindex="-1">
             <div class="thread-column">
               <div id="conversation-timeline" class="timeline"></div>
             </div>

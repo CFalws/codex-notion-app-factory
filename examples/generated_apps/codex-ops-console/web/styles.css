@@ -41,6 +41,10 @@ body[data-mobile-workspace="conversation"] .main-stage {
   z-index: 1;
 }
 
+body[data-mobile-nav-mode="drawer"] .sidebar[data-mobile-nav-priority="conversations"] .sidebar-primary-nav {
+  display: grid;
+}
+
 button,
 .install-button {
   border: 0;
@@ -577,6 +581,11 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   min-height: 0;
   overflow: auto;
   padding: 0.35rem 1.05rem 0.72rem;
+}
+
+.thread-scroller:focus-visible {
+  outline: 2px solid rgba(31, 120, 224, 0.42);
+  outline-offset: -2px;
 }
 
 .thread-column {
@@ -1220,6 +1229,7 @@ body[data-secondary-panel-open="true"] .secondary-panel {
 
   .sidebar-primary-nav {
     order: 1;
+    padding-bottom: 0.35rem;
   }
 
   .sidebar-ops-details {
@@ -1227,6 +1237,14 @@ body[data-secondary-panel-open="true"] .secondary-panel {
     border: 1px solid var(--line);
     border-radius: 1rem;
     background: rgba(255, 255, 255, 0.5);
+  }
+
+  .sidebar[data-mobile-nav-priority="conversations"] .sidebar-primary-nav[data-nav-primary="threads"] {
+    border-bottom: 1px solid rgba(113, 103, 94, 0.12);
+  }
+
+  .sidebar[data-mobile-nav-priority="conversations"] .sidebar-ops-details[data-nav-secondary="ops"] {
+    margin-top: 0.2rem;
   }
 
   .nav-ops-summary {
