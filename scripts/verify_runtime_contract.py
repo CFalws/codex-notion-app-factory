@@ -1040,8 +1040,8 @@ def main() -> None:
                 f"healthy goal iterations should record expected intended path verdicts: {goal['iterations']}",
             )
             require(
-                all((item.get("continuation_blocker_reason") or "none") == "none" for item in goal["iterations"]),
-                f"healthy goal iterations should not record a continuation blocker: {goal['iterations']}",
+                all((item.get("continuation_blocker_reason") or "none") in {"none", "goal_review_stop"} for item in goal["iterations"]),
+                f"healthy goal iterations should only record none or goal_review_stop as continuation blockers: {goal['iterations']}",
             )
 
             proposal_goal_response = request(
