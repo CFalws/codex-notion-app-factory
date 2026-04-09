@@ -142,6 +142,10 @@ Each request produces concrete outputs in the local repository:
   Explains how generated apps are assembled and deployed to GitHub Pages.
 - `docs/verification-gates.md`
   Defines the required verification gates before commit and deployment.
+- `docs/state-contract.md`
+  Defines the file-backed state shapes that runtime changes must preserve.
+- `docs/change-boundaries.md`
+  Defines which module owns which class of change.
 - `docs/change-boundaries.md`
   Describes which module owns which kind of change so refactors stay local and reviewable.
 - `docs/request-contract.md`
@@ -204,10 +208,16 @@ make verify
 For high-risk runtime, proposal, auth, deployment, or operator-console changes, run the deployed smoke test as well:
 
 ```bash
-API_KEY=<runtime-api-key> make verify-deployed
+make verify-gce
 ```
 
-The policy and risk levels are documented in [`docs/verification-gates.md`](docs/verification-gates.md).
+To deploy the current `main` checkout to the GCE runtime:
+
+```bash
+make deploy-gce
+```
+
+The policy and risk levels are documented in [`docs/verification-gates.md`](docs/verification-gates.md), and the file-backed payload shapes are documented in [`docs/state-contract.md`](docs/state-contract.md).
 
 ## Current Surfaces
 

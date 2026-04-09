@@ -2,113 +2,125 @@
 
 ## Purpose
 
-This repository documents how Codex should operate when a structured app implementation request enters the runtime.
+This repository is a conversation-driven Codex app factory.
 
-The goal is to make the execution loop consistent and demonstrable:
+The active goal is not only to implement app changes, but to do so in a way that stays:
 
-1. Find the active app request
-2. Read the request in full
-3. Extract the implementation brief
-4. Produce execution artifacts
-5. Implement or update the target app
-6. Summarize delivery output
+- sustainable across later sessions
+- robust under deployment and self-edit flows
+- usable from a phone
+- inspectable through durable state and verification artifacts
 
-The default quality bar is that the result should be usable from a phone, not only from the development machine.
+## Operating Model
 
-For existing apps, Codex should also prefer continuity over restart. A later change request for the same app should first check the stored app session record and memory snapshot.
+The normal loop is:
 
-When the runtime API is used, Codex should assume the request entered through the web console or another HTTP client and preserve the same app session across later follow-up requests.
+1. open or continue an app-scoped conversation
+2. read the current app record, workspace, and memory
+3. make the smallest reasonable change
+4. preserve the existing app lane unless a reset is explicitly required
+5. write back durable state, summaries, and proposal metadata when needed
+6. verify before commit and again before deployment when the change is risky
 
-## Trigger Rules
+## Current Request Entry Points
 
-Codex should treat a request as executable work only when its execution mode is clear:
+Requests can enter through:
 
-- `build`
-- `spec`
-- `review`
+- the runtime HTTP API
+- the phone-facing `codex-ops-console`
+- direct maintenance work inside this repository
 
-## Request Interpretation
+When a request comes through the runtime API, Codex should assume conversation continuity matters and preserve the same app lane whenever possible.
 
-When reading a request, Codex should identify:
+## Runtime Modes
 
-- project name
-- problem being solved
-- target user or usage context
-- primary device
-- constraints
-- expected deliverable
-- preferred stack if specified
+### Standard App Lane
 
-If information is missing, Codex should make the smallest reasonable assumption and proceed.
+Used for normal app maintenance such as `habit-tracker-pwa`.
 
-Default assumptions for personal tools:
+Rules:
 
-- target device is phone first
-- delivery target is installable PWA
-- deployment target is static hosting unless backend features are required
-- existing apps should reuse their stored workspace and session context when possible
+- continue from the existing app workspace
+- preserve app session continuity
+- keep the app phone-usable by default
+- update memory and summaries after completion
 
-## Execution Modes
+### Proposal Lane
 
-### `spec`
+Used for self-editing the app factory itself such as `factory-runtime`.
 
-Generate:
+Rules:
 
-- `spec.md`
-- `implementation_plan.md`
-- `tasks.md`
+- work must happen in a proposal worktree
+- do not change the running checkout directly during execution
+- proposal work must end in a commit on the proposal branch
+- apply must remain explicit and reviewable
+- apply may restart the runtime and push to GitHub
 
-Do not start coding unless the request explicitly asks for implementation.
+## Change Boundary Rule
 
-### `build`
+Before editing code, decide which module owns the behavior.
 
-Generate:
+Reference: `docs/change-boundaries.md`
 
-- `spec.md`
-- `implementation_plan.md`
-- `tasks.md`
-- `deploy_plan.md`
-- source code changes in the target workspace
+If a change crosses more than one boundary, prefer moving logic into the owning module instead of adding more coupling to the caller.
 
-Unless the request says otherwise, produce output that can be launched on a phone without the local desktop runtime remaining active.
+## State Contract Rule
 
-When the request targets an existing app:
+Runtime changes must preserve the file-backed state contract unless the change explicitly migrates it.
 
-- load the app record from `state/registry/apps/`
-- load the memory snapshot from `state/memory/`
-- reuse the app workspace under `workspaces/`
-- update the session record after the change is complete
+Reference: `docs/state-contract.md`
 
-### `review`
+This applies to:
 
-Perform code review against the requested project or diff.
+- app registry records
+- requests
+- jobs
+- proposals
+- conversations
+- engineering log entries
 
-Output should prioritize:
+## Verification Rule
 
-- bugs
-- regressions
-- missing tests
-- implementation risks
+Do not treat a change as done until the required verification gate passes.
+
+Reference: `docs/verification-gates.md`
+
+Minimum expectations:
+
+- low-risk change: `make verify-static`
+- medium-risk change: `make verify`
+- high-risk runtime or deployment change: `make verify` plus deployed runtime verification
+
+## High-Risk Changes
+
+The following always count as high-risk:
+
+- runtime API behavior
+- authentication
+- proposal creation or apply flow
+- self-edit behavior
+- Git push after apply
+- deployment scripts
+- service worker behavior
+- app-factory state schema changes
 
 ## Artifact Expectations
 
-For each request, Codex should try to leave behind durable artifacts that make the work inspectable:
+Each meaningful change should leave behind durable evidence:
 
-- written spec
-- implementation plan
-- checklist
 - code changes
-- deployment notes
-- final delivery summary
+- updated docs when contracts or operations change
+- decision summary and engineering log entries from runtime work
+- verification evidence before commit and deployment
 
-## Portfolio Principle
+## Default Quality Bar
 
-This repository is not about maximizing autonomy claims.
+The result should be understandable by a future session with less context.
 
-It is about showing a real and defensible execution environment:
+That means:
 
-- runtime HTTP intake for execution
-- repository state for context access
-- Codex for implementation
-- repository artifacts as proof of work
-- phone-usable delivery as the default outcome
+- explicit boundaries
+- explicit state contracts
+- repeatable verification steps
+- deploy paths that do not rely on memory alone

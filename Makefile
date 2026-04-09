@@ -1,4 +1,4 @@
-.PHONY: verify verify-static verify-contract verify-local-runtime verify-deployed
+.PHONY: verify verify-static verify-contract verify-local-runtime verify-deployed verify-gce deploy-gce
 
 PYTHON := $(if $(wildcard ./.venv/bin/python),./.venv/bin/python,python3)
 
@@ -15,3 +15,9 @@ verify-local-runtime:
 
 verify-deployed:
 	./scripts/verify_deployed_console.sh
+
+verify-gce:
+	./scripts/verify_gce_runtime.sh
+
+deploy-gce:
+	./scripts/deploy_gce_runtime.sh

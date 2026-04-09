@@ -39,6 +39,19 @@ def wait_for_job(base_url: str, job_id: str, api_key: str, timeout_seconds: floa
     raise RuntimeError(f"Timed out waiting for job {job_id}")
 
 
+def resolve_scratch_file(base_url: str, app_id: str, api_key: str, configured_scratch_file: str) -> str:
+    if configured_scratch_file:
+        return configured_scratch_file
+    app_record = http_json("GET", f"{base_url}/api/apps/{app_id}", api_key=api_key)
+    source_path = str(app_record.get("source_path") or "").strip().rstrip("/")
+    workspace_path = str(app_record.get("workspace_path") or "").strip().rstrip("/")
+    if source_path:
+        return f"{source_path}/runtime-api-verification/phone-ops-check.md"
+    if workspace_path:
+        return f"{workspace_path}/runtime-api-verification/phone-ops-check.md"
+    return f"workspaces/{app_id}/runtime-api-verification/phone-ops-check.md"
+
+
 def main() -> None:
     env_file = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("/etc/codex-factory.env")
     load_env_file(env_file)
@@ -46,15 +59,13 @@ def main() -> None:
     api_key = os.environ["CODEX_FACTORY_API_KEY"]
     base_url = os.environ.get("BASE_URL", "http://127.0.0.1")
     app_id = os.environ.get("APP_ID", "habit-tracker-pwa")
-    scratch_file = os.environ.get(
-        "SCRATCH_FILE",
-        "workspaces/habit-tracker-pwa/runtime-api-verification/phone-ops-check.md",
-    )
+    configured_scratch_file = os.environ.get("SCRATCH_FILE", "").strip()
 
     health_req = request.Request(f"{base_url}/health", method="GET")
     with request.urlopen(health_req, timeout=30) as response:
         health = json.loads(response.read().decode("utf-8"))
     repo_root = Path(health["repo_root"])
+    scratch_file = resolve_scratch_file(base_url, app_id, api_key, configured_scratch_file)
 
     ping = http_json(
         "POST",
