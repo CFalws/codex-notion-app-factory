@@ -176,6 +176,19 @@ async def fake_apply_proposal(self, job_id: str) -> dict[str, Any]:
     return proposal
 
 
+async def fake_apply_proposal_failed_push(self, job_id: str) -> dict[str, Any]:
+    proposal = self.state.get_proposal(job_id)
+    proposal["status"] = "applied_local_push_failed"
+    proposal["applied_at"] = utc_now()
+    proposal["push_status"] = "failed"
+    proposal["push_remote"] = self.settings.push_remote
+    proposal["push_branch"] = self.settings.push_branch
+    proposal["push_message"] = "Simulated push failure."
+    proposal["pushed_at"] = ""
+    self.state.save_proposal(proposal)
+    return proposal
+
+
 async def fake_run_advisory_prompt(
     self,
     *,
@@ -692,6 +705,52 @@ def main() -> None:
             require(proposal_goal["iterations"][0]["auto_applied"] is True, "first proposal goal iteration should be auto-applied")
             require(proposal_goal["iterations"][0]["proposal_status"] == "applied", "proposal goal iteration should record applied proposal status")
             require(proposal_goal["iterations"][0]["verification_reviews"][0]["verdict"] == "pass", "proposal goal iteration should record verifier pass")
+
+            api_app.CodexAgentsRuntime.apply_proposal = fake_apply_proposal_failed_push
+            try:
+                degraded_goal_response = request(
+                    client,
+                    "POST",
+                    "/api/goals",
+                    json={
+                        "app_id": "factory-runtime",
+                        "objective": "Pause if proposal auto-apply ends in a degraded apply outcome.",
+                        "source": "contract-test",
+                        "max_iterations": 0,
+                        "autostart": True,
+                        "auto_apply_proposals": True,
+                        "auto_resume_after_apply": True,
+                    },
+                )
+                require(degraded_goal_response.status_code == 200, f"degraded proposal goal creation failed: {degraded_goal_response.text}")
+                degraded_goal = request(client, "GET", f"/api/goals/{degraded_goal_response.json()['goal']['goal_id']}").json()
+                require(degraded_goal["status"] == "paused", f"degraded auto-apply should pause the goal: {degraded_goal}")
+                require(
+                    degraded_goal["stop_reason"] == "auto_apply_push_failed",
+                    f"degraded auto-apply should record an explicit stop reason: {degraded_goal}",
+                )
+                require(
+                    degraded_goal["iterations"][0]["push_status"] == "failed",
+                    f"degraded auto-apply should persist failed push status into the iteration: {degraded_goal}",
+                )
+                require(
+                    degraded_goal["iterations"][0]["degraded_apply_reason"] == "auto_apply_push_failed",
+                    f"degraded auto-apply should persist the degraded apply reason: {degraded_goal}",
+                )
+                degraded_conversation = request(
+                    client, "GET", f"/api/conversations/{degraded_goal_response.json()['conversation']['conversation_id']}"
+                ).json()
+                degraded_event_types = [event["type"] for event in degraded_conversation["events"]]
+                require(
+                    "goal.proposal.auto_apply.degraded" in degraded_event_types,
+                    f"degraded auto-apply should emit explicit degraded event: {degraded_event_types}",
+                )
+                require(
+                    "goal.awaiting_restart_resume" not in degraded_event_types,
+                    f"degraded auto-apply should not proceed into restart-resume continuation: {degraded_event_types}",
+                )
+            finally:
+                api_app.CodexAgentsRuntime.apply_proposal = fake_apply_proposal
 
             restart_resume_response = request(
                 client,

@@ -8,7 +8,7 @@
 
 ## Problem
 
-Unattended proposal-mode improvement already has auto-apply and startup resume hooks, but the restart-resume path is too implicit. A goal can remain `running` while actually waiting for service restart, which weakens observability and makes it hard to verify whether continuation happened through the intended path.
+Proposal-mode auto-apply can currently look successful even when the local merge succeeded but the remote push failed. That degraded deployment path must not count as healthy unattended progress.
 
 ## Target User
 
@@ -22,4 +22,4 @@ The primary user is the operator relying on unattended runtime self-improvement 
 
 ## Deliverable
 
-Make restart-resume explicit in goal state, surface why a goal resumed after startup, and verify that unattended proposal loops continue through the intended restart-recovery path.
+Pause unattended continuation on failed-push auto-apply results, emit an explicit degraded event and stop reason, and verify both the healthy pushed path and the push-failed path.

@@ -935,7 +935,33 @@ class RuntimeApiContext:
                 iteration_record["push_status"] = str(proposal.get("push_status") or "")
                 iteration_record["verification_reviews"] = goal["iterations"][-1].get("verification_reviews", [])
                 goal["iterations"][-1] = iteration_record
+                healthy_apply, degraded_reason = self.goals.auto_apply_health(
+                    proposal,
+                    push_required=bool(self.settings.push_after_apply),
+                )
                 self.state.save_goal(goal)
+                if not healthy_apply:
+                    iteration_record["degraded_apply_reason"] = degraded_reason
+                    goal["iterations"][-1] = iteration_record
+                    goal["status"] = "paused"
+                    goal["stop_reason"] = degraded_reason
+                    goal["completed_at"] = utc_now()
+                    self.state.save_goal(goal)
+                    self.append_event(
+                        conversation_id,
+                        event_type="goal.proposal.auto_apply.degraded",
+                        body="proposal 자동 적용이 degraded path로 끝나 자율 목표를 일시중지합니다.",
+                        status="paused",
+                        job_id=payload["job"]["job_id"],
+                        data={
+                            "goal_id": goal_id,
+                            "iteration": iteration_number,
+                            "proposal_status": proposal.get("status", ""),
+                            "push_status": proposal.get("push_status", ""),
+                            "stop_reason": degraded_reason,
+                        },
+                    )
+                    return
                 self.append_event(
                     conversation_id,
                     event_type="goal.proposal.auto_apply.completed",

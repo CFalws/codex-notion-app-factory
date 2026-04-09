@@ -73,3 +73,14 @@ Execution rules:
         if max_iterations > 0 and iteration_number >= max_iterations:
             return "completed", "max_iterations_reached"
         return "running", ""
+
+    def auto_apply_health(self, proposal: dict[str, Any], *, push_required: bool) -> tuple[bool, str]:
+        proposal_status = str(proposal.get("status") or "").strip()
+        push_status = str(proposal.get("push_status") or "").strip()
+        if proposal_status == "applied_local_push_failed" or push_status == "failed":
+            return False, "auto_apply_push_failed"
+        if proposal_status != "applied":
+            return False, "auto_apply_degraded_status"
+        if push_required and push_status != "pushed":
+            return False, "auto_apply_push_not_confirmed"
+        return True, ""
