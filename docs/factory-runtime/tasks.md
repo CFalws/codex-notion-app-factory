@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep the current selected-conversation SSE path, transcript-first desktop layout, phone conversation-first sheet behavior, left rail markers, pending-turn handoff, and central timeline unchanged.
-- [x] Extend the deployed console verification entrypoint with a selected-thread workspace gate targeted at `factory-runtime`.
-- [x] Assert the deployed browser-visible desktop shell, phone navigation, footer dock, selected-thread-only live markers, and machine-readable transport and phase datasets from that gate.
-- [x] Open the selected-thread append SSE stream for one real conversation and require ordered proposal, review, verify, proposal-ready, and terminal progression from the captured SSE frames and conversation state.
-- [x] Fail on degraded signals such as retry fallback, runtime exception, missing selected-thread SSE events, or unexpected session rotation, and keep focused verification wired to the new gate.
+- [x] Keep the current selected-conversation SSE path, deployed workspace gate, transcript-first desktop layout, phone conversation-first sheet behavior, left rail markers, pending-turn handoff, and central timeline unchanged.
+- [x] Re-center the active header on selected-thread identity instead of selected-app identity.
+- [x] Render one compact selected-thread live phase badge in the header from the existing selected-thread state and keep it machine-readable.
+- [x] Demote app-level identity and explanatory copy out of the center-pane reading path while leaving richer detail in the sidebar and secondary panel.
+- [x] Extend focused verification so future sessions can prove the active header stays conversation-first without reintroducing app-centric header chrome or a second status path.

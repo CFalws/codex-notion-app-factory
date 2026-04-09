@@ -483,9 +483,9 @@ export function createConversationController(deps) {
       dom.conversationList.innerHTML = '<p class="conversation-list-empty">앱을 먼저 고르세요.</p>';
       clearAutonomySummary(dom, "앱을 선택하면 최근 autonomous iteration blocker가 여기에 표시됩니다.");
       updateHeroState(dom, {
-        appName: "앱 미선택",
+        threadTitle: "앱을 먼저 고르세요",
+        threadKicker: "작업 공간",
         conversationState: "대화 준비 전",
-        jobState: "IDLE",
       });
       renderConversation(dom, state, null, persistSettings);
       syncConversationCardState();
@@ -514,10 +514,10 @@ export function createConversationController(deps) {
       clearPendingOutgoing();
       renderConversation(dom, state, null, persistSettings);
       syncConversationCardState();
-      dom.conversationMeta.textContent = "이 앱에는 아직 대화가 없습니다.";
       updateHeroState(dom, {
-        appName: app.title,
-        conversationState: "새 대화 필요",
+        threadTitle: "새 대화를 시작하세요",
+        threadKicker: "선택된 대화",
+        conversationState: "이 앱에는 아직 대화가 없습니다.",
       });
       renderWorkspaceSummary(dom, `${app.title}에는 아직 대화가 없습니다. 메시지를 보내면 현재 앱 레인에서 새 세션이 시작됩니다.`);
       renderConversationList([], "");
@@ -528,7 +528,11 @@ export function createConversationController(deps) {
       state.currentJobId = "";
       renderConversation(dom, state, null, persistSettings);
       syncConversationCardState();
-      dom.conversationMeta.textContent = `대화를 불러오지 못했습니다: ${error.message}`;
+      updateHeroState(dom, {
+        threadTitle: "대화를 불러오지 못했습니다",
+        threadKicker: "선택된 대화",
+        conversationState: `대화를 불러오지 못했습니다: ${error.message}`,
+      });
       dom.conversationList.innerHTML = '<p class="conversation-list-empty">대화를 불러오지 못했습니다.</p>';
       clearAutonomySummary(dom, "대화를 불러오지 못해 autonomy summary도 갱신하지 못했습니다.");
       restoreDraft();

@@ -62,9 +62,9 @@
       <button id="nav-sheet-scrim" class="nav-sheet-scrim" type="button" hidden aria-label="네비게이션 닫기"></button>
 
       <section class="main-stage panel" data-primary-surface="conversation">
-        <header class="thread-topbar">
+        <header class="thread-topbar" data-thread-header="conversation">
           <div class="thread-title-block">
-            <p class="thread-kicker">현재 대화</p>
+            <p id="thread-kicker" class="thread-kicker">선택된 대화</p>
             <button
               id="nav-sheet-toggle"
               class="secondary small mobile-nav-toggle"
@@ -72,8 +72,17 @@
               aria-controls="nav-sheet"
               aria-expanded="false"
             >대화 열기</button>
-            <h2 id="hero-app-name">앱을 불러오는 중입니다.</h2>
-            <p id="conversation-meta" class="meta">아직 대화 세션이 없습니다.</p>
+            <div class="thread-title-row">
+              <h2 id="thread-title">앱을 먼저 고르세요.</h2>
+              <span
+                id="thread-phase-chip"
+                class="thread-phase-chip"
+                data-tone="muted"
+                data-thread-phase="IDLE"
+                data-thread-phase-source="none"
+              >IDLE</span>
+            </div>
+            <p id="conversation-meta" class="meta thread-meta">아직 대화 세션이 없습니다.</p>
           </div>
           <div class="thread-sidecar">
             <button id="secondary-panel-toggle" class="secondary small desktop-panel-toggle" type="button">세션 패널</button>

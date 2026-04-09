@@ -374,9 +374,9 @@ function init() {
   updateSelectedAppCard(dom, selectedAppData(dom));
   updateProposalButton(dom, state.latestProposalJobId);
   updateHeroState(dom, {
-    appName: "앱을 불러오는 중입니다.",
+    threadTitle: "대화를 불러오는 중입니다.",
+    threadKicker: "선택된 대화",
     conversationState: "대화 준비 전",
-    jobState: "IDLE",
   });
   renderWorkspaceSummary(dom, "앱 목록과 최근 대화를 불러오면 현재 세션 맥락이 여기에 정리됩니다.");
   clearAutonomySummary(dom);

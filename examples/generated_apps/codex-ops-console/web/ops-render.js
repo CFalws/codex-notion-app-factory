@@ -55,9 +55,58 @@ export function setJobMeta(dom, message) {
   dom.jobMeta.textContent = message;
 }
 
-export function updateHeroState(dom, { appName = "" }) {
-  if (appName && dom.heroAppName) {
-    dom.heroAppName.textContent = appName;
+function headerPhaseTone(liveRun) {
+  if (!liveRun || !liveRun.visible) {
+    return "muted";
+  }
+  if (liveRun.tone === "done") {
+    return "healthy";
+  }
+  if (liveRun.tone === "waiting") {
+    return "warning";
+  }
+  if (liveRun.tone === "running") {
+    return "danger";
+  }
+  if (liveRun.tone === "thinking") {
+    return "neutral";
+  }
+  return "muted";
+}
+
+function headerPhaseSource(liveRun) {
+  if (!liveRun || !liveRun.visible) {
+    return "none";
+  }
+  return String(liveRun.source || "none").toLowerCase();
+}
+
+export function updateHeroState(
+  dom,
+  {
+    threadTitle = "",
+    threadKicker = "",
+    conversationState = "",
+    liveRun = null,
+  } = {},
+) {
+  if (threadTitle && dom.threadTitle) {
+    dom.threadTitle.textContent = threadTitle;
+  }
+  if (threadKicker && dom.threadKicker) {
+    dom.threadKicker.textContent = threadKicker;
+  }
+  if (conversationState && dom.conversationMeta) {
+    dom.conversationMeta.textContent = conversationState;
+  }
+  if (dom.threadPhaseChip) {
+    const phaseLabel = liveRun?.visible ? String(liveRun.phase || "IDLE").toUpperCase() : "IDLE";
+    const phaseTone = headerPhaseTone(liveRun);
+    const phaseSource = headerPhaseSource(liveRun);
+    dom.threadPhaseChip.textContent = phaseLabel;
+    dom.threadPhaseChip.dataset.tone = phaseTone;
+    dom.threadPhaseChip.dataset.threadPhase = phaseLabel;
+    dom.threadPhaseChip.dataset.threadPhaseSource = phaseSource;
   }
 }
 
@@ -803,7 +852,6 @@ export function renderJobActivity(dom, conversation, currentJobId, jobPayload = 
   const phase = phaseLabel(jobPayload?.status || latestEvent?.status || "", latestEvent?.type || "");
   dom.jobPhase.textContent = phase;
   dom.jobPhase.className = `activity-phase ${phase.toLowerCase()}`;
-  updateHeroState(dom, { jobState: phase });
 
   if (!recentEvents.length) {
     dom.jobEvents.innerHTML = '<p class="activity-empty">작업이 시작되면 최근 실행 이벤트가 여기에 표시됩니다.</p>';
@@ -830,9 +878,10 @@ export function updateSelectedAppCard(dom, app) {
   if (!app) {
     dom.selectedAppUrl.textContent = "앱을 선택하면 여기에서 바로 열 수 있습니다.";
     updateHeroState(dom, {
-      appName: "앱 미선택",
+      threadTitle: "앱을 먼저 고르세요",
+      threadKicker: "작업 공간",
       conversationState: "대화 준비 전",
-      jobState: "IDLE",
+      liveRun: runStateSnapshot({ visible: false, phase: "IDLE", source: "none" }),
     });
     renderWorkspaceSummary(dom, "앱을 고르면 현재 작업 라인, 최근 대화, 배포 진입점이 여기에 요약됩니다.");
     return;
@@ -841,7 +890,6 @@ export function updateSelectedAppCard(dom, app) {
   dom.selectedAppUrl.textContent = hasDeployment
     ? app.deploymentUrl
     : "deployment_url이 아직 등록되지 않았습니다.";
-  updateHeroState(dom, { appName: app.title || app.appId });
 }
 
 export function updateProposalButton(dom, latestProposalJobId) {
@@ -916,7 +964,6 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   onPersist();
 
   if (!conversation) {
-    dom.conversationMeta.textContent = "아직 대화 세션이 없습니다.";
     dom.conversationTimeline.innerHTML = '<p class="timeline-empty">새 대화를 만들면 요청과 이벤트가 여기 쌓입니다.</p>';
     if (dom.threadScroller) {
       dom.threadScroller.dataset.pendingConversationId ||= "";
@@ -930,8 +977,15 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
     };
     syncJumpToLatest(dom, currentState, "", "snapshot");
     updateHeroState(dom, {
-      conversationState: "새 대화 필요",
-      jobState: currentState.currentJobId ? "RUNNING" : "IDLE",
+      threadTitle: "새 대화를 시작하세요",
+      threadKicker: "선택된 대화",
+      conversationState: "아직 대화 세션이 없습니다.",
+      liveRun: runStateSnapshot({
+        visible: true,
+        phase: currentState.currentJobId ? "RUNNING" : "IDLE",
+        source: "none",
+        tone: currentState.currentJobId ? "running" : "idle",
+      }),
     });
     renderWorkspaceSummary(dom, "아직 대화가 없습니다. 새 대화를 만들거나 바로 메시지를 보내면 현재 앱 레인에서 이어서 작업합니다.");
     renderJobActivity(dom, null, "");
@@ -981,7 +1035,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
     return a.sortAt < b.sortAt ? -1 : 1;
   });
 
-  dom.conversationMeta.textContent = `${messages.length} messages · ${events.length} events`;
+  const liveRun = deriveLiveRunState(conversation, currentState);
   if (dom.threadScroller) {
     dom.threadScroller.dataset.pendingConversationId = "";
   }
@@ -1001,7 +1055,14 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
     lastAppendId: latestAppendId,
   };
   updateHeroState(dom, {
-    conversationState: `${messages.length} msgs · ${events.length} evts`,
+    threadTitle: conversation.title || "제목 없는 대화",
+    threadKicker: "선택된 대화",
+    conversationState: [
+      conversation.updated_at ? new Date(conversation.updated_at).toLocaleString() : "",
+      `${messages.length} messages`,
+      `${events.length} events`,
+    ].filter(Boolean).join(" · "),
+    liveRun,
   });
   renderWorkspaceSummary(
     dom,
