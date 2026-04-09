@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Choose one bounded verifier path-acceptability hypothesis instead of broad verification redesign.
-- [x] Extend autonomous verifier prompts and review schema with explicit path acceptability.
-- [x] Persist verifier path-acceptability judgments into goal iteration review state.
-- [x] Verify both healthy acceptable attestation and degraded disqualifying attestation in the runtime contract test.
+- [x] Choose one bounded continuation-blocker hypothesis instead of broad autonomy-policy redesign.
+- [x] Compute and persist `continuation_blocker_reason` from existing autonomous state signals.
+- [x] Reuse that stored blocker reason in the ops console goal summary instead of new UI-side inference.
+- [x] Verify healthy, degraded, and verifier-disqualifying iterations leave the expected blocker reason in contract coverage.
 - [x] Update the `factory-runtime` docs to match the current runtime iteration.

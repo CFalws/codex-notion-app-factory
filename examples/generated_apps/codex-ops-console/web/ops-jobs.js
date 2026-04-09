@@ -10,6 +10,7 @@ export function createJobController(deps) {
     renderLearningSummary,
     renderJobActivity,
     fetchConversation,
+    refreshGoalSummary,
     describeJob,
   } = deps;
 
@@ -62,6 +63,7 @@ export function createJobController(deps) {
       if (state.currentConversationId) {
         try {
           await fetchConversation(state.currentConversationId, { syncJob: false });
+          await refreshGoalSummary();
         } catch (_) {
           // Keep the last rendered conversation and let the job panel carry the visible error if needed.
         }
@@ -79,6 +81,7 @@ export function createJobController(deps) {
         stopPolling();
         if (state.currentConversationId) {
           await fetchConversation(state.currentConversationId, { syncJob: false });
+          await refreshGoalSummary();
         }
       }
     } catch (error) {

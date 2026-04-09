@@ -42,6 +42,10 @@ export function appConversationsUrl(appId) {
   return `${normalizeBaseUrl()}/api/apps/${appId}/conversations`;
 }
 
+export function appGoalsUrl(appId) {
+  return `${normalizeBaseUrl()}/api/apps/${appId}/goals`;
+}
+
 export function conversationUrl(conversationId) {
   return `${normalizeBaseUrl()}/api/conversations/${conversationId}`;
 }

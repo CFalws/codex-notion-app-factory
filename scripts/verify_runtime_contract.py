@@ -831,6 +831,10 @@ def main() -> None:
                 ),
                 f"healthy goal iterations should record expected intended path verdicts: {goal['iterations']}",
             )
+            require(
+                all((item.get("continuation_blocker_reason") or "none") == "none" for item in goal["iterations"]),
+                f"healthy goal iterations should not record a continuation blocker: {goal['iterations']}",
+            )
 
             proposal_goal_response = request(
                 client,
@@ -859,6 +863,10 @@ def main() -> None:
                 all(review.get("path_acceptability") == "acceptable" for review in proposal_goal["iterations"][0].get("verification_reviews") or []),
                 f"healthy proposal iteration should record acceptable path attestation: {proposal_goal['iterations'][0]}",
             )
+            require(
+                (proposal_goal["iterations"][0].get("continuation_blocker_reason") or "none") == "none",
+                f"healthy proposal iteration should not record a continuation blocker: {proposal_goal['iterations'][0]}",
+            )
 
             degraded_goal_response = request(
                 client,
@@ -878,6 +886,10 @@ def main() -> None:
             require(len(degraded_goal["iterations"]) == 1, f"degraded goal should pause on first iteration: {degraded_goal}")
             degraded_path = degraded_goal["iterations"][0].get("intended_path") or {}
             require(degraded_path.get("verdict") == "degraded", f"degraded goal should record degraded verdict: {degraded_goal['iterations'][0]}")
+            require(
+                degraded_goal["iterations"][0].get("continuation_blocker_reason") == "intended_path_degraded",
+                f"degraded goal iteration should record intended_path_degraded blocker: {degraded_goal['iterations'][0]}",
+            )
             require(
                 "codex_exec_retrying" in (degraded_path.get("degraded_signals") or []),
                 f"degraded retry signal should be visible in intended-path state: {degraded_goal['iterations'][0]}",
@@ -903,11 +915,15 @@ def main() -> None:
             )
             degraded_proposal_goal = wait_for_goal_status(client, degraded_proposal_goal_response.json()["goal"]["goal_id"], "paused")
             require(
-                degraded_proposal_goal["stop_reason"] == "verification_not_approved",
+                degraded_proposal_goal["stop_reason"] == "verifier_path_disqualifying",
                 f"degraded proposal goal should pause on verification rejection: {degraded_proposal_goal}",
             )
             degraded_reviews = degraded_proposal_goal["iterations"][0].get("verification_reviews") or []
             require(degraded_reviews, f"degraded proposal goal should persist verifier reviews: {degraded_proposal_goal}")
+            require(
+                degraded_proposal_goal["iterations"][0].get("continuation_blocker_reason") == "verifier_path_disqualifying",
+                f"degraded proposal goal iteration should record verifier_path_disqualifying blocker: {degraded_proposal_goal['iterations'][0]}",
+            )
             require(
                 all(review.get("path_acceptability") == "disqualifying" for review in degraded_reviews),
                 f"degraded proposal verifier reviews should record disqualifying path attestation: {degraded_proposal_goal['iterations'][0]}",

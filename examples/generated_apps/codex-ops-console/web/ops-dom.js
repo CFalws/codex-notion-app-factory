@@ -4,6 +4,8 @@ export const dom = {
   heroAppName: document.getElementById("hero-app-name"),
   heroConversationState: document.getElementById("hero-conversation-state"),
   heroJobState: document.getElementById("hero-job-state"),
+  autonomyMeta: document.getElementById("autonomy-meta"),
+  autonomySummary: document.getElementById("autonomy-summary"),
   workspaceSummaryText: document.getElementById("workspace-summary-text"),
   draftStatus: document.getElementById("draft-status"),
   conversationList: document.getElementById("conversation-list"),

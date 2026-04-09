@@ -155,6 +155,12 @@ When autonomous verifier reviews are present, verification should also assert th
 - healthy iterations record `path_acceptability=acceptable`
 - degraded iterations record `path_acceptability=disqualifying`
 
+When continuation policy stores a canonical blocker reason, verification should also assert that:
+
+- healthy iterations record `continuation_blocker_reason=none`
+- degraded intended-path iterations record `continuation_blocker_reason=intended_path_degraded`
+- verifier-disqualifying iterations record `continuation_blocker_reason=verifier_path_disqualifying`
+
 Review or verification rejection should fail verification only if the loop incorrectly pauses, stops, or loses state when policy says it should continue exploring.
 
 ## Commit And Deploy Policy

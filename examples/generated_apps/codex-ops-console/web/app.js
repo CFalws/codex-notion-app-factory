@@ -1,6 +1,7 @@
 import { dom } from "./ops-dom.js";
 import {
   appsUrl,
+  appGoalsUrl,
   conversationMessagesUrl,
   fetchJson,
   proposalsApplyUrl,
@@ -13,12 +14,14 @@ import { createConversationController } from "./ops-conversations.js";
 import { createJobController } from "./ops-jobs.js";
 import {
   clearLearningSummary,
+  clearAutonomySummary,
   describeJob,
   renderComposerMeta,
   renderDraftStatus,
   renderJobActivity,
   renderLearningSummary,
   renderConversation,
+  renderAutonomySummary,
   renderWorkspaceSummary,
   setJobMeta,
   setStatus,
@@ -258,6 +261,7 @@ function initControllers() {
     fetchConversation: (...args) => conversationController.fetchConversation(...args),
     fetchJson,
     jobUrl,
+    refreshGoalSummary: () => conversationController.refreshGoalSummary(),
     renderLearningSummary,
     renderJobActivity,
     setJobMeta,
@@ -268,13 +272,16 @@ function initControllers() {
 
   conversationController = createConversationController({
     appConversationsUrl,
+    appGoalsUrl,
     appsUrl,
+    clearAutonomySummary,
     clearLearningSummary,
     dom,
     ensurePollingForJob: jobController.ensurePollingForJob,
     fetchJson,
     normalizeBaseUrl,
     persistSettings,
+    renderAutonomySummary,
     renderConversation,
     selectedAppData,
     setJobMeta,
@@ -302,6 +309,7 @@ function init() {
     jobState: "IDLE",
   });
   renderWorkspaceSummary(dom, "앱 목록과 최근 대화를 불러오면 현재 세션 맥락이 여기에 정리됩니다.");
+  clearAutonomySummary(dom);
   clearLearningSummary(dom);
   syncComposerMeta();
   syncDraftStatus();

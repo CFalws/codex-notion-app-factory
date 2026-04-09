@@ -108,6 +108,7 @@ Required fields:
 - `decision_summary`
 - `goal_review`
 - `intended_path`
+- `continuation_blocker_reason`
 - `completed_at`
 
 ### Goal Iteration Intended-Path Shape

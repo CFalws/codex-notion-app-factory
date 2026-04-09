@@ -8,7 +8,7 @@
 
 ## Problem
 
-Autonomous iterations now record structured intended-path verdicts, but verifier reviews still leave path acceptability implicit. Operators can see that a degraded signal occurred, yet verifier evidence does not explicitly say whether that path was acceptable or disqualifying.
+Autonomous iterations now record intended-path verdicts and verifier path acceptability, but the actual reason the loop paused or could not continue is still fragmented across several fields. Operators and future weaker sessions still have to infer the blocker from raw state instead of reading one canonical explanation.
 
 ## Target User
 
@@ -22,4 +22,4 @@ The primary user is the operator relying on unattended runtime self-improvement 
 
 ## Deliverable
 
-Pass the structured intended-path verdict into autonomous verifier prompts, persist an explicit verifier `path_acceptability` judgment in review state, and verify that healthy and degraded iterations leave clearly different verification evidence.
+Persist one canonical `continuation_blocker_reason` on each autonomous iteration, derive it from the existing structured autonomy signals, and surface the same field in the ops console so controller policy and operator visibility share one explanation path.

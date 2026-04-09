@@ -80,6 +80,25 @@ This contract answers a different question than `goal_review`.
 
 Continuation policy should consume both contracts. A positive review is not enough if the iteration only succeeded through a degraded path.
 
+## Continuation Blocker Contract
+
+Each autonomous iteration should also persist one canonical blocker reason:
+
+- `continuation_blocker_reason`
+
+Recommended values include:
+
+- `none`
+- `proposal_ready`
+- `intended_path_incomplete`
+- `intended_path_degraded`
+- `verifier_path_disqualifying`
+- `safety_not_passed`
+- `alignment_not_passed`
+- `goal_review_stop`
+
+This gives the controller, operator console, and future sessions one shared explanation for why the loop paused, stopped, or could not continue.
+
 ## Verifier Path-Acceptability Contract
 
 Each autonomous verifier review should also state whether the observed intended path was acceptable:

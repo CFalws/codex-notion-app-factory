@@ -103,30 +103,54 @@ Execution rules:
         *,
         proposal_ready: bool | None = None,
         intended_path: dict[str, Any] | None = None,
+        verification_reviews: list[dict[str, Any]] | None = None,
     ) -> tuple[str, str]:
         iteration_number = int(goal.get("current_iteration") or 0)
         max_iterations = int(goal.get("max_iterations") or 0)
+        if job.get("status") != "completed":
+            return "failed", "job_failed"
+        blocker_reason = self.continuation_blocker_reason(
+            job,
+            proposal_ready=proposal_ready,
+            intended_path=intended_path,
+            verification_reviews=verification_reviews,
+        )
+        if blocker_reason == "goal_review_stop":
+            return "completed", blocker_reason
+        if blocker_reason != "none":
+            return "paused", blocker_reason
+        if max_iterations > 0 and iteration_number >= max_iterations:
+            return "completed", "max_iterations_reached"
+        return "running", ""
+
+    def continuation_blocker_reason(
+        self,
+        job: dict[str, Any],
+        *,
+        proposal_ready: bool | None = None,
+        intended_path: dict[str, Any] | None = None,
+        verification_reviews: list[dict[str, Any]] | None = None,
+    ) -> str:
         goal_review = job.get("goal_review") or {}
         if proposal_ready is None:
             proposal_ready = bool(job.get("proposal"))
         path_verdict = str((intended_path or {}).get("verdict") or "").strip().lower()
-        if job.get("status") != "completed":
-            return "failed", "job_failed"
         if proposal_ready:
-            return "paused", "proposal_ready"
+            return "proposal_ready"
         if not path_verdict:
-            return "paused", "intended_path_incomplete"
+            return "intended_path_incomplete"
         if path_verdict != "expected":
-            return "paused", "intended_path_degraded"
+            return "intended_path_degraded"
+        reviews = verification_reviews or []
+        if any(str(review.get("path_acceptability") or "").strip().lower() == "disqualifying" for review in reviews):
+            return "verifier_path_disqualifying"
         if str(goal_review.get("safety_assessment") or "").strip().lower().startswith("no"):
-            return "paused", "safety_not_passed"
+            return "safety_not_passed"
         if str(goal_review.get("alignment_assessment") or "").strip().lower().startswith("no"):
-            return "paused", "alignment_not_passed"
+            return "alignment_not_passed"
         if str(goal_review.get("continue_recommended") or "").strip().lower() == "no":
-            return "completed", "goal_review_stop"
-        if max_iterations > 0 and iteration_number >= max_iterations:
-            return "completed", "max_iterations_reached"
-        return "running", ""
+            return "goal_review_stop"
+        return "none"
 
     def can_continue_after_iteration(self, goal: dict[str, Any], *, iteration_number: int) -> bool:
         max_iterations = int(goal.get("max_iterations") or 0)

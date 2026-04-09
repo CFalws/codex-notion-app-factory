@@ -5,10 +5,13 @@ export function createConversationController(deps) {
     selectedAppData,
     fetchJson,
     appConversationsUrl,
+    appGoalsUrl,
     conversationUrl,
     setStatus,
     setJobMeta,
     renderConversation,
+    renderAutonomySummary,
+    clearAutonomySummary,
     clearLearningSummary,
     updateSelectedAppCard,
     updateProposalButton,
@@ -22,6 +25,42 @@ export function createConversationController(deps) {
     restoreDraft,
     syncDraftStatus,
   } = deps;
+
+  function pickRelevantGoal(goals) {
+    const items = Array.isArray(goals) ? goals.slice() : [];
+    if (!items.length) {
+      return null;
+    }
+    items.sort((left, right) => {
+      const leftStamp = left.updated_at || left.completed_at || left.created_at || "";
+      const rightStamp = right.updated_at || right.completed_at || right.created_at || "";
+      return leftStamp < rightStamp ? 1 : -1;
+    });
+    return (
+      items.find((goal) => goal.status === "running") ||
+      items.find((goal) => goal.status === "paused") ||
+      items[0]
+    );
+  }
+
+  async function refreshGoalSummary() {
+    const app = selectedAppData(dom);
+    if (!app) {
+      clearAutonomySummary(dom, "앱을 선택하면 최근 autonomous iteration blocker가 여기에 표시됩니다.");
+      return;
+    }
+    try {
+      const goals = await fetchJson(dom, appGoalsUrl(app.appId));
+      const goal = pickRelevantGoal(goals);
+      if (!goal) {
+        clearAutonomySummary(dom, "이 앱에는 아직 autonomous goal 기록이 없습니다.");
+        return;
+      }
+      renderAutonomySummary(dom, goal);
+    } catch (error) {
+      clearAutonomySummary(dom, `Autonomy summary를 불러오지 못했습니다: ${error.message}`);
+    }
+  }
 
   function renderConversationList(conversations, selectedConversationId = "") {
     if (!conversations.length) {
@@ -55,6 +94,7 @@ export function createConversationController(deps) {
       state.currentConversationId = "";
       state.savedConversationId = "";
       dom.conversationList.innerHTML = '<p class="conversation-list-empty">앱을 먼저 고르세요.</p>';
+      clearAutonomySummary(dom, "앱을 선택하면 최근 autonomous iteration blocker가 여기에 표시됩니다.");
       updateHeroState(dom, {
         appName: "앱 미선택",
         conversationState: "대화 준비 전",
@@ -67,6 +107,7 @@ export function createConversationController(deps) {
 
     try {
       const conversations = await fetchJson(dom, appConversationsUrl(app.appId));
+      await refreshGoalSummary();
       const fallbackConversationId =
         preferredConversationId ||
         (conversations.length ? conversations[0].conversation_id : "");
@@ -97,6 +138,7 @@ export function createConversationController(deps) {
       renderConversation(dom, state, null, persistSettings);
       dom.conversationMeta.textContent = `대화를 불러오지 못했습니다: ${error.message}`;
       dom.conversationList.innerHTML = '<p class="conversation-list-empty">대화를 불러오지 못했습니다.</p>';
+      clearAutonomySummary(dom, "대화를 불러오지 못해 autonomy summary도 갱신하지 못했습니다.");
       restoreDraft();
     }
   }
@@ -189,6 +231,7 @@ export function createConversationController(deps) {
 
       if (!apps.length) {
         updateSelectedAppCard(dom, null);
+        clearAutonomySummary(dom, "등록된 앱이 없어서 autonomy summary를 표시할 수 없습니다.");
         setStatus(dom, "등록된 앱이 없습니다. 서버의 state/registry/apps를 확인하세요.");
         setJobMeta(dom, "앱이 등록되면 여기에서 작업 상태를 추적합니다.");
         dom.conversationList.innerHTML = '<p class="conversation-list-empty">등록된 앱이 없습니다.</p>';
@@ -240,5 +283,6 @@ export function createConversationController(deps) {
     handleConversationChange,
     loadApps,
     loadConversations,
+    refreshGoalSummary,
   };
 }

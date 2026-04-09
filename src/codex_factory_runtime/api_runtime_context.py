@@ -741,6 +741,7 @@ class RuntimeApiContext:
                     "status": "rejected_before_implementation",
                     "proposal_plan": proposal_plan,
                     "proposal_reviews": proposal_reviews,
+                    "continuation_blocker_reason": "proposal_not_approved",
                     "completed_at": utc_now(),
                 }
                 iterations = goal.get("iterations") or []
@@ -844,6 +845,12 @@ class RuntimeApiContext:
                 "decision_summary": job.get("decision_summary", {}),
                 "goal_review": job.get("goal_review", {}),
                 "intended_path": intended_path,
+                "continuation_blocker_reason": self.goals.continuation_blocker_reason(
+                    job,
+                    proposal_ready=bool(job.get("proposal")),
+                    intended_path=intended_path,
+                    verification_reviews=[],
+                ),
                 "completed_at": job.get("completed_at", ""),
             }
             iterations = goal.get("iterations") or []
@@ -878,9 +885,10 @@ class RuntimeApiContext:
                     ]
                 except Exception as exc:  # noqa: BLE001
                     goal["iterations"][-1]["verification_reviews"] = verifier_reviews
+                    goal["iterations"][-1]["continuation_blocker_reason"] = "verification_failed"
                     should_continue = self._goal_can_explore_alternative(goal, iteration_number=iteration_number, failure_kind="verification")
                     goal["status"] = "running" if should_continue else "paused"
-                    goal["stop_reason"] = "" if should_continue else "verification_failed"
+                    goal["stop_reason"] = "" if should_continue else goal["iterations"][-1]["continuation_blocker_reason"]
                     goal["completed_at"] = "" if should_continue else utc_now()
                     self.state.save_goal(goal)
                     self.append_event(
@@ -900,10 +908,24 @@ class RuntimeApiContext:
                     return
 
                 goal["iterations"][-1]["verification_reviews"] = verifier_reviews
+                goal["iterations"][-1]["continuation_blocker_reason"] = self.goals.continuation_blocker_reason(
+                    job,
+                    proposal_ready=bool(job.get("proposal")),
+                    intended_path=goal["iterations"][-1].get("intended_path", {}),
+                    verification_reviews=verifier_reviews,
+                )
                 if any(review.get("verdict") != "pass" for review in verifier_reviews):
                     should_continue = self._goal_can_explore_alternative(goal, iteration_number=iteration_number, failure_kind="verification")
                     goal["status"] = "running" if should_continue else "paused"
-                    goal["stop_reason"] = "" if should_continue else "verification_not_approved"
+                    goal["stop_reason"] = (
+                        ""
+                        if should_continue
+                        else (
+                            goal["iterations"][-1].get("continuation_blocker_reason")
+                            if goal["iterations"][-1].get("continuation_blocker_reason") not in {"", "none"}
+                            else "verification_not_approved"
+                        )
+                    )
                     goal["completed_at"] = "" if should_continue else utc_now()
                     self.state.save_goal(goal)
                     self.append_event(
@@ -964,6 +986,12 @@ class RuntimeApiContext:
                     proposal_auto_applied=True,
                     push_required=bool(self.settings.push_after_apply),
                 )
+                iteration_record["continuation_blocker_reason"] = self.goals.continuation_blocker_reason(
+                    job,
+                    proposal_ready=False,
+                    intended_path=iteration_record["intended_path"],
+                    verification_reviews=iteration_record["verification_reviews"],
+                )
                 goal["iterations"][-1] = iteration_record
                 healthy_apply, degraded_reason = self.goals.auto_apply_health(
                     proposal,
@@ -974,7 +1002,7 @@ class RuntimeApiContext:
                     iteration_record["degraded_apply_reason"] = degraded_reason
                     goal["iterations"][-1] = iteration_record
                     goal["status"] = "paused"
-                    goal["stop_reason"] = degraded_reason
+                    goal["stop_reason"] = iteration_record.get("continuation_blocker_reason") or "intended_path_degraded"
                     goal["completed_at"] = utc_now()
                     self.state.save_goal(goal)
                     self.append_event(
@@ -988,7 +1016,8 @@ class RuntimeApiContext:
                             "iteration": iteration_number,
                             "proposal_status": proposal.get("status", ""),
                             "push_status": proposal.get("push_status", ""),
-                            "stop_reason": degraded_reason,
+                            "stop_reason": goal["stop_reason"],
+                            "degraded_apply_reason": degraded_reason,
                         },
                     )
                     return
@@ -1010,6 +1039,7 @@ class RuntimeApiContext:
                 job,
                 proposal_ready=bool(job.get("proposal")) and not proposal_auto_applied,
                 intended_path=goal["iterations"][-1].get("intended_path", {}),
+                verification_reviews=goal["iterations"][-1].get("verification_reviews", []),
             )
             if (
                 proposal_auto_applied
@@ -1053,6 +1083,7 @@ class RuntimeApiContext:
                     "iteration": iteration_number,
                     "next_status": next_status,
                     "stop_reason": stop_reason,
+                    "continuation_blocker_reason": goal["iterations"][-1].get("continuation_blocker_reason", "none"),
                     "goal_review": job.get("goal_review", {}),
                     "intended_path": goal["iterations"][-1].get("intended_path", {}),
                 },

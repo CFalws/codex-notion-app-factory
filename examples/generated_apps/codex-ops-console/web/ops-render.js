@@ -74,6 +74,75 @@ export function renderComposerMeta(dom, { hint = "", count = 0 }) {
   dom.composerCount.textContent = `${count}자`;
 }
 
+function latestIteration(goal) {
+  const iterations = Array.isArray(goal?.iterations) ? goal.iterations : [];
+  return iterations.length ? iterations[iterations.length - 1] : null;
+}
+
+function summarizeVerifierAcceptability(iteration) {
+  const reviews = Array.isArray(iteration?.verification_reviews) ? iteration.verification_reviews : [];
+  if (!reviews.length) {
+    return "PENDING";
+  }
+  if (reviews.some((review) => String(review?.path_acceptability || "").toLowerCase() === "disqualifying")) {
+    return "DISQUALIFYING";
+  }
+  if (reviews.some((review) => String(review?.path_acceptability || "").toLowerCase() === "acceptable")) {
+    return "ACCEPTABLE";
+  }
+  return "PENDING";
+}
+
+function blockerTone(blockerReason = "") {
+  if (!blockerReason || blockerReason === "none") {
+    return "healthy";
+  }
+  if (blockerReason === "goal_review_stop") {
+    return "neutral";
+  }
+  return "blocked";
+}
+
+export function clearAutonomySummary(dom, message = "자율 goal이 생기면 continuation blocker와 verifier 판단이 여기에 요약됩니다.") {
+  dom.autonomyMeta.textContent = "표시할 자율 goal이 없습니다.";
+  dom.autonomySummary.innerHTML = `<p class="autonomy-empty">${escapeHtml(message)}</p>`;
+}
+
+export function renderAutonomySummary(dom, goal) {
+  const iteration = latestIteration(goal);
+  if (!goal || !iteration) {
+    clearAutonomySummary(dom);
+    return;
+  }
+
+  const intendedPath = iteration.intended_path || {};
+  const pathVerdict = String(intendedPath.verdict || "").toLowerCase() === "expected" ? "EXPECTED" : "DEGRADED";
+  const verifierAcceptability = summarizeVerifierAcceptability(iteration);
+  const blockerReason = String(iteration.continuation_blocker_reason || goal.stop_reason || "none");
+  const degradedSignals = Array.isArray(intendedPath.degraded_signals) ? intendedPath.degraded_signals : [];
+  const expectedPath = String(intendedPath.expected_path || "").trim() || "unknown";
+  const blockerClass = blockerTone(blockerReason);
+
+  dom.autonomyMeta.textContent = `${goal.title || "Autonomy Goal"} · ${goal.status || "unknown"} · iteration ${iteration.iteration}`;
+  dom.autonomySummary.innerHTML = `
+    <div class="autonomy-chip-row">
+      <span class="autonomy-chip ${pathVerdict === "EXPECTED" ? "healthy" : "blocked"}">${pathVerdict}</span>
+      <span class="autonomy-chip ${verifierAcceptability === "DISQUALIFYING" ? "blocked" : verifierAcceptability === "ACCEPTABLE" ? "healthy" : "neutral"}">${verifierAcceptability}</span>
+      <span class="autonomy-chip ${blockerClass}">BLOCKER ${escapeHtml(blockerReason.toUpperCase())}</span>
+    </div>
+    <div class="autonomy-grid">
+      <article class="autonomy-item">
+        <p class="learning-label">Expected Path</p>
+        <p class="learning-value">${escapeHtml(expectedPath)}</p>
+      </article>
+      <article class="autonomy-item">
+        <p class="learning-label">Degraded Signals</p>
+        <p class="learning-value">${escapeHtml(degradedSignals.length ? degradedSignals.join(", ") : "none")}</p>
+      </article>
+    </div>
+  `;
+}
+
 function phaseLabel(status, eventType = "") {
   const normalizedStatus = String(status || "").toLowerCase();
   if (eventType.startsWith("proposal.")) {
