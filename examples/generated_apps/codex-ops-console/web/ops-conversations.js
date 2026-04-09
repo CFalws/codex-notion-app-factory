@@ -374,6 +374,10 @@ export function createConversationController(deps) {
     return "ACTIVE";
   }
 
+  function liveOwnerLabel(liveLabel = "") {
+    return liveLabel ? `LIVE · ${liveLabel}` : "LIVE";
+  }
+
   function truncatePreview(value, maxLength = 88) {
     const text = simplifyPreviewText(value);
     if (text.length <= maxLength) {
@@ -434,6 +438,7 @@ export function createConversationController(deps) {
 
     let liveLabel = "";
     let liveThreadState = "";
+    let isLiveOwner = false;
     if (selectedConversationId && selectedConversationId === liveConversationId) {
       liveThreadState = presentation === "live" ? (liveRunState || "active") : presentation || "active";
       liveLabel = compactConversationLabel({
@@ -442,6 +447,7 @@ export function createConversationController(deps) {
         liveRunPhase,
         isSelected: true,
       });
+      isLiveOwner = true;
     }
 
     for (const card of dom.conversationList.querySelectorAll("[data-conversation-id]")) {
@@ -454,13 +460,14 @@ export function createConversationController(deps) {
       card.classList.toggle("active", isSelected);
       card.dataset.selected = isSelected ? "true" : "false";
       card.dataset.threadState = isSelected ? (liveThreadState || "active") : snapshotState;
+      card.dataset.liveOwner = isSelected && isLiveOwner ? "true" : "false";
       if (marker) {
         marker.hidden = !isSelected;
-        marker.textContent = "NOW";
+        marker.textContent = isSelected && isLiveOwner ? "LIVE" : "NOW";
       }
       if (sessionMarker) {
         sessionMarker.hidden = !isSelected;
-        sessionMarker.textContent = isSelected ? (liveLabel || snapshotLabel) : "";
+        sessionMarker.textContent = isSelected ? (isLiveOwner ? liveOwnerLabel(liveLabel) : snapshotLabel) : "";
       }
       if (liveState) {
         liveState.hidden = isSelected;
