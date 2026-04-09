@@ -23,6 +23,29 @@ export function createConversationController(deps) {
     syncDraftStatus,
   } = deps;
 
+  function renderConversationList(conversations, selectedConversationId = "") {
+    if (!conversations.length) {
+      dom.conversationList.innerHTML = '<p class="conversation-list-empty">아직 대화가 없습니다.</p>';
+      return;
+    }
+
+    dom.conversationList.innerHTML = conversations
+      .map((conversation) => {
+        const isActive = conversation.conversation_id === selectedConversationId;
+        return `
+          <button
+            type="button"
+            class="conversation-card${isActive ? " active" : ""}"
+            data-conversation-id="${conversation.conversation_id}"
+          >
+            <span class="conversation-card-title">${conversation.title}</span>
+            <span class="conversation-card-meta">${new Date(conversation.updated_at).toLocaleString()}</span>
+          </button>
+        `;
+      })
+      .join("");
+  }
+
   async function loadConversations() {
     const app = selectedAppData(dom);
     const preferredConversationId =
@@ -36,6 +59,7 @@ export function createConversationController(deps) {
 
     if (!app) {
       state.currentConversationId = "";
+      dom.conversationList.innerHTML = '<p class="conversation-list-empty">앱을 먼저 고르세요.</p>';
       updateHeroState(dom, {
         appName: "앱 미선택",
         conversationState: "대화 준비 전",
@@ -48,6 +72,7 @@ export function createConversationController(deps) {
 
     try {
       const conversations = await fetchJson(dom, appConversationsUrl(app.appId));
+      renderConversationList(conversations, preferredConversationId);
       for (const conversation of conversations) {
         const option = document.createElement("option");
         option.value = conversation.conversation_id;
@@ -64,6 +89,7 @@ export function createConversationController(deps) {
 
       if (dom.conversationSelect.value) {
         dom.conversationSelect.dataset.savedConversationId = dom.conversationSelect.value;
+        renderConversationList(conversations, dom.conversationSelect.value);
         await fetchConversation(dom.conversationSelect.value);
         return;
       }
@@ -77,12 +103,14 @@ export function createConversationController(deps) {
         conversationState: "새 대화 필요",
       });
       renderWorkspaceSummary(dom, `${app.title}에는 아직 대화가 없습니다. 메시지를 보내면 현재 앱 레인에서 새 세션이 시작됩니다.`);
+      renderConversationList([], "");
       restoreDraft();
     } catch (error) {
       state.currentConversationId = "";
       state.currentJobId = "";
       renderConversation(dom, state, null, persistSettings);
       dom.conversationMeta.textContent = `대화를 불러오지 못했습니다: ${error.message}`;
+      dom.conversationList.innerHTML = '<p class="conversation-list-empty">대화를 불러오지 못했습니다.</p>';
       restoreDraft();
     }
   }
@@ -98,6 +126,9 @@ export function createConversationController(deps) {
     state.currentConversationId = conversation.conversation_id;
     dom.conversationSelect.value = state.currentConversationId;
     dom.conversationSelect.dataset.savedConversationId = state.currentConversationId;
+    for (const card of dom.conversationList.querySelectorAll("[data-conversation-id]")) {
+      card.classList.toggle("active", card.dataset.conversationId === state.currentConversationId);
+    }
     renderConversation(dom, state, conversation, persistSettings);
     restoreDraft();
     syncDraftStatus();
@@ -175,6 +206,7 @@ export function createConversationController(deps) {
         updateSelectedAppCard(dom, null);
         setStatus(dom, "등록된 앱이 없습니다. 서버의 state/registry/apps를 확인하세요.");
         setJobMeta(dom, "앱이 등록되면 여기에서 작업 상태를 추적합니다.");
+        dom.conversationList.innerHTML = '<p class="conversation-list-empty">등록된 앱이 없습니다.</p>';
         renderConversation(dom, state, null, persistSettings);
         clearLearningSummary(dom);
         return;

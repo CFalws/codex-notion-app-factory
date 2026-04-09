@@ -223,6 +223,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
       `;
     })
     .join("");
+  dom.conversationTimeline.scrollTop = dom.conversationTimeline.scrollHeight;
 
   renderJobActivity(dom, conversation, currentState.currentJobId || conversation.latest_job_id || "");
 

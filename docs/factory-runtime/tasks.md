@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Inspect the current ops console flow and pick the smallest high-impact UX gaps relative to a Codex Desktop-style experience.
-- [x] Add a richer compose workspace with quick prompt chips, keyboard send, and stronger inline guidance.
-- [x] Persist drafts by app and conversation so operators can resume interrupted work on phone or desktop.
-- [x] Surface active app, conversation, and job context more clearly in the shell header and workspace summary.
-- [x] Update the `factory-runtime` docs and record the available verification limits for static assets in this environment.
+- [x] Re-evaluate the previous UX pass and remove the parts that added complexity without real workflow value.
+- [x] Shift the console back to a chat-first layout with direct conversation selection and a larger thread surface.
+- [x] Preserve draft persistence and keyboard send because they materially improve the real authoring loop.
+- [x] Keep status and learning output available, but move them out of the main path so composition stays central.
+- [x] Update the `factory-runtime` docs and keep verification notes aligned with the current frontend iteration.

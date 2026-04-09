@@ -27,7 +27,6 @@ import {
   updateProposalButton,
   updateSelectedAppCard,
 } from "./ops-render.js";
-import { QUICK_PROMPTS } from "./ops-constants.js";
 import { getDraft, loadSettings, normalizeBaseUrl, saveSettings, setDraft, state } from "./ops-store.js";
 
 function persistSettings() {
@@ -86,24 +85,6 @@ function restoreDraft() {
   dom.requestTextInput.value = appId ? getDraft(state, appId, state.currentConversationId) : "";
   syncComposerMeta();
   syncDraftStatus();
-}
-
-function fillQuickPrompts() {
-  dom.quickPrompts.innerHTML = QUICK_PROMPTS.map(
-    (prompt) => `
-      <button type="button" class="prompt-chip" data-prompt-id="${prompt.id}" data-template="${encodeURIComponent(prompt.template)}">
-        <span class="prompt-chip-title">${prompt.label}</span>
-        <span class="prompt-chip-hint">${prompt.hint}</span>
-      </button>
-    `,
-  ).join("");
-}
-
-function applyPromptTemplate(template) {
-  const existing = dom.requestTextInput.value.trim();
-  dom.requestTextInput.value = existing ? `${existing}\n\n${template}` : template;
-  dom.requestTextInput.focus();
-  persistDraft();
 }
 
 async function sendMessage() {
@@ -262,12 +243,13 @@ function wireEvents() {
       sendMessage();
     }
   });
-  dom.quickPrompts.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-template]");
+  dom.conversationList.addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-conversation-id]");
     if (!button) {
       return;
     }
-    applyPromptTemplate(decodeURIComponent(button.dataset.template || ""));
+    dom.conversationSelect.value = button.dataset.conversationId || "";
+    await conversationController.handleConversationChange();
   });
 }
 
@@ -315,7 +297,6 @@ function initControllers() {
 function init() {
   loadSettings(dom);
   dom.backendInput.value = FIXED_RUNTIME_URL;
-  fillQuickPrompts();
   updateSelectedAppCard(dom, selectedAppData(dom));
   updateProposalButton(dom, state.latestProposalJobId);
   updateHeroState(dom, {

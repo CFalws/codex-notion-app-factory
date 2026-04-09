@@ -8,7 +8,7 @@
 
 ## Problem
 
-The Codex Ops Console works functionally, but it still feels like a thin admin page rather than a polished Codex Desktop-style workspace. Operators need better context retention, lower-friction message composition, and clearer sense of the active app lane without sacrificing phone usability.
+The previous UX pass added more UI, but not better flow. The console still feels like a collection of admin panels instead of a Codex-style conversation workspace. Dropdown-based conversation selection and fragmented action panels keep slowing down the main loop of read context, type, send, and verify.
 
 ## Target User
 
@@ -22,4 +22,4 @@ The primary user is the phone operator maintaining apps through the personal app
 
 ## Deliverable
 
-Upgrade the Codex Ops Console into a more desktop-like conversation workspace by improving composition flow, context visibility, and session continuity using the existing runtime API.
+Reshape the Codex Ops Console into a chat-first workspace: remove low-value prompt scaffolding, make conversation browsing direct, keep the timeline central, and keep composition fast on both phone and desktop.

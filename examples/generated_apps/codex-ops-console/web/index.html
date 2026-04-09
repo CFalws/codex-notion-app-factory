@@ -21,84 +21,64 @@
         <p class="lede">
           폰에서 대화형으로 수정 요청을 보내면 서버의 Codex CLI 런타임이 같은 앱 세션을 이어받아 작업합니다.
         </p>
-        <div class="hero-strip">
-          <article class="hero-chip">
-            <p class="hero-chip-label">활성 앱</p>
-            <p id="hero-app-name" class="hero-chip-value">앱을 불러오는 중입니다.</p>
-          </article>
-          <article class="hero-chip">
-            <p class="hero-chip-label">대화 상태</p>
-            <p id="hero-conversation-state" class="hero-chip-value">대화 준비 전</p>
-          </article>
-          <article class="hero-chip">
-            <p class="hero-chip-label">작업 포커스</p>
-            <p id="hero-job-state" class="hero-chip-value">IDLE</p>
-          </article>
+        <div class="hero-strip compact">
+          <p class="hero-inline"><span>앱</span><strong id="hero-app-name">앱을 불러오는 중입니다.</strong></p>
+          <p class="hero-inline"><span>대화</span><strong id="hero-conversation-state">대화 준비 전</strong></p>
+          <p class="hero-inline"><span>상태</span><strong id="hero-job-state">IDLE</strong></p>
         </div>
         <button id="install-button" class="install-button" hidden>홈 화면에 추가</button>
       </section>
 
-      <section class="panel">
-        <div class="grid one-up">
+      <section class="workspace">
+        <aside class="panel sidebar">
+          <div class="sidebar-head">
+            <label class="field">
+              <span>대상 앱</span>
+              <select id="app-select"></select>
+            </label>
+            <button id="refresh-apps" class="secondary">새로고침</button>
+          </div>
+
           <label class="field">
             <span>런타임 URL</span>
             <input id="backend-url" type="url" value="https://codex-factory-vm.tail1b6dd1.ts.net" readonly />
           </label>
 
-        </div>
+          <div class="app-card compact">
+            <p class="label">배포 링크</p>
+            <p id="selected-app-url" class="app-url">앱을 선택하면 여기에서 바로 열 수 있습니다.</p>
+            <button id="open-app" class="secondary">선택한 앱 열기</button>
+          </div>
 
-        <div class="row">
-          <label class="field">
-            <span>대상 앱</span>
-            <select id="app-select"></select>
-          </label>
-          <button id="refresh-apps" class="secondary">앱 목록 새로고침</button>
-        </div>
+          <div class="section-head">
+            <h2>대화</h2>
+            <button id="new-conversation" class="secondary">새 대화</button>
+          </div>
+          <select id="conversation-select" hidden></select>
+          <div id="conversation-list" class="conversation-list"></div>
+          <p id="workspace-summary-text" class="workspace-summary-text">앱과 대화를 고르면 이번 세션의 작업 맥락이 정리됩니다.</p>
+        </aside>
 
-        <div class="app-card">
-          <p class="label">배포 링크</p>
-          <p id="selected-app-url" class="app-url">앱을 선택하면 여기에서 바로 열 수 있습니다.</p>
-        </div>
-
-        <div id="workspace-summary" class="workspace-summary">
-          <article class="workspace-card">
-            <p class="workspace-label">현재 작업 컨텍스트</p>
-            <p id="workspace-summary-text" class="workspace-value">앱과 대화를 고르면 이번 세션의 작업 맥락이 정리됩니다.</p>
-          </article>
-          <article class="workspace-card">
-            <p class="workspace-label">작성 초안</p>
-            <p id="draft-status" class="workspace-value">아직 저장된 초안이 없습니다.</p>
-          </article>
-        </div>
+        <section class="panel thread-panel">
+          <div class="thread-head">
+            <div>
+              <h2>대화 세션</h2>
+              <p id="conversation-meta" class="meta">아직 대화 세션이 없습니다.</p>
+            </div>
+            <div class="thread-status">
+              <p class="activity-label">현재 단계</p>
+              <p id="job-phase" class="activity-phase idle">IDLE</p>
+              <p id="job-meta" class="meta">아직 실행 중인 작업이 없습니다.</p>
+            </div>
+          </div>
+          <div id="conversation-timeline" class="timeline"></div>
+        </section>
       </section>
 
-      <section class="panel">
-        <div class="section-head">
-          <h2>대화 세션</h2>
-          <p id="conversation-meta" class="meta">아직 대화 세션이 없습니다.</p>
-        </div>
-        <div class="row conversation-row">
-          <label class="field">
-            <span>대화 선택</span>
-            <select id="conversation-select"></select>
-          </label>
-          <button id="new-conversation" class="secondary">새 대화</button>
-        </div>
-        <div id="conversation-timeline" class="timeline"></div>
-      </section>
-
-      <section class="panel">
+      <section class="panel composer-panel">
         <div class="section-head">
           <h2>메시지 보내기</h2>
-          <p class="meta">대화 세션 안에서 메시지만 보내면 요청 방향을 계속 조정할 수 있습니다. `Ctrl/Cmd + Enter`로 즉시 전송됩니다.</p>
-        </div>
-
-        <div class="prompt-lab">
-          <div class="prompt-lab-head">
-            <p class="prompt-lab-title">빠른 시작</p>
-            <p class="prompt-lab-meta">Codex Desktop처럼 바로 이어서 지시할 수 있게 자주 쓰는 작업 틀을 준비했습니다.</p>
-          </div>
-          <div id="quick-prompts" class="prompt-chips"></div>
+          <p class="meta">Codex 앱처럼 대화 흐름을 끊지 않게 입력과 전송만 빠르게 남깁니다. `Ctrl/Cmd + Enter`로 즉시 전송됩니다.</p>
         </div>
 
         <label class="field">
@@ -111,50 +91,47 @@
         </label>
 
         <div class="composer-meta">
-          <p id="composer-hint" class="composer-hint">앱을 고르면 추천 작업 프롬프트와 저장된 초안이 여기 반영됩니다.</p>
+          <p id="composer-hint" class="composer-hint">앱과 대화를 고르면 저장된 초안을 바로 이어서 쓸 수 있습니다.</p>
           <p id="composer-count" class="composer-count">0자</p>
         </div>
 
-        <label class="toggle">
-          <input id="auto-open-app" type="checkbox" />
-          <span>작업이 끝나면 앱 열기 버튼을 바로 누를 수 있게 유지</span>
-        </label>
+        <div class="composer-controls">
+          <p id="draft-status" class="draft-status">아직 저장된 초안이 없습니다.</p>
+          <label class="toggle inline">
+            <input id="auto-open-app" type="checkbox" />
+            <span>작업 완료 후 앱 열기 유지</span>
+          </label>
+        </div>
 
         <div class="actions">
           <button id="send-request">메시지 보내기</button>
-          <button id="open-app" class="secondary">선택한 앱 열기</button>
           <button id="apply-proposal" class="secondary" disabled>제안 적용</button>
         </div>
       </section>
 
-      <section class="panel">
-        <div class="section-head">
-          <h2>작업 상태</h2>
-          <p id="job-meta" class="meta">아직 실행 중인 작업이 없습니다.</p>
-        </div>
-        <div class="activity-strip">
-          <article class="activity-card">
-            <p class="activity-label">현재 단계</p>
-            <p id="job-phase" class="activity-phase idle">IDLE</p>
-          </article>
+      <section class="inspector-grid">
+        <section class="panel">
+          <label class="field">
+            <span>작업 상태</span>
+            <pre id="status-output">Tailscale 런타임에 연결해 앱 목록을 불러오는 중입니다.</pre>
+          </label>
           <article class="activity-card">
             <p class="activity-label">최근 이벤트</p>
             <div id="job-events" class="activity-events">
               <p class="activity-empty">작업이 시작되면 최근 실행 이벤트가 여기에 표시됩니다.</p>
             </div>
           </article>
-        </div>
-        <pre id="status-output">Tailscale 런타임에 연결해 앱 목록을 불러오는 중입니다.</pre>
-      </section>
+        </section>
 
-      <section class="panel">
-        <div class="section-head">
-          <h2>이번 작업에서 배운 점</h2>
-          <p id="learning-meta" class="meta">아직 기록된 학습 로그가 없습니다.</p>
-        </div>
-        <div id="learning-summary" class="learning-summary">
-          <p class="learning-empty">작업이 끝나면 여기에서 설계 판단과 검증 내용을 바로 읽을 수 있습니다.</p>
-        </div>
+        <section class="panel">
+          <div class="section-head">
+            <h2>이번 작업에서 배운 점</h2>
+            <p id="learning-meta" class="meta">아직 기록된 학습 로그가 없습니다.</p>
+          </div>
+          <div id="learning-summary" class="learning-summary">
+            <p class="learning-empty">작업이 끝나면 여기에서 설계 판단과 검증 내용을 바로 읽을 수 있습니다.</p>
+          </div>
+        </section>
       </section>
     </main>
 
