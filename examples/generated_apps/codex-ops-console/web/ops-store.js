@@ -15,6 +15,8 @@ export const state = {
     conversationId: "",
     body: "",
     createdAt: "",
+    assistantCreatedAt: "",
+    baselineAppendId: 0,
     status: "idle",
     source: "none",
   },

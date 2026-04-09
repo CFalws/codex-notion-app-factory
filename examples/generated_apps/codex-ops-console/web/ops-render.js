@@ -90,12 +90,24 @@ function deriveLiveRunState(conversation, currentState) {
     };
   }
 
-  if (pendingOutgoing.status === "sending" && pendingOutgoing.conversationId === conversation.conversation_id) {
+  if (pendingOutgoing.status === "sending-user" && pendingOutgoing.conversationId === conversation.conversation_id) {
     return {
       visible: true,
       state: "sending",
       detail: "메시지를 live conversation에 등록하는 중입니다.",
       source: "local-submit",
+      tone: "thinking",
+      jobId,
+      terminal: false,
+    };
+  }
+
+  if (pendingOutgoing.status === "awaiting-assistant" && pendingOutgoing.conversationId === conversation.conversation_id) {
+    return {
+      visible: true,
+      state: "generating",
+      detail: "에이전트가 첫 응답을 준비 중입니다.",
+      source: "accepted-event",
       tone: "thinking",
       jobId,
       terminal: false,
@@ -244,6 +256,8 @@ export function renderSessionStrip(dom, currentState, conversation) {
       : status === "connecting"
         ? "connecting"
         : liveRun.state === "sending"
+          ? "sending"
+        : liveRun.state === "generating"
           ? "sending"
         : status === "live" && !liveRun.terminal && liveRun.tone !== "idle"
           ? "live"
@@ -576,8 +590,8 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   const messages = Array.isArray(conversation.messages) ? conversation.messages : [];
   const events = Array.isArray(conversation.events) ? conversation.events : [];
   const pendingOutgoing = currentState.pendingOutgoing || {};
-  const pendingItem =
-    pendingOutgoing.status === "sending" && pendingOutgoing.conversationId === conversation.conversation_id
+  const pendingUserItem =
+    pendingOutgoing.status === "sending-user" && pendingOutgoing.conversationId === conversation.conversation_id
       ? {
           kind: "message",
           role: "user",
@@ -589,10 +603,24 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
           pending_local: true,
         }
       : null;
+  const pendingAssistantItem =
+    pendingOutgoing.status === "awaiting-assistant" && pendingOutgoing.conversationId === conversation.conversation_id
+      ? {
+          kind: "message",
+          role: "assistant",
+          body: "응답을 생성하는 중입니다.",
+          created_at: pendingOutgoing.assistantCreatedAt || new Date().toISOString(),
+          sortAt: pendingOutgoing.assistantCreatedAt || new Date().toISOString(),
+          append_id: 0,
+          delivery_source: "local-assistant-placeholder",
+          pending_assistant: true,
+        }
+      : null;
   const items = [
     ...messages.map((item) => ({ ...item, kind: "message", sortAt: item.created_at })),
     ...events.map((item) => ({ ...item, kind: "event", sortAt: item.created_at })),
-    ...(pendingItem ? [pendingItem] : []),
+    ...(pendingUserItem ? [pendingUserItem] : []),
+    ...(pendingAssistantItem ? [pendingAssistantItem] : []),
   ].sort((a, b) => {
     const leftAppendId = Number(a.append_id || 0);
     const rightAppendId = Number(b.append_id || 0);
@@ -638,10 +666,10 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
       }
 
       return `
-        <article class="timeline-item message ${item.role || "assistant"}${item.pending_local ? " pending-local" : ""}" data-append-id="${Number(item.append_id || 0)}" data-append-source="${escapeHtml(String(item.delivery_source || "snapshot"))}"${item.pending_local ? ' data-pending-local="true"' : ""}>
+        <article class="timeline-item message ${item.role || "assistant"}${item.pending_local ? " pending-local" : ""}${item.pending_assistant ? " pending-assistant" : ""}" data-append-id="${Number(item.append_id || 0)}" data-append-source="${escapeHtml(String(item.delivery_source || "snapshot"))}"${item.pending_local ? ' data-pending-local="true"' : ""}${item.pending_assistant ? ' data-pending-assistant="true"' : ""}>
           <p class="timeline-kind">${item.role === "user" ? "사용자" : "에이전트"}</p>
           <p class="timeline-body">${escapeHtml(simplifyText(item.body))}</p>
-          <p class="timeline-meta">${item.created_at}${item.job_id ? ` · ${item.job_id}` : ""}${item.pending_local ? ' · <span class="timeline-provenance">SENDING</span>' : item.delivery_source === "sse" ? ' · <span class="timeline-provenance">SSE LIVE</span>' : ""}</p>
+          <p class="timeline-meta">${item.created_at}${item.job_id ? ` · ${item.job_id}` : ""}${item.pending_local ? ' · <span class="timeline-provenance">SENDING</span>' : item.pending_assistant ? ' · <span class="timeline-provenance">GENERATING</span>' : item.delivery_source === "sse" ? ' · <span class="timeline-provenance">SSE LIVE</span>' : ""}</p>
         </article>
       `;
     })

@@ -138,7 +138,7 @@ async function sendMessage() {
 
     state.currentConversationId = conversationId;
     state.currentJobId = payload.job.job_id;
-    conversationController.clearPendingOutgoing(conversationId);
+    conversationController.showPendingAssistant(conversationId, payload.conversation);
     setDraft(state, app.appId, "", "");
     setDraft(state, app.appId, conversationId, "");
     dom.requestTextInput.value = "";

@@ -36,6 +36,8 @@ export function createConversationController(deps) {
       conversationId: "",
       body: "",
       createdAt: "",
+      assistantCreatedAt: "",
+      baselineAppendId: 0,
       status: "idle",
       source: "none",
     };
@@ -49,7 +51,9 @@ export function createConversationController(deps) {
       conversationId,
       body,
       createdAt: new Date().toISOString(),
-      status: "sending",
+      assistantCreatedAt: "",
+      baselineAppendId: Math.max(Number(state.appendStream?.lastAppendId || 0), 0),
+      status: "sending-user",
       source: "local-submit",
     };
     const baseConversation =
@@ -64,6 +68,56 @@ export function createConversationController(deps) {
           };
     renderConversation(dom, state, baseConversation, persistSettings);
     syncConversationCardState();
+  }
+
+  function shouldClearPendingOutgoing(conversation) {
+    const pendingOutgoing = state.pendingOutgoing || {};
+    if (!conversation?.conversation_id || pendingOutgoing.conversationId !== conversation.conversation_id) {
+      return false;
+    }
+    const baselineAppendId = Number(pendingOutgoing.baselineAppendId || 0);
+    const messages = Array.isArray(conversation.messages) ? conversation.messages : [];
+    const events = Array.isArray(conversation.events) ? conversation.events : [];
+    const hasAssistantResponse = messages.some(
+      (message) => message.role === "assistant" && Number(message.append_id || 0) > baselineAppendId,
+    );
+    if (hasAssistantResponse) {
+      return true;
+    }
+    return events.some((event) => {
+      const appendId = Number(event.append_id || 0);
+      if (appendId <= baselineAppendId) {
+        return false;
+      }
+      const status = String(event.status || "").toLowerCase();
+      const type = String(event.type || "");
+      return (
+        status === "failed" ||
+        status === "completed" ||
+        status === "applied" ||
+        type === "runtime.exception" ||
+        type === "job.completed" ||
+        type === "proposal.ready" ||
+        type === "codex.exec.applied"
+      );
+    });
+  }
+
+  function showPendingAssistant(conversationId, conversation = null) {
+    const pendingOutgoing = state.pendingOutgoing || {};
+    if (!conversationId || pendingOutgoing.conversationId !== conversationId) {
+      return;
+    }
+    if (conversation && shouldClearPendingOutgoing(conversation)) {
+      clearPendingOutgoing(conversationId);
+      return;
+    }
+    state.pendingOutgoing = {
+      ...pendingOutgoing,
+      assistantCreatedAt: new Date().toISOString(),
+      status: "awaiting-assistant",
+      source: "accepted-event",
+    };
   }
 
   function resetAppendStream(conversationId = "") {
@@ -142,7 +196,24 @@ export function createConversationController(deps) {
       return false;
     }
 
-    clearPendingOutgoing(activeConversationId);
+    if (appendEnvelope.kind === "message" && livePayload.role === "assistant") {
+      clearPendingOutgoing(activeConversationId);
+    }
+    if (appendEnvelope.kind === "event") {
+      const eventStatus = String(livePayload.status || "").toLowerCase();
+      const eventType = String(livePayload.type || "");
+      if (
+        eventStatus === "failed" ||
+        eventStatus === "completed" ||
+        eventStatus === "applied" ||
+        eventType === "runtime.exception" ||
+        eventType === "job.completed" ||
+        eventType === "proposal.ready" ||
+        eventType === "codex.exec.applied"
+      ) {
+        clearPendingOutgoing(activeConversationId);
+      }
+    }
     state.appendStream.lastAppendId = appendId;
     state.appendStream.lastLiveAppendId = appendId;
     state.appendStream.transport = "sse";
@@ -400,7 +471,9 @@ export function createConversationController(deps) {
     }
 
     const conversation = await fetchJson(dom, conversationUrl(conversationId));
-    clearPendingOutgoing(conversation.conversation_id);
+    if (shouldClearPendingOutgoing(conversation)) {
+      clearPendingOutgoing(conversation.conversation_id);
+    }
     state.currentConversationId = conversation.conversation_id;
     state.savedConversationId = state.currentConversationId;
     for (const card of dom.conversationList.querySelectorAll("[data-conversation-id]")) {
@@ -539,6 +612,7 @@ export function createConversationController(deps) {
     loadApps,
     loadConversations,
     refreshGoalSummary,
+    showPendingAssistant,
     showPendingOutgoing,
   };
 }

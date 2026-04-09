@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep the current selected-conversation SSE path, left rail, collapsed secondary panel, and mobile drawer unchanged.
-- [x] Add one temporary pending outbound message directly into the active conversation timeline at submit time.
-- [x] Reuse the composer-adjacent activity bar for a short local sending handoff state before the first accepted or live append signal arrives.
-- [x] Clear the pending item on accepted response, live append, failure, idle, or thread switch so no stale local artifact remains.
-- [x] Extend focused verification so future sessions can prove the send handoff remains inside the existing transcript and selected-conversation live path.
+- [x] Keep the current selected-conversation SSE path, left rail, collapsed secondary panel, mobile drawer, and pending outbound user bubble unchanged.
+- [x] Add one temporary assistant placeholder directly into the active conversation timeline after the local handoff is accepted.
+- [x] Reuse the existing pending handoff owner and composer-adjacent activity bar instead of creating a second status path.
+- [x] Clear or replace the assistant placeholder on first assistant append, terminal failure, idle reset, or thread switch so no stale artifact remains.
+- [x] Extend focused verification so future sessions can prove the assistant-side handoff stays inside the conversation pane and selected-conversation live path.

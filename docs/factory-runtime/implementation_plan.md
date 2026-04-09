@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Keep the current selected-conversation SSE path, left rail, collapsed secondary panel, and mobile drawer unchanged.
-2. Add one temporary pending outbound message to the active conversation timeline at submit time using local selected-thread state.
-3. Reuse the existing composer-adjacent activity bar to expose a short sending handoff state until the first accepted or live signal arrives.
-4. Clear the pending item on accepted response, live append, failure, idle, or thread switch so no stale local artifact remains.
-5. Extend the focused verifier and docs so future sessions can prove the active send handoff stays inside the transcript and composer path rather than relying on new fallback surfaces.
+1. Keep the current selected-conversation SSE path, left rail, collapsed secondary panel, mobile drawer, and pending outbound user bubble unchanged.
+2. Extend the existing pending handoff owner so it can move from local user submit into an awaiting-assistant placeholder state after acceptance.
+3. Render one temporary assistant placeholder directly in the transcript while the first assistant append has not yet arrived.
+4. Clear or replace that placeholder on first assistant append, terminal failure, idle reset, or thread switch so no stale assistant stub remains.
+5. Extend the focused verifier and docs so future sessions can prove the assistant handoff stays inside the conversation pane rather than reverting to status-chrome-only feedback.
