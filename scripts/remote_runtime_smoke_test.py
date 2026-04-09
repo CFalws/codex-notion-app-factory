@@ -44,14 +44,7 @@ def wait_for_job(base_url: str, job_id: str, api_key: str, timeout_seconds: floa
 def resolve_scratch_file(base_url: str, app_id: str, api_key: str, configured_scratch_file: str) -> str:
     if configured_scratch_file:
         return configured_scratch_file
-    app_record = http_json("GET", f"{base_url}/api/apps/{app_id}", api_key=api_key)
-    source_path = str(app_record.get("source_path") or "").strip().rstrip("/")
-    workspace_path = str(app_record.get("workspace_path") or "").strip().rstrip("/")
-    if source_path:
-        return f"{source_path}/runtime-api-verification/phone-ops-check.md"
-    if workspace_path:
-        return f"{workspace_path}/runtime-api-verification/phone-ops-check.md"
-    return f"workspaces/{app_id}/runtime-api-verification/phone-ops-check.md"
+    return f"state/runtime/smoke/{app_id}/phone-ops-check.md"
 
 
 def main() -> None:

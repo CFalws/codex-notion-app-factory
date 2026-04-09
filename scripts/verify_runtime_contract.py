@@ -26,6 +26,7 @@ from codex_factory_runtime import api_app
 from codex_factory_runtime.auth import IAP_JWT_HEADER, TAILSCALE_LOGIN_HEADER, TAILSCALE_NAME_HEADER, IapIdentityProvider
 from codex_factory_runtime.config import RuntimeSettings
 from codex_factory_runtime.runtime_cli import CodexCliRunner
+from codex_factory_runtime.runtime_proposals import ProposalRuntime
 from codex_factory_runtime.state import RuntimeState, utc_now
 
 
@@ -410,6 +411,19 @@ def main() -> None:
             require(len(goal["iterations"]) == 2, f"expected 2 goal iterations, got {len(goal['iterations'])}")
             require(goal["iterations"][0]["goal_review"]["continue_recommended"] == "yes", "first goal iteration should continue")
             require(goal["iterations"][1]["goal_review"]["continue_recommended"] == "no", "second goal iteration should stop")
+
+            proposal_runtime = ProposalRuntime(settings, state, CodexCliRunner(settings))
+            blocking = proposal_runtime.blocking_repo_changes(
+                " M src/codex_factory_runtime/api_app.py\n"
+                "?? state/runtime/jobs/example.json\n"
+                "?? state/runtime/goals/example.json\n"
+                "?? state/runtime/smoke/habit-tracker-pwa/phone-ops-check.md\n"
+                "?? examples/generated_apps/habit-tracker-pwa/runtime-api-verification/phone-ops-check.md\n"
+            )
+            require(
+                blocking == ["src/codex_factory_runtime/api_app.py"],
+                f"proposal apply should ignore runtime-owned artifacts and only block real source edits: {blocking}",
+            )
 
             engineering_log = (settings.state_root / "engineering-log.md").read_text(encoding="utf-8")
             require("Simulated the runtime contract without invoking the Codex CLI." in engineering_log, "engineering log missing expected entry")

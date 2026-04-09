@@ -355,8 +355,11 @@ class CodexAgentsRuntime:
 
         repo_root = self.settings.repo_root
         status_before = await self.cli.git_output(repo_root, "status", "--porcelain")
-        if status_before.strip():
-            raise RuntimeError("Repository has uncommitted changes. Refusing to apply proposal.")
+        blocking_changes = self.proposals.blocking_repo_changes(status_before)
+        if blocking_changes:
+            preview = ", ".join(blocking_changes[:8])
+            suffix = "" if len(blocking_changes) <= 8 else ", ..."
+            raise RuntimeError(f"Repository has uncommitted changes. Refusing to apply proposal. Blocking paths: {preview}{suffix}")
 
         await self.proposals.merge_proposal(proposal)
         restart_service = str(proposal.get("restart_service") or "").strip()

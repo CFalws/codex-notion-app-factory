@@ -142,6 +142,26 @@ class ProposalRuntime:
             detail = f"Pushed HEAD to {self.settings.push_remote}/{self.settings.push_branch}."
         return returncode == 0, detail
 
+    def blocking_repo_changes(self, status_output: str) -> list[str]:
+        ignored_prefixes = {
+            "state/",
+            "examples/generated_apps/habit-tracker-pwa/runtime-api-verification/",
+            "workspaces/habit-tracker-pwa/runtime-api-verification/",
+        }
+        blocking: list[str] = []
+        for raw_line in status_output.splitlines():
+            line = raw_line.rstrip()
+            if not line:
+                continue
+            path_part = line[3:] if len(line) > 3 else line
+            if " -> " in path_part:
+                path_part = path_part.split(" -> ", 1)[1]
+            normalized = path_part.strip()
+            if any(normalized.startswith(prefix) for prefix in ignored_prefixes):
+                continue
+            blocking.append(normalized)
+        return blocking
+
     async def current_proposal_context(self, record: dict[str, Any], job_id: str, title: str) -> tuple[dict[str, str] | None, Path]:
         if not is_proposal_mode(record):
             return None, self.settings.repo_root
