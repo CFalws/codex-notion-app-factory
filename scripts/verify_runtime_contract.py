@@ -378,6 +378,62 @@ def verify_prompt_contract(settings: RuntimeSettings, state: RuntimeState) -> No
     require("Request:" in prompt, "build_prompt must include the request body")
 
 
+def verify_proposer_prompt_contract() -> None:
+    autonomy = api_app.AutonomyRuntime()
+    goal = {
+        "title": "Self-Improving Agentic Dev Environment",
+        "objective": "Keep improving the runtime through bounded proposal-mode iterations.",
+        "iterations": [
+            {
+                "iteration": 1,
+                "status": "completed",
+                "result_summary": "Healthy bounded improvement landed.",
+                "goal_review": {"next_focus": "Tighten verification evidence."},
+                "intended_path": {
+                    "expected_path": "job_completed_without_degraded_signals",
+                    "degraded_signals": [],
+                    "verdict": "expected",
+                },
+                "continuation_blocker_reason": "none",
+                "verification_reviews": [
+                    {"verdict": "pass", "path_acceptability": "acceptable"},
+                    {"verdict": "pass", "path_acceptability": "acceptable"},
+                ],
+            },
+            {
+                "iteration": 2,
+                "status": "paused",
+                "result_summary": "Fallback-only success should not continue unattended.",
+                "goal_review": {"next_focus": "Target the degraded path directly."},
+                "intended_path": {
+                    "expected_path": "job_completed_without_degraded_signals",
+                    "degraded_signals": ["codex_exec_retrying"],
+                    "verdict": "degraded",
+                },
+                "continuation_blocker_reason": "verifier_path_disqualifying",
+                "verification_reviews": [
+                    {"verdict": "fail", "path_acceptability": "disqualifying"},
+                    {"verdict": "fail", "path_acceptability": "disqualifying"},
+                ],
+            },
+        ],
+    }
+    app_record = {"app_id": "factory-runtime", "title": "Factory Runtime"}
+    prompt = autonomy.build_proposer_prompt(goal, app_record)
+    require("blocker=none" in prompt, f"healthy proposer history should include blocker context: {prompt}")
+    require(
+        "blocker=verifier_path_disqualifying" in prompt,
+        f"degraded proposer history should include canonical blocker reason: {prompt}",
+    )
+    require("intended_path=degraded" in prompt, f"proposer prompt should include intended-path verdicts: {prompt}")
+    require("degraded_signals=codex_exec_retrying" in prompt, f"proposer prompt should include degraded signals: {prompt}")
+    require(
+        "verifier_path_acceptability=disqualifying" in prompt,
+        f"proposer prompt should include verifier path-acceptability context: {prompt}",
+    )
+    require("next_focus=Target the degraded path directly." in prompt, f"proposer prompt should preserve next_focus: {prompt}")
+
+
 def request(client: TestClient, method: str, path: str, *, api_key: bool = True, **kwargs: Any):
     headers = kwargs.pop("headers", {})
     if api_key:
@@ -692,6 +748,7 @@ def main() -> None:
             state = RuntimeState(settings)
             seed_apps(state)
             verify_prompt_contract(settings, state)
+            verify_proposer_prompt_contract()
             verify_goal_task_lifecycle(settings, state)
             verify_retryable_advisory_phase(settings, state)
             verify_goal_continues_after_review_rejection(settings, state)

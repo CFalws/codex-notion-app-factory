@@ -147,3 +147,15 @@ It is also feedback that should improve at least one of:
 - verification gates
 - continuation policy
 - operator visibility
+
+## Proposer Context Principle
+
+When the runtime already persists structured blocker, intended-path, and verifier evidence, the proposer should receive that structured context directly.
+
+Do not force future sessions to reconstruct prior failure signals from prose alone when the state already contains:
+
+- `continuation_blocker_reason`
+- `intended_path.verdict`
+- `intended_path.degraded_signals`
+- verifier `verdict`
+- verifier `path_acceptability`

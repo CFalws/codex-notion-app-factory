@@ -8,7 +8,7 @@
 
 ## Problem
 
-Autonomous iterations now record intended-path verdicts and verifier path acceptability, but the actual reason the loop paused or could not continue is still fragmented across several fields. Operators and future weaker sessions still have to infer the blocker from raw state instead of reading one canonical explanation.
+Autonomous iterations now persist canonical blocker reasons, intended-path verdicts, and verifier path-acceptability, but the proposer still sees prior history mostly as freeform summary plus `next_focus`. That leaves the next bounded hypothesis under-informed when the previous iteration paused, degraded, or was rejected.
 
 ## Target User
 
@@ -22,4 +22,4 @@ The primary user is the operator relying on unattended runtime self-improvement 
 
 ## Deliverable
 
-Persist one canonical `continuation_blocker_reason` on each autonomous iteration, derive it from the existing structured autonomy signals, and surface the same field in the ops console so controller policy and operator visibility share one explanation path.
+Feed the latest structured blocker and path evidence back into the proposer prompt so the next bounded hypothesis is explicitly grounded in why the previous iteration could not safely continue.

@@ -163,6 +163,12 @@ When continuation policy stores a canonical blocker reason, verification should 
 
 Review or verification rejection should fail verification only if the loop incorrectly pauses, stops, or loses state when policy says it should continue exploring.
 
+When proposer prompts are built from prior autonomous history, verification should also assert that:
+
+- healthy prior iterations keep `blocker=none` and expected-path evidence visible in the proposer input
+- degraded or rejected prior iterations keep their blocker and path evidence visible in the proposer input
+- the next bounded hypothesis is not chosen from prose-only context when structured failure state already exists
+
 ## Commit And Deploy Policy
 
 ### Before Commit

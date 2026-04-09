@@ -91,15 +91,41 @@ def normalize_verify_json(parsed: dict[str, Any] | None) -> dict[str, str]:
 
 
 class AutonomyRuntime:
+    def _summarize_iteration_for_proposer(self, item: dict[str, Any]) -> str:
+        review = item.get("goal_review") or {}
+        intended_path = item.get("intended_path") or {}
+        verifier_reviews = item.get("verification_reviews") or []
+        degraded_signals = ", ".join(str(signal).strip() for signal in (intended_path.get("degraded_signals") or []) if str(signal).strip()) or "(none)"
+        verifier_verdicts = ", ".join(
+            sorted({str(review.get("verdict") or "").strip() for review in verifier_reviews if str(review.get("verdict") or "").strip()})
+        ) or "(none)"
+        verifier_acceptability = ", ".join(
+            sorted(
+                {
+                    str(review.get("path_acceptability") or "").strip()
+                    for review in verifier_reviews
+                    if str(review.get("path_acceptability") or "").strip()
+                }
+            )
+        ) or "(none)"
+        return (
+            f"- iteration {item.get('iteration')}: "
+            f"status={str(item.get('status') or '').strip() or '(unknown)'} | "
+            f"blocker={str(item.get('continuation_blocker_reason') or 'none').strip() or 'none'} | "
+            f"intended_path={str(intended_path.get('verdict') or '').strip() or '(missing)'} | "
+            f"degraded_signals={degraded_signals} | "
+            f"verifier_verdicts={verifier_verdicts} | "
+            f"verifier_path_acceptability={verifier_acceptability} | "
+            f"next_focus={str(review.get('next_focus') or '').strip() or '(none)'} | "
+            f"summary={str(item.get('result_summary') or '').strip() or '(no summary)'}"
+        )
+
     def build_proposer_prompt(self, goal: dict[str, Any], app_record: dict[str, Any]) -> str:
         app_title = str(app_record.get("title") or app_record.get("app_id") or "the app").strip()
         prior_iterations = goal.get("iterations") or []
         prior_lines: list[str] = []
         for item in prior_iterations[-3:]:
-            review = item.get("goal_review") or {}
-            prior_lines.append(
-                f"- iteration {item.get('iteration')}: {str(item.get('result_summary') or '').strip() or '(no summary)'} | next_focus={str(review.get('next_focus') or '').strip() or '(none)'}"
-            )
+            prior_lines.append(self._summarize_iteration_for_proposer(item))
         prior_text = "\n".join(prior_lines) if prior_lines else "- No prior iterations yet."
         return f"""
 You are the proposer in an autonomous software-improvement pipeline.
@@ -111,6 +137,8 @@ Goal objective:
 
 Prior iterations:
 {prior_text}
+
+Use the latest structured blocker, intended-path, and verifier evidence when choosing the next bounded hypothesis. If the last iteration paused, degraded, or was rejected, ground the next proposal in that explicit failure signal rather than only in prose summary.
 
 Your task:
 - Choose exactly one bounded change hypothesis that most improves progress toward the goal.
