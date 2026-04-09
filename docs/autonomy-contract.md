@@ -10,10 +10,11 @@ An autonomous goal loop should:
 
 1. persist a higher-level user objective
 2. generate one bounded hypothesis per iteration
-3. execute that hypothesis through the normal app-lane runtime
-4. verify the result
-5. compare the result to previous iterations
-6. decide whether to continue, pause, or stop
+3. have at least two independent reviewers approve that hypothesis before implementation
+4. execute that approved hypothesis through the normal app-lane runtime
+5. have at least two independent verifiers approve the implementation before merge/apply
+6. compare the result to previous iterations
+7. decide whether to continue, pause, or stop
 
 ## Open-Ended Rule
 
@@ -35,6 +36,7 @@ For unattended self-improvement, the goal policy may auto-apply proposal-mode it
 When auto-apply is enabled:
 
 - the proposal must still go through the normal proposal/apply path
+- the proposal should only auto-apply after both verification reviewers pass
 - apply and push status must be recorded in state
 - if apply schedules a service restart, the goal should remain `running`
 - a goal waiting for restart-resume should record that pending state explicitly

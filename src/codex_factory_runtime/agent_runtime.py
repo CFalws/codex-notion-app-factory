@@ -360,6 +360,24 @@ class CodexAgentsRuntime:
                 goal_review={},
             )
 
+    async def run_advisory_prompt(
+        self,
+        *,
+        prompt: str,
+        cwd,
+        output_stem: str,
+        sandbox: str = "read-only",
+    ) -> tuple[int, str, str, str]:
+        output_path = self.settings.jobs_root / f"{output_stem}.last-message.txt"
+        return await self.cli.run_codex(
+            "",
+            prompt,
+            output_path,
+            use_resume=False,
+            cwd=cwd,
+            sandbox=sandbox,
+        )
+
     async def apply_proposal(self, job_id: str) -> dict[str, Any]:
         proposal = self.state.get_proposal(job_id)
         if proposal.get("status") != "ready_to_apply":

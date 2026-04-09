@@ -3,11 +3,21 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 import asyncio
+from pathlib import Path
 
 from fastapi import BackgroundTasks, HTTPException, UploadFile
 
 from .agent_runtime import CodexAgentsRuntime
 from .config import RuntimeSettings
+from .runtime_autonomy import (
+    AutonomyRuntime,
+    extract_proposal_json,
+    extract_review_json,
+    extract_verify_json,
+    normalize_proposal_json,
+    normalize_review_json,
+    normalize_verify_json,
+)
 from .runtime_engineering import infer_intent_summary
 from .runtime_goals import GoalRuntime
 from .state import RuntimeState, utc_now
@@ -19,6 +29,7 @@ class RuntimeApiContext:
     state: RuntimeState
     runtime: CodexAgentsRuntime
     goals: GoalRuntime
+    autonomy: AutonomyRuntime
 
     def append_event(
         self,
@@ -174,6 +185,132 @@ class RuntimeApiContext:
             "iap_enabled": "iap" in self.settings.auth_providers,
             "allowed_user_emails": self.settings.allowed_user_emails,
         }
+
+    async def run_autonomy_proposal(
+        self,
+        *,
+        goal: dict[str, Any],
+        app_record: dict[str, Any],
+        conversation_id: str,
+        iteration_number: int,
+    ) -> dict[str, str]:
+        prompt = self.autonomy.build_proposer_prompt(goal, app_record)
+        self.append_event(
+            conversation_id,
+            event_type="goal.proposal.phase.started",
+            body=f"iteration {iteration_number}의 bounded hypothesis를 제안합니다.",
+            status="planning",
+            data={"goal_id": goal.get("goal_id", ""), "iteration": iteration_number},
+        )
+        returncode, stdout_text, stderr_text, final_output = await self.runtime.run_advisory_prompt(
+            prompt=prompt,
+            cwd=self.settings.repo_root,
+            output_stem=f"{goal['goal_id']}-iter-{iteration_number}-proposer",
+        )
+        if returncode != 0:
+            raise RuntimeError((stderr_text or stdout_text or "Autonomy proposal phase failed.").strip())
+        _, parsed = extract_proposal_json(final_output)
+        proposal = normalize_proposal_json(parsed)
+        self.append_event(
+            conversation_id,
+            event_type="goal.proposal.phase.completed",
+            body=f"제안 가설: {proposal.get('hypothesis', '')}",
+            status="planning",
+            data={"goal_id": goal.get("goal_id", ""), "iteration": iteration_number, "proposal": proposal},
+        )
+        return proposal
+
+    async def run_autonomy_review(
+        self,
+        *,
+        goal: dict[str, Any],
+        app_record: dict[str, Any],
+        proposal: dict[str, str],
+        conversation_id: str,
+        iteration_number: int,
+        reviewer_name: str,
+    ) -> dict[str, str]:
+        prompt = self.autonomy.build_reviewer_prompt(goal, app_record, proposal, reviewer_name=reviewer_name)
+        slug = reviewer_name.lower().replace(" ", "-")
+        self.append_event(
+            conversation_id,
+            event_type="goal.review.phase.started",
+            body=f"{reviewer_name}가 가설을 평가합니다.",
+            status="planning",
+            data={"goal_id": goal.get("goal_id", ""), "iteration": iteration_number, "reviewer": reviewer_name},
+        )
+        returncode, stdout_text, stderr_text, final_output = await self.runtime.run_advisory_prompt(
+            prompt=prompt,
+            cwd=self.settings.repo_root,
+            output_stem=f"{goal['goal_id']}-iter-{iteration_number}-{slug}",
+        )
+        if returncode != 0:
+            raise RuntimeError((stderr_text or stdout_text or f"{reviewer_name} review phase failed.").strip())
+        _, parsed = extract_review_json(final_output)
+        review = normalize_review_json(parsed)
+        self.append_event(
+            conversation_id,
+            event_type="goal.review.phase.completed",
+            body=f"{reviewer_name} verdict: {review.get('verdict', 'reject')}",
+            status="planning" if review.get("verdict") == "approve" else "paused",
+            data={
+                "goal_id": goal.get("goal_id", ""),
+                "iteration": iteration_number,
+                "reviewer": reviewer_name,
+                "review": review,
+            },
+        )
+        return review
+
+    async def run_autonomy_verifier(
+        self,
+        *,
+        goal: dict[str, Any],
+        app_record: dict[str, Any],
+        proposal: dict[str, str],
+        implementation_summary: str,
+        conversation_id: str,
+        iteration_number: int,
+        verifier_name: str,
+        cwd: Path,
+    ) -> dict[str, str]:
+        prompt = self.autonomy.build_verifier_prompt(
+            goal,
+            app_record,
+            proposal,
+            implementation_summary,
+            verifier_name=verifier_name,
+        )
+        slug = verifier_name.lower().replace(" ", "-")
+        self.append_event(
+            conversation_id,
+            event_type="goal.verify.phase.started",
+            body=f"{verifier_name}가 구현 결과를 검증합니다.",
+            status="running",
+            data={"goal_id": goal.get("goal_id", ""), "iteration": iteration_number, "verifier": verifier_name},
+        )
+        returncode, stdout_text, stderr_text, final_output = await self.runtime.run_advisory_prompt(
+            prompt=prompt,
+            cwd=cwd,
+            output_stem=f"{goal['goal_id']}-iter-{iteration_number}-{slug}",
+        )
+        if returncode != 0:
+            raise RuntimeError((stderr_text or stdout_text or f"{verifier_name} verification phase failed.").strip())
+        _, parsed = extract_verify_json(final_output)
+        review = normalize_verify_json(parsed)
+        self.append_event(
+            conversation_id,
+            event_type="goal.verify.phase.completed",
+            body=f"{verifier_name} verdict: {review.get('verdict', 'fail')}",
+            status="running" if review.get("verdict") == "pass" else "paused",
+            data={
+                "goal_id": goal.get("goal_id", ""),
+                "iteration": iteration_number,
+                "verifier": verifier_name,
+                "verification_review": review,
+            },
+        )
+        return review
 
     def spawn_goal_loop(self, goal_id: str) -> None:
         asyncio.create_task(self.run_goal_loop(goal_id))
@@ -532,7 +669,59 @@ class RuntimeApiContext:
             app_id = str(goal["app_id"])
             app_record = self.require_app(app_id)
             iteration_number = int(goal.get("current_iteration") or 0) + 1
-            title, request_text = self.goals.build_iteration_request(goal, app_record)
+            proposal_plan = await self.run_autonomy_proposal(
+                goal=goal,
+                app_record=app_record,
+                conversation_id=conversation_id,
+                iteration_number=iteration_number,
+            )
+            proposal_reviews = [
+                await self.run_autonomy_review(
+                    goal=goal,
+                    app_record=app_record,
+                    proposal=proposal_plan,
+                    conversation_id=conversation_id,
+                    iteration_number=iteration_number,
+                    reviewer_name=reviewer_name,
+                )
+                for reviewer_name in ("Reviewer A", "Reviewer B")
+            ]
+            if any(review.get("verdict") != "approve" for review in proposal_reviews):
+                iteration_record = {
+                    "iteration": iteration_number,
+                    "status": "rejected_before_implementation",
+                    "proposal_plan": proposal_plan,
+                    "proposal_reviews": proposal_reviews,
+                    "completed_at": utc_now(),
+                }
+                iterations = goal.get("iterations") or []
+                iterations.append(iteration_record)
+                goal["iterations"] = iterations
+                goal["current_iteration"] = iteration_number
+                goal["status"] = "paused"
+                goal["stop_reason"] = "proposal_not_approved"
+                goal["completed_at"] = utc_now()
+                self.state.save_goal(goal)
+                self.append_event(
+                    conversation_id,
+                    event_type="goal.paused",
+                    body="두 reviewer의 승인을 모두 받지 못해 iteration을 중지합니다.",
+                    status="paused",
+                    data={
+                        "goal_id": goal_id,
+                        "iteration": iteration_number,
+                        "proposal_plan": proposal_plan,
+                        "proposal_reviews": proposal_reviews,
+                    },
+                )
+                return
+
+            title, request_text = self.autonomy.build_implementation_request(
+                goal,
+                app_record,
+                proposal_plan,
+                iteration_number=iteration_number,
+            )
             intent_summary = self.interpret_intent(
                 app_id=app_id,
                 title=title,
@@ -587,6 +776,8 @@ class RuntimeApiContext:
                 "request_id": payload["request"]["request_id"],
                 "job_id": payload["job"]["job_id"],
                 "status": job.get("status"),
+                "proposal_plan": proposal_plan,
+                "proposal_reviews": proposal_reviews,
                 "result_summary": job.get("result_summary", ""),
                 "decision_summary": job.get("decision_summary", {}),
                 "goal_review": job.get("goal_review", {}),
@@ -604,6 +795,59 @@ class RuntimeApiContext:
 
             proposal_auto_applied = False
             if job.get("proposal") and bool((goal.get("policy") or {}).get("auto_apply_proposals")):
+                verifier_reviews = []
+                try:
+                    proposal_state = self.state.get_proposal(payload["job"]["job_id"])
+                    verify_cwd = Path(str(proposal_state["worktree_path"]))
+                    verifier_reviews = [
+                        await self.run_autonomy_verifier(
+                            goal=goal,
+                            app_record=app_record,
+                            proposal=proposal_plan,
+                            implementation_summary=str(job.get("result_summary") or ""),
+                            conversation_id=conversation_id,
+                            iteration_number=iteration_number,
+                            verifier_name=verifier_name,
+                            cwd=verify_cwd,
+                        )
+                        for verifier_name in ("Verifier A", "Verifier B")
+                    ]
+                except Exception as exc:  # noqa: BLE001
+                    goal["iterations"][-1]["verification_reviews"] = verifier_reviews
+                    goal["status"] = "paused"
+                    goal["stop_reason"] = "verification_failed"
+                    goal["completed_at"] = utc_now()
+                    self.state.save_goal(goal)
+                    self.append_event(
+                        conversation_id,
+                        event_type="goal.paused",
+                        body=f"자동 verification 단계에서 실패해 자율 목표를 일시중지합니다. {exc}",
+                        status="paused",
+                        job_id=payload["job"]["job_id"],
+                        data={"goal_id": goal_id, "iteration": iteration_number, "stop_reason": goal["stop_reason"]},
+                    )
+                    return
+
+                goal["iterations"][-1]["verification_reviews"] = verifier_reviews
+                if any(review.get("verdict") != "pass" for review in verifier_reviews):
+                    goal["status"] = "paused"
+                    goal["stop_reason"] = "verification_not_approved"
+                    goal["completed_at"] = utc_now()
+                    self.state.save_goal(goal)
+                    self.append_event(
+                        conversation_id,
+                        event_type="goal.paused",
+                        body="두 verifier의 통과를 모두 얻지 못해 proposal 자동 적용을 중단합니다.",
+                        status="paused",
+                        job_id=payload["job"]["job_id"],
+                        data={
+                            "goal_id": goal_id,
+                            "iteration": iteration_number,
+                            "verification_reviews": verifier_reviews,
+                        },
+                    )
+                    return
+
                 self.append_event(
                     conversation_id,
                     event_type="goal.proposal.auto_apply.started",
@@ -633,6 +877,7 @@ class RuntimeApiContext:
                 iteration_record["proposal_status"] = str(proposal.get("status") or "")
                 iteration_record["auto_applied"] = True
                 iteration_record["push_status"] = str(proposal.get("push_status") or "")
+                iteration_record["verification_reviews"] = goal["iterations"][-1].get("verification_reviews", [])
                 goal["iterations"][-1] = iteration_record
                 self.state.save_goal(goal)
                 self.append_event(

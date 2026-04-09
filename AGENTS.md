@@ -116,7 +116,10 @@ Reference: `docs/autonomy-contract.md`
 That means:
 
 - one bounded hypothesis per iteration
+- one proposer should define that bounded hypothesis
+- two independent reviewers should approve it before implementation
 - explicit verification after each iteration
+- two independent verifiers should approve proposal-mode results before merge/apply
 - explicit comparison to prior iterations
 - explicit continuation, alignment, and safety review
 - stop or pause when policy says to stop or pause

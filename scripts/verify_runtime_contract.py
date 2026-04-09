@@ -28,6 +28,14 @@ from codex_factory_runtime import api_app
 from codex_factory_runtime.auth import IAP_JWT_HEADER, TAILSCALE_LOGIN_HEADER, TAILSCALE_NAME_HEADER, IapIdentityProvider
 from codex_factory_runtime.config import RuntimeSettings
 from codex_factory_runtime.runtime_cli import CodexCliRunner
+from codex_factory_runtime.runtime_autonomy import (
+    AUTONOMY_PROPOSAL_END,
+    AUTONOMY_PROPOSAL_START,
+    AUTONOMY_REVIEW_END,
+    AUTONOMY_REVIEW_START,
+    AUTONOMY_VERIFY_END,
+    AUTONOMY_VERIFY_START,
+)
 from codex_factory_runtime.runtime_engineering import build_prompt
 from codex_factory_runtime.runtime_proposals import ProposalRuntime
 from codex_factory_runtime.state import RuntimeState, utc_now
@@ -163,6 +171,60 @@ async def fake_apply_proposal(self, job_id: str) -> dict[str, Any]:
     proposal["pushed_at"] = utc_now()
     self.state.save_proposal(proposal)
     return proposal
+
+
+async def fake_run_advisory_prompt(
+    self,
+    *,
+    prompt: str,
+    cwd: Path,
+    output_stem: str,
+    sandbox: str = "read-only",
+) -> tuple[int, str, str, str]:
+    require(sandbox == "read-only", f"advisory prompts must use read-only sandbox, got {sandbox}")
+    if AUTONOMY_PROPOSAL_START in prompt:
+        return (
+            0,
+            '{"type":"thread.started","thread_id":"advisory-proposal"}\n',
+            "",
+            "\n".join(
+                [
+                    "Propose a bounded UI improvement.",
+                    AUTONOMY_PROPOSAL_START,
+                    '{"hypothesis":"Improve conversation visibility first.","target_area":"conversation list","change_outline":"Make the active thread easier to find and keep the message composer secondary.","success_criteria":"The active conversation is easier to identify and continue.","why_now":"The operator experience depends on regaining context quickly."}',
+                    AUTONOMY_PROPOSAL_END,
+                ]
+            ),
+        )
+    if AUTONOMY_REVIEW_START in prompt:
+        return (
+            0,
+            '{"type":"thread.started","thread_id":"advisory-review"}\n',
+            "",
+            "\n".join(
+                [
+                    "The bounded proposal looks safe.",
+                    AUTONOMY_REVIEW_START,
+                    '{"verdict":"approve","rationale":"The change is small and aligned with the goal.","blocking_issue":"","suggested_adjustment":"Keep the scope focused on context recovery."}',
+                    AUTONOMY_REVIEW_END,
+                ]
+            ),
+        )
+    if AUTONOMY_VERIFY_START in prompt:
+        return (
+            0,
+            '{"type":"thread.started","thread_id":"advisory-verify"}\n',
+            "",
+            "\n".join(
+                [
+                    "The implementation satisfies the approved hypothesis.",
+                    AUTONOMY_VERIFY_START,
+                    '{"verdict":"pass","evidence":"The implementation summary matches the approved bounded change.","residual_risk":"Low","follow_up":"Continue with the next bounded improvement if the goal review recommends it."}',
+                    AUTONOMY_VERIFY_END,
+                ]
+            ),
+        )
+    raise AssertionFailed(f"Unexpected advisory prompt: {prompt[:120]}")
 
 
 def build_settings(temp_root: Path) -> RuntimeSettings:
@@ -364,8 +426,10 @@ def wait_for_goal_status(client: TestClient, goal_id: str, expected_status: str,
 def main() -> None:
     original_run_request = api_app.CodexAgentsRuntime.run_request
     original_apply_proposal = api_app.CodexAgentsRuntime.apply_proposal
+    original_run_advisory_prompt = api_app.CodexAgentsRuntime.run_advisory_prompt
     api_app.CodexAgentsRuntime.run_request = fake_run_request
     api_app.CodexAgentsRuntime.apply_proposal = fake_apply_proposal
+    api_app.CodexAgentsRuntime.run_advisory_prompt = fake_run_advisory_prompt
 
     try:
         with tempfile.TemporaryDirectory(prefix="codex-contract-") as temp_dir:
@@ -551,6 +615,7 @@ def main() -> None:
             require(goal["status"] == "completed", f"goal should stop through goal review: {goal}")
             require(goal["stop_reason"] == "goal_review_stop", f"goal should stop through goal review signal: {goal}")
             require(len(goal["iterations"]) == 2, f"expected 2 goal iterations, got {len(goal['iterations'])}")
+            require(goal["iterations"][0]["proposal_reviews"][0]["verdict"] == "approve", "goal iteration should record reviewer approval")
             require(goal["iterations"][0]["goal_review"]["continue_recommended"] == "yes", "first goal iteration should continue")
             require(goal["iterations"][1]["goal_review"]["continue_recommended"] == "no", "second goal iteration should stop")
 
@@ -575,6 +640,7 @@ def main() -> None:
             require(len(proposal_goal["iterations"]) == 2, f"expected 2 proposal goal iterations, got {len(proposal_goal['iterations'])}")
             require(proposal_goal["iterations"][0]["auto_applied"] is True, "first proposal goal iteration should be auto-applied")
             require(proposal_goal["iterations"][0]["proposal_status"] == "applied", "proposal goal iteration should record applied proposal status")
+            require(proposal_goal["iterations"][0]["verification_reviews"][0]["verdict"] == "pass", "proposal goal iteration should record verifier pass")
 
             restart_resume_response = request(
                 client,
@@ -725,6 +791,7 @@ def main() -> None:
     finally:
         api_app.CodexAgentsRuntime.run_request = original_run_request
         api_app.CodexAgentsRuntime.apply_proposal = original_apply_proposal
+        api_app.CodexAgentsRuntime.run_advisory_prompt = original_run_advisory_prompt
 
 
 if __name__ == "__main__":

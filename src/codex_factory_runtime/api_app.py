@@ -9,6 +9,7 @@ from .api_routes import register_routes
 from .api_runtime_context import RuntimeApiContext
 from .auth import Authenticator
 from .config import RuntimeSettings, load_settings
+from .runtime_autonomy import AutonomyRuntime
 from .runtime_goals import GoalRuntime
 from .state import RuntimeState
 
@@ -37,7 +38,13 @@ def create_app(settings: RuntimeSettings | None = None) -> FastAPI:
     settings = settings or load_settings()
     state = RuntimeState(settings)
     runtime = CodexAgentsRuntime(settings, state)
-    context = RuntimeApiContext(settings=settings, state=state, runtime=runtime, goals=GoalRuntime())
+    context = RuntimeApiContext(
+        settings=settings,
+        state=state,
+        runtime=runtime,
+        goals=GoalRuntime(),
+        autonomy=AutonomyRuntime(),
+    )
     authenticator = Authenticator(settings)
 
     app = FastAPI(

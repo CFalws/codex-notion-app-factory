@@ -20,6 +20,7 @@ class CodexCliRunner:
         *,
         use_resume: bool,
         image_paths: list[str] | None = None,
+        sandbox: str | None = None,
     ) -> list[str]:
         args = [self.settings.codex_command, *self.settings.codex_args, "exec"]
         image_args: list[str] = []
@@ -41,8 +42,9 @@ class CodexCliRunner:
             args.extend(["--profile", self.settings.codex_profile])
         if self.settings.codex_model:
             args.extend(["--model", self.settings.codex_model])
-        if self.settings.codex_sandbox:
-            args.extend(["--sandbox", self.settings.codex_sandbox])
+        chosen_sandbox = self.settings.codex_sandbox if sandbox is None else sandbox
+        if chosen_sandbox:
+            args.extend(["--sandbox", chosen_sandbox])
         if self.settings.codex_skip_git_repo_check:
             args.append("--skip-git-repo-check")
         args.extend(image_args)
@@ -84,8 +86,16 @@ class CodexCliRunner:
         use_resume: bool,
         cwd: Path,
         image_paths: list[str] | None = None,
+        sandbox: str | None = None,
     ) -> tuple[int, str, str, str]:
-        command = self.build_command(session_id, prompt, output_path, use_resume=use_resume, image_paths=image_paths)
+        command = self.build_command(
+            session_id,
+            prompt,
+            output_path,
+            use_resume=use_resume,
+            image_paths=image_paths,
+            sandbox=sandbox,
+        )
         returncode, stdout_text, stderr_text = await self.run_command(command, cwd=cwd)
         final_output = output_path.read_text(encoding="utf-8").strip() if output_path.exists() else ""
         return returncode, stdout_text, stderr_text, final_output
