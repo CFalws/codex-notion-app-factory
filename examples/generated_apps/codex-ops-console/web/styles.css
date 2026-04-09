@@ -398,6 +398,24 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   background: rgba(31, 120, 224, 0.08);
 }
 
+.conversation-card[data-thread-state="proposal"] .conversation-card-live,
+.conversation-card[data-thread-state="proposal"] .conversation-card-session,
+.conversation-card[data-thread-state="review"] .conversation-card-live,
+.conversation-card[data-thread-state="review"] .conversation-card-session,
+.conversation-card[data-thread-state="verify"] .conversation-card-live,
+.conversation-card[data-thread-state="verify"] .conversation-card-session {
+  color: var(--accent-ink);
+  border-color: rgba(31, 120, 224, 0.22);
+  background: rgba(31, 120, 224, 0.08);
+}
+
+.conversation-card[data-thread-state="ready"] .conversation-card-live,
+.conversation-card[data-thread-state="ready"] .conversation-card-session {
+  color: var(--success);
+  border-color: rgba(47, 138, 89, 0.24);
+  background: rgba(47, 138, 89, 0.08);
+}
+
 .conversation-card[data-thread-state="running tool"] .conversation-card-live,
 .conversation-card[data-thread-state="running-tool"] .conversation-card-live,
 .conversation-card[data-thread-state="running tool"] .conversation-card-session,

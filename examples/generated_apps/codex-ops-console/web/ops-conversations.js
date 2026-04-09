@@ -321,9 +321,20 @@ export function createConversationController(deps) {
     if (latestStatus === "failed" || latestType === "runtime.exception") {
       return "failed";
     }
+    if (latestType === "proposal.ready") {
+      return "ready";
+    }
+    if (latestType === "goal.verify.phase.started") {
+      return "verify";
+    }
+    if (latestType === "goal.review.phase.started") {
+      return "review";
+    }
+    if (latestType === "goal.proposal.phase.started" || latestType === "goal.proposal.auto_apply.started") {
+      return "proposal";
+    }
     if (
       latestType === "job.completed" ||
-      latestType === "proposal.ready" ||
       latestType === "codex.exec.applied" ||
       latestStatus === "completed" ||
       latestStatus === "applied"
@@ -336,6 +347,18 @@ export function createConversationController(deps) {
   function snapshotThreadLabel(threadState) {
     if (threadState === "failed") {
       return "FAILED";
+    }
+    if (threadState === "ready") {
+      return "READY";
+    }
+    if (threadState === "verify") {
+      return "VERIFY";
+    }
+    if (threadState === "review") {
+      return "REVIEW";
+    }
+    if (threadState === "proposal") {
+      return "PROPOSE";
     }
     if (threadState === "done") {
       return "DONE";
@@ -386,16 +409,12 @@ export function createConversationController(deps) {
     return `${text.slice(0, maxLength - 1).trimEnd()}…`;
   }
 
-  function conversationPreview(conversation) {
+  function latestMessagePreview(conversation) {
     const messages = Array.isArray(conversation?.messages) ? conversation.messages : [];
-    const events = Array.isArray(conversation?.events) ? conversation.events : [];
-    const latestMessage = messages.length ? messages[messages.length - 1] : null;
-    const latestEvent = events.length ? events[events.length - 1] : null;
-    const candidates = [latestMessage, latestEvent].filter(Boolean);
-    if (!candidates.length) {
-      return "아직 메시지나 이벤트가 없습니다.";
+    if (!messages.length) {
+      return "";
     }
-    candidates.sort((left, right) => {
+    const latestMessage = messages.slice().sort((left, right) => {
       const leftAppend = Number(left?.append_id || 0);
       const rightAppend = Number(right?.append_id || 0);
       if (leftAppend !== rightAppend) {
@@ -404,15 +423,19 @@ export function createConversationController(deps) {
       const leftCreated = String(left?.created_at || "");
       const rightCreated = String(right?.created_at || "");
       return rightCreated.localeCompare(leftCreated);
-    });
-    const item = candidates[0];
-    const body = truncatePreview(item?.body || "");
-    if (item?.role === "assistant") {
+    })[0];
+    const body = truncatePreview(latestMessage?.body || "");
+    if (latestMessage?.role === "assistant") {
       return body || "최근 assistant 응답이 있습니다.";
     }
-    if (item?.role === "user") {
+    if (latestMessage?.role === "user") {
       return `사용자: ${body || "최근 요청이 있습니다."}`;
     }
+    return body;
+  }
+
+  function eventPreview(item) {
+    const body = truncatePreview(item?.body || "");
     const type = String(item?.type || "");
     if (type === "proposal.ready") {
       return "제안이 준비되었습니다.";
@@ -427,6 +450,18 @@ export function createConversationController(deps) {
       return "최근 실행에서 예외가 기록되었습니다.";
     }
     return body || "최근 이벤트가 기록되었습니다.";
+  }
+
+  function conversationPreview(conversation) {
+    const messagePreview = latestMessagePreview(conversation);
+    if (messagePreview) {
+      return messagePreview;
+    }
+    const events = Array.isArray(conversation?.events) ? conversation.events : [];
+    if (!events.length) {
+      return "아직 메시지나 이벤트가 없습니다.";
+    }
+    return eventPreview(events[events.length - 1]);
   }
 
   function syncConversationCardState() {
