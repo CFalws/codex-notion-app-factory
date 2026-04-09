@@ -191,6 +191,63 @@ function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
   `;
 }
 
+function pendingHandoffState(conversation, currentState) {
+  const conversationId = String(conversation?.conversation_id || "");
+  const pendingOutgoing = currentState.pendingOutgoing || {};
+  if (!conversationId || pendingOutgoing.conversationId !== conversationId) {
+    return {
+      stage: "idle",
+      pendingUserCount: 0,
+      pendingAssistantCount: 0,
+      items: [],
+    };
+  }
+  if (pendingOutgoing.status === "sending-user") {
+    return {
+      stage: "pending-user",
+      pendingUserCount: 1,
+      pendingAssistantCount: 0,
+      items: [
+        {
+          kind: "message",
+          role: "user",
+          body: pendingOutgoing.body,
+          created_at: pendingOutgoing.createdAt || new Date().toISOString(),
+          sortAt: pendingOutgoing.createdAt || new Date().toISOString(),
+          append_id: 0,
+          delivery_source: "local-pending",
+          pending_local: true,
+        },
+      ],
+    };
+  }
+  if (pendingOutgoing.status === "awaiting-assistant") {
+    return {
+      stage: "pending-assistant",
+      pendingUserCount: 0,
+      pendingAssistantCount: 1,
+      items: [
+        {
+          kind: "message",
+          role: "assistant",
+          body: "응답을 생성하는 중입니다.",
+          created_at: pendingOutgoing.assistantCreatedAt || new Date().toISOString(),
+          sortAt: pendingOutgoing.assistantCreatedAt || new Date().toISOString(),
+          append_id: 0,
+          delivery_source: "local-assistant-placeholder",
+          pending_assistant: true,
+        },
+      ],
+    };
+  }
+  return {
+    stage: "idle",
+    pendingUserCount: 0,
+    pendingAssistantCount: 0,
+    items: [],
+  };
+}
+
 function syncJumpToLatest(dom, currentState, conversationId, renderSource) {
   if (!dom.jumpToLatestButton) {
     return;
@@ -1116,6 +1173,9 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
     dom.conversationTimeline.innerHTML = '<p class="timeline-empty">새 대화를 만들면 요청과 이벤트가 여기 쌓입니다.</p>';
     if (dom.threadScroller) {
       dom.threadScroller.dataset.pendingConversationId ||= "";
+      dom.threadScroller.dataset.pendingHandoffStage = "idle";
+      dom.threadScroller.dataset.pendingUserCount = "0";
+      dom.threadScroller.dataset.pendingAssistantCount = "0";
     }
     renderSessionStrip(dom, currentState, null);
     currentState.liveFollow = {
@@ -1144,38 +1204,11 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
 
   const messages = Array.isArray(conversation.messages) ? conversation.messages : [];
   const events = Array.isArray(conversation.events) ? conversation.events : [];
-  const pendingOutgoing = currentState.pendingOutgoing || {};
-  const pendingUserItem =
-    pendingOutgoing.status === "sending-user" && pendingOutgoing.conversationId === conversation.conversation_id
-      ? {
-          kind: "message",
-          role: "user",
-          body: pendingOutgoing.body,
-          created_at: pendingOutgoing.createdAt || new Date().toISOString(),
-          sortAt: pendingOutgoing.createdAt || new Date().toISOString(),
-          append_id: 0,
-          delivery_source: "local-pending",
-          pending_local: true,
-        }
-      : null;
-  const pendingAssistantItem =
-    pendingOutgoing.status === "awaiting-assistant" && pendingOutgoing.conversationId === conversation.conversation_id
-      ? {
-          kind: "message",
-          role: "assistant",
-          body: "응답을 생성하는 중입니다.",
-          created_at: pendingOutgoing.assistantCreatedAt || new Date().toISOString(),
-          sortAt: pendingOutgoing.assistantCreatedAt || new Date().toISOString(),
-          append_id: 0,
-          delivery_source: "local-assistant-placeholder",
-          pending_assistant: true,
-        }
-      : null;
+  const handoffState = pendingHandoffState(conversation, currentState);
   const items = [
     ...messages.map((item) => ({ ...item, kind: "message", sortAt: item.created_at })),
     ...events.map((item) => ({ ...item, kind: "event", sortAt: item.created_at })),
-    ...(pendingUserItem ? [pendingUserItem] : []),
-    ...(pendingAssistantItem ? [pendingAssistantItem] : []),
+    ...handoffState.items,
   ].sort((a, b) => {
     const leftAppendId = Number(a.append_id || 0);
     const rightAppendId = Number(b.append_id || 0);
@@ -1188,6 +1221,9 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   const liveRun = deriveLiveRunState(conversation, currentState);
   if (dom.threadScroller) {
     dom.threadScroller.dataset.pendingConversationId = "";
+    dom.threadScroller.dataset.pendingHandoffStage = handoffState.stage;
+    dom.threadScroller.dataset.pendingUserCount = String(handoffState.pendingUserCount);
+    dom.threadScroller.dataset.pendingAssistantCount = String(handoffState.pendingAssistantCount);
   }
   renderSessionStrip(dom, currentState, conversation);
   const latestAppendId = maxConversationAppendId(conversation);

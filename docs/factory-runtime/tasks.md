@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep the current selected-conversation SSE path, header phase chip, transcript-tail live activity turn, left rail, and live-follow behavior unchanged.
-- [x] Reuse the selected-thread live-run state for one compact composer-adjacent live strip above the active composer only while SSE currently owns the run.
-- [x] Hide that strip on terminal or polling-only fallback so it does not duplicate the transcript-tail contract or leave stale session chrome.
-- [x] Preserve transcript plus composer reachability and keep the strip compact on desktop and phone widths.
-- [x] Extend focused verification so future sessions can prove the composer-adjacent live strip remains selected-thread-SSE-owned and terminal-clean.
+- [x] Keep the current selected-conversation SSE path, composer-adjacent live strip, transcript-tail live activity turn, left rail, and live-follow behavior unchanged.
+- [x] Normalize the selected-thread handoff flow to exactly one pending outbound user turn after submit and exactly one temporary assistant placeholder after acceptance.
+- [x] Clear that temporary handoff state on first real assistant SSE append, terminal resolution, idle reset, or thread switch without leaving duplicate synthetic turns behind.
+- [x] Preserve transcript plus composer reachability on desktop and phone widths while the temporary handoff state is visible.
+- [x] Extend focused verification so future sessions can prove the transcript publishes a single selected-thread handoff stage with exact pending-user and pending-assistant counts.
