@@ -135,6 +135,23 @@ class RuntimeApiContext:
             "allowed_user_emails": self.settings.allowed_user_emails,
         }
 
+    def _save_goal_phase(
+        self,
+        goal: dict[str, Any],
+        *,
+        phase: str,
+        iteration: int | None = None,
+        job_id: str = "",
+    ) -> dict[str, Any]:
+        goal["current_phase"] = phase
+        if iteration is not None:
+            goal["current_iteration"] = iteration
+        if job_id:
+            goal["current_job_id"] = job_id
+        elif phase in {"", "proposal", "review"}:
+            goal["current_job_id"] = ""
+        return self.state.save_goal(goal)
+
     def _is_retryable_advisory_error(self, message: str) -> bool:
         lowered = str(message or "").lower()
         return "reading additional input from stdin" in lowered or "timed out" in lowered
@@ -184,6 +201,7 @@ class RuntimeApiContext:
         iteration_number: int,
     ) -> dict[str, str]:
         prompt = self.autonomy.build_proposer_prompt(goal, app_record)
+        goal = self._save_goal_phase(goal, phase="proposal", iteration=iteration_number)
         self.append_event(
             conversation_id,
             event_type="goal.proposal.phase.started",
@@ -223,6 +241,7 @@ class RuntimeApiContext:
         reviewer_name: str,
     ) -> dict[str, str]:
         prompt = self.autonomy.build_reviewer_prompt(goal, app_record, proposal, reviewer_name=reviewer_name)
+        goal = self._save_goal_phase(goal, phase="review", iteration=iteration_number)
         slug = reviewer_name.lower().replace(" ", "-")
         self.append_event(
             conversation_id,
@@ -278,6 +297,7 @@ class RuntimeApiContext:
             verifier_name=verifier_name,
             intended_path=intended_path,
         )
+        goal = self._save_goal_phase(goal, phase="verify", iteration=iteration_number)
         slug = verifier_name.lower().replace(" ", "-")
         self.append_event(
             conversation_id,
@@ -428,6 +448,7 @@ class RuntimeApiContext:
             iteration = int(goal.get("awaiting_restart_iteration") or 0)
             goal["last_resume_reason"] = resume_reason
             goal["last_resumed_at"] = utc_now()
+            goal["current_phase"] = "restart_resume" if goal.get("awaiting_restart_resume") else (goal.get("current_phase") or "proposal")
             if goal.get("awaiting_restart_resume"):
                 goal["awaiting_restart_resume"] = False
                 goal["awaiting_restart_iteration"] = 0
@@ -690,6 +711,7 @@ class RuntimeApiContext:
         if autostart:
             goal["status"] = "running"
             goal["started_at"] = utc_now()
+            goal["current_phase"] = "proposal"
             self.state.save_goal(goal)
             self.spawn_goal_loop(goal["goal_id"])
         return {"goal": self.state.get_goal(goal["goal_id"]), "conversation": conversation, "autostart": autostart}
@@ -724,6 +746,8 @@ class RuntimeApiContext:
             goal["started_at"] = utc_now()
         goal["completed_at"] = ""
         goal["stop_reason"] = ""
+        goal["current_phase"] = "proposal"
+        goal["current_job_id"] = ""
         self.state.save_goal(goal)
         self.spawn_goal_loop(goal_id)
         return goal
@@ -736,6 +760,8 @@ class RuntimeApiContext:
                 goal["status"] = "stopped"
                 goal["stop_reason"] = "halt_requested"
                 goal["completed_at"] = utc_now()
+                goal["current_phase"] = ""
+                goal["current_job_id"] = ""
                 self.state.save_goal(goal)
                 self.append_event(
                     conversation_id,
@@ -776,6 +802,8 @@ class RuntimeApiContext:
                 goal["status"] = "paused"
                 goal["stop_reason"] = self._goal_stop_reason_for_exception(current_phase, exc)
                 goal["completed_at"] = utc_now()
+                goal["current_phase"] = ""
+                goal["current_job_id"] = ""
                 self.state.save_goal(goal)
                 self.append_event(
                     conversation_id,
@@ -802,6 +830,8 @@ class RuntimeApiContext:
                 goal["status"] = "running" if should_continue else "paused"
                 goal["stop_reason"] = "" if should_continue else "proposal_not_approved"
                 goal["completed_at"] = "" if should_continue else utc_now()
+                goal["current_phase"] = "proposal" if should_continue else ""
+                goal["current_job_id"] = ""
                 self.state.save_goal(goal)
                 self.append_event(
                     conversation_id,
@@ -875,6 +905,12 @@ class RuntimeApiContext:
                     "open_ended": int(goal.get("max_iterations") or 0) == 0,
                 },
             }
+            goal = self.state.get_goal(goal_id)
+            goal["current_iteration"] = iteration_number
+            goal["current_phase"] = "implementation"
+            goal["current_job_id"] = payload["job"]["job_id"]
+            goal["last_job_id"] = payload["job"]["job_id"]
+            self.state.save_goal(goal)
             await self.run_job(payload["job"]["job_id"], app_id, request_payload)
             job = self.state.get_job(payload["job"]["job_id"])
             goal = self.state.get_goal(goal_id)
@@ -940,6 +976,8 @@ class RuntimeApiContext:
                     goal["status"] = "running" if should_continue else "paused"
                     goal["stop_reason"] = "" if should_continue else goal["iterations"][-1]["continuation_blocker_reason"]
                     goal["completed_at"] = "" if should_continue else utc_now()
+                    goal["current_phase"] = "proposal" if should_continue else ""
+                    goal["current_job_id"] = ""
                     self.state.save_goal(goal)
                     self.append_event(
                         conversation_id,
@@ -977,6 +1015,8 @@ class RuntimeApiContext:
                         )
                     )
                     goal["completed_at"] = "" if should_continue else utc_now()
+                    goal["current_phase"] = "proposal" if should_continue else ""
+                    goal["current_job_id"] = ""
                     self.state.save_goal(goal)
                     self.append_event(
                         conversation_id,
@@ -1012,6 +1052,8 @@ class RuntimeApiContext:
                     goal["status"] = "paused"
                     goal["stop_reason"] = "auto_apply_failed"
                     goal["completed_at"] = utc_now()
+                    goal["current_phase"] = ""
+                    goal["current_job_id"] = ""
                     self.state.save_goal(goal)
                     self.append_event(
                         conversation_id,
@@ -1100,6 +1142,8 @@ class RuntimeApiContext:
                 goal["status"] = "running"
                 goal["stop_reason"] = ""
                 goal["completed_at"] = ""
+                goal["current_phase"] = "restart_resume"
+                goal["current_job_id"] = ""
                 goal["awaiting_restart_resume"] = True
                 goal["awaiting_restart_iteration"] = iteration_number
                 goal["awaiting_restart_job_id"] = payload["job"]["job_id"]
@@ -1119,6 +1163,8 @@ class RuntimeApiContext:
                 return
             goal["status"] = next_status
             goal["stop_reason"] = stop_reason
+            goal["current_phase"] = "proposal" if next_status == "running" else ""
+            goal["current_job_id"] = ""
             if next_status in {"completed", "failed", "paused", "stopped"}:
                 goal["completed_at"] = utc_now()
             self.state.save_goal(goal)

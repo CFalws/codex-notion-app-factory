@@ -145,6 +145,8 @@ def build_goal(
         "completed_at": "",
         "max_iterations": max_iterations,
         "current_iteration": 0,
+        "current_phase": "",
+        "current_job_id": "",
         "last_job_id": "",
         "best_job_id": "",
         "best_summary": "",
