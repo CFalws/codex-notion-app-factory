@@ -14,6 +14,8 @@ export const dom = {
   selectedAppUrl: document.getElementById("selected-app-url"),
   statusOutput: document.getElementById("status-output"),
   jobMeta: document.getElementById("job-meta"),
+  jobPhase: document.getElementById("job-phase"),
+  jobEvents: document.getElementById("job-events"),
   installButton: document.getElementById("install-button"),
   learningSummary: document.getElementById("learning-summary"),
   learningMeta: document.getElementById("learning-meta"),

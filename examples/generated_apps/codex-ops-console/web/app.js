@@ -15,6 +15,7 @@ import { createJobController } from "./ops-jobs.js";
 import {
   clearLearningSummary,
   describeJob,
+  renderJobActivity,
   renderLearningSummary,
   renderConversation,
   setJobMeta,
@@ -186,6 +187,7 @@ function initControllers() {
     fetchJson,
     jobUrl,
     renderLearningSummary,
+    renderJobActivity,
     setJobMeta,
     setStatus,
     state,

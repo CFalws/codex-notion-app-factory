@@ -163,7 +163,12 @@ class RuntimeApiContext:
             data={"title": request_payload.get("title", "")},
         )
         try:
-            await self.runtime.run_request(app_id, job_id, request_payload)
+            await self.runtime.run_request(
+                app_id,
+                job_id,
+                request_payload,
+                event_callback=lambda **event: self.append_event(conversation_id, **event),
+            )
         except Exception as exc:  # noqa: BLE001
             self.state.update_job(
                 job_id,

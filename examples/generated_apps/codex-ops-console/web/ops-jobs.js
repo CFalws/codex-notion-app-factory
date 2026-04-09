@@ -8,6 +8,7 @@ export function createJobController(deps) {
     setJobMeta,
     updateProposalButton,
     renderLearningSummary,
+    renderJobActivity,
     fetchConversation,
     describeJob,
   } = deps;
@@ -31,6 +32,8 @@ export function createJobController(deps) {
         payload.status || "RECORDED",
       );
     }
+
+    renderJobActivity(dom, state.conversationCache, state.currentJobId, payload);
 
     return payload;
   }

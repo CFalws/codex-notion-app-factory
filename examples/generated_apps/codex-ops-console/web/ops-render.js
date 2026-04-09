@@ -8,6 +8,57 @@ export function setJobMeta(dom, message) {
   dom.jobMeta.textContent = message;
 }
 
+function phaseLabel(status, eventType = "") {
+  const normalizedStatus = String(status || "").toLowerCase();
+  if (eventType.startsWith("proposal.")) {
+    return "PROPOSAL";
+  }
+  if (eventType.startsWith("runtime.") || normalizedStatus === "planning") {
+    return "PLANNING";
+  }
+  if (eventType.startsWith("codex.") || normalizedStatus === "running") {
+    return "RUNNING";
+  }
+  if (normalizedStatus === "queued") {
+    return "QUEUED";
+  }
+  if (normalizedStatus === "completed" || normalizedStatus === "applied") {
+    return "DONE";
+  }
+  if (normalizedStatus === "failed") {
+    return "FAILED";
+  }
+  return "IDLE";
+}
+
+export function renderJobActivity(dom, conversation, currentJobId, jobPayload = null) {
+  const events = Array.isArray(conversation?.events) ? conversation.events : [];
+  const relevantEvents = currentJobId ? events.filter((event) => event.job_id === currentJobId) : events;
+  const recentEvents = relevantEvents.slice(-4).reverse();
+
+  const latestEvent = recentEvents[0];
+  const phase = phaseLabel(jobPayload?.status || latestEvent?.status || "", latestEvent?.type || "");
+  dom.jobPhase.textContent = phase;
+  dom.jobPhase.className = `activity-phase ${phase.toLowerCase()}`;
+
+  if (!recentEvents.length) {
+    dom.jobEvents.innerHTML = '<p class="activity-empty">작업이 시작되면 최근 실행 이벤트가 여기에 표시됩니다.</p>';
+    return;
+  }
+
+  dom.jobEvents.innerHTML = recentEvents
+    .map(
+      (event) => `
+        <article class="activity-event ${event.status || "info"}">
+          <p class="activity-event-kind">${event.type}</p>
+          <p class="activity-event-body">${event.body}</p>
+          <p class="activity-event-meta">${event.created_at}</p>
+        </article>
+      `,
+    )
+    .join("");
+}
+
 export function updateSelectedAppCard(dom, app) {
   const hasDeployment = Boolean(app && app.deploymentUrl);
   dom.openAppButton.disabled = !hasDeployment;
@@ -81,6 +132,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   if (!conversation) {
     dom.conversationMeta.textContent = "아직 대화 세션이 없습니다.";
     dom.conversationTimeline.innerHTML = '<p class="timeline-empty">새 대화를 만들면 요청과 이벤트가 여기 쌓입니다.</p>';
+    renderJobActivity(dom, null, "");
     return;
   }
 
@@ -119,6 +171,8 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
       `;
     })
     .join("");
+
+  renderJobActivity(dom, conversation, currentState.currentJobId || conversation.latest_job_id || "");
 
   const assistantResult = [...messages].reverse().find((item) => item.role === "assistant");
   const decisionSummary = assistantResult && assistantResult.metadata ? assistantResult.metadata.decision_summary : null;

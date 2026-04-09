@@ -40,7 +40,14 @@ def require(condition: bool, message: str) -> None:
         raise AssertionFailed(message)
 
 
-async def fake_run_request(self, app_id: str, job_id: str, request_payload: dict[str, Any]) -> dict[str, Any]:
+async def fake_run_request(
+    self,
+    app_id: str,
+    job_id: str,
+    request_payload: dict[str, Any],
+    *,
+    event_callback=None,
+) -> dict[str, Any]:
     record = self.state.get_app(app_id)
     clean_summary = f"SIMULATED_OK: {request_payload['title']}"
     decision_summary = {
@@ -56,6 +63,21 @@ async def fake_run_request(self, app_id: str, job_id: str, request_payload: dict
     record["last_summary"] = clean_summary
     self.state.save_app(record)
     self.state.append_memory(app_id, f"Contract Run {utc_now()}", clean_summary)
+    if event_callback is not None:
+        event_callback(
+            event_type="runtime.context.loaded",
+            body="Loaded app lane state for the simulated contract run.",
+            status="planning",
+            job_id=job_id,
+            data={"execution_mode": record.get("execution_mode", "direct")},
+        )
+        event_callback(
+            event_type="codex.exec.started",
+            body="Started simulated Codex execution.",
+            status="running",
+            job_id=job_id,
+            data={"simulated": True},
+        )
     self.state.append_engineering_log(
         app_id=app_id,
         title=request_payload["title"],
@@ -87,6 +109,14 @@ async def fake_run_request(self, app_id: str, job_id: str, request_payload: dict
             "updated_at": utc_now(),
         }
         self.state.save_proposal(proposal)
+        if event_callback is not None:
+            event_callback(
+                event_type="proposal.saved",
+                body="Saved a simulated proposal for review.",
+                status="proposal",
+                job_id=job_id,
+                data={"branch_name": proposal["branch_name"], "status": proposal["status"]},
+            )
         extra_fields["proposal"] = {
             "job_id": proposal["job_id"],
             "branch_name": proposal["branch_name"],

@@ -94,6 +94,18 @@
           <h2>작업 상태</h2>
           <p id="job-meta" class="meta">아직 실행 중인 작업이 없습니다.</p>
         </div>
+        <div class="activity-strip">
+          <article class="activity-card">
+            <p class="activity-label">현재 단계</p>
+            <p id="job-phase" class="activity-phase idle">IDLE</p>
+          </article>
+          <article class="activity-card">
+            <p class="activity-label">최근 이벤트</p>
+            <div id="job-events" class="activity-events">
+              <p class="activity-empty">작업이 시작되면 최근 실행 이벤트가 여기에 표시됩니다.</p>
+            </div>
+          </article>
+        </div>
         <pre id="status-output">Tailscale 런타임에 연결해 앱 목록을 불러오는 중입니다.</pre>
       </section>
 
