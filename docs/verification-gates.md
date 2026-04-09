@@ -179,8 +179,8 @@ For the feature-flagged active-conversation append SSE path, verification should
 - non-active conversations never render into the active timeline
 - polling-driven conversation refetch is not the path that makes healthy live appends appear while SSE is connected
 - the workspace exposes machine-readable stream state and per-append provenance so browser verification can attribute visible appends to SSE rather than polling
-- a unified selected-conversation session strip exposes machine-readable transport state, run state, source, and append provenance derived from live conversation events rather than fragmented polling-only status surfaces
-- the unified session strip exposes machine-readable presentation and terminal-state markers so idle collapse, terminal collapse, reconnecting visibility, and immediate thread-switch clearing can be verified in the browser
+- a compact selected-conversation composer state row exposes machine-readable transport state, run state, source, proposal readiness, and append provenance derived from live conversation events rather than fragmented polling-only status surfaces
+- the compact composer state row exposes machine-readable presentation and terminal-state markers so reconnecting visibility, explicit idle state, and immediate thread-switch clearing can be verified in the browser
 - on phone widths, the selected-conversation session strip and composer should share one persistent footer dock so live state stays visible while the input remains reachable in the active thread
 - on desktop widths, the thread rail should remain continuously accessible while prose-heavy operator content stays behind a collapsed secondary panel so the transcript remains the dominant workspace surface
 - the left thread rail should expose compact selected-thread and live-run markers derived from the existing selected-conversation session state so users can identify the active or generating thread without opening secondary panels
@@ -192,7 +192,7 @@ For the feature-flagged active-conversation append SSE path, verification should
 - the footer should read as a compact chat-style composer with the textarea as the dominant input surface, send as the primary action, and proposal controls compressed so message entry no longer looks like an admin form
 - on phone widths, the nav sheet should present the conversation list as the first actionable surface while app-level controls move behind a collapsed operator section that stays reachable without displacing thread switching
 - the selected transcript should stay pinned to the newest append only while the user is already near the bottom, and a compact jump-to-latest control should appear when they intentionally scroll away during live append updates
-- the selected-conversation live rail should stay expanded during running, thinking, sending, connecting, and reconnecting states, but collapse idle or terminal states into a one-line latest-result summary with an in-rail re-expand control
+- the selected-conversation composer state row should stay compact in every state, render fixed transport, phase, and proposal chips, and avoid reintroducing a collapsible prose-heavy strip above the action area
 - conversation cards in the left navigation should expose one bounded recent preview line and a clearer compact state label so active, running, reconnecting, done, and idle threads are easier to distinguish without opening them
 - on phone widths, the navigation affordance should explicitly control a drawer or sheet and the active conversation shell should remain the default visible workspace surface until navigation is deliberately opened
 - on phone widths, the active conversation should remain the first visible workspace surface and app or thread navigation should open through an explicit drawer or sheet rather than occupying the top of the reading flow

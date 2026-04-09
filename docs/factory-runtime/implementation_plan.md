@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Keep the current selected-conversation SSE path, pending-turn handoff, live rail, composer, and conversation layout unchanged.
-2. Add one authoritative event-to-phase mapping for healthy selected-thread events such as proposal, review, verify, auto-apply, ready, and applied.
-3. Render those phases as compact distinct labels and detail text in the existing composer-adjacent live surface instead of generic thinking or done wording.
-4. Keep the phase model conversation-local and machine-readable so selected-thread switching clears or replaces it immediately.
-5. Extend the focused verifier and docs so future sessions can prove the central session surface derives phase visibility from the intended SSE event path rather than from polling or prose-heavy side panels.
+1. Keep the current selected-conversation SSE path, pending-turn handoff, left navigation, and central timeline unchanged.
+2. Compress the composer-adjacent live surface into one compact row of conversation-local chips for transport, phase, and proposal readiness.
+3. Replace the strip’s long explanatory sentences with one short affordance line that adapts send and apply guidance from the selected-thread state only.
+4. Hide the old collapse interaction so the composer dock no longer behaves like a secondary status panel.
+5. Extend the focused verifier and docs so future sessions can prove the compact state row stays on the selected-thread path and does not reintroduce prose-heavy chrome.

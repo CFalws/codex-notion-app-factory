@@ -445,6 +445,54 @@ function collapsedSessionSummary(conversation, currentState, liveRun) {
   };
 }
 
+function transportChip(status, presentation) {
+  if (presentation === "sending") {
+    return { label: "HANDOFF", tone: "thinking" };
+  }
+  if (status === "live") {
+    return { label: "LIVE", tone: "healthy" };
+  }
+  if (status === "reconnecting") {
+    return { label: "RECONNECT", tone: "warning" };
+  }
+  if (status === "connecting") {
+    return { label: "CONNECTING", tone: "neutral" };
+  }
+  return { label: "SNAPSHOT", tone: "muted" };
+}
+
+function proposalChip(liveRun) {
+  if (liveRun.state === "proposal-ready") {
+    return { label: "PROPOSAL READY", tone: "healthy" };
+  }
+  if (liveRun.state === "applied") {
+    return { label: "PROPOSAL APPLIED", tone: "healthy" };
+  }
+  if (liveRun.state === "failed") {
+    return { label: "PROPOSAL BLOCKED", tone: "warning" };
+  }
+  return { label: "PROPOSAL NONE", tone: "muted" };
+}
+
+function composerActionHint(status, presentation, liveRun) {
+  if (liveRun.state === "proposal-ready") {
+    return "제안이 준비되었습니다. 필요하면 지금 적용하거나 다음 지시를 이어서 보낼 수 있습니다.";
+  }
+  if (liveRun.state === "applied") {
+    return "적용이 끝났습니다. 필요하면 다음 지시를 바로 이어서 보낼 수 있습니다.";
+  }
+  if (liveRun.state === "failed") {
+    return "실패 신호가 기록되었습니다. 맥락을 확인한 뒤 다시 보내거나 결과를 검토하세요.";
+  }
+  if (presentation === "sending") {
+    return "메시지를 넘기는 중입니다. 첫 live 응답이 도착하면 같은 작업공간에서 바로 이어집니다.";
+  }
+  if (status === "live" || status === "reconnecting" || status === "connecting") {
+    return "현재 세션이 진행 중입니다. 같은 composer에서 추가 지시를 이어서 보낼 수 있습니다.";
+  }
+  return "현재는 idle 상태입니다. 같은 composer에서 바로 이어서 지시를 보낼 수 있습니다.";
+}
+
 export function toggleSessionRail(dom, currentState) {
   const rail = currentState.sessionRail || {};
   currentState.sessionRail = {
@@ -526,9 +574,11 @@ export function renderSessionStrip(dom, currentState, conversation) {
           : liveRun.terminal
             ? "terminal"
             : "idle";
-  const canCollapse = presentation === "idle" || presentation === "terminal";
-  const shouldCollapse = canCollapse && !currentState.sessionRail.expanded;
-  const collapsedSummary = shouldCollapse ? collapsedSessionSummary(conversation, currentState, liveRun) : null;
+  const canCollapse = false;
+  const shouldCollapse = false;
+  const collapsedSummary = null;
+  const transportState = transportChip(status, presentation);
+  const proposalState = proposalChip(liveRun);
   dom.sessionStrip.hidden = false;
   dom.sessionStrip.dataset.sessionPresentation = presentation;
   dom.sessionStrip.dataset.sessionTerminal = liveRun.terminal ? "true" : "false";
@@ -553,24 +603,25 @@ export function renderSessionStrip(dom, currentState, conversation) {
   };
   const runLabel = liveRun.phase || liveRun.state.replaceAll("-", " ").toUpperCase();
   const statusLabel = presentation === "sending" ? "SENDING" : (streamLabelByStatus[status] || "OFFLINE");
-  dom.sessionStripState.textContent = shouldCollapse ? collapsedSummary.state : `${statusLabel} · ${runLabel}`;
-  dom.sessionStripMeta.textContent = shouldCollapse
-    ? collapsedSummary.meta
-    : `${presentation === "sending" ? "LOCAL HANDOFF" : status === "live" ? "SSE" : status === "reconnecting" ? "SSE RESUME" : status === "connecting" ? "SSE OPEN" : "SNAPSHOT"} · append #${lastLiveAppendId || lastAppendId || 0} · ${liveRun.source.toUpperCase()}`;
-  dom.sessionStripDetail.textContent = shouldCollapse
-    ? collapsedSummary.detail
-    : presentation === "sending"
-      ? `${liveRun.detail} 첫 accepted 또는 live append 신호를 기다리는 중입니다.`
-      : status === "live"
-        ? `${liveRun.detail} 새 append는 SSE로 바로 반영됩니다.`
-        : status === "reconnecting"
-          ? `${liveRun.detail} 연결을 복구하는 동안 최근 append 이후를 resume 대기합니다.`
-          : status === "connecting"
-            ? `${liveRun.detail} 선택된 대화의 live stream을 여는 중입니다.`
-            : `${liveRun.detail} 현재는 snapshot 또는 polling 경로만 사용합니다.`;
+  dom.sessionStripState.innerHTML = [
+    `<span class="session-chip" data-tone="${escapeHtml(transportState.tone)}">${escapeHtml(transportState.label)}</span>`,
+    `<span class="session-chip" data-tone="${liveRun.tone === "done" ? "healthy" : liveRun.tone === "waiting" ? "warning" : liveRun.tone === "running" ? "danger" : liveRun.tone === "thinking" ? "neutral" : "muted"}">${escapeHtml(runLabel)}</span>`,
+    `<span class="session-chip" data-tone="${escapeHtml(proposalState.tone)}">${escapeHtml(proposalState.label)}</span>`,
+  ].join("");
+  dom.sessionStripMeta.textContent = `${statusLabel} · append #${lastLiveAppendId || lastAppendId || 0} · ${liveRun.source.toUpperCase()}`;
+  dom.sessionStripDetail.textContent = composerActionHint(status, presentation, liveRun);
   if (dom.sessionStripToggle) {
-    dom.sessionStripToggle.hidden = !canCollapse;
-    dom.sessionStripToggle.textContent = shouldCollapse ? "세부 보기" : "접기";
+    dom.sessionStripToggle.hidden = true;
+    dom.sessionStripToggle.textContent = "세부 보기";
+  }
+  if (dom.draftStatus) {
+    dom.draftStatus.hidden = true;
+  }
+  if (dom.sendRequestButton) {
+    dom.sendRequestButton.textContent = status === "live" || presentation === "sending" ? "추가 지시 보내기" : "메시지 보내기";
+  }
+  if (dom.applyProposalButton) {
+    dom.applyProposalButton.textContent = liveRun.state === "proposal-ready" ? "지금 제안 적용" : "제안 적용";
   }
 
   dom.threadScroller.dataset.streamState = status;

@@ -611,7 +611,7 @@ body[data-secondary-panel-open="true"] .desktop-shell {
 
 .session-strip {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 0.8rem 1rem;
   width: 100%;
@@ -626,7 +626,7 @@ body[data-secondary-panel-open="true"] .desktop-shell {
 .session-strip-main,
 .session-strip-side {
   display: grid;
-  gap: 0.3rem;
+  gap: 0.24rem;
 }
 
 .session-strip-main {
@@ -650,67 +650,58 @@ body[data-secondary-panel-open="true"] .desktop-shell {
 }
 
 .session-strip-state {
-  font-size: 0.74rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.session-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.28rem 0.62rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 0.73rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--accent-ink);
+}
+
+.session-chip[data-tone="healthy"] {
+  border-color: rgba(47, 138, 89, 0.24);
+  background: rgba(47, 138, 89, 0.1);
+  color: var(--success);
+}
+
+.session-chip[data-tone="warning"] {
+  border-color: rgba(178, 114, 24, 0.24);
+  background: rgba(178, 114, 24, 0.1);
+  color: var(--warning);
+}
+
+.session-chip[data-tone="danger"] {
+  border-color: rgba(182, 75, 65, 0.24);
+  background: rgba(182, 75, 65, 0.1);
+  color: var(--danger);
+}
+
+.session-chip[data-tone="neutral"] {
+  border-color: rgba(31, 120, 224, 0.2);
+  background: rgba(31, 120, 224, 0.08);
+  color: var(--accent-ink);
+}
+
+.session-chip[data-tone="muted"] {
+  color: var(--muted);
 }
 
 .session-strip-meta,
 .session-strip-detail {
   color: var(--muted);
-  font-size: 0.88rem;
-  line-height: 1.45;
-}
-
-.session-strip[data-stream-state="live"] .session-strip-state,
-.session-strip[data-live-run-tone="done"][data-stream-state="live"] .session-strip-state {
-  color: var(--success);
-}
-
-.session-strip[data-stream-state="reconnecting"] .session-strip-state,
-.session-strip[data-live-run-tone="waiting"] .session-strip-state {
-  color: var(--warning);
-}
-
-.session-strip[data-live-run-tone="running"] .session-strip-state {
-  color: var(--danger);
-}
-
-.session-strip[data-live-run-tone="thinking"] .session-strip-state,
-.session-strip[data-stream-state="connecting"] .session-strip-state {
-  color: var(--accent-ink);
-}
-
-.session-strip[data-stream-state="offline"][data-live-run-tone="idle"] .session-strip-state {
-  color: var(--muted);
-}
-
-.session-strip[data-session-collapsed="true"] {
-  align-items: center;
-  padding-block: 0.62rem;
-}
-
-.session-strip[data-session-collapsed="true"] .session-strip-main,
-.session-strip[data-session-collapsed="true"] .session-strip-side {
-  align-items: center;
-}
-
-.session-strip[data-session-collapsed="true"] .session-strip-main {
-  gap: 0.16rem;
-}
-
-.session-strip[data-session-collapsed="true"] .session-strip-detail {
-  max-width: min(100%, 44rem);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 0.82rem;
-}
-
-.session-strip[data-session-collapsed="true"] .session-strip-draft {
-  display: none;
+  font-size: 0.8rem;
+  line-height: 1.35;
 }
 
 .timeline-item {
