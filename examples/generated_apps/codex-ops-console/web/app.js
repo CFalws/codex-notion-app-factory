@@ -49,8 +49,19 @@ function currentAppId() {
 
 function setNavigationOpen(isOpen) {
   document.body.dataset.navOpen = isOpen ? "true" : "false";
+  document.body.dataset.mobileWorkspace = isOpen ? "navigation" : "conversation";
   if (dom.navSheetScrim) {
     dom.navSheetScrim.hidden = !isOpen;
+  }
+  if (dom.navSheetToggle) {
+    dom.navSheetToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  }
+  if (dom.navSheetClose) {
+    dom.navSheetClose.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  }
+  const navSheet = document.getElementById("nav-sheet");
+  if (navSheet) {
+    navSheet.setAttribute("aria-hidden", isOpen ? "false" : "true");
   }
 }
 

@@ -37,6 +37,10 @@ body {
     linear-gradient(180deg, #f8f5ef 0%, var(--bg) 100%);
 }
 
+body[data-mobile-workspace="conversation"] .main-stage {
+  z-index: 1;
+}
+
 button,
 .install-button {
   border: 0;
@@ -1100,6 +1104,10 @@ body[data-secondary-panel-open="true"] .secondary-panel {
 
   body[data-nav-open="true"] .sidebar {
     transform: translateX(0);
+  }
+
+  body[data-nav-open="true"] {
+    touch-action: none;
   }
 
   .nav-sheet-scrim {

@@ -15,7 +15,7 @@
   </head>
   <body>
     <main class="desktop-shell">
-      <aside class="sidebar panel">
+      <aside id="nav-sheet" class="sidebar panel" data-mobile-surface="sheet" aria-hidden="true">
         <div class="sidebar-brand">
           <div class="sidebar-brand-head">
             <div>
@@ -61,11 +61,17 @@
       </aside>
       <button id="nav-sheet-scrim" class="nav-sheet-scrim" type="button" hidden aria-label="네비게이션 닫기"></button>
 
-      <section class="main-stage panel">
+      <section class="main-stage panel" data-primary-surface="conversation">
         <header class="thread-topbar">
           <div class="thread-title-block">
             <p class="thread-kicker">현재 대화</p>
-            <button id="nav-sheet-toggle" class="secondary small mobile-nav-toggle" type="button">앱과 대화</button>
+            <button
+              id="nav-sheet-toggle"
+              class="secondary small mobile-nav-toggle"
+              type="button"
+              aria-controls="nav-sheet"
+              aria-expanded="false"
+            >대화 열기</button>
             <h2 id="hero-app-name">앱을 불러오는 중입니다.</h2>
             <p id="conversation-meta" class="meta">아직 대화 세션이 없습니다.</p>
           </div>

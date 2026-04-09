@@ -8,7 +8,7 @@
 
 ## Problem
 
-The selected-thread live rail is clearer now, but thread navigation still depends on too much inference because conversation cards mostly show only a title and timestamp. Users cannot quickly tell which thread is active, currently progressing, or recently completed without opening it first.
+The selected-thread live surface is stronger now, but phone-width layout still risks feeling like navigation-first chrome because thread switching and operator controls can visually compete with the active conversation. The remaining friction is that the mobile workspace does not yet make the active conversation unambiguously primary before navigation is opened.
 
 ## Target User
 
@@ -23,4 +23,4 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 ## Deliverable
 
-Keep the current sidebar structure, but render each conversation card with one bounded recent-preview line and a clearer compact state label. Use only existing conversation snapshots for non-selected threads and the current selected-conversation SSE-derived state for the active thread.
+Keep the existing selected-conversation SSE path and composer-adjacent live rail, but make phone-width navigation an explicit drawer or sheet with clear toggle semantics so the active conversation remains the first visible workspace surface until the user deliberately opens navigation.
