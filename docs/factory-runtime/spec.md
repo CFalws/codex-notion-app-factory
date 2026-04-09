@@ -8,7 +8,7 @@
 
 ## Problem
 
-The workspace now has a stronger conversation-first shell, but a standalone autonomy summary still sits above the transcript in the center pane. The remaining friction is dashboard-style context occupying the main reading path instead of letting the active thread own the viewport.
+The workspace now has a stronger conversation-first shell and compact thread context, but current live execution state still feels split between the session strip and the composer footer region. The remaining friction is a fragmented active-session surface inside the composer area, not transport or layout ownership.
 
 ## Target User
 
@@ -23,4 +23,4 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 ## Deliverable
 
-Replace the standalone center-pane autonomy block with a compact active-thread context strip in the thread header, and move the fuller autonomy detail into the secondary panel while keeping the selected-conversation session strip, footer dock, thread rail markers, and mobile drawer behavior unchanged.
+Unify the selected-thread live session strip and footer status into one compact composer-adjacent activity bar in the center conversation pane, while keeping the left rail, collapsed secondary panel, selected-conversation SSE path, and mobile drawer behavior unchanged.

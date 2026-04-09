@@ -36,7 +36,10 @@ def main() -> int:
     autonomy_detail_index = index_html.index('id="autonomy-detail"')
     thread_scroller_index = index_html.index('id="thread-scroller"')
     footer_dock_index = index_html.index('id="conversation-footer-dock"')
+    composer_shell_index = index_html.index('class="composer-shell"')
     session_strip_index = index_html.index('id="session-strip"')
+    draft_status_index = index_html.index('id="draft-status"')
+    composer_footer_index = index_html.index('class="composer-footer"')
     sidebar_index = index_html.index('<aside class="sidebar panel">')
     main_stage_index = index_html.index('<section class="main-stage panel">')
     secondary_panel_index = index_html.index('id="secondary-panel"')
@@ -44,10 +47,10 @@ def main() -> int:
         raise AssertionError("compact autonomy context strip no longer appears before the scrollable timeline")
     if not (secondary_panel_index < autonomy_detail_index):
         raise AssertionError("detailed autonomy summary is no longer reachable through the secondary panel")
-    if not (thread_scroller_index < footer_dock_index < index_html.index('class="composer-shell"')):
+    if not (thread_scroller_index < footer_dock_index < composer_shell_index):
         raise AssertionError("footer dock does not wrap the session strip and composer after the thread scroller")
-    if session_strip_index > index_html.index('class="composer-shell"'):
-        raise AssertionError("session strip no longer appears before the composer inside the footer dock")
+    if not (composer_shell_index < session_strip_index < draft_status_index < composer_footer_index):
+        raise AssertionError("composer-adjacent activity bar no longer sits inside the composer shell ahead of footer actions")
     if not (sidebar_index < main_stage_index < secondary_panel_index):
         raise AssertionError("desktop workspace no longer uses sidebar, main stage, then secondary panel order")
 
@@ -89,6 +92,7 @@ def main() -> int:
     require(index_html, 'id="session-strip-state"', label="session strip state DOM")
     require(index_html, 'id="session-strip-meta"', label="session strip meta DOM")
     require(index_html, 'id="session-strip-detail"', label="session strip detail DOM")
+    require(index_html, 'data-activity-bar="composer-adjacent"', label="composer-adjacent activity bar DOM")
     require(index_html, 'id="conversation-footer-dock"', label="conversation footer dock DOM")
     require(index_html, 'data-footer-dock="session-composer"', label="footer dock mode DOM")
     require(index_html, 'id="autonomy-detail"', label="secondary panel autonomy detail DOM")
@@ -114,6 +118,10 @@ def main() -> int:
     require(styles_css, ".conversation-card-live", label="conversation card live badge CSS")
     require(styles_css, ".conversation-card-marker", label="conversation card selected badge CSS")
     require(styles_css, ".session-strip", label="session strip CSS")
+    require(styles_css, ".session-activity-bar", label="composer activity bar CSS")
+    require(styles_css, ".session-strip-main", label="composer activity main CSS")
+    require(styles_css, ".session-strip-side", label="composer activity side CSS")
+    require(styles_css, ".session-strip-draft", label="composer activity draft CSS")
     require(styles_css, "position: sticky;", label="sticky footer CSS")
     require(styles_css, "env(safe-area-inset-bottom)", label="safe-area footer padding CSS")
     require(styles_css, ".mobile-nav-toggle", label="mobile nav button CSS")

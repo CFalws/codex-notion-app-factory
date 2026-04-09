@@ -92,15 +92,18 @@
           </div>
 
           <section id="conversation-footer-dock" class="composer-dock" data-footer-dock="session-composer">
-            <section id="session-strip" class="session-strip" hidden>
-              <div class="session-strip-head">
-                <p id="session-strip-state" class="session-strip-state">LIVE</p>
-                <p id="session-strip-meta" class="session-strip-meta">SSE · append #0</p>
-              </div>
-              <p id="session-strip-detail" class="session-strip-detail">선택된 대화의 live transport와 현재 실행 상태가 여기에 표시됩니다.</p>
-            </section>
-
             <div class="composer-shell">
+              <section id="session-strip" class="session-strip session-activity-bar" data-activity-bar="composer-adjacent" hidden>
+                <div class="session-strip-main">
+                  <p id="session-strip-state" class="session-strip-state">LIVE</p>
+                  <p id="session-strip-detail" class="session-strip-detail">선택된 대화의 live transport와 현재 실행 상태가 여기에 표시됩니다.</p>
+                </div>
+                <div class="session-strip-side">
+                  <p id="session-strip-meta" class="session-strip-meta">SSE · append #0</p>
+                  <p id="draft-status" class="draft-status session-strip-draft">아직 저장된 초안이 없습니다.</p>
+                </div>
+              </section>
+
               <div class="composer-header">
                 <div>
                   <h3>메시지 보내기</h3>
@@ -118,7 +121,6 @@
               </label>
 
               <div class="composer-footer">
-                <p id="draft-status" class="draft-status">아직 저장된 초안이 없습니다.</p>
                 <div class="composer-actions">
                   <label class="toggle inline">
                     <input id="auto-open-app" type="checkbox" />
