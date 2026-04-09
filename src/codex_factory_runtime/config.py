@@ -98,7 +98,7 @@ def load_settings() -> RuntimeSettings:
         codex_profile=os.getenv("CODEX_PROFILE", "").strip(),
         codex_model=os.getenv("CODEX_MODEL", "").strip(),
         codex_sandbox=os.getenv("CODEX_SANDBOX", "workspace-write").strip(),
-        advisory_timeout_seconds=int(os.getenv("CODEX_ADVISORY_TIMEOUT_SECONDS", "180")),
+        advisory_timeout_seconds=int(os.getenv("CODEX_ADVISORY_TIMEOUT_SECONDS", "90")),
         codex_skip_git_repo_check=_env_bool("CODEX_SKIP_GIT_REPO_CHECK", True),
         cors_allowed_origins=_env_list("CODEX_FACTORY_CORS_ALLOWED_ORIGINS"),
         auto_execute_requests=_env_bool("CODEX_FACTORY_AUTO_EXECUTE", True),

@@ -253,7 +253,7 @@ def build_settings(temp_root: Path) -> RuntimeSettings:
         codex_profile="",
         codex_model="",
         codex_sandbox="workspace-write",
-        advisory_timeout_seconds=180,
+        advisory_timeout_seconds=90,
         codex_skip_git_repo_check=True,
         cors_allowed_origins=[],
         auto_execute_requests=True,
