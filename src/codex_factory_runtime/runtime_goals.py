@@ -74,6 +74,10 @@ Execution rules:
             return "completed", "max_iterations_reached"
         return "running", ""
 
+    def can_continue_after_iteration(self, goal: dict[str, Any], *, iteration_number: int) -> bool:
+        max_iterations = int(goal.get("max_iterations") or 0)
+        return max_iterations == 0 or iteration_number < max_iterations
+
     def auto_apply_health(self, proposal: dict[str, Any], *, push_required: bool) -> tuple[bool, str]:
         proposal_status = str(proposal.get("status") or "").strip()
         push_status = str(proposal.get("push_status") or "").strip()

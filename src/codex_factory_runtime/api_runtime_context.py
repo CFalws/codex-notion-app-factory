@@ -349,6 +349,22 @@ class RuntimeApiContext:
             return f"{phase}_phase_timeout"
         return f"{phase}_phase_failed"
 
+    def _goal_can_explore_alternative(
+        self,
+        goal: dict[str, Any],
+        *,
+        iteration_number: int,
+        failure_kind: str,
+    ) -> bool:
+        policy = goal.get("policy") or {}
+        if failure_kind == "review":
+            allowed = bool(policy.get("continue_on_review_failure"))
+        elif failure_kind == "verification":
+            allowed = bool(policy.get("continue_on_verification_failure"))
+        else:
+            return False
+        return allowed and self.goals.can_continue_after_iteration(goal, iteration_number=iteration_number)
+
     def resume_running_goals(self) -> None:
         for goal in self.state.list_goals():
             if goal.get("status") != "running":
@@ -729,15 +745,20 @@ class RuntimeApiContext:
                 iterations.append(iteration_record)
                 goal["iterations"] = iterations
                 goal["current_iteration"] = iteration_number
-                goal["status"] = "paused"
-                goal["stop_reason"] = "proposal_not_approved"
-                goal["completed_at"] = utc_now()
+                should_continue = self._goal_can_explore_alternative(goal, iteration_number=iteration_number, failure_kind="review")
+                goal["status"] = "running" if should_continue else "paused"
+                goal["stop_reason"] = "" if should_continue else "proposal_not_approved"
+                goal["completed_at"] = "" if should_continue else utc_now()
                 self.state.save_goal(goal)
                 self.append_event(
                     conversation_id,
-                    event_type="goal.paused",
-                    body="두 reviewer의 승인을 모두 받지 못해 iteration을 중지합니다.",
-                    status="paused",
+                    event_type="goal.iteration.rejected" if should_continue else "goal.paused",
+                    body=(
+                        "두 reviewer의 승인을 모두 받지 못해 다른 bounded hypothesis를 탐색합니다."
+                        if should_continue
+                        else "두 reviewer의 승인을 모두 받지 못해 iteration을 중지합니다."
+                    ),
+                    status="running" if should_continue else "paused",
                     data={
                         "goal_id": goal_id,
                         "iteration": iteration_number,
@@ -745,6 +766,8 @@ class RuntimeApiContext:
                         "proposal_reviews": proposal_reviews,
                     },
                 )
+                if should_continue:
+                    continue
                 return
 
             title, request_text = self.autonomy.build_implementation_request(
@@ -845,31 +868,43 @@ class RuntimeApiContext:
                     ]
                 except Exception as exc:  # noqa: BLE001
                     goal["iterations"][-1]["verification_reviews"] = verifier_reviews
-                    goal["status"] = "paused"
-                    goal["stop_reason"] = "verification_failed"
-                    goal["completed_at"] = utc_now()
+                    should_continue = self._goal_can_explore_alternative(goal, iteration_number=iteration_number, failure_kind="verification")
+                    goal["status"] = "running" if should_continue else "paused"
+                    goal["stop_reason"] = "" if should_continue else "verification_failed"
+                    goal["completed_at"] = "" if should_continue else utc_now()
                     self.state.save_goal(goal)
                     self.append_event(
                         conversation_id,
-                        event_type="goal.paused",
-                        body=f"자동 verification 단계에서 실패해 자율 목표를 일시중지합니다. {exc}",
-                        status="paused",
+                        event_type="goal.iteration.verification_failed" if should_continue else "goal.paused",
+                        body=(
+                            f"자동 verification 단계가 실패해 다른 bounded hypothesis를 탐색합니다. {exc}"
+                            if should_continue
+                            else f"자동 verification 단계에서 실패해 자율 목표를 일시중지합니다. {exc}"
+                        ),
+                        status="running" if should_continue else "paused",
                         job_id=payload["job"]["job_id"],
                         data={"goal_id": goal_id, "iteration": iteration_number, "stop_reason": goal["stop_reason"]},
                     )
+                    if should_continue:
+                        continue
                     return
 
                 goal["iterations"][-1]["verification_reviews"] = verifier_reviews
                 if any(review.get("verdict") != "pass" for review in verifier_reviews):
-                    goal["status"] = "paused"
-                    goal["stop_reason"] = "verification_not_approved"
-                    goal["completed_at"] = utc_now()
+                    should_continue = self._goal_can_explore_alternative(goal, iteration_number=iteration_number, failure_kind="verification")
+                    goal["status"] = "running" if should_continue else "paused"
+                    goal["stop_reason"] = "" if should_continue else "verification_not_approved"
+                    goal["completed_at"] = "" if should_continue else utc_now()
                     self.state.save_goal(goal)
                     self.append_event(
                         conversation_id,
-                        event_type="goal.paused",
-                        body="두 verifier의 통과를 모두 얻지 못해 proposal 자동 적용을 중단합니다.",
-                        status="paused",
+                        event_type="goal.iteration.verification_rejected" if should_continue else "goal.paused",
+                        body=(
+                            "두 verifier의 통과를 모두 얻지 못해 다른 bounded hypothesis를 탐색합니다."
+                            if should_continue
+                            else "두 verifier의 통과를 모두 얻지 못해 proposal 자동 적용을 중단합니다."
+                        ),
+                        status="running" if should_continue else "paused",
                         job_id=payload["job"]["job_id"],
                         data={
                             "goal_id": goal_id,
@@ -877,6 +912,8 @@ class RuntimeApiContext:
                             "verification_reviews": verifier_reviews,
                         },
                     )
+                    if should_continue:
+                        continue
                     return
 
                 self.append_event(

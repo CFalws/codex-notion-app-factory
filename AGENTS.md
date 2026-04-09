@@ -125,6 +125,15 @@ That means:
 - stop or pause when policy says to stop or pause
 - if proposal-mode autonomy is unattended, auto-apply and restart-resume behavior must be explicit in policy and durable state
 
+Review or verification rejection should be treated as an iteration-level signal first, not a goal-level stop by default.
+
+If the goal policy allows continued exploration, the controller should:
+
+- record the rejected iteration
+- preserve the goal as `running`
+- try a different bounded hypothesis next
+- only pause when the failure is terminal, unsafe, or outside the allowed continuation policy
+
 ## State Contract Rule
 
 Runtime changes must preserve the file-backed state contract unless the change explicitly migrates it.

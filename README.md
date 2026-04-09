@@ -48,7 +48,6 @@ This is not a chatbot demo. It is an execution environment for turning requests 
 
 - runtime HTTP intake for phone-triggered maintenance and multi-turn conversations
 - persisted intent interpretation between raw user wording and executable work
-- structured UX discomfort capture and post-change UX review for UI-facing requests
 - open-ended autonomous goal loops that can keep improving toward a user objective until a policy stop condition is hit
 - private operator access over a Tailscale tailnet
 - explicit request contract and execution rules

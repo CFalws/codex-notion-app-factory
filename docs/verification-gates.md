@@ -94,13 +94,12 @@ It proves:
 - conversations can be created
 - conversation messages create jobs
 - interpreted intent is persisted onto request, job, and conversation message state
-- UI-oriented requests can carry structured UX context
-- UI-oriented prompts require a structured UX review block
 - job completion updates the conversation timeline
 - proposal-mode apps still emit proposals
 - proposal apply still updates conversation state
 - engineering-log entries are still written
 - resume command construction preserves the intended session-resume path
+- autonomous goals can continue to a new bounded iteration after recoverable review or verification rejection
 
 It does not prove:
 
@@ -140,6 +139,13 @@ Examples:
 The rule is simple:
 
 `eventual success` is weaker than `correct success`.
+
+For the autonomous goal loop, also distinguish:
+
+- a degraded iteration that should continue with a different bounded hypothesis
+- a goal-level pause or stop
+
+Review or verification rejection should fail verification only if the loop incorrectly pauses, stops, or loses state when policy says it should continue exploring.
 
 ## Commit And Deploy Policy
 

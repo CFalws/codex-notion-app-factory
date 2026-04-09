@@ -161,6 +161,8 @@ def build_goal(
             "pause_on_failed_job": True,
             "pause_on_safety_no": True,
             "pause_on_alignment_no": True,
+            "continue_on_review_failure": True,
+            "continue_on_verification_failure": True,
             "open_ended": max_iterations == 0,
         },
         "iterations": [],

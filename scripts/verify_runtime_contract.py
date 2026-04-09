@@ -451,6 +451,155 @@ def verify_retryable_advisory_phase(settings: RuntimeSettings, state: RuntimeSta
     asyncio.run(_run())
 
 
+def verify_goal_continues_after_review_rejection(settings: RuntimeSettings, state: RuntimeState) -> None:
+    async def _run() -> None:
+        original_proposal = RuntimeApiContext.run_autonomy_proposal
+        original_review = RuntimeApiContext.run_autonomy_review
+
+        async def fake_proposal(self, *, goal, app_record, conversation_id, iteration_number):
+            return {
+                "hypothesis": f"Improve iteration {iteration_number}",
+                "target_area": "conversation",
+                "change_outline": "Keep moving with one bounded step.",
+                "success_criteria": "A bounded step is implemented.",
+                "why_now": "Contract coverage.",
+            }
+
+        async def fake_review(self, *, goal, app_record, proposal, conversation_id, iteration_number, reviewer_name):
+            verdict = "reject" if iteration_number == 1 else "approve"
+            return {
+                "verdict": verdict,
+                "rationale": f"{reviewer_name} returned {verdict} on iteration {iteration_number}.",
+                "blocking_issue": "Needs a different bounded option." if verdict == "reject" else "",
+                "suggested_adjustment": "Try another bounded hypothesis." if verdict == "reject" else "",
+            }
+
+        RuntimeApiContext.run_autonomy_proposal = fake_proposal
+        RuntimeApiContext.run_autonomy_review = fake_review
+        context = RuntimeApiContext(
+            settings=settings,
+            state=state,
+            runtime=api_app.CodexAgentsRuntime(settings, state),
+            goals=GoalRuntime(),
+            autonomy=api_app.AutonomyRuntime(),
+        )
+        try:
+            created = context.create_goal(
+                app_id="habit-tracker-pwa",
+                title="Review rejection recovery",
+                objective="Keep exploring bounded changes when review rejects one iteration.",
+                source="contract-test",
+                max_iterations=2,
+                autostart=False,
+                auto_apply_proposals=False,
+                auto_resume_after_apply=False,
+            )
+            goal = created["goal"]
+            goal["status"] = "running"
+            goal["started_at"] = utc_now()
+            context.state.save_goal(goal)
+
+            await context.run_goal_loop(goal["goal_id"])
+
+            final_goal = context.state.get_goal(goal["goal_id"])
+            require(final_goal["status"] == "completed", f"goal should keep going after review rejection: {final_goal}")
+            require(final_goal["current_iteration"] == 2, f"goal should advance to a second iteration after review rejection: {final_goal}")
+            require(len(final_goal.get("iterations") or []) == 2, f"goal should record both rejected and completed iterations: {final_goal}")
+            require(
+                final_goal["iterations"][0]["status"] == "rejected_before_implementation",
+                f"first iteration should be recorded as rejected before implementation: {final_goal['iterations']}",
+            )
+            event_types = [event["type"] for event in context.state.get_conversation(created["conversation"]["conversation_id"])["events"]]
+            require("goal.iteration.rejected" in event_types, f"review rejection should emit recovery event: {event_types}")
+            require("goal.completed" in event_types, f"goal should still complete after trying another option: {event_types}")
+        finally:
+            RuntimeApiContext.run_autonomy_proposal = original_proposal
+            RuntimeApiContext.run_autonomy_review = original_review
+
+    asyncio.run(_run())
+
+
+def verify_goal_continues_after_verification_rejection(settings: RuntimeSettings, state: RuntimeState) -> None:
+    async def _run() -> None:
+        original_proposal = RuntimeApiContext.run_autonomy_proposal
+        original_review = RuntimeApiContext.run_autonomy_review
+        original_verifier = RuntimeApiContext.run_autonomy_verifier
+
+        async def fake_proposal(self, *, goal, app_record, conversation_id, iteration_number):
+            return {
+                "hypothesis": f"Improve verification iteration {iteration_number}",
+                "target_area": "runtime",
+                "change_outline": "Apply one bounded autonomous improvement.",
+                "success_criteria": "The proposal passes verification.",
+                "why_now": "Contract coverage.",
+            }
+
+        async def fake_review(self, *, goal, app_record, proposal, conversation_id, iteration_number, reviewer_name):
+            return {
+                "verdict": "approve",
+                "rationale": f"{reviewer_name} approved iteration {iteration_number}.",
+                "blocking_issue": "",
+                "suggested_adjustment": "",
+            }
+
+        async def fake_verifier(self, *, goal, app_record, proposal, implementation_summary, conversation_id, iteration_number, verifier_name, cwd):
+            verdict = "fail" if iteration_number == 1 else "pass"
+            return {
+                "verdict": verdict,
+                "evidence": f"{verifier_name} produced {verdict} on iteration {iteration_number}.",
+                "residual_risk": "Needs another bounded option." if verdict == "fail" else "Low",
+                "follow_up": "Explore a different bounded hypothesis." if verdict == "fail" else "Stop after success.",
+            }
+
+        RuntimeApiContext.run_autonomy_proposal = fake_proposal
+        RuntimeApiContext.run_autonomy_review = fake_review
+        RuntimeApiContext.run_autonomy_verifier = fake_verifier
+        context = RuntimeApiContext(
+            settings=settings,
+            state=state,
+            runtime=api_app.CodexAgentsRuntime(settings, state),
+            goals=GoalRuntime(),
+            autonomy=api_app.AutonomyRuntime(),
+        )
+        try:
+            created = context.create_goal(
+                app_id="factory-runtime",
+                title="Verification rejection recovery",
+                objective="Keep exploring bounded changes when verification rejects one iteration.",
+                source="contract-test",
+                max_iterations=2,
+                autostart=False,
+                auto_apply_proposals=True,
+                auto_resume_after_apply=False,
+            )
+            goal = created["goal"]
+            goal["status"] = "running"
+            goal["started_at"] = utc_now()
+            context.state.save_goal(goal)
+
+            await context.run_goal_loop(goal["goal_id"])
+
+            final_goal = context.state.get_goal(goal["goal_id"])
+            require(final_goal["status"] == "completed", f"goal should keep going after verification rejection: {final_goal}")
+            require(final_goal["current_iteration"] == 2, f"goal should advance to a second iteration after verification rejection: {final_goal}")
+            require(len(final_goal.get("iterations") or []) == 2, f"goal should record both iterations after verifier rejection: {final_goal}")
+            first_iteration = final_goal["iterations"][0]
+            require(
+                any(review.get("verdict") == "fail" for review in first_iteration.get("verification_reviews") or []),
+                f"first iteration should capture failed verification reviews: {first_iteration}",
+            )
+            event_types = [event["type"] for event in context.state.get_conversation(created["conversation"]["conversation_id"])["events"]]
+            require("goal.iteration.verification_rejected" in event_types, f"verification rejection should emit recovery event: {event_types}")
+            require("goal.proposal.auto_apply.completed" in event_types, f"second iteration should auto-apply after passing verification: {event_types}")
+            require("goal.completed" in event_types, f"goal should still complete after trying another option: {event_types}")
+        finally:
+            RuntimeApiContext.run_autonomy_proposal = original_proposal
+            RuntimeApiContext.run_autonomy_review = original_review
+            RuntimeApiContext.run_autonomy_verifier = original_verifier
+
+    asyncio.run(_run())
+
+
 def verify_iap_provider() -> None:
     settings = build_iap_settings(Path(tempfile.mkdtemp(prefix="codex-iap-contract-")))
     original_verify = IapIdentityProvider.verify_iap_assertion
@@ -501,6 +650,8 @@ def main() -> None:
             verify_prompt_contract(settings, state)
             verify_goal_task_lifecycle(settings, state)
             verify_retryable_advisory_phase(settings, state)
+            verify_goal_continues_after_review_rejection(settings, state)
+            verify_goal_continues_after_verification_rejection(settings, state)
             verify_iap_provider()
 
             client = TestClient(api_app.create_app(settings))

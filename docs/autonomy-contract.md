@@ -29,6 +29,15 @@ Open-ended does **not** mean ungoverned. The loop should still pause or stop whe
 - the goal review says to stop
 - an explicit halt is requested
 
+Review or verification rejection should not automatically end the goal.
+
+If policy allows continued exploration, the controller should:
+
+- record the rejected iteration explicitly
+- keep the goal `running`
+- move on to a different bounded hypothesis
+- only pause when the policy says the failure is terminal or the loop can no longer continue safely
+
 ## Supervisor Rule
 
 For unattended self-improvement, the goal policy may auto-apply proposal-mode iterations.
@@ -55,6 +64,20 @@ Autonomous iterations should emit a machine-readable `goal_review` with:
 - `next_focus`
 
 This lets the controller decide based on structured review instead of guessing from prose.
+
+## Iteration Failure Contract
+
+Iteration failure and goal failure are different things.
+
+The controller should distinguish:
+
+- `iteration_rejected`
+- `verification_failed`
+- `verification_rejected`
+- `goal_paused`
+- `goal_stopped`
+
+The first three may be recoverable. When policy marks them recoverable, the correct behavior is to explore a different bounded option instead of ending the goal immediately.
 
 ## Safety Principle
 
