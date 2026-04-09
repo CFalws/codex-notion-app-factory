@@ -51,3 +51,11 @@ class CreateGoalBody(BaseModel):
     source: str = Field(default="ops-console", description="Origin label for traceability.")
     max_iterations: int = Field(default=0, ge=0, le=1000, description="0 means open-ended autonomy until a policy stop condition is hit.")
     autostart: bool = Field(default=True, description="Whether to start the autonomous goal loop immediately.")
+    auto_apply_proposals: bool = Field(
+        default=True,
+        description="Whether proposal-mode iterations should auto-apply instead of pausing for manual approval.",
+    )
+    auto_resume_after_apply: bool = Field(
+        default=True,
+        description="Whether a running goal should resume automatically after an auto-applied proposal and service restart.",
+    )

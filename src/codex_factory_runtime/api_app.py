@@ -47,6 +47,10 @@ def create_app(settings: RuntimeSettings | None = None) -> FastAPI:
     )
     _configure_cors(app, settings)
 
+    @app.on_event("startup")
+    async def resume_running_goals() -> None:
+        context.resume_running_goals()
+
     @app.middleware("http")
     async def require_identity(request: Request, call_next):  # type: ignore[no-untyped-def]
         if not authenticator.requires_auth(request):

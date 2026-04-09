@@ -543,6 +543,28 @@ def main() -> None:
             require(goal["iterations"][0]["goal_review"]["continue_recommended"] == "yes", "first goal iteration should continue")
             require(goal["iterations"][1]["goal_review"]["continue_recommended"] == "no", "second goal iteration should stop")
 
+            proposal_goal_response = request(
+                client,
+                "POST",
+                "/api/goals",
+                json={
+                    "app_id": "factory-runtime",
+                    "objective": "Keep improving the runtime through proposal-mode iterations until the goal review says to stop.",
+                    "source": "contract-test",
+                    "max_iterations": 0,
+                    "autostart": True,
+                    "auto_apply_proposals": True,
+                    "auto_resume_after_apply": False,
+                },
+            )
+            require(proposal_goal_response.status_code == 200, f"proposal goal creation failed: {proposal_goal_response.text}")
+            proposal_goal = request(client, "GET", f"/api/goals/{proposal_goal_response.json()['goal']['goal_id']}").json()
+            require(proposal_goal["status"] == "completed", f"proposal goal should complete through auto-applied iterations: {proposal_goal}")
+            require(proposal_goal["stop_reason"] == "goal_review_stop", f"proposal goal should stop through goal review signal: {proposal_goal}")
+            require(len(proposal_goal["iterations"]) == 2, f"expected 2 proposal goal iterations, got {len(proposal_goal['iterations'])}")
+            require(proposal_goal["iterations"][0]["auto_applied"] is True, "first proposal goal iteration should be auto-applied")
+            require(proposal_goal["iterations"][0]["proposal_status"] == "applied", "proposal goal iteration should record applied proposal status")
+
             proposal_runtime = ProposalRuntime(settings, state, CodexCliRunner(settings))
             blocking = proposal_runtime.blocking_repo_changes(
                 " M src/codex_factory_runtime/api_app.py\n"

@@ -48,13 +48,21 @@ Execution rules:
 """.strip()
         return title, request_text
 
-    def next_goal_status(self, goal: dict[str, Any], job: dict[str, Any]) -> tuple[str, str]:
+    def next_goal_status(
+        self,
+        goal: dict[str, Any],
+        job: dict[str, Any],
+        *,
+        proposal_ready: bool | None = None,
+    ) -> tuple[str, str]:
         iteration_number = int(goal.get("current_iteration") or 0)
         max_iterations = int(goal.get("max_iterations") or 0)
         goal_review = job.get("goal_review") or {}
+        if proposal_ready is None:
+            proposal_ready = bool(job.get("proposal"))
         if job.get("status") != "completed":
             return "failed", "job_failed"
-        if job.get("proposal"):
+        if proposal_ready:
             return "paused", "proposal_ready"
         if str(goal_review.get("safety_assessment") or "").strip().lower().startswith("no"):
             return "paused", "safety_not_passed"

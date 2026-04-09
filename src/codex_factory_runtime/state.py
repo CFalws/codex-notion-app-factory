@@ -389,6 +389,8 @@ class RuntimeState:
         source: str,
         conversation_id: str,
         max_iterations: int,
+        auto_apply_proposals: bool,
+        auto_resume_after_apply: bool,
     ) -> dict[str, Any]:
         payload = build_goal(
             app_id=app_id,
@@ -398,6 +400,8 @@ class RuntimeState:
             conversation_id=conversation_id,
             now=utc_now(),
             max_iterations=max_iterations,
+            auto_apply_proposals=auto_apply_proposals,
+            auto_resume_after_apply=auto_resume_after_apply,
         )
         self._write_json(self.goal_path(payload["goal_id"]), payload)
         return payload

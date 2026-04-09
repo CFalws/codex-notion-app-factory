@@ -22,11 +22,22 @@ An autonomous goal loop should:
 Open-ended does **not** mean ungoverned. The loop should still pause or stop when:
 
 - a job fails
-- a proposal becomes ready and needs explicit apply
+- a proposal becomes ready and auto-apply is disabled
 - the safety assessment is negative
 - the alignment assessment is negative
 - the goal review says to stop
 - an explicit halt is requested
+
+## Supervisor Rule
+
+For unattended self-improvement, the goal policy may auto-apply proposal-mode iterations.
+
+When auto-apply is enabled:
+
+- the proposal must still go through the normal proposal/apply path
+- apply and push status must be recorded in state
+- if apply schedules a service restart, the goal should remain `running`
+- the runtime should resume any `running` goals on startup so unattended loops survive restarts
 
 ## Goal Review Contract
 

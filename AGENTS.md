@@ -120,6 +120,7 @@ That means:
 - explicit comparison to prior iterations
 - explicit continuation, alignment, and safety review
 - stop or pause when policy says to stop or pause
+- if proposal-mode autonomy is unattended, auto-apply and restart-resume behavior must be explicit in policy and durable state
 
 ## State Contract Rule
 

@@ -169,6 +169,8 @@ def build_goal(
     conversation_id: str,
     now: str,
     max_iterations: int,
+    auto_apply_proposals: bool,
+    auto_resume_after_apply: bool,
 ) -> dict[str, Any]:
     return {
         "goal_id": uuid4().hex,
@@ -191,7 +193,9 @@ def build_goal(
         "halt_requested": False,
         "policy": {
             "require_verification": True,
-            "pause_on_proposal": True,
+            "auto_apply_proposals": auto_apply_proposals,
+            "auto_resume_after_apply": auto_resume_after_apply,
+            "pause_on_proposal": not auto_apply_proposals,
             "pause_on_failed_job": True,
             "pause_on_safety_no": True,
             "pause_on_alignment_no": True,

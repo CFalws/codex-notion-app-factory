@@ -86,6 +86,8 @@ def register_routes(app: FastAPI, context: RuntimeApiContext) -> None:
             source=body.source,
             max_iterations=body.max_iterations,
             autostart=body.autostart,
+            auto_apply_proposals=body.auto_apply_proposals,
+            auto_resume_after_apply=body.auto_resume_after_apply,
         )
 
     @app.get("/api/goals/{goal_id}")

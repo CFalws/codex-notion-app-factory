@@ -178,6 +178,22 @@ class RuntimeApiContext:
     def spawn_goal_loop(self, goal_id: str) -> None:
         asyncio.create_task(self.run_goal_loop(goal_id))
 
+    def resume_running_goals(self) -> None:
+        for goal in self.state.list_goals():
+            if goal.get("status") != "running":
+                continue
+            if goal.get("halt_requested"):
+                continue
+            conversation_id = str(goal.get("conversation_id") or "").strip()
+            self.append_event(
+                conversation_id,
+                event_type="goal.resumed",
+                body="서버 시작 후 실행 중이던 자율 목표 루프를 다시 붙였습니다.",
+                status="running",
+                data={"goal_id": goal.get("goal_id", "")},
+            )
+            self.spawn_goal_loop(str(goal["goal_id"]))
+
     def interpret_intent(
         self,
         *,
@@ -396,6 +412,8 @@ class RuntimeApiContext:
         source: str,
         max_iterations: int,
         autostart: bool,
+        auto_apply_proposals: bool,
+        auto_resume_after_apply: bool,
     ) -> dict[str, Any]:
         app_record = self.require_app(app_id)
         conversation = self.state.create_conversation(
@@ -417,6 +435,8 @@ class RuntimeApiContext:
             source=source,
             conversation_id=conversation["conversation_id"],
             max_iterations=max_iterations,
+            auto_apply_proposals=auto_apply_proposals,
+            auto_resume_after_apply=auto_resume_after_apply,
         )
         self.append_event(
             conversation["conversation_id"],
@@ -427,6 +447,8 @@ class RuntimeApiContext:
                 "goal_id": goal["goal_id"],
                 "max_iterations": max_iterations,
                 "open_ended": max_iterations == 0,
+                "auto_apply_proposals": auto_apply_proposals,
+                "auto_resume_after_apply": auto_resume_after_apply,
             },
         )
         if autostart:
@@ -561,8 +583,76 @@ class RuntimeApiContext:
             if job.get("result_summary"):
                 goal["best_job_id"] = payload["job"]["job_id"]
                 goal["best_summary"] = job.get("result_summary", "")
+            self.state.save_goal(goal)
 
-            next_status, stop_reason = self.goals.next_goal_status(goal, job)
+            proposal_auto_applied = False
+            if job.get("proposal") and bool((goal.get("policy") or {}).get("auto_apply_proposals")):
+                self.append_event(
+                    conversation_id,
+                    event_type="goal.proposal.auto_apply.started",
+                    body="자율 목표 정책에 따라 proposal을 자동 적용합니다.",
+                    status="proposal",
+                    job_id=payload["job"]["job_id"],
+                    data={"goal_id": goal_id, "iteration": iteration_number},
+                )
+                try:
+                    proposal = await self.apply_proposal(payload["job"]["job_id"])
+                except HTTPException as exc:
+                    goal["status"] = "paused"
+                    goal["stop_reason"] = "auto_apply_failed"
+                    goal["completed_at"] = utc_now()
+                    self.state.save_goal(goal)
+                    self.append_event(
+                        conversation_id,
+                        event_type="goal.paused",
+                        body=f"proposal 자동 적용에 실패해 자율 목표를 일시중지합니다. {exc.detail}",
+                        status="paused",
+                        job_id=payload["job"]["job_id"],
+                        data={"goal_id": goal_id, "iteration": iteration_number, "stop_reason": goal["stop_reason"]},
+                    )
+                    return
+
+                proposal_auto_applied = True
+                iteration_record["proposal_status"] = str(proposal.get("status") or "")
+                iteration_record["auto_applied"] = True
+                iteration_record["push_status"] = str(proposal.get("push_status") or "")
+                goal["iterations"][-1] = iteration_record
+                self.state.save_goal(goal)
+                self.append_event(
+                    conversation_id,
+                    event_type="goal.proposal.auto_apply.completed",
+                    body="proposal을 자동 적용했고, 자율 목표를 계속 진행할 수 있습니다.",
+                    status="applied",
+                    job_id=payload["job"]["job_id"],
+                    data={
+                        "goal_id": goal_id,
+                        "iteration": iteration_number,
+                        "proposal_status": proposal.get("status", ""),
+                        "push_status": proposal.get("push_status", ""),
+                    },
+                )
+                if str(proposal.get("restart_service") or "").strip() and bool(
+                    (goal.get("policy") or {}).get("auto_resume_after_apply")
+                ):
+                    goal["status"] = "running"
+                    goal["stop_reason"] = ""
+                    goal["completed_at"] = ""
+                    self.state.save_goal(goal)
+                    self.append_event(
+                        conversation_id,
+                        event_type="goal.awaiting_restart_resume",
+                        body="서비스 재시작 후 자율 목표 루프를 자동으로 다시 시작합니다.",
+                        status="running",
+                        job_id=payload["job"]["job_id"],
+                        data={"goal_id": goal_id, "iteration": iteration_number},
+                    )
+                    return
+
+            next_status, stop_reason = self.goals.next_goal_status(
+                goal,
+                job,
+                proposal_ready=bool(job.get("proposal")) and not proposal_auto_applied,
+            )
             goal["status"] = next_status
             goal["stop_reason"] = stop_reason
             if next_status in {"completed", "failed", "paused", "stopped"}:
