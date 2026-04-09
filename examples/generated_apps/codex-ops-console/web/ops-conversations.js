@@ -47,6 +47,7 @@ export function createConversationController(deps) {
     state.appendStream.source = null;
     resetAppendStream("");
     renderSessionStrip(dom, state, state.conversationCache);
+    syncConversationCardState();
   }
 
   function syncAppendCursor(conversation) {
@@ -109,6 +110,7 @@ export function createConversationController(deps) {
     state.appendStream.status = "live";
     state.appendStream.lastRenderSource = "sse";
     renderConversation(dom, state, conversation, persistSettings);
+    syncConversationCardState();
     restoreDraft();
     syncDraftStatus();
     return true;
@@ -127,6 +129,7 @@ export function createConversationController(deps) {
     state.appendStream.transport = "sse";
     state.appendStream.lastRenderSource = "snapshot";
     renderSessionStrip(dom, state, state.conversationCache);
+    syncConversationCardState();
 
     state.appendStream.source.addEventListener("open", () => {
       if (state.currentConversationId !== conversationId || state.appendStream?.conversationId !== conversationId) {
@@ -135,6 +138,7 @@ export function createConversationController(deps) {
       openedOnce = true;
       state.appendStream.status = "live";
       renderSessionStrip(dom, state, state.conversationCache);
+      syncConversationCardState();
     });
 
     state.appendStream.source.addEventListener("conversation.append", (event) => {
@@ -159,6 +163,7 @@ export function createConversationController(deps) {
       }
       state.appendStream.status = "reconnecting";
       renderSessionStrip(dom, state, state.conversationCache);
+      syncConversationCardState();
     });
   }
 
@@ -177,6 +182,43 @@ export function createConversationController(deps) {
       items.find((goal) => goal.status === "paused") ||
       items[0]
     );
+  }
+
+  function syncConversationCardState() {
+    const selectedConversationId = state.currentConversationId || state.savedConversationId || "";
+    const liveConversationId = String(dom.threadScroller?.dataset.liveConversationId || "");
+    const presentation = String(dom.threadScroller?.dataset.sessionPresentation || "cleared");
+    const liveRunState = String(dom.threadScroller?.dataset.liveRunState || "done");
+
+    let liveLabel = "";
+    if (selectedConversationId && selectedConversationId === liveConversationId) {
+      if (presentation === "connecting") {
+        liveLabel = "CONNECTING";
+      } else if (presentation === "live") {
+        liveLabel = liveRunState.replaceAll("-", " ").toUpperCase();
+      } else if (presentation === "reconnecting") {
+        liveLabel = "RECONNECTING";
+      } else if (presentation === "terminal") {
+        liveLabel = "DONE";
+      }
+    }
+
+    for (const card of dom.conversationList.querySelectorAll("[data-conversation-id]")) {
+      const isSelected = card.dataset.conversationId === selectedConversationId;
+      const marker = card.querySelector("[data-conversation-marker]");
+      const liveState = card.querySelector("[data-conversation-live-state]");
+      card.classList.toggle("active", isSelected);
+      card.dataset.selected = isSelected ? "true" : "false";
+      card.dataset.threadState = isSelected ? (liveLabel ? liveLabel.toLowerCase() : "idle") : "idle";
+      if (marker) {
+        marker.hidden = !isSelected;
+        marker.textContent = "ACTIVE";
+      }
+      if (liveState) {
+        liveState.hidden = !isSelected || !liveLabel;
+        liveState.textContent = liveLabel;
+      }
+    }
   }
 
   async function refreshGoalSummary() {
@@ -212,13 +254,22 @@ export function createConversationController(deps) {
             type="button"
             class="conversation-card${isActive ? " active" : ""}"
             data-conversation-id="${conversation.conversation_id}"
+            data-selected="${isActive ? "true" : "false"}"
+            data-thread-state="idle"
           >
-            <span class="conversation-card-title">${conversation.title}</span>
-            <span class="conversation-card-meta">${new Date(conversation.updated_at).toLocaleString()}</span>
+            <span class="conversation-card-head">
+              <span class="conversation-card-title">${conversation.title}</span>
+              <span class="conversation-card-marker" data-conversation-marker ${isActive ? "" : "hidden"}>ACTIVE</span>
+            </span>
+            <span class="conversation-card-meta-row">
+              <span class="conversation-card-meta">${new Date(conversation.updated_at).toLocaleString()}</span>
+              <span class="conversation-card-live" data-conversation-live-state hidden></span>
+            </span>
           </button>
         `;
       })
       .join("");
+    syncConversationCardState();
   }
 
   async function loadConversations() {
@@ -238,6 +289,7 @@ export function createConversationController(deps) {
         jobState: "IDLE",
       });
       renderConversation(dom, state, null, persistSettings);
+      syncConversationCardState();
       restoreDraft();
       return;
     }
@@ -261,6 +313,7 @@ export function createConversationController(deps) {
       state.savedConversationId = "";
       state.currentJobId = "";
       renderConversation(dom, state, null, persistSettings);
+      syncConversationCardState();
       dom.conversationMeta.textContent = "이 앱에는 아직 대화가 없습니다.";
       updateHeroState(dom, {
         appName: app.title,
@@ -273,6 +326,7 @@ export function createConversationController(deps) {
       state.currentConversationId = "";
       state.currentJobId = "";
       renderConversation(dom, state, null, persistSettings);
+      syncConversationCardState();
       dom.conversationMeta.textContent = `대화를 불러오지 못했습니다: ${error.message}`;
       dom.conversationList.innerHTML = '<p class="conversation-list-empty">대화를 불러오지 못했습니다.</p>';
       clearAutonomySummary(dom, "대화를 불러오지 못해 autonomy summary도 갱신하지 못했습니다.");
@@ -285,6 +339,7 @@ export function createConversationController(deps) {
     if (!conversationId) {
       closeAppendStream();
       renderConversation(dom, state, null, persistSettings);
+      syncConversationCardState();
       return;
     }
 
@@ -297,6 +352,7 @@ export function createConversationController(deps) {
       state.currentJobId = "";
       state.conversationCache = null;
       renderConversation(dom, state, null, persistSettings);
+      syncConversationCardState();
     }
 
     const conversation = await fetchJson(dom, conversationUrl(conversationId));
@@ -306,6 +362,7 @@ export function createConversationController(deps) {
       card.classList.toggle("active", card.dataset.conversationId === state.currentConversationId);
     }
     renderConversation(dom, state, conversation, persistSettings);
+    syncConversationCardState();
     syncAppendCursor(conversation);
     connectAppendStream(conversation.conversation_id);
     restoreDraft();
@@ -387,6 +444,7 @@ export function createConversationController(deps) {
         setJobMeta(dom, "앱이 등록되면 여기에서 작업 상태를 추적합니다.");
         dom.conversationList.innerHTML = '<p class="conversation-list-empty">등록된 앱이 없습니다.</p>';
         renderConversation(dom, state, null, persistSettings);
+        syncConversationCardState();
         clearLearningSummary(dom);
         return;
       }

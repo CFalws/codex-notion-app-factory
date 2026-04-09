@@ -256,16 +256,81 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   display: block;
 }
 
+.conversation-card-head,
+.conversation-card-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+}
+
+.conversation-card-meta-row {
+  margin-top: 0.28rem;
+}
+
 .conversation-card-title {
   font-weight: 700;
   line-height: 1.35;
   word-break: break-word;
 }
 
+.conversation-card-marker,
+.conversation-card-live {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0.22rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.conversation-card-marker {
+  color: var(--accent-ink);
+  border-color: rgba(31, 120, 224, 0.22);
+  background: rgba(31, 120, 224, 0.08);
+}
+
 .conversation-card-meta {
-  margin-top: 0.28rem;
+  margin-top: 0;
   color: var(--muted);
   font-size: 0.78rem;
+}
+
+.conversation-card-live {
+  color: var(--muted);
+}
+
+.conversation-card[data-thread-state="connecting"] .conversation-card-live,
+.conversation-card[data-thread-state="thinking"] .conversation-card-live {
+  color: var(--accent-ink);
+  border-color: rgba(31, 120, 224, 0.22);
+  background: rgba(31, 120, 224, 0.08);
+}
+
+.conversation-card[data-thread-state="running tool"] .conversation-card-live,
+.conversation-card[data-thread-state="running-tool"] .conversation-card-live {
+  color: var(--danger);
+  border-color: rgba(182, 75, 65, 0.24);
+  background: rgba(182, 75, 65, 0.08);
+}
+
+.conversation-card[data-thread-state="waiting"] .conversation-card-live,
+.conversation-card[data-thread-state="reconnecting"] .conversation-card-live {
+  color: var(--warning);
+  border-color: rgba(178, 114, 24, 0.24);
+  background: rgba(178, 114, 24, 0.08);
+}
+
+.conversation-card[data-thread-state="done"] .conversation-card-live {
+  color: var(--success);
+  border-color: rgba(47, 138, 89, 0.24);
+  background: rgba(47, 138, 89, 0.08);
 }
 
 .main-stage {

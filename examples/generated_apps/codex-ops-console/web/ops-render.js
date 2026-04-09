@@ -219,6 +219,9 @@ export function renderSessionStrip(dom, currentState, conversation) {
     dom.threadScroller.dataset.lastLiveAppendId = "0";
     dom.threadScroller.dataset.sessionPresentation = "cleared";
     dom.threadScroller.dataset.sessionTerminal = "false";
+    dom.threadScroller.dataset.liveRunState = "done";
+    dom.threadScroller.dataset.liveRunSource = "none";
+    dom.threadScroller.dataset.liveRunJob = "";
     return;
   }
 
@@ -272,6 +275,9 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.threadScroller.dataset.lastLiveAppendId = String(lastLiveAppendId || 0);
   dom.threadScroller.dataset.sessionPresentation = presentation;
   dom.threadScroller.dataset.sessionTerminal = liveRun.terminal ? "true" : "false";
+  dom.threadScroller.dataset.liveRunState = liveRun.state;
+  dom.threadScroller.dataset.liveRunSource = liveRun.source;
+  dom.threadScroller.dataset.liveRunJob = liveRun.jobId || "";
 }
 
 export function renderComposerMeta(dom, { hint = "", count = 0 }) {

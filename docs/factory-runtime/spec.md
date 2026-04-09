@@ -8,7 +8,7 @@
 
 ## Problem
 
-Phone-width footer flow is materially closer to a live session now, but desktop still risks reading like an operator dashboard because execution logs, learning summaries, and workspace context remain mixed into the always-visible left rail instead of collapsing behind a secondary surface.
+The desktop layout is now materially conversation-first, but thread navigation still requires the user to infer which conversation is actively generating by reading the center pane or opening secondary status surfaces. The remaining friction is navigation ambiguity, not transport or layout ownership.
 
 ## Target User
 
@@ -23,4 +23,4 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 ## Deliverable
 
-On desktop widths, keep the thread rail continuously visible, keep the transcript and composer dominant in the center pane, and move nonessential operator and status content behind a secondary panel that stays collapsed by default while a conversation is active.
+Add compact selected-thread and live-run markers directly into the existing left rail so the user can identify the active and currently generating conversation from navigation alone, while keeping the center pane, footer dock, and secondary panel behavior unchanged.
