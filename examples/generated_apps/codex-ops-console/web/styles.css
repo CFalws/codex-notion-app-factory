@@ -282,6 +282,22 @@ textarea {
   min-width: 0;
 }
 
+.conversation-live-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: fit-content;
+  margin: 0.1rem 0 0;
+  padding: 0.26rem 0.62rem;
+  border: 1px solid rgba(47, 138, 89, 0.22);
+  border-radius: 999px;
+  background: rgba(47, 138, 89, 0.1);
+  color: var(--success);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
 .thread-title-block h2 {
   font-size: 1.55rem;
   line-height: 1.08;
@@ -316,7 +332,7 @@ textarea {
 
 .thread-surface {
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr) auto auto auto;
   min-height: 0;
   overflow: hidden;
 }
@@ -403,6 +419,90 @@ textarea {
   gap: 0.78rem;
 }
 
+.live-run-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  padding: 0.72rem 1rem;
+  border-top: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 243, 237, 0.9));
+}
+
+.live-run-state {
+  margin: 0;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+}
+
+.live-run-detail {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  text-align: right;
+}
+
+.live-run-row[data-live-run-tone="running"] .live-run-state {
+  color: var(--danger);
+}
+
+.live-run-row[data-live-run-tone="thinking"] .live-run-state {
+  color: var(--accent-ink);
+}
+
+.live-run-row[data-live-run-tone="waiting"] .live-run-state {
+  color: var(--warning);
+}
+
+.live-run-row[data-live-run-tone="done"] .live-run-state,
+.live-run-row[data-live-run-tone="idle"] .live-run-state {
+  color: var(--success);
+}
+
+.append-stream-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  padding: 0.7rem 1rem;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.append-stream-state {
+  margin: 0;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+}
+
+.append-stream-strip[data-stream-state="live"] .append-stream-state {
+  color: var(--success);
+}
+
+.append-stream-strip[data-stream-state="reconnecting"] .append-stream-state {
+  color: var(--warning);
+}
+
+.append-stream-strip[data-stream-state="offline"] .append-stream-state {
+  color: var(--muted);
+}
+
+.append-stream-detail {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  text-align: right;
+}
+
 .timeline-item {
   min-width: 0;
   padding: 0.9rem 1rem;
@@ -410,6 +510,11 @@ textarea {
   border-radius: 1rem;
   background: var(--surface-soft);
   box-shadow: 0 10px 26px rgba(44, 25, 6, 0.04);
+}
+
+.timeline-provenance {
+  color: var(--success);
+  font-weight: 700;
 }
 
 .timeline-item.message {

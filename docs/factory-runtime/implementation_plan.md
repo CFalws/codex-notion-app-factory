@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Treat review-rejection recovery context as the single bounded hypothesis for this iteration.
-2. Extend proposer prompt summarization so `rejected_before_implementation` iterations include reviewer `blocking_issue` and `suggested_adjustment` fields alongside `proposal_not_approved`.
-3. Keep controller, proposal/apply, and verifier behavior unchanged; only proposer input quality should change.
-4. Add contract coverage that proves rejected review evidence survives into proposer input as labeled context.
-5. Update the app docs so future sessions know review rejection recovery should use structured reviewer evidence instead of prose-only summary.
+1. Keep the scope inside the selected conversation workspace and reuse existing live append and event data rather than widening transport behavior.
+2. Add one compact live-run row at the timeline/composer boundary that summarizes the active session as `thinking`, `running tool`, `waiting`, or `done`.
+3. Drive that row from the selected conversation's live event path and expose machine-readable state or source attributes for browser verification.
+4. Keep the row hidden when there is no active conversation and avoid duplicating full timeline content or restoring separate heavy status panels.
+5. Extend the static verifier and docs so future sessions can prove the inline progress row is wired to the intended live path.

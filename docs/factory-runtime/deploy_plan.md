@@ -2,11 +2,13 @@
 
 ## Deployment Impact
 
-This changes backend proposer input only. Controller behavior, proposal/apply behavior, and GitHub Pages assets are unchanged.
+This changes the GitHub Pages operator workspace only. It adds an inline active-session progress row on top of the existing selected-conversation live workspace state. Broader polling, transport, and proposal behavior stay unchanged.
 
 ## Rollout Notes
 
 1. Apply the proposal commit onto `main`.
-2. Run a goal where iteration N is rejected before implementation with `proposal_not_approved`.
-3. Trigger iteration N+1 and inspect the proposer prompt or saved proposer context for `proposal_review_blocking_issues` and `proposal_review_suggested_adjustments`.
-4. Confirm the next bounded hypothesis addresses the rejected shape rather than repeating it verbatim.
+2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
+3. Open one active conversation and confirm the inline run row appears only for that selected thread.
+4. Trigger a request and confirm the row moves through compact states such as `thinking`, `running tool`, `waiting`, and `done` without needing the inspector panel.
+5. Verify the row's machine-readable state attributes change alongside live conversation events and that healthy live appends still carry SSE provenance.
+6. Switch conversations and confirm the prior run row state clears with the old thread instead of leaking into the new selection.

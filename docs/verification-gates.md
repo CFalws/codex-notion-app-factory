@@ -172,6 +172,15 @@ When proposer prompts are built from prior autonomous history, verification shou
 - the next bounded hypothesis is not chosen from prose-only context when structured failure state already exists
 - rejected-before-implementation iterations preserve reviewer `blocking_issue` and `suggested_adjustment` in proposer input
 
+For the feature-flagged active-conversation append SSE path, verification should also assert that:
+
+- healthy live appends arrive through `text/event-stream`
+- browser resume relies on monotonic `append_id` and `Last-Event-ID`, not duplicate full-timeline polling
+- non-active conversations never render into the active timeline
+- polling-driven conversation refetch is not the path that makes healthy live appends appear while SSE is connected
+- the workspace exposes machine-readable stream state and per-append provenance so browser verification can attribute visible appends to SSE rather than polling
+- inline active-session status in the selected conversation exposes machine-readable state and source derived from live conversation events rather than a separate polling-only status surface
+
 ## Commit And Deploy Policy
 
 ### Before Commit

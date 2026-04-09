@@ -24,7 +24,148 @@ export function createConversationController(deps) {
     renderWorkspaceSummary,
     restoreDraft,
     syncDraftStatus,
+    internalConversationAppendStreamUrl,
+    renderConversationLiveStatus,
+    renderAppendStreamStrip,
   } = deps;
+
+  function resetAppendStream(conversationId = "") {
+    state.appendStream ||= {};
+    state.appendStream.conversationId = conversationId;
+    state.appendStream.status = "offline";
+    state.appendStream.transport = "polling";
+    state.appendStream.lastRenderSource = "snapshot";
+    state.appendStream.lastLiveAppendId = 0;
+    if (!conversationId) {
+      state.appendStream.lastAppendId = 0;
+    }
+  }
+
+  function closeAppendStream() {
+    if (state.appendStream?.source) {
+      state.appendStream.source.close();
+    }
+    state.appendStream.source = null;
+    resetAppendStream("");
+    renderConversationLiveStatus(dom, state, state.conversationCache);
+    renderAppendStreamStrip(dom, state, state.conversationCache);
+  }
+
+  function syncAppendCursor(conversation) {
+    state.appendStream ||= {};
+    const messages = Array.isArray(conversation?.messages) ? conversation.messages : [];
+    const events = Array.isArray(conversation?.events) ? conversation.events : [];
+    const lastAppendId = [...messages, ...events].reduce((maxValue, item) => {
+      const appendId = Number(item?.append_id || 0);
+      return appendId > maxValue ? appendId : maxValue;
+    }, 0);
+    state.appendStream.lastAppendId = lastAppendId;
+    state.appendStream.lastRenderSource = "snapshot";
+    return lastAppendId;
+  }
+
+  function appendLiveItem(appendEnvelope) {
+    const activeConversationId = state.currentConversationId;
+    if (!activeConversationId || !state.conversationCache) {
+      return false;
+    }
+    if (appendEnvelope.conversation_id !== activeConversationId) {
+      return false;
+    }
+
+    const appendId = Number(appendEnvelope.append_id || 0);
+    if (!appendId || appendId <= Number(state.appendStream?.lastAppendId || 0)) {
+      return false;
+    }
+
+    const payload = appendEnvelope.payload;
+    if (!payload || typeof payload !== "object") {
+      return false;
+    }
+    const livePayload = { ...payload, delivery_source: "sse" };
+
+    const conversation = {
+      ...state.conversationCache,
+      messages: Array.isArray(state.conversationCache.messages) ? [...state.conversationCache.messages] : [],
+      events: Array.isArray(state.conversationCache.events) ? [...state.conversationCache.events] : [],
+    };
+    const duplicate = [...conversation.messages, ...conversation.events].some(
+      (item) => Number(item?.append_id || 0) === appendId,
+    );
+    if (duplicate) {
+      state.appendStream.lastAppendId = Math.max(Number(state.appendStream.lastAppendId || 0), appendId);
+      return false;
+    }
+
+    if (appendEnvelope.kind === "message") {
+      conversation.messages.push(livePayload);
+    } else if (appendEnvelope.kind === "event") {
+      conversation.events.push(livePayload);
+    } else {
+      return false;
+    }
+
+    state.appendStream.lastAppendId = appendId;
+    state.appendStream.lastLiveAppendId = appendId;
+    state.appendStream.transport = "sse";
+    state.appendStream.status = "live";
+    state.appendStream.lastRenderSource = "sse";
+    renderConversation(dom, state, conversation, persistSettings);
+    restoreDraft();
+    syncDraftStatus();
+    return true;
+  }
+
+  function connectAppendStream(conversationId) {
+    closeAppendStream();
+    if (!conversationId || typeof window === "undefined" || typeof window.EventSource !== "function") {
+      return;
+    }
+
+    let openedOnce = false;
+    state.appendStream.source = new window.EventSource(internalConversationAppendStreamUrl(conversationId));
+    state.appendStream.conversationId = conversationId;
+    state.appendStream.status = "connecting";
+    state.appendStream.transport = "sse";
+    state.appendStream.lastRenderSource = "snapshot";
+    renderConversationLiveStatus(dom, state, state.conversationCache);
+    renderAppendStreamStrip(dom, state, state.conversationCache);
+
+    state.appendStream.source.addEventListener("open", () => {
+      if (state.currentConversationId !== conversationId || state.appendStream?.conversationId !== conversationId) {
+        return;
+      }
+      openedOnce = true;
+      state.appendStream.status = "live";
+      renderConversationLiveStatus(dom, state, state.conversationCache);
+      renderAppendStreamStrip(dom, state, state.conversationCache);
+    });
+
+    state.appendStream.source.addEventListener("conversation.append", (event) => {
+      if (state.currentConversationId !== conversationId || state.appendStream?.conversationId !== conversationId) {
+        return;
+      }
+      try {
+        const payload = JSON.parse(event.data || "{}");
+        appendLiveItem(payload);
+      } catch (_) {
+        // Keep the existing timeline and let the next poll-driven refresh recover if needed.
+      }
+    });
+
+    state.appendStream.source.addEventListener("error", () => {
+      if (state.currentConversationId !== conversationId || state.appendStream?.conversationId !== conversationId) {
+        return;
+      }
+      if (!openedOnce) {
+        closeAppendStream();
+        return;
+      }
+      state.appendStream.status = "reconnecting";
+      renderConversationLiveStatus(dom, state, state.conversationCache);
+      renderAppendStreamStrip(dom, state, state.conversationCache);
+    });
+  }
 
   function pickRelevantGoal(goals) {
     const items = Array.isArray(goals) ? goals.slice() : [];
@@ -89,6 +230,7 @@ export function createConversationController(deps) {
     const app = selectedAppData(dom);
     const preferredConversationId = state.currentConversationId || state.savedConversationId || "";
     state.conversationCache = null;
+    closeAppendStream();
 
     if (!app) {
       state.currentConversationId = "";
@@ -146,6 +288,7 @@ export function createConversationController(deps) {
   async function fetchConversation(conversationId, options = {}) {
     const { syncJob = true } = options;
     if (!conversationId) {
+      closeAppendStream();
       renderConversation(dom, state, null, persistSettings);
       return;
     }
@@ -157,6 +300,8 @@ export function createConversationController(deps) {
       card.classList.toggle("active", card.dataset.conversationId === state.currentConversationId);
     }
     renderConversation(dom, state, conversation, persistSettings);
+    syncAppendCursor(conversation);
+    connectAppendStream(conversation.conversation_id);
     restoreDraft();
     syncDraftStatus();
 

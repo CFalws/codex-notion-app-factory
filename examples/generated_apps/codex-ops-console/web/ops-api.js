@@ -54,6 +54,10 @@ export function conversationMessagesUrl(conversationId) {
   return `${conversationUrl(conversationId)}/messages`;
 }
 
+export function internalConversationAppendStreamUrl(conversationId) {
+  return `${normalizeBaseUrl()}/api/internal/conversations/${conversationId}/append-stream`;
+}
+
 export function proposalsApplyUrl(jobId) {
   return `${normalizeBaseUrl()}/api/proposals/${jobId}/apply`;
 }

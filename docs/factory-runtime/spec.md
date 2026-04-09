@@ -2,24 +2,25 @@
 
 ## Request
 
-- title: `Self-Improving Agentic Dev Environment`
+- title: `Realtime Session UX Like Codex Desktop`
 - source: `goal-loop`
 - execution mode: `proposal`
 
 ## Problem
 
-Rejected-before-implementation iterations already persist `proposal_not_approved` plus reviewer `blocking_issue` and `suggested_adjustment`, but the next proposer prompt still reduces that to generic summary text. That makes recovery from review rejection weaker than it should be and increases the chance of repeating the same weak hypothesis.
+The active conversation can now show live append state and provenance, but the central workspace still makes users look away from the thread to understand whether the agent is currently thinking, running a tool, waiting, or done. That keeps the experience closer to a request form plus separate status panels than to a realtime session workspace.
 
 ## Target User
 
-The primary user is the operator relying on unattended runtime self-improvement and needing durable evidence that proposal apply, restart, and continuation happened correctly.
+The primary user is the operator or developer using the phone-friendly workspace and expecting the active conversation to behave more like a Codex desktop session.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Prefer a bounded state/verification improvement over broad supervisor automation.
+- Reuse the existing feature-flagged internal SSE route instead of widening transport scope.
+- Leave broader polling, status, and fallback behavior unchanged in this iteration.
 
 ## Deliverable
 
-Carry reviewer rejection evidence into proposer input as labeled context alongside `proposal_not_approved`, so the next bounded hypothesis can react to the explicit blocking issue and suggested adjustment instead of relying on prose-only memory.
+Add an inline active-session progress row at the timeline/composer boundary for the selected conversation only, driven by existing live conversation events and exposing machine-readable state so browser verification can prove the row follows the intended live path instead of polling-only refresh.

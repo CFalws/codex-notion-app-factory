@@ -12,6 +12,7 @@ export function createJobController(deps) {
     fetchConversation,
     refreshGoalSummary,
     describeJob,
+    isAppendStreamConnected,
   } = deps;
 
   async function syncLatestJob() {
@@ -60,14 +61,14 @@ export function createJobController(deps) {
     try {
       const payload = await syncLatestJob();
 
-      if (state.currentConversationId) {
+      if (state.currentConversationId && !isAppendStreamConnected(state, state.currentConversationId)) {
         try {
           await fetchConversation(state.currentConversationId, { syncJob: false });
-          await refreshGoalSummary();
         } catch (_) {
           // Keep the last rendered conversation and let the job panel carry the visible error if needed.
         }
       }
+      await refreshGoalSummary();
 
       if (!payload) {
         return;
@@ -79,10 +80,10 @@ export function createJobController(deps) {
         }
         state.currentJobId = "";
         stopPolling();
-        if (state.currentConversationId) {
+        if (state.currentConversationId && !isAppendStreamConnected(state, state.currentConversationId)) {
           await fetchConversation(state.currentConversationId, { syncJob: false });
-          await refreshGoalSummary();
         }
+        await refreshGoalSummary();
       }
     } catch (error) {
       setStatus(dom, `작업 상태를 가져오지 못했습니다.\n\n${error.message}`);

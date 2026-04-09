@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Choose one bounded review-rejection recovery hypothesis instead of broader autonomy-prompt changes.
-- [x] Feed reviewer `blocking_issue` and `suggested_adjustment` into proposer input when an iteration is rejected before implementation.
-- [x] Keep controller and proposal/apply behavior unchanged so only proposer input quality changes.
-- [x] Verify rejected review evidence survives into proposer input in labeled form.
-- [x] Update the `factory-runtime` docs to match the current runtime iteration.
+- [x] Add one compact live-run row for the selected conversation at the timeline/composer boundary.
+- [x] Drive the row from existing live conversation events instead of a separate polling-only status surface.
+- [x] Expose machine-readable run state and source attributes so browser verification can prove the intended live path.
+- [x] Keep the row hidden for inactive or missing conversations and avoid duplicating timeline content.
+- [x] Extend the static verifier so future sessions can prove the inline run row hooks exist.

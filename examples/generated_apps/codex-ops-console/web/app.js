@@ -4,6 +4,7 @@ import {
   appGoalsUrl,
   conversationMessagesUrl,
   fetchJson,
+  internalConversationAppendStreamUrl,
   proposalsApplyUrl,
   selectedAppData,
   jobUrl,
@@ -18,7 +19,10 @@ import {
   describeJob,
   renderComposerMeta,
   renderDraftStatus,
+  renderAppendStreamStrip,
   renderJobActivity,
+  renderConversationLiveStatus,
+  renderLiveRunRow,
   renderLearningSummary,
   renderConversation,
   renderAutonomySummary,
@@ -29,7 +33,7 @@ import {
   updateProposalButton,
   updateSelectedAppCard,
 } from "./ops-render.js";
-import { getDraft, loadSettings, normalizeBaseUrl, saveSettings, setDraft, state } from "./ops-store.js";
+import { getDraft, isAppendStreamConnected, loadSettings, normalizeBaseUrl, saveSettings, setDraft, state } from "./ops-store.js";
 
 function persistSettings() {
   saveSettings(dom, state);
@@ -267,6 +271,7 @@ function initControllers() {
     setJobMeta,
     setStatus,
     state,
+    isAppendStreamConnected,
     updateProposalButton,
   });
 
@@ -279,10 +284,14 @@ function initControllers() {
     dom,
     ensurePollingForJob: jobController.ensurePollingForJob,
     fetchJson,
+    internalConversationAppendStreamUrl,
     normalizeBaseUrl,
     persistSettings,
+    renderAppendStreamStrip,
     renderAutonomySummary,
     renderConversation,
+    renderConversationLiveStatus,
+    renderLiveRunRow,
     selectedAppData,
     setJobMeta,
     setStatus,

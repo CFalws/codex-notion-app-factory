@@ -11,7 +11,38 @@ export const state = {
   conversationCache: null,
   draftCache: {},
   pendingAttachmentPreviews: [],
+  appendStream: {
+    source: null,
+    conversationId: "",
+    status: "offline",
+    lastAppendId: 0,
+    transport: "polling",
+    lastRenderSource: "snapshot",
+    lastLiveAppendId: 0,
+  },
 };
+
+export function maxConversationAppendId(conversation) {
+  if (!conversation || typeof conversation !== "object") {
+    return 0;
+  }
+  const messages = Array.isArray(conversation.messages) ? conversation.messages : [];
+  const events = Array.isArray(conversation.events) ? conversation.events : [];
+  return [...messages, ...events].reduce((maxValue, item) => {
+    const appendId = Number(item?.append_id || 0);
+    return appendId > maxValue ? appendId : maxValue;
+  }, 0);
+}
+
+export function isAppendStreamConnected(currentState, conversationId = "") {
+  const appendStream = currentState.appendStream || {};
+  return (
+    appendStream.status === "live" &&
+    appendStream.transport === "sse" &&
+    appendStream.conversationId &&
+    (!conversationId || appendStream.conversationId === conversationId)
+  );
+}
 
 export function draftKey(appId, conversationId = "") {
   return `${appId || "no-app"}::${conversationId || "new-conversation"}`;
