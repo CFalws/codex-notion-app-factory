@@ -12,6 +12,7 @@ from .runtime_engineering import (
     extract_goal_review_json,
     normalize_decision_summary,
     normalize_goal_review,
+    sanitize_user_facing_text,
 )
 from .runtime_proposals import ProposalRuntime
 from .state import RuntimeState, utc_now
@@ -235,7 +236,7 @@ class CodexAgentsRuntime:
             final_output = final_output or "Codex run completed without a final message."
             clean_summary, parsed_goal_review = extract_goal_review_json(final_output)
             clean_summary, parsed_summary = extract_engineering_log_json(clean_summary)
-            clean_summary = clean_summary or "Codex run completed without a final message."
+            clean_summary = sanitize_user_facing_text(clean_summary or "Codex run completed without a final message.")
             decision_summary = normalize_decision_summary(
                 request_payload,
                 parsed_summary,

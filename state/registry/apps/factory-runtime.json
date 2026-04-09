@@ -21,7 +21,7 @@
   ],
   "restart_service": "codex-factory",
   "session_id": "",
-  "deployment_url": "",
+  "deployment_url": "https://codex-factory-vm.tail1b6dd1.ts.net/ops/",
   "latest_commit": "",
   "last_summary": "Use this lane for self-edits to the runtime, ops console, and supporting scripts. Requests run in a proposal worktree and must be applied explicitly.",
   "created_at": "2026-04-08T20:00:00+00:00",

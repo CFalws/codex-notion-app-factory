@@ -1,5 +1,44 @@
 import { DECISION_FIELDS } from "./ops-constants.js";
 
+function escapeHtml(value) {
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function simplifyText(value) {
+  return String(value || "")
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\*\*/g, "")
+    .replace(/^#{1,3}\s+/gm, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function eventLabel(eventType = "") {
+  const labels = {
+    "conversation.created": "대화 시작",
+    "message.accepted": "메시지 접수",
+    "intent.interpreted": "의도 해석",
+    "job.queued": "작업 대기",
+    "job.running": "작업 시작",
+    "job.completed": "작업 완료",
+    "proposal.saved": "제안 저장",
+    "proposal.ready": "제안 준비",
+    "runtime.context.loaded": "기존 맥락 로드",
+    "runtime.workspace.selected": "작업 경로 선택",
+    "runtime.summary.recorded": "요약 저장",
+    "codex.exec.started": "Codex 실행",
+    "codex.exec.finished": "Codex 종료",
+    "runtime.exception": "런타임 예외",
+  };
+  return labels[eventType] || eventType;
+}
+
 export function setStatus(dom, message) {
   dom.statusOutput.textContent = message;
 }
@@ -116,14 +155,13 @@ export function describeJob(payload) {
   const lines = [
     `job_id: ${payload.job_id}`,
     `status: ${payload.status}`,
-    payload.title ? `label: ${payload.title}` : "",
     `created_at: ${payload.created_at}`,
     payload.started_at ? `started_at: ${payload.started_at}` : "",
     payload.completed_at ? `completed_at: ${payload.completed_at}` : "",
     payload.error ? `error: ${payload.error}` : "",
     payload.proposal ? `proposal_branch: ${payload.proposal.branch_name}` : "",
     payload.proposal ? `proposal_status: ${payload.proposal.status}` : "",
-    payload.result_summary ? `\n${payload.result_summary}` : "",
+    payload.result_summary ? `\n${simplifyText(payload.result_summary)}` : "",
   ].filter(Boolean);
   return lines.join("\n");
 }
@@ -183,9 +221,9 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
     ...events.map((item) => ({ ...item, kind: "event", sortAt: item.created_at })),
   ].sort((a, b) => (a.sortAt < b.sortAt ? -1 : 1));
 
-  dom.conversationMeta.textContent = `${conversation.title} · ${items.length} items`;
+  dom.conversationMeta.textContent = `${messages.length} messages · ${events.length} events`;
   updateHeroState(dom, {
-    conversationState: `${conversation.title} · ${items.length} items`,
+    conversationState: `${messages.length} msgs · ${events.length} evts`,
   });
   renderWorkspaceSummary(
     dom,
@@ -206,9 +244,9 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
     .map((item) => {
       if (item.kind === "event") {
         return `
-          <article class="timeline-item event ${item.status || "info"}">
-            <p class="timeline-kind">${item.type}</p>
-            <p class="timeline-body">${item.body}</p>
+            <article class="timeline-item event ${item.status || "info"}">
+            <p class="timeline-kind">${escapeHtml(eventLabel(item.type))}</p>
+            <p class="timeline-body">${escapeHtml(simplifyText(item.body))}</p>
             <p class="timeline-meta">${item.created_at}${item.job_id ? ` · ${item.job_id}` : ""}</p>
           </article>
         `;
@@ -216,8 +254,8 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
 
       return `
         <article class="timeline-item message ${item.role || "assistant"}">
-          <p class="timeline-kind">${item.role === "user" ? "사용자" : "에이전트"}${item.role !== "user" && item.title ? ` · ${item.title}` : ""}</p>
-          <p class="timeline-body">${item.body}</p>
+          <p class="timeline-kind">${item.role === "user" ? "사용자" : "에이전트"}</p>
+          <p class="timeline-body">${escapeHtml(simplifyText(item.body))}</p>
           <p class="timeline-meta">${item.created_at}${item.job_id ? ` · ${item.job_id}` : ""}</p>
         </article>
       `;

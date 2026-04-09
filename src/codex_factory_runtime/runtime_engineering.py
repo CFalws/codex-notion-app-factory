@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import Any
 
 from .config import RuntimeSettings
@@ -113,6 +114,38 @@ Interpreted intent:
 - Ambiguity: {intent_summary.get("ambiguity", "(not set)")}
 - Success signal: {intent_summary.get("success_signal", "(not set)")}
 """.strip()
+
+
+_ABSOLUTE_PATH_PREFIXES = (
+    "/var/lib/codex-factory/state/runtime/worktrees/",
+    "/opt/codex-app-factory/",
+    "/Users/emil/emil/python/codex-app-factory/",
+    "/Users/emil/emil/python/codex-notion-app-factory/",
+)
+
+
+def sanitize_user_facing_text(text: str) -> str:
+    cleaned = str(text or "").strip()
+    if not cleaned:
+        return ""
+
+    cleaned = re.sub(
+        r"\[([^\]]+)\]\((/var/lib/codex-factory/state/runtime/worktrees/[^)]+|/opt/codex-app-factory/[^)]+|/Users/emil/emil/python/codex-(?:notion-)?app-factory/[^)]+)\)",
+        r"\1",
+        cleaned,
+    )
+    cleaned = re.sub(r"`([^`]+)`", r"\1", cleaned)
+    cleaned = cleaned.replace("**", "")
+    cleaned = cleaned.replace("### ", "").replace("## ", "").replace("# ", "")
+    cleaned = re.sub(r"/var/lib/codex-factory/state/runtime/worktrees/[0-9a-f]+/", "", cleaned)
+    for prefix in _ABSOLUTE_PATH_PREFIXES[1:]:
+        cleaned = cleaned.replace(prefix, "")
+    cleaned = cleaned.replace(
+        "https://cfalws.github.io/codex-notion-app-factory/examples/generated_apps/",
+        "https://cfalws.github.io/codex-app-factory/",
+    )
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    return cleaned.strip()
     proposal_tail = ""
     if is_proposal_mode(record):
         proposal_tail = """
@@ -288,7 +321,8 @@ def default_decision_summary(
     verification: str = "",
     follow_up: str = "",
 ) -> dict[str, str]:
-    summary_first_line = next((line.strip() for line in clean_summary.splitlines() if line.strip()), "")
+    sanitized_summary = sanitize_user_facing_text(clean_summary)
+    summary_first_line = next((line.strip() for line in sanitized_summary.splitlines() if line.strip()), "")
     return {
         "goal": str(request_payload.get("title") or request_payload.get("request_text") or "Continue the requested app work.").strip(),
         "system_area": system_area,

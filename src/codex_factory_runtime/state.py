@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -52,11 +53,40 @@ class RuntimeState:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
+    def _normalize_deployment_url(self, record: dict[str, Any]) -> str:
+        app_id = str(record.get("app_id") or "").strip()
+        deployment_url = str(record.get("deployment_url") or "").strip()
+        source_path = str(record.get("source_path") or "").strip().strip("/")
+
+        if app_id == "factory-runtime" and self.settings.operator_base_url:
+            return f"{self.settings.operator_base_url.rstrip('/')}/ops/"
+
+        pages_base = self.settings.github_pages_base_url.rstrip("/")
+        generated_prefix = "examples/generated_apps/"
+        if source_path.startswith(generated_prefix):
+            slug = source_path[len(generated_prefix) :].strip("/")
+            if slug:
+                return f"{pages_base}/{slug}/"
+
+        if deployment_url:
+            match = re.match(
+                r"^https://cfalws\.github\.io/codex-(?:notion-)?app-factory/examples/generated_apps/([^/]+)/?$",
+                deployment_url,
+            )
+            if match:
+                return f"{pages_base}/{match.group(1)}/"
+        return deployment_url
+
+    def _normalize_app_record(self, record: dict[str, Any]) -> dict[str, Any]:
+        normalized = dict(record)
+        normalized["deployment_url"] = self._normalize_deployment_url(normalized)
+        return normalized
+
     def list_apps(self) -> list[dict[str, Any]]:
         records: list[dict[str, Any]] = []
         for path in sorted(self.settings.registry_root.glob("*.json")):
             try:
-                records.append(self._read_json(path))
+                records.append(self._normalize_app_record(self._read_json(path)))
             except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
                 logger.warning("Skipping unreadable app registry file %s: %s", path, exc)
         return records
@@ -65,9 +95,10 @@ class RuntimeState:
         path = self.settings.registry_root / f"{app_id}.json"
         if not path.exists():
             raise KeyError(f"Unknown app_id: {app_id}")
-        return self._read_json(path)
+        return self._normalize_app_record(self._read_json(path))
 
     def save_app(self, record: dict[str, Any]) -> dict[str, Any]:
+        record = self._normalize_app_record(record)
         record["updated_at"] = utc_now()
         self._write_json(self.settings.registry_root / f"{record['app_id']}.json", record)
         return record

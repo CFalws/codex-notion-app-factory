@@ -60,6 +60,8 @@ class RuntimeSettings:
     runtime_api_key: str
     allowed_user_emails: list[str]
     iap_expected_audience: str
+    operator_base_url: str
+    github_pages_base_url: str
     push_after_apply: bool
     push_remote: str
     push_branch: str
@@ -100,6 +102,8 @@ def load_settings() -> RuntimeSettings:
         runtime_api_key=runtime_api_key,
         allowed_user_emails=_env_list("CODEX_FACTORY_ALLOWED_USER_EMAILS"),
         iap_expected_audience=os.getenv("CODEX_FACTORY_IAP_AUDIENCE", "").strip(),
+        operator_base_url=os.getenv("CODEX_FACTORY_OPERATOR_BASE_URL", "https://codex-factory-vm.tail1b6dd1.ts.net").strip(),
+        github_pages_base_url=os.getenv("CODEX_FACTORY_GITHUB_PAGES_BASE_URL", "https://cfalws.github.io/codex-app-factory").strip(),
         push_after_apply=_env_bool("CODEX_FACTORY_PUSH_AFTER_APPLY", True),
         push_remote=os.getenv("CODEX_FACTORY_PUSH_REMOTE", "origin").strip() or "origin",
         push_branch=os.getenv("CODEX_FACTORY_PUSH_BRANCH", "main").strip() or "main",

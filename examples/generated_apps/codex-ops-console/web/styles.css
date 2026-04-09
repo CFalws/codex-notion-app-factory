@@ -224,6 +224,14 @@ textarea {
   background: var(--accent-soft);
 }
 
+.workspace-summary-card {
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.72);
+}
+
 .label,
 .meta {
   margin: 0;
@@ -291,13 +299,12 @@ textarea {
 }
 
 .workspace-summary-text {
-  margin-top: 0.9rem;
-  padding-top: 0.9rem;
-  border-top: 1px solid var(--line);
+  margin-top: 0.45rem;
+  font-size: 0.92rem;
 }
 
 .thread-panel {
-  min-height: 38rem;
+  min-height: 44rem;
 }
 
 .timeline {
@@ -318,6 +325,10 @@ textarea {
 .timeline-item.message.user {
   border-color: rgba(177, 74, 45, 0.18);
   background: rgba(177, 74, 45, 0.08);
+}
+
+.timeline-item.message.assistant {
+  background: rgba(255, 255, 255, 0.94);
 }
 
 .timeline-item.event {
@@ -447,7 +458,9 @@ textarea {
   word-break: break-word;
   line-height: 1.55;
   color: var(--muted);
-  min-height: 10rem;
+  min-height: 12rem;
+  max-height: 20rem;
+  overflow: auto;
 }
 
 .activity-card {
