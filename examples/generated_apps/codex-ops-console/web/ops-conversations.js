@@ -294,6 +294,88 @@ export function createConversationController(deps) {
     );
   }
 
+  function simplifyPreviewText(value) {
+    return String(value || "")
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1")
+      .replace(/`([^`]+)`/g, "$1")
+      .replace(/\*\*/g, "")
+      .replace(/^#{1,3}\s+/gm, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function escapeHtml(value) {
+    return String(value || "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  function snapshotThreadState(conversation) {
+    const events = Array.isArray(conversation?.events) ? conversation.events : [];
+    const latestEvent = events.length ? events[events.length - 1] : null;
+    const latestType = String(latestEvent?.type || "");
+    const latestStatus = String(latestEvent?.status || "").toLowerCase();
+    if (latestStatus === "failed" || latestType === "runtime.exception") {
+      return "done";
+    }
+    if (
+      latestType === "job.completed" ||
+      latestType === "proposal.ready" ||
+      latestType === "codex.exec.applied" ||
+      latestStatus === "completed" ||
+      latestStatus === "applied"
+    ) {
+      return "done";
+    }
+    return "idle";
+  }
+
+  function conversationPreview(conversation) {
+    const messages = Array.isArray(conversation?.messages) ? conversation.messages : [];
+    const events = Array.isArray(conversation?.events) ? conversation.events : [];
+    const latestMessage = messages.length ? messages[messages.length - 1] : null;
+    const latestEvent = events.length ? events[events.length - 1] : null;
+    const candidates = [latestMessage, latestEvent].filter(Boolean);
+    if (!candidates.length) {
+      return "아직 메시지나 이벤트가 없습니다.";
+    }
+    candidates.sort((left, right) => {
+      const leftAppend = Number(left?.append_id || 0);
+      const rightAppend = Number(right?.append_id || 0);
+      if (leftAppend !== rightAppend) {
+        return rightAppend - leftAppend;
+      }
+      const leftCreated = String(left?.created_at || "");
+      const rightCreated = String(right?.created_at || "");
+      return rightCreated.localeCompare(leftCreated);
+    });
+    const item = candidates[0];
+    const body = simplifyPreviewText(item?.body || "");
+    if (item?.role === "assistant") {
+      return body || "최근 assistant 응답이 있습니다.";
+    }
+    if (item?.role === "user") {
+      return `사용자: ${body || "최근 요청이 있습니다."}`;
+    }
+    const type = String(item?.type || "");
+    if (type === "proposal.ready") {
+      return "제안이 준비되었습니다.";
+    }
+    if (type === "codex.exec.applied") {
+      return "제안이 적용되었습니다.";
+    }
+    if (type === "job.completed") {
+      return "최근 작업이 완료되었습니다.";
+    }
+    if (type === "runtime.exception") {
+      return "최근 실행에서 예외가 기록되었습니다.";
+    }
+    return body || "최근 이벤트가 기록되었습니다.";
+  }
+
   function syncConversationCardState() {
     const selectedConversationId = state.currentConversationId || state.savedConversationId || "";
     const liveConversationId = String(dom.threadScroller?.dataset.liveConversationId || "");
@@ -317,16 +399,18 @@ export function createConversationController(deps) {
       const isSelected = card.dataset.conversationId === selectedConversationId;
       const marker = card.querySelector("[data-conversation-marker]");
       const liveState = card.querySelector("[data-conversation-live-state]");
+      const snapshotLabel = String(card.dataset.snapshotStateLabel || "IDLE");
+      const snapshotState = String(card.dataset.snapshotThreadState || "idle");
       card.classList.toggle("active", isSelected);
       card.dataset.selected = isSelected ? "true" : "false";
-      card.dataset.threadState = isSelected ? (liveLabel ? liveLabel.toLowerCase() : "idle") : "idle";
+      card.dataset.threadState = isSelected ? (liveLabel ? liveLabel.toLowerCase() : "active") : snapshotState;
       if (marker) {
         marker.hidden = !isSelected;
         marker.textContent = "ACTIVE";
       }
       if (liveState) {
-        liveState.hidden = !isSelected || !liveLabel;
-        liveState.textContent = liveLabel;
+        liveState.hidden = false;
+        liveState.textContent = isSelected ? (liveLabel || "ACTIVE") : snapshotLabel;
       }
     }
   }
@@ -365,15 +449,18 @@ export function createConversationController(deps) {
             class="conversation-card${isActive ? " active" : ""}"
             data-conversation-id="${conversation.conversation_id}"
             data-selected="${isActive ? "true" : "false"}"
-            data-thread-state="idle"
+            data-thread-state="${snapshotThreadState(conversation)}"
+            data-snapshot-thread-state="${snapshotThreadState(conversation)}"
+            data-snapshot-state-label="${snapshotThreadState(conversation).toUpperCase()}"
           >
             <span class="conversation-card-head">
               <span class="conversation-card-title">${conversation.title}</span>
               <span class="conversation-card-marker" data-conversation-marker ${isActive ? "" : "hidden"}>ACTIVE</span>
             </span>
+            <span class="conversation-card-preview">${escapeHtml(conversationPreview(conversation))}</span>
             <span class="conversation-card-meta-row">
               <span class="conversation-card-meta">${new Date(conversation.updated_at).toLocaleString()}</span>
-              <span class="conversation-card-live" data-conversation-live-state hidden></span>
+              <span class="conversation-card-live" data-conversation-live-state>${snapshotThreadState(conversation).toUpperCase()}</span>
             </span>
           </button>
         `;

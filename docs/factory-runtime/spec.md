@@ -8,7 +8,7 @@
 
 ## Problem
 
-The selected-thread live rail now sits in the right place, but its current behavior is too binary: it expands during activity and then disappears on idle or terminal states. That forces users to infer the latest outcome from the transcript or reopen other UI instead of keeping one compact conversation-local result surface visible.
+The selected-thread live rail is clearer now, but thread navigation still depends on too much inference because conversation cards mostly show only a title and timestamp. Users cannot quickly tell which thread is active, currently progressing, or recently completed without opening it first.
 
 ## Target User
 
@@ -23,4 +23,4 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 ## Deliverable
 
-Keep the selected-conversation live rail attached to the composer, but make idle and terminal states collapse into a one-line last-result summary with an in-rail re-expand control. Running, thinking, sending, connecting, and reconnecting states must stay expanded and continue to use the existing selected-conversation SSE path as the only status source.
+Keep the current sidebar structure, but render each conversation card with one bounded recent-preview line and a clearer compact state label. Use only existing conversation snapshots for non-selected threads and the current selected-conversation SSE-derived state for the active thread.

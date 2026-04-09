@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep the current selected-conversation SSE path, transcript follow behavior, footer composer, and navigation structure unchanged.
-- [x] Expand the live rail during active sending, running, thinking, connecting, and reconnecting states from the existing selected-conversation path.
-- [x] Collapse idle or terminal states into a one-line latest-result summary instead of hiding the rail completely.
-- [x] Add one in-rail toggle so the collapsed summary can be re-expanded without leaving the conversation.
-- [x] Extend focused verification so future sessions can prove the collapse rule, re-expand affordance, and terminal visibility stay inside the same rail.
+- [x] Keep the current selected-conversation SSE path, sidebar layout, composer rail, and mobile navigation structure unchanged.
+- [x] Add one bounded recent-preview line to each conversation card using only existing conversation snapshot data.
+- [x] Show a clearer compact state label on cards so active, running, reconnecting, done, and idle threads are easier to distinguish.
+- [x] Keep the selected-thread card state tied to the existing session presentation datasets instead of introducing a second live source.
+- [x] Extend focused verification so future sessions can prove sidebar preview and state-card behavior without adding a new panel or polling path.

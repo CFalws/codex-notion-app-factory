@@ -193,6 +193,7 @@ For the feature-flagged active-conversation append SSE path, verification should
 - on phone widths, the nav sheet should present the conversation list as the first actionable surface while app-level controls move behind a collapsed operator section that stays reachable without displacing thread switching
 - the selected transcript should stay pinned to the newest append only while the user is already near the bottom, and a compact jump-to-latest control should appear when they intentionally scroll away during live append updates
 - the selected-conversation live rail should stay expanded during running, thinking, sending, connecting, and reconnecting states, but collapse idle or terminal states into a one-line latest-result summary with an in-rail re-expand control
+- conversation cards in the left navigation should expose one bounded recent preview line and a clearer compact state label so active, running, reconnecting, done, and idle threads are easier to distinguish without opening them
 - on phone widths, the active conversation should remain the first visible workspace surface and app or thread navigation should open through an explicit drawer or sheet rather than occupying the top of the reading flow
 
 ## Commit And Deploy Policy

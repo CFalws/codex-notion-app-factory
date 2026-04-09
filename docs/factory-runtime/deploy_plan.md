@@ -2,14 +2,14 @@
 
 ## Deployment Impact
 
-This changes the GitHub Pages operator workspace only. It tightens the selected-conversation live rail so active states stay expanded while idle or terminal states collapse into a one-line latest-result summary with an in-rail re-expand affordance. The selected-conversation SSE path, transcript follow behavior, navigation structure, desktop secondary panel, phone footer dock, and thread rail markers remain intact.
+This changes the GitHub Pages operator workspace only. It improves sidebar thread clarity by adding preview-rich conversation cards and bounded state labels while keeping the existing selected-conversation SSE path, transcript follow behavior, desktop secondary panel, phone footer dock, and composer-adjacent live rail intact.
 
 ## Rollout Notes
 
 1. Apply the proposal commit onto `main`.
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
-3. Open the console with an active generating conversation and confirm the live rail stays expanded while selected-thread SSE events update it.
-4. Wait for a terminal or idle state and confirm the rail collapses into a one-line latest-result summary instead of disappearing.
-5. Use the in-rail toggle and confirm the user can re-expand terminal or idle detail without opening any secondary panel.
-6. Confirm the rail remains expanded during reconnecting or renewed live execution and does not hide the latest active state.
-7. Confirm the composer-adjacent rail remains the only visible live-status surface inside the conversation pane.
+3. Open the console and confirm each conversation card shows a single-line recent preview without widening the sidebar or breaking phone-width scrolling.
+4. Verify the selected thread shows `ACTIVE` plus the existing SSE-derived live label when it is running, reconnecting, or done.
+5. Verify non-selected threads show only snapshot-derived `DONE` or `IDLE` labels and do not claim live progress from any new source.
+6. On phone width, open the conversation-first nav sheet and confirm the richer cards remain readable and tap-safe.
+7. Confirm the composer-adjacent live rail remains the only visible in-pane live-status surface inside the conversation pane.

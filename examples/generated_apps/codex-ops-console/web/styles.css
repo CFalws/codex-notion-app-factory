@@ -255,7 +255,8 @@ body[data-secondary-panel-open="true"] .desktop-shell {
 }
 
 .conversation-card {
-  display: block;
+  display: grid;
+  gap: 0.38rem;
   width: 100%;
   padding: 0.82rem 0.9rem;
   border: 1px solid var(--line);
@@ -270,7 +271,8 @@ body[data-secondary-panel-open="true"] .desktop-shell {
 }
 
 .conversation-card-title,
-.conversation-card-meta {
+.conversation-card-meta,
+.conversation-card-preview {
   display: block;
 }
 
@@ -290,6 +292,16 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   font-weight: 700;
   line-height: 1.35;
   word-break: break-word;
+}
+
+.conversation-card-preview {
+  color: var(--ink);
+  font-size: 0.84rem;
+  line-height: 1.42;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.84;
 }
 
 .conversation-card-marker,
@@ -324,6 +336,12 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   color: var(--muted);
 }
 
+.conversation-card[data-thread-state="active"] .conversation-card-live {
+  color: var(--accent-ink);
+  border-color: rgba(31, 120, 224, 0.22);
+  background: rgba(31, 120, 224, 0.08);
+}
+
 .conversation-card[data-thread-state="connecting"] .conversation-card-live,
 .conversation-card[data-thread-state="thinking"] .conversation-card-live {
   color: var(--accent-ink);
@@ -349,6 +367,12 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   color: var(--success);
   border-color: rgba(47, 138, 89, 0.24);
   background: rgba(47, 138, 89, 0.08);
+}
+
+.conversation-card[data-thread-state="idle"] .conversation-card-live {
+  color: var(--muted);
+  border-color: rgba(113, 103, 94, 0.18);
+  background: rgba(255, 255, 255, 0.84);
 }
 
 .main-stage {
