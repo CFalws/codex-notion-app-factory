@@ -15,7 +15,15 @@ class CodexCliRunner:
     def build_command(self, session_id: str, prompt: str, output_path: Path, *, use_resume: bool) -> list[str]:
         args = [self.settings.codex_command, *self.settings.codex_args, "exec"]
         if use_resume and session_id:
+            if self.settings.codex_profile:
+                args.extend(["--profile", self.settings.codex_profile])
             args.extend(["resume", session_id])
+            if self.settings.codex_model:
+                args.extend(["--model", self.settings.codex_model])
+            if self.settings.codex_skip_git_repo_check:
+                args.append("--skip-git-repo-check")
+            args.extend(["--output-last-message", str(output_path), "--json", prompt])
+            return args
         if self.settings.codex_profile:
             args.extend(["--profile", self.settings.codex_profile])
         if self.settings.codex_model:
