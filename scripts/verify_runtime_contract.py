@@ -64,6 +64,7 @@ async def fake_run_request(
 ) -> dict[str, Any]:
     record = self.state.get_app(app_id)
     clean_summary = f"SIMULATED_OK: {request_payload['title']}"
+    simulate_retry_fallback = "SIMULATE_DEGRADED_RETRY" in str(request_payload.get("request_text") or "")
     decision_summary = {
         "goal": request_payload["request_text"],
         "system_area": "execution, verification",
@@ -92,6 +93,14 @@ async def fake_run_request(
             job_id=job_id,
             data={"simulated": True},
         )
+        if simulate_retry_fallback:
+            event_callback(
+                event_type="codex.exec.retrying",
+                body="Simulated fallback to a fresh session after resume failure.",
+                status="running",
+                job_id=job_id,
+                data={"previous_session_id": "contract-session"},
+            )
     self.state.append_engineering_log(
         app_id=app_id,
         title=request_payload["title"],
@@ -804,6 +813,14 @@ def main() -> None:
             goal = wait_for_goal_status(client, goal_response.json()["goal"]["goal_id"], "completed")
             require(goal["stop_reason"] == "goal_review_stop", f"goal should stop through goal review signal: {goal}")
             require(len(goal["iterations"]) == 2, f"expected 2 goal iterations, got {len(goal['iterations'])}")
+            require(
+                all(
+                    (item.get("intended_path") or {}).get("verdict") == "expected"
+                    and not (item.get("intended_path") or {}).get("degraded_signals")
+                    for item in goal["iterations"]
+                ),
+                f"healthy goal iterations should record expected intended path verdicts: {goal['iterations']}",
+            )
 
             proposal_goal_response = request(
                 client,
@@ -824,6 +841,33 @@ def main() -> None:
             require(proposal_goal["stop_reason"] == "goal_review_stop", f"proposal goal should stop through goal review signal: {proposal_goal}")
             require(proposal_goal["iterations"][0]["auto_applied"] is True, "first proposal goal iteration should be auto-applied")
             require(proposal_goal["iterations"][0]["proposal_status"] == "applied", "proposal goal iteration should record applied proposal status")
+            require(
+                proposal_goal["iterations"][0]["intended_path"]["verdict"] == "expected",
+                f"healthy proposal iteration should keep expected intended-path verdict: {proposal_goal['iterations'][0]}",
+            )
+
+            degraded_goal_response = request(
+                client,
+                "POST",
+                "/api/goals",
+                json={
+                    "app_id": "habit-tracker-pwa",
+                    "objective": "SIMULATE_DEGRADED_RETRY: verify that fallback-only success does not count as healthy unattended progress.",
+                    "source": "contract-test",
+                    "max_iterations": 0,
+                    "autostart": True,
+                },
+            )
+            require(degraded_goal_response.status_code == 200, f"degraded goal creation failed: {degraded_goal_response.text}")
+            degraded_goal = wait_for_goal_status(client, degraded_goal_response.json()["goal"]["goal_id"], "paused")
+            require(degraded_goal["stop_reason"] == "intended_path_degraded", f"degraded goal should pause on intended-path verdict: {degraded_goal}")
+            require(len(degraded_goal["iterations"]) == 1, f"degraded goal should pause on first iteration: {degraded_goal}")
+            degraded_path = degraded_goal["iterations"][0].get("intended_path") or {}
+            require(degraded_path.get("verdict") == "degraded", f"degraded goal should record degraded verdict: {degraded_goal['iterations'][0]}")
+            require(
+                "codex_exec_retrying" in (degraded_path.get("degraded_signals") or []),
+                f"degraded retry signal should be visible in intended-path state: {degraded_goal['iterations'][0]}",
+            )
 
     finally:
         api_app.CodexAgentsRuntime.run_request = original_run_request

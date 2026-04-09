@@ -65,6 +65,21 @@ Autonomous iterations should emit a machine-readable `goal_review` with:
 
 This lets the controller decide based on structured review instead of guessing from prose.
 
+## Intended-Path Verdict Contract
+
+Each autonomous iteration should also persist a machine-readable intended-path verdict with:
+
+- `expected_path`
+- `degraded_signals`
+- `verdict`
+
+This contract answers a different question than `goal_review`.
+
+- `goal_review` says whether the iteration recommends continuing.
+- `intended_path` says whether the iteration succeeded through the expected execution path or only through a degraded fallback.
+
+Continuation policy should consume both contracts. A positive review is not enough if the iteration only succeeded through a degraded path.
+
 ## Iteration Failure Contract
 
 Iteration failure and goal failure are different things.

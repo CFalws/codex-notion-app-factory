@@ -2,13 +2,13 @@
 
 ## Request
 
-- title: `Unattended Runtime Supervisor`
+- title: `Self-Improving Agentic Dev Environment`
 - source: `goal-loop`
 - execution mode: `proposal`
 
 ## Problem
 
-Proposal-mode auto-apply can currently look successful even when the local merge succeeded but the remote push failed. That degraded deployment path must not count as healthy unattended progress.
+Autonomous iterations still rely too much on prose to tell whether success happened through the intended path or only through a degraded fallback. That makes continuation policy and later inspection less trustworthy than they should be.
 
 ## Target User
 
@@ -22,4 +22,4 @@ The primary user is the operator relying on unattended runtime self-improvement 
 
 ## Deliverable
 
-Pause unattended continuation on failed-push auto-apply results, emit an explicit degraded event and stop reason, and verify both the healthy pushed path and the push-failed path.
+Persist one iteration-level intended-path verdict containing the expected execution path, degraded signals, and final verdict, then make autonomous continuation consume that structured contract instead of inferring path health from prose alone.

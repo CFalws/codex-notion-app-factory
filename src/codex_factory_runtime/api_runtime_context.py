@@ -825,6 +825,12 @@ class RuntimeApiContext:
             await self.run_job(payload["job"]["job_id"], app_id, request_payload)
             job = self.state.get_job(payload["job"]["job_id"])
             goal = self.state.get_goal(goal_id)
+            conversation_state = self.state.get_conversation(conversation_id)
+            intended_path = self.goals.assess_iteration_intended_path(
+                job=job,
+                conversation=conversation_state,
+                proposal_ready=bool(job.get("proposal")),
+            )
             iteration_record = {
                 "iteration": iteration_number,
                 "request_id": payload["request"]["request_id"],
@@ -835,6 +841,7 @@ class RuntimeApiContext:
                 "result_summary": job.get("result_summary", ""),
                 "decision_summary": job.get("decision_summary", {}),
                 "goal_review": job.get("goal_review", {}),
+                "intended_path": intended_path,
                 "completed_at": job.get("completed_at", ""),
             }
             iterations = goal.get("iterations") or []
@@ -946,6 +953,14 @@ class RuntimeApiContext:
                 iteration_record["auto_applied"] = True
                 iteration_record["push_status"] = str(proposal.get("push_status") or "")
                 iteration_record["verification_reviews"] = goal["iterations"][-1].get("verification_reviews", [])
+                conversation_state = self.state.get_conversation(conversation_id)
+                iteration_record["intended_path"] = self.goals.assess_iteration_intended_path(
+                    job=job,
+                    conversation=conversation_state,
+                    proposal=proposal,
+                    proposal_auto_applied=True,
+                    push_required=bool(self.settings.push_after_apply),
+                )
                 goal["iterations"][-1] = iteration_record
                 healthy_apply, degraded_reason = self.goals.auto_apply_health(
                     proposal,
@@ -991,6 +1006,7 @@ class RuntimeApiContext:
                 goal,
                 job,
                 proposal_ready=bool(job.get("proposal")) and not proposal_auto_applied,
+                intended_path=goal["iterations"][-1].get("intended_path", {}),
             )
             if (
                 proposal_auto_applied
@@ -1035,6 +1051,7 @@ class RuntimeApiContext:
                     "next_status": next_status,
                     "stop_reason": stop_reason,
                     "goal_review": job.get("goal_review", {}),
+                    "intended_path": goal["iterations"][-1].get("intended_path", {}),
                 },
             )
             if next_status != "running":

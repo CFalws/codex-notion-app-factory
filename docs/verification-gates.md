@@ -145,6 +145,11 @@ For the autonomous goal loop, also distinguish:
 - a degraded iteration that should continue with a different bounded hypothesis
 - a goal-level pause or stop
 
+When an autonomous iteration records a structured intended-path verdict, verification should assert both:
+
+- the healthy path records `verdict=expected`
+- the degraded path records the concrete degraded signals instead of looking like normal success
+
 Review or verification rejection should fail verification only if the loop incorrectly pauses, stops, or loses state when policy says it should continue exploring.
 
 ## Commit And Deploy Policy

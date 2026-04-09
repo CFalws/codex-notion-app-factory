@@ -107,7 +107,16 @@ Required fields:
 - `result_summary`
 - `decision_summary`
 - `goal_review`
+- `intended_path`
 - `completed_at`
+
+### Goal Iteration Intended-Path Shape
+
+Required fields:
+
+- `expected_path`
+- `degraded_signals`
+- `verdict`
 
 ## Proposal Record
 
