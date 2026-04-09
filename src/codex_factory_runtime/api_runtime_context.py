@@ -348,6 +348,12 @@ class RuntimeApiContext:
             data={"goal_id": goal_id, "stop_reason": goal["stop_reason"], "error": str(exc)},
         )
 
+    def _goal_stop_reason_for_exception(self, phase: str, exc: Exception) -> str:
+        message = str(exc).lower()
+        if "timed out" in message:
+            return f"{phase}_phase_timeout"
+        return f"{phase}_phase_failed"
+
     def resume_running_goals(self) -> None:
         for goal in self.state.list_goals():
             if goal.get("status") != "running":
@@ -702,23 +708,40 @@ class RuntimeApiContext:
             app_id = str(goal["app_id"])
             app_record = self.require_app(app_id)
             iteration_number = int(goal.get("current_iteration") or 0) + 1
-            proposal_plan = await self.run_autonomy_proposal(
-                goal=goal,
-                app_record=app_record,
-                conversation_id=conversation_id,
-                iteration_number=iteration_number,
-            )
-            proposal_reviews = [
-                await self.run_autonomy_review(
+            current_phase = "proposal"
+            try:
+                proposal_plan = await self.run_autonomy_proposal(
                     goal=goal,
                     app_record=app_record,
-                    proposal=proposal_plan,
                     conversation_id=conversation_id,
                     iteration_number=iteration_number,
-                    reviewer_name=reviewer_name,
                 )
-                for reviewer_name in ("Reviewer A", "Reviewer B")
-            ]
+                current_phase = "review"
+                proposal_reviews = [
+                    await self.run_autonomy_review(
+                        goal=goal,
+                        app_record=app_record,
+                        proposal=proposal_plan,
+                        conversation_id=conversation_id,
+                        iteration_number=iteration_number,
+                        reviewer_name=reviewer_name,
+                    )
+                    for reviewer_name in ("Reviewer A", "Reviewer B")
+                ]
+            except Exception as exc:  # noqa: BLE001
+                goal = self.state.get_goal(goal_id)
+                goal["status"] = "paused"
+                goal["stop_reason"] = self._goal_stop_reason_for_exception(current_phase, exc)
+                goal["completed_at"] = utc_now()
+                self.state.save_goal(goal)
+                self.append_event(
+                    conversation_id,
+                    event_type="goal.paused",
+                    body=f"자율 목표가 {current_phase} 단계에서 중지되었습니다. {exc}",
+                    status="paused",
+                    data={"goal_id": goal_id, "iteration": iteration_number, "stop_reason": goal["stop_reason"], "error": str(exc)},
+                )
+                return
             if any(review.get("verdict") != "approve" for review in proposal_reviews):
                 iteration_record = {
                     "iteration": iteration_number,
