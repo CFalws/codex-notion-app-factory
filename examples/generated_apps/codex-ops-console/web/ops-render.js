@@ -55,15 +55,9 @@ export function setJobMeta(dom, message) {
   dom.jobMeta.textContent = message;
 }
 
-export function updateHeroState(dom, { appName = "", conversationState = "", jobState = "" }) {
+export function updateHeroState(dom, { appName = "" }) {
   if (appName && dom.heroAppName) {
     dom.heroAppName.textContent = appName;
-  }
-  if (conversationState && dom.heroConversationState) {
-    dom.heroConversationState.textContent = conversationState;
-  }
-  if (jobState && dom.heroJobState) {
-    dom.heroJobState.textContent = jobState;
   }
 }
 
@@ -675,19 +669,6 @@ function blockerTone(blockerReason = "") {
 }
 
 export function clearAutonomySummary(dom, message = "자율 goal이 생기면 continuation blocker와 verifier 판단이 여기에 요약됩니다.") {
-  if (dom.autonomyContextStrip) {
-    dom.autonomyContextStrip.hidden = true;
-  }
-  if (dom.autonomyMeta) {
-    dom.autonomyMeta.textContent = "표시할 자율 goal이 없습니다.";
-  }
-  if (dom.autonomySummary) {
-    dom.autonomySummary.dataset.empty = "true";
-    dom.autonomySummary.dataset.blockerReason = "none";
-    dom.autonomySummary.dataset.pathVerdict = "unknown";
-    dom.autonomySummary.dataset.verifierAcceptability = "pending";
-    dom.autonomySummary.innerHTML = `<p class="autonomy-empty">${escapeHtml(message)}</p>`;
-  }
   if (dom.autonomyDetailMeta) {
     dom.autonomyDetailMeta.textContent = "표시할 자율 goal이 없습니다.";
   }
@@ -726,23 +707,6 @@ export function renderAutonomySummary(dom, goal) {
   const blockerClass = blockerTone(blockerReason);
   const heading = `${goal.title || "Autonomy Goal"} · ${goal.status || "unknown"} · iteration ${iteration.iteration}`;
 
-  if (dom.autonomyContextStrip) {
-    dom.autonomyContextStrip.hidden = false;
-  }
-  if (dom.autonomyMeta) {
-    dom.autonomyMeta.textContent = heading;
-  }
-  if (dom.autonomySummary) {
-    setAutonomyDataset(dom.autonomySummary, { blockerReason, pathVerdict, verifierAcceptability });
-    dom.autonomySummary.innerHTML = `
-      <div class="autonomy-context-line">
-        <span class="autonomy-chip ${pathVerdict === "EXPECTED" ? "healthy" : "blocked"}">${pathVerdict}</span>
-        <span class="autonomy-chip ${verifierAcceptability === "DISQUALIFYING" ? "blocked" : verifierAcceptability === "ACCEPTABLE" ? "healthy" : "neutral"}">${verifierAcceptability}</span>
-        <span class="autonomy-chip ${blockerClass}">BLOCKER ${escapeHtml(blockerReason.toUpperCase())}</span>
-        <span class="autonomy-context-iteration">ITERATION ${escapeHtml(String(iteration.iteration))}</span>
-      </div>
-    `;
-  }
   if (dom.autonomyDetailMeta) {
     dom.autonomyDetailMeta.textContent = heading;
   }

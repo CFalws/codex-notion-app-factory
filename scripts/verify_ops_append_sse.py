@@ -73,8 +73,6 @@ def main() -> int:
     require(conversations_js, "dom.threadScroller?.dataset.sessionPresentation", label="left rail uses session presentation state")
     require(jobs_js, "!isAppendStreamConnected(state, state.currentConversationId)", label="polling refetch skip while connected")
     require(render_js, "deriveLiveRunState", label="inline live run state derivation")
-    require(render_js, "dom.heroConversationState", label="hero conversation state null-safe wiring")
-    require(render_js, "dom.heroJobState", label="hero job state null-safe wiring")
     require(render_js, 'state: "sending"', label="local pending sending state")
     require(render_js, 'state: "generating"', label="assistant placeholder generating state")
     require(render_js, 'state: "proposal-phase"', label="proposal phase live run state")
@@ -98,11 +96,7 @@ def main() -> int:
     require(render_js, 'data-pending-assistant="true"', label="pending assistant timeline marker")
     require(render_js, "local-pending", label="pending local render source")
     require(render_js, "local-assistant-placeholder", label="assistant placeholder render source")
-    require(render_js, "autonomyContextStrip.hidden = true", label="compact autonomy context clear state")
-    require(render_js, "autonomyContextStrip.hidden = false", label="compact autonomy context active state")
     require(render_js, "autonomyDetailMeta", label="secondary panel autonomy detail meta wiring")
-    require(render_js, "autonomy-context-line", label="compact autonomy context markup")
-    require(render_js, "autonomy-context-iteration", label="compact autonomy iteration markup")
     require(render_js, "dataset.sessionPresentation", label="session strip presentation dataset")
     require(render_js, "dataset.sessionTerminal", label="session strip terminal dataset")
     require(render_js, "sessionRail", label="session rail local expansion state")
@@ -225,7 +219,7 @@ def main() -> int:
     require_absent(index_html, "sidebar-inspector", label="legacy sidebar inspector")
     require_absent(index_html, "sidebar-footer", label="legacy sidebar footer")
     require_absent(index_html, 'class="autonomy-rail"', label="legacy standalone autonomy rail DOM")
-    print("ok: ops desktop secondary panel, footer dock, session strip, compact autonomy context strip, append SSE wiring, and mobile nav drawer are present")
+    print("ok: ops desktop secondary panel, footer dock, session strip, append SSE wiring, and mobile nav drawer are present")
     return 0
 
 
