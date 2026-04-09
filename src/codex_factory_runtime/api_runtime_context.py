@@ -313,7 +313,31 @@ class RuntimeApiContext:
         return review
 
     def spawn_goal_loop(self, goal_id: str) -> None:
-        asyncio.create_task(self.run_goal_loop(goal_id))
+        task = asyncio.create_task(self.run_goal_loop(goal_id))
+        task.add_done_callback(lambda finished: self._handle_goal_task_result(goal_id, finished))
+
+    def _handle_goal_task_result(self, goal_id: str, task: asyncio.Task[Any]) -> None:
+        if task.cancelled():
+            return
+        exc = task.exception()
+        if exc is None:
+            return
+        try:
+            goal = self.state.get_goal(goal_id)
+        except KeyError:
+            return
+        conversation_id = str(goal.get("conversation_id") or "").strip()
+        goal["status"] = "paused"
+        goal["stop_reason"] = "autonomy_task_exception"
+        goal["completed_at"] = utc_now()
+        self.state.save_goal(goal)
+        self.append_event(
+            conversation_id,
+            event_type="goal.paused",
+            body=f"자율 목표 task 예외로 루프를 일시중지합니다. {exc}",
+            status="paused",
+            data={"goal_id": goal_id, "stop_reason": goal["stop_reason"], "error": str(exc)},
+        )
 
     def resume_running_goals(self) -> None:
         for goal in self.state.list_goals():
