@@ -8,7 +8,7 @@
 
 ## Problem
 
-The selected-thread live rail now exposes the right phase model, but the composer-adjacent surface still behaves like a prose-heavy status strip above the action area. The remaining friction is not missing state but status-panel drift at the point where the user reads and sends messages.
+The selected-thread live surface is stronger than before, but the desktop shell still reads too much like a dashboard with a competing side panel instead of a conversation-first session workspace. The remaining friction is layout hierarchy: the active thread does not dominate the screen strongly enough on desktop.
 
 ## Target User
 
@@ -19,8 +19,9 @@ The primary user is the operator or developer using the phone-friendly workspace
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
 - Reuse the existing selected-conversation SSE route instead of widening transport scope.
-- Leave the left navigation, central timeline, submit handoff, polling fallback rules, and broader workspace structure unchanged in this iteration.
+- Constrain this iteration to desktop-width layout and shell hierarchy only.
+- Leave the selected-thread timeline, live row, submit handoff, and polling fallback rules unchanged in this iteration.
 
 ## Deliverable
 
-Keep the existing selected-conversation SSE path and composer-adjacent live surface, but replace the verbose strip with a compact composer state row that shows only transport state, current phase, proposal readiness, and short send or apply affordance text.
+Keep the existing selected-conversation SSE path and compact composer state row, but tighten the desktop shell into a strict two-pane workspace with a narrower persistent left rail, a dominant active conversation center pane, and a secondary panel that no longer behaves like a third primary column.
