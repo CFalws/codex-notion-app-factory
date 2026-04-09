@@ -8,7 +8,7 @@
 
 ## Problem
 
-The workspace already has the intended selected-thread SSE proof path, a conversation-first center pane, and a clearer left rail, but the composer-adjacent live rail still asks users to read sentence-level status text. The remaining friction is scan speed: users should be able to understand the current handoff or phase from compact cues rather than prose.
+The workspace already has the intended selected-thread SSE proof path and compact live cues, but append-stream health still feels implicit. The remaining friction is trust: users should be able to see immediately whether the selected thread is live, reconnecting, or offline without inferring that from hidden state or secondary operator surfaces.
 
 ## Target User
 
@@ -19,9 +19,9 @@ The primary user is the operator or developer using the phone-friendly workspace
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
 - Reuse the existing selected-conversation SSE route instead of widening transport scope.
-- Constrain this iteration to render-only footer live-rail cue work on top of the existing selected-thread state path.
+- Constrain this iteration to render-only stream-health cue work on top of the existing selected-thread state path.
 - Leave the selected-thread timeline, left rail, center-pane header, deployed verification gate, and polling fallback rules unchanged in this iteration.
 
 ## Deliverable
 
-Keep the existing selected-conversation SSE path and workspace shell, but tighten the composer-adjacent live rail so it renders compact action cues for sending, accepted, proposal, review, verify, ready, applied, failed, and idle states while keeping selected-thread ownership tied only to the existing selected-thread state path.
+Keep the existing selected-conversation SSE path and workspace shell, but make the composer-adjacent live rail show an explicit live-session contract for connecting, live, reconnecting, and offline states, with compact degraded recovery cues while keeping selected-thread ownership tied only to the existing selected-thread state path.

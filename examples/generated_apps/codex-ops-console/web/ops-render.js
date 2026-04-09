@@ -496,12 +496,12 @@ function transportChip(status, presentation) {
     return { label: "LIVE", tone: "healthy" };
   }
   if (status === "reconnecting") {
-    return { label: "RESUME", tone: "warning" };
+    return { label: "RECONNECT", tone: "warning" };
   }
   if (status === "connecting") {
     return { label: "OPEN", tone: "neutral" };
   }
-  return { label: "IDLE", tone: "muted" };
+  return { label: "OFFLINE", tone: "danger" };
 }
 
 function phaseChip(liveRun, presentation) {
@@ -552,6 +552,15 @@ function proposalChip(liveRun) {
 }
 
 function composerActionHint(status, presentation, liveRun) {
+  if (status === "reconnecting") {
+    return "복구 중";
+  }
+  if (status === "offline") {
+    return "복구 필요";
+  }
+  if (status === "connecting") {
+    return "연결 중";
+  }
   if (liveRun.state === "proposal-ready") {
     return "적용 대기";
   }
@@ -602,10 +611,10 @@ function sessionProvenance(status, lastAppendId, lastLiveAppendId, liveRun) {
     status === "live"
       ? "LIVE"
       : status === "reconnecting"
-        ? "RESUME"
+        ? "DEGRADED"
         : status === "connecting"
-          ? "OPEN"
-          : "IDLE";
+          ? "OPENING"
+          : "OFFLINE";
   return `${sourceLabel} · ${transportLabel} · #${lastLiveAppendId || lastAppendId || 0}`;
 }
 
