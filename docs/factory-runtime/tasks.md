@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep the current selected-conversation SSE path, deployed workspace gate, transcript-first center pane, phone conversation-first sheet behavior, and footer live rail placement unchanged.
-- [x] Make connecting, live, reconnecting, and offline transport states explicit in the selected-thread live rail.
+- [x] Keep the current selected-conversation SSE path, deployed workspace gate, transcript-first center pane, phone conversation-first sheet behavior, and footer live rail unchanged.
+- [x] Add one compact session marker to the selected conversation row in the left rail.
 - [x] Preserve the same selected-thread appendStream and live-run inputs so no new polling-owned or inferred state path is introduced.
-- [x] Keep transcript and composer reachability unchanged on desktop and phone widths.
-- [x] Extend focused verification so future sessions can prove the live rail distinguishes healthy SSE from degraded transport without drifting back to implicit or prose-heavy status.
+- [x] Keep non-selected rows snapshot-only and preserve transcript plus composer reachability on desktop and phone widths.
+- [x] Extend focused verification so future sessions can prove the left rail distinguishes the selected live session without turning every row into a broader status dashboard.

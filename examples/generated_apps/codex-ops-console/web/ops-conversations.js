@@ -447,6 +447,7 @@ export function createConversationController(deps) {
     for (const card of dom.conversationList.querySelectorAll("[data-conversation-id]")) {
       const isSelected = card.dataset.conversationId === selectedConversationId;
       const marker = card.querySelector("[data-conversation-marker]");
+      const sessionMarker = card.querySelector("[data-conversation-session]");
       const liveState = card.querySelector("[data-conversation-live-state]");
       const snapshotLabel = String(card.dataset.snapshotStateLabel || "IDLE");
       const snapshotState = String(card.dataset.snapshotThreadState || "idle");
@@ -457,9 +458,13 @@ export function createConversationController(deps) {
         marker.hidden = !isSelected;
         marker.textContent = "NOW";
       }
+      if (sessionMarker) {
+        sessionMarker.hidden = !isSelected;
+        sessionMarker.textContent = isSelected ? (liveLabel || snapshotLabel) : "";
+      }
       if (liveState) {
-        liveState.hidden = false;
-        liveState.textContent = isSelected ? (liveLabel || "ACTIVE") : snapshotLabel;
+        liveState.hidden = isSelected;
+        liveState.textContent = snapshotLabel;
       }
     }
   }
@@ -505,12 +510,15 @@ export function createConversationController(deps) {
           >
             <span class="conversation-card-head">
               <span class="conversation-card-title">${conversation.title}</span>
-              <span class="conversation-card-marker" data-conversation-marker ${isActive ? "" : "hidden"}>NOW</span>
+              <span class="conversation-card-tags">
+                <span class="conversation-card-marker" data-conversation-marker ${isActive ? "" : "hidden"}>NOW</span>
+                <span class="conversation-card-session" data-conversation-session ${isActive ? "" : "hidden"}>${isActive ? snapshotThreadLabel(snapshotState) : ""}</span>
+              </span>
             </span>
             <span class="conversation-card-preview" data-preview-lines="1">${escapeHtml(conversationPreview(conversation))}</span>
             <span class="conversation-card-meta-row">
               <span class="conversation-card-meta">${new Date(conversation.updated_at).toLocaleString()}</span>
-              <span class="conversation-card-live" data-conversation-live-state>${snapshotThreadLabel(snapshotState)}</span>
+              <span class="conversation-card-live" data-conversation-live-state ${isActive ? "hidden" : ""}>${snapshotThreadLabel(snapshotState)}</span>
             </span>
           </button>
         `;

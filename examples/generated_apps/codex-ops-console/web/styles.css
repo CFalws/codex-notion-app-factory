@@ -287,6 +287,13 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   gap: 0.55rem;
 }
 
+.conversation-card-tags {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
 .conversation-card-meta-row {
   margin-top: 0.28rem;
 }
@@ -312,6 +319,7 @@ body[data-secondary-panel-open="true"] .desktop-shell {
 }
 
 .conversation-card-marker,
+.conversation-card-session,
 .conversation-card-live {
   display: inline-flex;
   align-items: center;
@@ -333,6 +341,12 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   background: rgba(31, 120, 224, 0.08);
 }
 
+.conversation-card-session {
+  color: var(--accent-ink);
+  border-color: rgba(31, 120, 224, 0.22);
+  background: rgba(255, 255, 255, 0.96);
+}
+
 .conversation-card-meta {
   margin-top: 0;
   color: var(--muted);
@@ -343,46 +357,56 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   color: var(--muted);
 }
 
-.conversation-card[data-thread-state="active"] .conversation-card-live {
+.conversation-card[data-thread-state="active"] .conversation-card-live,
+.conversation-card[data-thread-state="active"] .conversation-card-session {
   color: var(--accent-ink);
   border-color: rgba(31, 120, 224, 0.22);
   background: rgba(31, 120, 224, 0.08);
 }
 
 .conversation-card[data-thread-state="connecting"] .conversation-card-live,
-.conversation-card[data-thread-state="thinking"] .conversation-card-live {
+.conversation-card[data-thread-state="thinking"] .conversation-card-live,
+.conversation-card[data-thread-state="connecting"] .conversation-card-session,
+.conversation-card[data-thread-state="thinking"] .conversation-card-session {
   color: var(--accent-ink);
   border-color: rgba(31, 120, 224, 0.22);
   background: rgba(31, 120, 224, 0.08);
 }
 
 .conversation-card[data-thread-state="running tool"] .conversation-card-live,
-.conversation-card[data-thread-state="running-tool"] .conversation-card-live {
+.conversation-card[data-thread-state="running-tool"] .conversation-card-live,
+.conversation-card[data-thread-state="running tool"] .conversation-card-session,
+.conversation-card[data-thread-state="running-tool"] .conversation-card-session {
   color: var(--danger);
   border-color: rgba(182, 75, 65, 0.24);
   background: rgba(182, 75, 65, 0.08);
 }
 
 .conversation-card[data-thread-state="waiting"] .conversation-card-live,
-.conversation-card[data-thread-state="reconnecting"] .conversation-card-live {
+.conversation-card[data-thread-state="reconnecting"] .conversation-card-live,
+.conversation-card[data-thread-state="waiting"] .conversation-card-session,
+.conversation-card[data-thread-state="reconnecting"] .conversation-card-session {
   color: var(--warning);
   border-color: rgba(178, 114, 24, 0.24);
   background: rgba(178, 114, 24, 0.08);
 }
 
-.conversation-card[data-thread-state="done"] .conversation-card-live {
+.conversation-card[data-thread-state="done"] .conversation-card-live,
+.conversation-card[data-thread-state="done"] .conversation-card-session {
   color: var(--success);
   border-color: rgba(47, 138, 89, 0.24);
   background: rgba(47, 138, 89, 0.08);
 }
 
-.conversation-card[data-thread-state="failed"] .conversation-card-live {
+.conversation-card[data-thread-state="failed"] .conversation-card-live,
+.conversation-card[data-thread-state="failed"] .conversation-card-session {
   color: var(--danger);
   border-color: rgba(182, 75, 65, 0.24);
   background: rgba(182, 75, 65, 0.08);
 }
 
-.conversation-card[data-thread-state="idle"] .conversation-card-live {
+.conversation-card[data-thread-state="idle"] .conversation-card-live,
+.conversation-card[data-thread-state="idle"] .conversation-card-session {
   color: var(--muted);
   border-color: rgba(113, 103, 94, 0.18);
   background: rgba(255, 255, 255, 0.84);
