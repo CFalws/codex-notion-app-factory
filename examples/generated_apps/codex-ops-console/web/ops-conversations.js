@@ -28,6 +28,44 @@ export function createConversationController(deps) {
     renderSessionStrip,
   } = deps;
 
+  function clearPendingOutgoing(conversationId = "") {
+    if (conversationId && state.pendingOutgoing?.conversationId !== conversationId) {
+      return;
+    }
+    state.pendingOutgoing = {
+      conversationId: "",
+      body: "",
+      createdAt: "",
+      status: "idle",
+      source: "none",
+    };
+  }
+
+  function showPendingOutgoing(conversationId, body) {
+    if (!conversationId || !body) {
+      return;
+    }
+    state.pendingOutgoing = {
+      conversationId,
+      body,
+      createdAt: new Date().toISOString(),
+      status: "sending",
+      source: "local-submit",
+    };
+    const baseConversation =
+      state.conversationCache && state.conversationCache.conversation_id === conversationId
+        ? state.conversationCache
+        : {
+            conversation_id: conversationId,
+            title: "현재 대화",
+            latest_job_id: state.currentJobId || "",
+            messages: [],
+            events: [],
+          };
+    renderConversation(dom, state, baseConversation, persistSettings);
+    syncConversationCardState();
+  }
+
   function resetAppendStream(conversationId = "") {
     state.appendStream ||= {};
     state.appendStream.conversationId = conversationId;
@@ -104,6 +142,7 @@ export function createConversationController(deps) {
       return false;
     }
 
+    clearPendingOutgoing(activeConversationId);
     state.appendStream.lastAppendId = appendId;
     state.appendStream.lastLiveAppendId = appendId;
     state.appendStream.transport = "sse";
@@ -279,6 +318,7 @@ export function createConversationController(deps) {
     closeAppendStream();
 
     if (!app) {
+      clearPendingOutgoing();
       state.currentConversationId = "";
       state.savedConversationId = "";
       dom.conversationList.innerHTML = '<p class="conversation-list-empty">앱을 먼저 고르세요.</p>';
@@ -312,6 +352,7 @@ export function createConversationController(deps) {
       state.currentConversationId = "";
       state.savedConversationId = "";
       state.currentJobId = "";
+      clearPendingOutgoing();
       renderConversation(dom, state, null, persistSettings);
       syncConversationCardState();
       dom.conversationMeta.textContent = "이 앱에는 아직 대화가 없습니다.";
@@ -323,6 +364,7 @@ export function createConversationController(deps) {
       renderConversationList([], "");
       restoreDraft();
     } catch (error) {
+      clearPendingOutgoing();
       state.currentConversationId = "";
       state.currentJobId = "";
       renderConversation(dom, state, null, persistSettings);
@@ -337,6 +379,7 @@ export function createConversationController(deps) {
   async function fetchConversation(conversationId, options = {}) {
     const { syncJob = true } = options;
     if (!conversationId) {
+      clearPendingOutgoing();
       closeAppendStream();
       renderConversation(dom, state, null, persistSettings);
       syncConversationCardState();
@@ -347,6 +390,7 @@ export function createConversationController(deps) {
       if (dom.threadScroller) {
         dom.threadScroller.dataset.pendingConversationId = conversationId;
       }
+      clearPendingOutgoing();
       closeAppendStream();
       state.currentConversationId = "";
       state.currentJobId = "";
@@ -356,6 +400,7 @@ export function createConversationController(deps) {
     }
 
     const conversation = await fetchJson(dom, conversationUrl(conversationId));
+    clearPendingOutgoing(conversation.conversation_id);
     state.currentConversationId = conversation.conversation_id;
     state.savedConversationId = state.currentConversationId;
     for (const card of dom.conversationList.querySelectorAll("[data-conversation-id]")) {
@@ -486,6 +531,7 @@ export function createConversationController(deps) {
 
   return {
     createConversation,
+    clearPendingOutgoing,
     ensureConversation,
     fetchConversation,
     handleAppChange,
@@ -493,5 +539,6 @@ export function createConversationController(deps) {
     loadApps,
     loadConversations,
     refreshGoalSummary,
+    showPendingOutgoing,
   };
 }

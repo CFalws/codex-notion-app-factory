@@ -125,6 +125,8 @@ async function sendMessage() {
 
   try {
     const conversationId = await conversationController.ensureConversation();
+    conversationController.showPendingOutgoing(conversationId, messageText);
+    renderDraftStatus(dom, `${app.title} · ${conversationId} live session에 메시지를 전달하는 중입니다.`);
     const payload = await fetchJson(dom, conversationMessagesUrl(conversationId), {
       method: "POST",
       body: JSON.stringify({
@@ -136,6 +138,7 @@ async function sendMessage() {
 
     state.currentConversationId = conversationId;
     state.currentJobId = payload.job.job_id;
+    conversationController.clearPendingOutgoing(conversationId);
     setDraft(state, app.appId, "", "");
     setDraft(state, app.appId, conversationId, "");
     dom.requestTextInput.value = "";
@@ -157,9 +160,11 @@ async function sendMessage() {
     await jobController.pollCurrentState();
     jobController.ensurePollingForJob();
   } catch (error) {
+    conversationController.clearPendingOutgoing();
     setStatus(dom, `메시지 전송에 실패했습니다.\n\n${error.message}`);
     setJobMeta(dom, "메시지 전송 실패");
     clearLearningSummary(dom, "메시지 전송이 실패해서 학습 로그가 생성되지 않았습니다.");
+    syncDraftStatus();
   } finally {
     dom.sendRequestButton.disabled = false;
   }

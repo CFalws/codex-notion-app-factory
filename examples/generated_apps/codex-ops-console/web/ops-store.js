@@ -11,6 +11,13 @@ export const state = {
   conversationCache: null,
   draftCache: {},
   pendingAttachmentPreviews: [],
+  pendingOutgoing: {
+    conversationId: "",
+    body: "",
+    createdAt: "",
+    status: "idle",
+    source: "none",
+  },
   appendStream: {
     source: null,
     conversationId: "",

@@ -76,6 +76,7 @@ function deriveLiveRunState(conversation, currentState) {
   const latestType = String(latestEvent?.type || "");
   const latestStatus = String(latestEvent?.status || "").toLowerCase();
   const eventSource = String(latestEvent?.delivery_source || "snapshot").toLowerCase();
+  const pendingOutgoing = currentState.pendingOutgoing || {};
 
   if (!conversation?.conversation_id) {
     return {
@@ -85,6 +86,18 @@ function deriveLiveRunState(conversation, currentState) {
       source: "none",
       tone: "idle",
       jobId: "",
+      terminal: false,
+    };
+  }
+
+  if (pendingOutgoing.status === "sending" && pendingOutgoing.conversationId === conversation.conversation_id) {
+    return {
+      visible: true,
+      state: "sending",
+      detail: "메시지를 live conversation에 등록하는 중입니다.",
+      source: "local-submit",
+      tone: "thinking",
+      jobId,
       terminal: false,
     };
   }
@@ -230,6 +243,8 @@ export function renderSessionStrip(dom, currentState, conversation) {
       ? "reconnecting"
       : status === "connecting"
         ? "connecting"
+        : liveRun.state === "sending"
+          ? "sending"
         : status === "live" && !liveRun.terminal && liveRun.tone !== "idle"
           ? "live"
           : liveRun.terminal
@@ -250,17 +265,21 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStrip.dataset.liveRunTone = liveRun.tone;
 
   const streamLabelByStatus = {
+    sending: "SENDING",
     connecting: "CONNECTING",
     live: "LIVE",
     reconnecting: "RECONNECTING",
     offline: "OFFLINE",
   };
   const runLabel = liveRun.state.replaceAll("-", " ").toUpperCase();
-  dom.sessionStripState.textContent = `${streamLabelByStatus[status] || "OFFLINE"} · ${runLabel}`;
+  const statusLabel = presentation === "sending" ? "SENDING" : (streamLabelByStatus[status] || "OFFLINE");
+  dom.sessionStripState.textContent = `${statusLabel} · ${runLabel}`;
   dom.sessionStripMeta.textContent =
-    `${status === "live" ? "SSE" : status === "reconnecting" ? "SSE RESUME" : status === "connecting" ? "SSE OPEN" : "SNAPSHOT"} · append #${lastLiveAppendId || lastAppendId || 0} · ${liveRun.source.toUpperCase()}`;
+    `${presentation === "sending" ? "LOCAL HANDOFF" : status === "live" ? "SSE" : status === "reconnecting" ? "SSE RESUME" : status === "connecting" ? "SSE OPEN" : "SNAPSHOT"} · append #${lastLiveAppendId || lastAppendId || 0} · ${liveRun.source.toUpperCase()}`;
   dom.sessionStripDetail.textContent =
-    status === "live"
+    presentation === "sending"
+      ? `${liveRun.detail} 첫 accepted 또는 live append 신호를 기다리는 중입니다.`
+      : status === "live"
       ? `${liveRun.detail} 새 append는 SSE로 바로 반영됩니다.`
       : status === "reconnecting"
         ? `${liveRun.detail} 연결을 복구하는 동안 최근 append 이후를 resume 대기합니다.`
@@ -556,9 +575,24 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
 
   const messages = Array.isArray(conversation.messages) ? conversation.messages : [];
   const events = Array.isArray(conversation.events) ? conversation.events : [];
+  const pendingOutgoing = currentState.pendingOutgoing || {};
+  const pendingItem =
+    pendingOutgoing.status === "sending" && pendingOutgoing.conversationId === conversation.conversation_id
+      ? {
+          kind: "message",
+          role: "user",
+          body: pendingOutgoing.body,
+          created_at: pendingOutgoing.createdAt || new Date().toISOString(),
+          sortAt: pendingOutgoing.createdAt || new Date().toISOString(),
+          append_id: 0,
+          delivery_source: "local-pending",
+          pending_local: true,
+        }
+      : null;
   const items = [
     ...messages.map((item) => ({ ...item, kind: "message", sortAt: item.created_at })),
     ...events.map((item) => ({ ...item, kind: "event", sortAt: item.created_at })),
+    ...(pendingItem ? [pendingItem] : []),
   ].sort((a, b) => {
     const leftAppendId = Number(a.append_id || 0);
     const rightAppendId = Number(b.append_id || 0);
@@ -604,10 +638,10 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
       }
 
       return `
-        <article class="timeline-item message ${item.role || "assistant"}" data-append-id="${Number(item.append_id || 0)}" data-append-source="${escapeHtml(String(item.delivery_source || "snapshot"))}">
+        <article class="timeline-item message ${item.role || "assistant"}${item.pending_local ? " pending-local" : ""}" data-append-id="${Number(item.append_id || 0)}" data-append-source="${escapeHtml(String(item.delivery_source || "snapshot"))}"${item.pending_local ? ' data-pending-local="true"' : ""}>
           <p class="timeline-kind">${item.role === "user" ? "사용자" : "에이전트"}</p>
           <p class="timeline-body">${escapeHtml(simplifyText(item.body))}</p>
-          <p class="timeline-meta">${item.created_at}${item.job_id ? ` · ${item.job_id}` : ""}${item.delivery_source === "sse" ? ' · <span class="timeline-provenance">SSE LIVE</span>' : ""}</p>
+          <p class="timeline-meta">${item.created_at}${item.job_id ? ` · ${item.job_id}` : ""}${item.pending_local ? ' · <span class="timeline-provenance">SENDING</span>' : item.delivery_source === "sse" ? ' · <span class="timeline-provenance">SSE LIVE</span>' : ""}</p>
         </article>
       `;
     })

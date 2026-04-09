@@ -653,6 +653,12 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   background: linear-gradient(180deg, #eef5ff 0%, #e5f0ff 100%);
 }
 
+.timeline-item.message.user.pending-local {
+  border-style: dashed;
+  border-color: rgba(31, 120, 224, 0.34);
+  background: linear-gradient(180deg, rgba(234, 243, 255, 0.92) 0%, rgba(222, 236, 255, 0.92) 100%);
+}
+
 .timeline-item.message.assistant {
   margin-right: auto;
   background: #fff;

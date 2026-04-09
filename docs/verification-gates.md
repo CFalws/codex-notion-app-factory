@@ -186,6 +186,7 @@ For the feature-flagged active-conversation append SSE path, verification should
 - the left thread rail should expose compact selected-thread and live-run markers derived from the existing selected-conversation session state so users can identify the active or generating thread without opening secondary panels
 - conversation-local autonomy state should be reduced to a compact active-thread context strip in the thread header while fuller autonomy detail stays reachable in the secondary panel, so message history remains the first visible content in the center pane
 - the selected-thread live execution surface should appear as one compact composer-adjacent activity bar rather than separate strip and footer status elements, and it should remain driven by the existing selected-conversation SSE path
+- after composer submit, the active transcript should show one temporary pending outbound message and the activity bar should expose a short sending handoff state until the accepted response or first live append arrives, with no duplicate or stale pending item after clear conditions
 - on phone widths, the active conversation should remain the first visible workspace surface and app or thread navigation should open through an explicit drawer or sheet rather than occupying the top of the reading flow
 
 ## Commit And Deploy Policy
