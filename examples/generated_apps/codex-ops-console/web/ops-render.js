@@ -441,50 +441,102 @@ function collapsedSessionSummary(conversation, currentState, liveRun) {
 
 function transportChip(status, presentation) {
   if (presentation === "sending") {
-    return { label: "HANDOFF", tone: "thinking" };
+    return { label: "SEND", tone: "thinking" };
   }
   if (status === "live") {
     return { label: "LIVE", tone: "healthy" };
   }
   if (status === "reconnecting") {
-    return { label: "RECONNECT", tone: "warning" };
+    return { label: "RESUME", tone: "warning" };
   }
   if (status === "connecting") {
-    return { label: "CONNECTING", tone: "neutral" };
+    return { label: "OPEN", tone: "neutral" };
   }
-  return { label: "SNAPSHOT", tone: "muted" };
+  return { label: "IDLE", tone: "muted" };
+}
+
+function phaseChip(liveRun, presentation) {
+  if (presentation === "sending" && liveRun.state === "sending") {
+    return { label: "SENDING", tone: "neutral" };
+  }
+  if (presentation === "sending" && liveRun.state === "generating") {
+    return { label: "GENERATING", tone: "neutral" };
+  }
+  if (liveRun.state === "proposal-ready") {
+    return { label: "READY", tone: "healthy" };
+  }
+  if (liveRun.state === "applied") {
+    return { label: "APPLIED", tone: "healthy" };
+  }
+  if (liveRun.state === "failed") {
+    return { label: "FAILED", tone: "danger" };
+  }
+  if (liveRun.phase) {
+    return {
+      label: liveRun.phase,
+      tone:
+        liveRun.tone === "done"
+          ? "healthy"
+          : liveRun.tone === "waiting"
+            ? "warning"
+            : liveRun.tone === "running"
+              ? "danger"
+              : liveRun.tone === "thinking"
+                ? "neutral"
+                : "muted",
+    };
+  }
+  return { label: "IDLE", tone: "muted" };
 }
 
 function proposalChip(liveRun) {
   if (liveRun.state === "proposal-ready") {
-    return { label: "PROPOSAL READY", tone: "healthy" };
+    return { label: "READY", tone: "healthy" };
   }
   if (liveRun.state === "applied") {
-    return { label: "PROPOSAL APPLIED", tone: "healthy" };
+    return { label: "APPLIED", tone: "healthy" };
   }
   if (liveRun.state === "failed") {
-    return { label: "PROPOSAL BLOCKED", tone: "warning" };
+    return { label: "BLOCKED", tone: "warning" };
   }
-  return { label: "PROPOSAL NONE", tone: "muted" };
+  return { label: "NONE", tone: "muted" };
 }
 
 function composerActionHint(status, presentation, liveRun) {
   if (liveRun.state === "proposal-ready") {
-    return "제안이 준비되었습니다. 필요하면 지금 적용하거나 다음 지시를 이어서 보낼 수 있습니다.";
+    return "적용 또는 추가 지시 가능";
   }
   if (liveRun.state === "applied") {
-    return "적용이 끝났습니다. 필요하면 다음 지시를 바로 이어서 보낼 수 있습니다.";
+    return "적용 완료, 다음 지시 가능";
   }
   if (liveRun.state === "failed") {
-    return "실패 신호가 기록되었습니다. 맥락을 확인한 뒤 다시 보내거나 결과를 검토하세요.";
+    return "실패 기록, 결과 확인 필요";
   }
   if (presentation === "sending") {
-    return "메시지를 넘기는 중입니다. 첫 live 응답이 도착하면 같은 작업공간에서 바로 이어집니다.";
+    return "첫 응답 대기";
   }
   if (status === "live" || status === "reconnecting" || status === "connecting") {
-    return "현재 세션이 진행 중입니다. 같은 composer에서 추가 지시를 이어서 보낼 수 있습니다.";
+    return "같은 composer에서 계속 입력 가능";
   }
-  return "현재는 idle 상태입니다. 같은 composer에서 바로 이어서 지시를 보낼 수 있습니다.";
+  return "바로 입력 가능";
+}
+
+function sessionProvenance(status, lastAppendId, lastLiveAppendId, liveRun) {
+  const sourceLabel =
+    liveRun.source === "sse"
+      ? "SSE"
+      : liveRun.source === "snapshot"
+        ? "SNAPSHOT"
+        : liveRun.source.toUpperCase();
+  const transportLabel =
+    status === "live"
+      ? "LIVE"
+      : status === "reconnecting"
+        ? "RESUME"
+        : status === "connecting"
+          ? "OPEN"
+          : "IDLE";
+  return `${sourceLabel} · ${transportLabel} · #${lastLiveAppendId || lastAppendId || 0}`;
 }
 
 export function toggleSessionRail(dom, currentState) {
@@ -572,6 +624,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const shouldCollapse = false;
   const collapsedSummary = null;
   const transportState = transportChip(status, presentation);
+  const phaseState = phaseChip(liveRun, presentation);
   const proposalState = proposalChip(liveRun);
   dom.sessionStrip.hidden = false;
   dom.sessionStrip.dataset.sessionPresentation = presentation;
@@ -588,21 +641,12 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStrip.dataset.liveRunJob = liveRun.jobId || "";
   dom.sessionStrip.dataset.liveRunTone = liveRun.tone;
 
-  const streamLabelByStatus = {
-    sending: "SENDING",
-    connecting: "CONNECTING",
-    live: "LIVE",
-    reconnecting: "RECONNECTING",
-    offline: "OFFLINE",
-  };
-  const runLabel = liveRun.phase || liveRun.state.replaceAll("-", " ").toUpperCase();
-  const statusLabel = presentation === "sending" ? "SENDING" : (streamLabelByStatus[status] || "OFFLINE");
   dom.sessionStripState.innerHTML = [
     `<span class="session-chip" data-tone="${escapeHtml(transportState.tone)}">${escapeHtml(transportState.label)}</span>`,
-    `<span class="session-chip" data-tone="${liveRun.tone === "done" ? "healthy" : liveRun.tone === "waiting" ? "warning" : liveRun.tone === "running" ? "danger" : liveRun.tone === "thinking" ? "neutral" : "muted"}">${escapeHtml(runLabel)}</span>`,
+    `<span class="session-chip" data-tone="${escapeHtml(phaseState.tone)}">${escapeHtml(phaseState.label)}</span>`,
     `<span class="session-chip" data-tone="${escapeHtml(proposalState.tone)}">${escapeHtml(proposalState.label)}</span>`,
   ].join("");
-  dom.sessionStripMeta.textContent = `${statusLabel} · append #${lastLiveAppendId || lastAppendId || 0} · ${liveRun.source.toUpperCase()}`;
+  dom.sessionStripMeta.textContent = sessionProvenance(status, lastAppendId, lastLiveAppendId, liveRun);
   dom.sessionStripDetail.textContent = composerActionHint(status, presentation, liveRun);
   if (dom.sessionStripToggle) {
     dom.sessionStripToggle.hidden = true;

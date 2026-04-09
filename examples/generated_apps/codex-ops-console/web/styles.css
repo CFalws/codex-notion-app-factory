@@ -648,8 +648,18 @@ body[data-secondary-panel-open="true"] .desktop-shell {
 .session-strip-meta,
 .session-strip-detail {
   color: var(--muted);
-  font-size: 0.8rem;
-  line-height: 1.35;
+  font-size: 0.73rem;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+}
+
+.session-strip-meta {
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.session-strip-detail {
+  font-weight: 600;
 }
 
 .timeline-item {
