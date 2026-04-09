@@ -198,6 +198,9 @@ async def fake_run_advisory_prompt(
     sandbox: str = "read-only",
 ) -> tuple[int, str, str, str]:
     require(sandbox == "read-only", f"advisory prompts must use read-only sandbox, got {sandbox}")
+    if not hasattr(fake_run_advisory_prompt, "_attempts"):
+        fake_run_advisory_prompt._attempts = {}
+    attempts = fake_run_advisory_prompt._attempts
     if AUTONOMY_PROPOSAL_START in prompt:
         return (
             0,
@@ -213,6 +216,16 @@ async def fake_run_advisory_prompt(
             ),
         )
     if AUTONOMY_REVIEW_START in prompt:
+        if "Reviewer A" in prompt:
+            key = "reviewer-a"
+            attempts[key] = attempts.get(key, 0) + 1
+            if attempts[key] == 1:
+                return (
+                    1,
+                    "",
+                    "Reading additional input from stdin...",
+                    "",
+                )
         return (
             0,
             '{"type":"thread.started","thread_id":"advisory-review"}\n',
@@ -486,6 +499,44 @@ def verify_goal_task_lifecycle(settings: RuntimeSettings, state: RuntimeState) -
     asyncio.run(_run())
 
 
+def verify_retryable_advisory_phase(settings: RuntimeSettings, state: RuntimeState) -> None:
+    async def _run() -> None:
+        context = RuntimeApiContext(
+            settings=settings,
+            state=state,
+            runtime=api_app.CodexAgentsRuntime(settings, state),
+            goals=GoalRuntime(),
+            autonomy=api_app.AutonomyRuntime(),
+        )
+        goal = {
+            "goal_id": "retry-goal",
+            "objective": "Verify retry handling.",
+        }
+        app = {"title": "Retry App", "app_id": "retry-app"}
+        proposal = {
+            "hypothesis": "Retry transient advisory failures.",
+            "target_area": "review phase",
+            "change_outline": "Retry once on stdin error.",
+            "success_criteria": "Second attempt succeeds.",
+            "why_now": "Prevent false pauses on transient errors.",
+        }
+        conversation = context.state.create_conversation(app_id="habit-tracker-pwa", title="Retry Contract", source="contract-test")
+        review = await context.run_autonomy_review(
+            goal=goal,
+            app_record=app,
+            proposal=proposal,
+            conversation_id=conversation["conversation_id"],
+            iteration_number=1,
+            reviewer_name="Reviewer A",
+        )
+        require(review["verdict"] == "approve", f"retryable review phase should recover and approve: {review}")
+        conversation_after = context.state.get_conversation(conversation["conversation_id"])
+        event_types = [event["type"] for event in conversation_after["events"]]
+        require("goal.review.phase.retrying" in event_types, f"retryable advisory failure should emit retry event: {event_types}")
+
+    asyncio.run(_run())
+
+
 def main() -> None:
     original_run_request = api_app.CodexAgentsRuntime.run_request
     original_apply_proposal = api_app.CodexAgentsRuntime.apply_proposal
@@ -493,6 +544,8 @@ def main() -> None:
     api_app.CodexAgentsRuntime.run_request = fake_run_request
     api_app.CodexAgentsRuntime.apply_proposal = fake_apply_proposal
     api_app.CodexAgentsRuntime.run_advisory_prompt = fake_run_advisory_prompt
+    if hasattr(fake_run_advisory_prompt, "_attempts"):
+        fake_run_advisory_prompt._attempts = {}
 
     try:
         with tempfile.TemporaryDirectory(prefix="codex-contract-") as temp_dir:
@@ -502,6 +555,7 @@ def main() -> None:
             seed_apps(state)
             verify_prompt_contract(settings, state)
             verify_goal_task_lifecycle(settings, state)
+            verify_retryable_advisory_phase(settings, state)
             client = TestClient(api_app.create_app(settings))
 
             runner = CodexCliRunner(settings)
@@ -675,7 +729,7 @@ def main() -> None:
             )
             require(goal_response.status_code == 200, f"goal creation failed: {goal_response.text}")
             goal_payload = goal_response.json()
-            goal = request(client, "GET", f"/api/goals/{goal_payload['goal']['goal_id']}").json()
+            goal = wait_for_goal_status(client, goal_payload["goal"]["goal_id"], "completed")
             require(goal["status"] == "completed", f"goal should stop through goal review: {goal}")
             require(goal["stop_reason"] == "goal_review_stop", f"goal should stop through goal review signal: {goal}")
             require(len(goal["iterations"]) == 2, f"expected 2 goal iterations, got {len(goal['iterations'])}")
@@ -698,7 +752,7 @@ def main() -> None:
                 },
             )
             require(proposal_goal_response.status_code == 200, f"proposal goal creation failed: {proposal_goal_response.text}")
-            proposal_goal = request(client, "GET", f"/api/goals/{proposal_goal_response.json()['goal']['goal_id']}").json()
+            proposal_goal = wait_for_goal_status(client, proposal_goal_response.json()["goal"]["goal_id"], "completed")
             require(proposal_goal["status"] == "completed", f"proposal goal should complete through auto-applied iterations: {proposal_goal}")
             require(proposal_goal["stop_reason"] == "goal_review_stop", f"proposal goal should stop through goal review signal: {proposal_goal}")
             require(len(proposal_goal["iterations"]) == 2, f"expected 2 proposal goal iterations, got {len(proposal_goal['iterations'])}")

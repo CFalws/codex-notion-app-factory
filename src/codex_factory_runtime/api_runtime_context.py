@@ -187,6 +187,46 @@ class RuntimeApiContext:
             "allowed_user_emails": self.settings.allowed_user_emails,
         }
 
+    def _is_retryable_advisory_error(self, message: str) -> bool:
+        lowered = str(message or "").lower()
+        return "reading additional input from stdin" in lowered or "timed out" in lowered
+
+    async def _run_advisory_phase(
+        self,
+        *,
+        prompt: str,
+        cwd: Path,
+        output_stem: str,
+        conversation_id: str,
+        phase_event_prefix: str,
+        phase_label: str,
+        iteration_number: int,
+        data: dict[str, Any],
+    ) -> tuple[int, str, str, str]:
+        attempts = 3
+        last_result: tuple[int, str, str, str] | None = None
+        for attempt in range(1, attempts + 1):
+            last_result = await self.runtime.run_advisory_prompt(
+                prompt=prompt,
+                cwd=cwd,
+                output_stem=f"{output_stem}-attempt-{attempt}",
+            )
+            returncode, stdout_text, stderr_text, final_output = last_result
+            if returncode == 0:
+                return last_result
+            error_message = (stderr_text or stdout_text or f"{phase_label} failed.").strip()
+            if attempt >= attempts or not self._is_retryable_advisory_error(error_message):
+                raise RuntimeError(error_message)
+            self.append_event(
+                conversation_id,
+                event_type=f"{phase_event_prefix}.retrying",
+                body=f"{phase_label}에서 일시적 오류가 발생해 재시도합니다. ({attempt}/{attempts}) {error_message}",
+                status="running",
+                data={**data, "attempt": attempt, "error": error_message},
+            )
+            await asyncio.sleep(float(attempt))
+        raise RuntimeError(f"{phase_label} failed without a result.")
+
     async def run_autonomy_proposal(
         self,
         *,
@@ -203,13 +243,16 @@ class RuntimeApiContext:
             status="planning",
             data={"goal_id": goal.get("goal_id", ""), "iteration": iteration_number},
         )
-        returncode, stdout_text, stderr_text, final_output = await self.runtime.run_advisory_prompt(
+        returncode, stdout_text, stderr_text, final_output = await self._run_advisory_phase(
             prompt=prompt,
             cwd=self.settings.repo_root,
             output_stem=f"{goal['goal_id']}-iter-{iteration_number}-proposer",
+            conversation_id=conversation_id,
+            phase_event_prefix="goal.proposal.phase",
+            phase_label="proposal phase",
+            iteration_number=iteration_number,
+            data={"goal_id": goal.get("goal_id", ""), "iteration": iteration_number},
         )
-        if returncode != 0:
-            raise RuntimeError((stderr_text or stdout_text or "Autonomy proposal phase failed.").strip())
         _, parsed = extract_proposal_json(final_output)
         proposal = normalize_proposal_json(parsed)
         self.append_event(
@@ -240,13 +283,16 @@ class RuntimeApiContext:
             status="planning",
             data={"goal_id": goal.get("goal_id", ""), "iteration": iteration_number, "reviewer": reviewer_name},
         )
-        returncode, stdout_text, stderr_text, final_output = await self.runtime.run_advisory_prompt(
+        returncode, stdout_text, stderr_text, final_output = await self._run_advisory_phase(
             prompt=prompt,
             cwd=self.settings.repo_root,
             output_stem=f"{goal['goal_id']}-iter-{iteration_number}-{slug}",
+            conversation_id=conversation_id,
+            phase_event_prefix="goal.review.phase",
+            phase_label=f"{reviewer_name} review phase",
+            iteration_number=iteration_number,
+            data={"goal_id": goal.get("goal_id", ""), "iteration": iteration_number, "reviewer": reviewer_name},
         )
-        if returncode != 0:
-            raise RuntimeError((stderr_text or stdout_text or f"{reviewer_name} review phase failed.").strip())
         _, parsed = extract_review_json(final_output)
         review = normalize_review_json(parsed)
         self.append_event(
@@ -290,13 +336,16 @@ class RuntimeApiContext:
             status="running",
             data={"goal_id": goal.get("goal_id", ""), "iteration": iteration_number, "verifier": verifier_name},
         )
-        returncode, stdout_text, stderr_text, final_output = await self.runtime.run_advisory_prompt(
+        returncode, stdout_text, stderr_text, final_output = await self._run_advisory_phase(
             prompt=prompt,
             cwd=cwd,
             output_stem=f"{goal['goal_id']}-iter-{iteration_number}-{slug}",
+            conversation_id=conversation_id,
+            phase_event_prefix="goal.verify.phase",
+            phase_label=f"{verifier_name} verification phase",
+            iteration_number=iteration_number,
+            data={"goal_id": goal.get("goal_id", ""), "iteration": iteration_number, "verifier": verifier_name},
         )
-        if returncode != 0:
-            raise RuntimeError((stderr_text or stdout_text or f"{verifier_name} verification phase failed.").strip())
         _, parsed = extract_verify_json(final_output)
         review = normalize_verify_json(parsed)
         self.append_event(
