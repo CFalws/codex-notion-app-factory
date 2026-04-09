@@ -3,7 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 import asyncio
+import os
 from pathlib import Path
+from datetime import datetime, timezone
 
 from fastapi import BackgroundTasks, HTTPException
 
@@ -366,6 +368,54 @@ class RuntimeApiContext:
         else:
             return False
         return allowed and self.goals.can_continue_after_iteration(goal, iteration_number=iteration_number)
+
+    def _process_exists(self, pid: int) -> bool:
+        try:
+            os.kill(pid, 0)
+        except OSError:
+            return False
+        return True
+
+    def reconcile_running_jobs(self) -> None:
+        now = datetime.now(timezone.utc)
+        for job in self.state.list_jobs(status="running"):
+            job_id = str(job.get("job_id") or "").strip()
+            conversation_id = str(job.get("conversation_id") or "").strip()
+            runner_pid = int(job.get("runner_pid") or 0)
+            timestamp = str(job.get("started_at") or job.get("updated_at") or "")
+            stale_seconds = 0.0
+            if timestamp:
+                try:
+                    stale_seconds = max(
+                        0.0,
+                        (now - datetime.fromisoformat(timestamp.replace("Z", "+00:00"))).total_seconds(),
+                    )
+                except ValueError:
+                    stale_seconds = float(self.settings.running_job_grace_seconds + 1)
+            process_missing = runner_pid > 0 and not self._process_exists(runner_pid)
+            stale_without_pid = runner_pid <= 0 and stale_seconds > float(self.settings.running_job_grace_seconds)
+            if not (process_missing or stale_without_pid):
+                continue
+            reason = (
+                f"codex process pid {runner_pid} is no longer running"
+                if process_missing
+                else f"running job made no progress for {int(stale_seconds)} seconds and has no tracked codex process"
+            )
+            self.state.update_job(
+                job_id,
+                status="failed",
+                completed_at=utc_now(),
+                runner_pid=0,
+                error=f"orphaned_running_job: {reason}",
+            )
+            self.append_event(
+                conversation_id,
+                event_type="job.failed",
+                body=f"job {job_id}를 orphaned running job으로 정리했습니다. {reason}",
+                status="failed",
+                job_id=job_id,
+                data={"error": f"orphaned_running_job: {reason}"},
+            )
 
     def resume_running_goals(self) -> None:
         for goal in self.state.list_goals():

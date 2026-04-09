@@ -296,6 +296,22 @@ class RuntimeState:
             raise KeyError(f"Unknown job_id: {job_id}")
         return self._read_json(path)
 
+    def list_jobs(self, *, app_id: str | None = None, status: str | None = None) -> list[dict[str, Any]]:
+        records: list[dict[str, Any]] = []
+        for path in sorted(self.settings.jobs_root.glob("*.json")):
+            try:
+                payload = self._read_json(path)
+            except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+                logger.warning("Skipping unreadable job file %s: %s", path, exc)
+                continue
+            if app_id and payload.get("app_id") != app_id:
+                continue
+            if status and payload.get("status") != status:
+                continue
+            records.append(payload)
+        records.sort(key=lambda item: item.get("updated_at", ""), reverse=True)
+        return records
+
     def update_job(self, job_id: str, **fields: Any) -> dict[str, Any]:
         payload = self.get_job(job_id)
         payload.update(fields)

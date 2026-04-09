@@ -110,6 +110,8 @@ def build_job(
         "updated_at": now,
         "started_at": "",
         "completed_at": "",
+        "runner_pid": 0,
+        "runner_started_at": "",
         "error": "",
         "result_summary": "",
         "decision_summary": {},

@@ -128,6 +128,9 @@ class CodexAgentsRuntime:
         self.state.update_job(job_id, status="running", started_at=utc_now())
 
         try:
+            def record_runner_pid(pid: int) -> None:
+                self.state.update_job(job_id, runner_pid=pid, runner_started_at=utc_now())
+
             self._emit_event(
                 event_callback,
                 event_type="codex.exec.started",
@@ -142,6 +145,7 @@ class CodexAgentsRuntime:
                 output_path,
                 use_resume=bool(session_id),
                 cwd=cwd,
+                on_process_start=record_runner_pid,
             )
             if returncode != 0 and session_id:
                 self._emit_event(
@@ -158,6 +162,7 @@ class CodexAgentsRuntime:
                     output_path,
                     use_resume=False,
                     cwd=cwd,
+                    on_process_start=record_runner_pid,
                 )
 
             discovered_thread_id = self.cli.extract_thread_id(stdout_text)
@@ -227,6 +232,7 @@ class CodexAgentsRuntime:
                     job_id,
                     status="failed",
                     completed_at=utc_now(),
+                    runner_pid=0,
                     error=error_message,
                     result_summary=final_output,
                     decision_summary=decision_summary,
@@ -298,6 +304,7 @@ class CodexAgentsRuntime:
                 job_id,
                 status="completed",
                 completed_at=utc_now(),
+                runner_pid=0,
                 result_summary=clean_summary,
                 error="",
                 decision_summary=decision_summary,
@@ -344,6 +351,7 @@ class CodexAgentsRuntime:
                 job_id,
                 status="failed",
                 completed_at=utc_now(),
+                runner_pid=0,
                 error=error_message,
                 decision_summary=decision_summary,
                 goal_review={},

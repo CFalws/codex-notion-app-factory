@@ -4,6 +4,7 @@ import asyncio
 import json
 import os
 from pathlib import Path
+from typing import Callable
 
 from .config import RuntimeSettings
 
@@ -57,6 +58,7 @@ class CodexCliRunner:
         cwd: Path,
         capture_output: bool = True,
         timeout_seconds: int | None = None,
+        on_process_start: Callable[[int], None] | None = None,
     ) -> tuple[int, str, str]:
         process = await asyncio.create_subprocess_exec(
             *command,
@@ -66,6 +68,8 @@ class CodexCliRunner:
             stdout=asyncio.subprocess.PIPE if capture_output else asyncio.subprocess.DEVNULL,
             stderr=asyncio.subprocess.PIPE if capture_output else asyncio.subprocess.DEVNULL,
         )
+        if on_process_start is not None:
+            on_process_start(int(process.pid))
         try:
             stdout_bytes, stderr_bytes = await asyncio.wait_for(process.communicate(), timeout=timeout_seconds)
         except TimeoutError:
@@ -90,6 +94,7 @@ class CodexCliRunner:
         cwd: Path,
         sandbox: str | None = None,
         timeout_seconds: int | None = None,
+        on_process_start: Callable[[int], None] | None = None,
     ) -> tuple[int, str, str, str]:
         command = self.build_command(
             session_id,
@@ -102,6 +107,7 @@ class CodexCliRunner:
             command,
             cwd=cwd,
             timeout_seconds=timeout_seconds,
+            on_process_start=on_process_start,
         )
         final_output = output_path.read_text(encoding="utf-8").strip() if output_path.exists() else ""
         return returncode, stdout_text, stderr_text, final_output

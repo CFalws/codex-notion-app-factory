@@ -276,6 +276,7 @@ def build_settings(temp_root: Path) -> RuntimeSettings:
         codex_model="",
         codex_sandbox="workspace-write",
         advisory_timeout_seconds=90,
+        running_job_grace_seconds=1,
         codex_skip_git_repo_check=True,
         cors_allowed_origins=[],
         auto_execute_requests=True,
@@ -313,6 +314,7 @@ def build_iap_settings(temp_root: Path) -> RuntimeSettings:
         codex_model=settings.codex_model,
         codex_sandbox=settings.codex_sandbox,
         advisory_timeout_seconds=settings.advisory_timeout_seconds,
+        running_job_grace_seconds=settings.running_job_grace_seconds,
         codex_skip_git_repo_check=settings.codex_skip_git_repo_check,
         cors_allowed_origins=settings.cors_allowed_origins,
         auto_execute_requests=settings.auto_execute_requests,
@@ -485,6 +487,40 @@ def verify_goal_task_lifecycle(settings: RuntimeSettings, state: RuntimeState) -
             RuntimeApiContext.run_goal_loop = original_run_goal_loop
 
     asyncio.run(_run())
+
+
+def verify_reconcile_orphaned_running_job(settings: RuntimeSettings, state: RuntimeState) -> None:
+    context = RuntimeApiContext(
+        settings=settings,
+        state=state,
+        runtime=api_app.CodexAgentsRuntime(settings, state),
+        goals=GoalRuntime(),
+        autonomy=api_app.AutonomyRuntime(),
+    )
+    conversation = state.create_conversation(app_id="factory-runtime", title="Orphaned job", source="contract-test")
+    request_payload = state.create_request(
+        app_id="factory-runtime",
+        title="Orphaned job",
+        request_text="Test orphaned running job reconciliation.",
+        source="contract-test",
+        conversation_id=conversation["conversation_id"],
+    )
+    job = state.create_job(
+        app_id="factory-runtime",
+        request_id=request_payload["request_id"],
+        title="Orphaned job",
+        conversation_id=conversation["conversation_id"],
+    )
+    state.update_job(
+        job["job_id"],
+        status="running",
+        started_at="2000-01-01T00:00:00+00:00",
+        runner_pid=0,
+    )
+    context.reconcile_running_jobs()
+    reconciled = state.get_job(job["job_id"])
+    require(reconciled["status"] == "failed", f"orphaned running job should be reconciled to failed: {reconciled}")
+    require("orphaned_running_job" in reconciled["error"], f"reconciled job should record orphaned reason: {reconciled}")
 
 
 def verify_retryable_advisory_phase(settings: RuntimeSettings, state: RuntimeState) -> None:
@@ -750,6 +786,7 @@ def main() -> None:
             verify_prompt_contract(settings, state)
             verify_proposer_prompt_contract()
             verify_goal_task_lifecycle(settings, state)
+            verify_reconcile_orphaned_running_job(settings, state)
             verify_retryable_advisory_phase(settings, state)
             verify_goal_continues_after_review_rejection(settings, state)
             verify_goal_continues_after_verification_rejection(settings, state)
