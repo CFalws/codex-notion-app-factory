@@ -6,6 +6,8 @@ export const state = {
   latestProposalJobId: "",
   currentConversationId: "",
   currentJobId: "",
+  savedAppId: "",
+  savedConversationId: "",
   conversationCache: null,
   draftCache: {},
   pendingAttachmentPreviews: [],
@@ -56,24 +58,18 @@ export function normalizeBaseUrl() {
 }
 
 export function saveSettings(dom, currentState) {
-  const selectedConversationId =
-    currentState.currentConversationId ||
-    dom.conversationSelect.value ||
-    dom.conversationSelect.dataset.savedConversationId ||
-    "";
-
   localStorage.setItem(
     STORAGE_KEY,
     JSON.stringify({
       selectedAppId: dom.appSelect.value,
-      selectedConversationId,
+      selectedConversationId: currentState.currentConversationId || currentState.savedConversationId || "",
       autoOpen: dom.autoOpenInput.checked,
     }),
   );
 }
 
-export function loadSettings(dom) {
-  state.draftCache = loadDrafts();
+export function loadSettings(dom, currentState) {
+  currentState.draftCache = loadDrafts();
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) {
     return;
@@ -82,8 +78,8 @@ export function loadSettings(dom) {
   try {
     const payload = JSON.parse(raw);
     dom.autoOpenInput.checked = Boolean(payload.autoOpen);
-    dom.appSelect.dataset.savedAppId = payload.selectedAppId || "";
-    dom.conversationSelect.dataset.savedConversationId = payload.selectedConversationId || "";
+    currentState.savedAppId = payload.selectedAppId || "";
+    currentState.savedConversationId = payload.selectedConversationId || "";
   } catch (_) {
     localStorage.removeItem(STORAGE_KEY);
   }

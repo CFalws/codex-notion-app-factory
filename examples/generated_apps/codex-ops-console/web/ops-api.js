@@ -1,15 +1,15 @@
 import { normalizeBaseUrl } from "./ops-store.js";
 
-export function requestHeaders(_dom, extraHeaders = {}) {
+export function requestHeaders(extraHeaders = {}) {
   return {
     "Content-Type": "application/json",
     ...extraHeaders,
   };
 }
 
-export async function fetchJson(dom, url, options = {}) {
+export async function fetchJson(_dom, url, options = {}) {
   const response = await fetch(url, {
-    headers: requestHeaders(dom, options.headers || {}),
+    headers: requestHeaders(options.headers || {}),
     ...options,
   });
 

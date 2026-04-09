@@ -1,5 +1,4 @@
 export const dom = {
-  backendInput: document.getElementById("backend-url"),
   appSelect: document.getElementById("app-select"),
   refreshAppsButton: document.getElementById("refresh-apps"),
   heroAppName: document.getElementById("hero-app-name"),
@@ -7,7 +6,6 @@ export const dom = {
   heroJobState: document.getElementById("hero-job-state"),
   workspaceSummaryText: document.getElementById("workspace-summary-text"),
   draftStatus: document.getElementById("draft-status"),
-  conversationSelect: document.getElementById("conversation-select"),
   conversationList: document.getElementById("conversation-list"),
   newConversationButton: document.getElementById("new-conversation"),
   conversationMeta: document.getElementById("conversation-meta"),

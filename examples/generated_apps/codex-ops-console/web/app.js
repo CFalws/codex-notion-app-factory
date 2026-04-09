@@ -10,7 +10,6 @@ import {
   conversationUrl,
   uploadConversationAttachments,
 } from "./ops-api.js";
-import { FIXED_RUNTIME_URL } from "./ops-constants.js";
 import { createConversationController } from "./ops-conversations.js";
 import { createJobController } from "./ops-jobs.js";
 import {
@@ -282,7 +281,6 @@ function wireServiceWorker() {
 
 function wireEvents() {
   dom.appSelect.addEventListener("change", conversationController.handleAppChange);
-  dom.conversationSelect.addEventListener("change", conversationController.handleConversationChange);
   dom.autoOpenInput.addEventListener("change", persistSettings);
   dom.refreshAppsButton.addEventListener("click", conversationController.loadApps);
   dom.newConversationButton.addEventListener("click", conversationController.createConversation);
@@ -302,7 +300,7 @@ function wireEvents() {
     if (!button) {
       return;
     }
-    dom.conversationSelect.value = button.dataset.conversationId || "";
+    state.savedConversationId = button.dataset.conversationId || "";
     await conversationController.handleConversationChange();
   });
 }
@@ -349,8 +347,7 @@ function initControllers() {
 }
 
 function init() {
-  loadSettings(dom);
-  dom.backendInput.value = FIXED_RUNTIME_URL;
+  loadSettings(dom, state);
   updateSelectedAppCard(dom, selectedAppData(dom));
   updateProposalButton(dom, state.latestProposalJobId);
   updateHeroState(dom, {

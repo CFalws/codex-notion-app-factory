@@ -48,17 +48,12 @@ export function createConversationController(deps) {
 
   async function loadConversations() {
     const app = selectedAppData(dom);
-    const preferredConversationId =
-      state.currentConversationId ||
-      dom.conversationSelect.value ||
-      dom.conversationSelect.dataset.savedConversationId ||
-      "";
-
-    dom.conversationSelect.innerHTML = "";
+    const preferredConversationId = state.currentConversationId || state.savedConversationId || "";
     state.conversationCache = null;
 
     if (!app) {
       state.currentConversationId = "";
+      state.savedConversationId = "";
       dom.conversationList.innerHTML = '<p class="conversation-list-empty">앱을 먼저 고르세요.</p>';
       updateHeroState(dom, {
         appName: "앱 미선택",
@@ -72,29 +67,20 @@ export function createConversationController(deps) {
 
     try {
       const conversations = await fetchJson(dom, appConversationsUrl(app.appId));
-      renderConversationList(conversations, preferredConversationId);
-      for (const conversation of conversations) {
-        const option = document.createElement("option");
-        option.value = conversation.conversation_id;
-        option.textContent = `${conversation.title} (${new Date(conversation.updated_at).toLocaleString()})`;
-        dom.conversationSelect.append(option);
-      }
+      const fallbackConversationId =
+        preferredConversationId ||
+        (conversations.length ? conversations[0].conversation_id : "");
 
-      if (preferredConversationId) {
-        dom.conversationSelect.value = preferredConversationId;
-      }
-      if (!dom.conversationSelect.value && conversations.length) {
-        dom.conversationSelect.selectedIndex = 0;
-      }
+      renderConversationList(conversations, fallbackConversationId);
 
-      if (dom.conversationSelect.value) {
-        dom.conversationSelect.dataset.savedConversationId = dom.conversationSelect.value;
-        renderConversationList(conversations, dom.conversationSelect.value);
-        await fetchConversation(dom.conversationSelect.value);
+      if (fallbackConversationId) {
+        state.savedConversationId = fallbackConversationId;
+        await fetchConversation(fallbackConversationId);
         return;
       }
 
       state.currentConversationId = "";
+      state.savedConversationId = "";
       state.currentJobId = "";
       renderConversation(dom, state, null, persistSettings);
       dom.conversationMeta.textContent = "이 앱에는 아직 대화가 없습니다.";
@@ -124,8 +110,7 @@ export function createConversationController(deps) {
 
     const conversation = await fetchJson(dom, conversationUrl(conversationId));
     state.currentConversationId = conversation.conversation_id;
-    dom.conversationSelect.value = state.currentConversationId;
-    dom.conversationSelect.dataset.savedConversationId = state.currentConversationId;
+    state.savedConversationId = state.currentConversationId;
     for (const card of dom.conversationList.querySelectorAll("[data-conversation-id]")) {
       card.classList.toggle("active", card.dataset.conversationId === state.currentConversationId);
     }
@@ -170,7 +155,7 @@ export function createConversationController(deps) {
     });
     await loadConversations();
     state.currentConversationId = payload.conversation_id;
-    dom.conversationSelect.value = state.currentConversationId;
+    state.savedConversationId = state.currentConversationId;
     await fetchConversation(state.currentConversationId);
     return state.currentConversationId;
   }
@@ -190,7 +175,7 @@ export function createConversationController(deps) {
 
     try {
       const apps = await fetchJson(dom, deps.appsUrl());
-      const previousAppId = dom.appSelect.value || dom.appSelect.dataset.savedAppId || "";
+      const previousAppId = dom.appSelect.value || state.savedAppId || "";
       dom.appSelect.innerHTML = "";
 
       for (const app of apps) {
@@ -231,7 +216,7 @@ export function createConversationController(deps) {
 
   async function handleAppChange() {
     updateSelectedAppCard(dom, selectedAppData(dom));
-    dom.conversationSelect.dataset.savedConversationId = "";
+    state.savedConversationId = "";
     stopPolling();
     await loadConversations();
     persistSettings();
@@ -239,8 +224,8 @@ export function createConversationController(deps) {
   }
 
   async function handleConversationChange() {
-    if (dom.conversationSelect.value) {
-      await fetchConversation(dom.conversationSelect.value);
+    if (state.savedConversationId) {
+      await fetchConversation(state.savedConversationId);
     } else {
       restoreDraft();
     }
