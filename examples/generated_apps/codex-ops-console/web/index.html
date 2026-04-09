@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#15110f" />
+    <meta name="theme-color" content="#f5f1ea" />
     <meta
       name="description"
       content="상태 유지형 Codex 런타임과 대화하며 앱 수정 요청을 보내고 작업 상태를 추적하는 운영 콘솔입니다."
@@ -17,9 +17,9 @@
     <main class="desktop-shell">
       <aside class="sidebar panel">
         <div class="sidebar-brand">
-          <p class="sidebar-kicker">Conversation Runtime</p>
-          <h1>Codex Ops Console</h1>
-          <p class="sidebar-copy">앱별 대화와 작업 이력을 한 공간에서 이어서 다룹니다.</p>
+          <p class="sidebar-kicker">Codex Ops Console</p>
+          <h1>대화 작업 공간</h1>
+          <p class="sidebar-copy">앱별 대화를 이어가며 수정 요청과 결과를 한 화면에서 관리합니다.</p>
           <button id="install-button" class="install-button" hidden>홈 화면에 추가</button>
         </div>
 
@@ -32,10 +32,7 @@
             <span>대상 앱</span>
             <select id="app-select"></select>
           </label>
-          <label class="field compact-field runtime-field">
-            <span>런타임 URL</span>
-            <input id="backend-url" type="url" value="https://codex-factory-vm.tail1b6dd1.ts.net" readonly />
-          </label>
+          <input id="backend-url" type="url" value="https://codex-factory-vm.tail1b6dd1.ts.net" readonly hidden />
           <div class="sidebar-app-card">
             <p class="label">배포 링크</p>
             <p id="selected-app-url" class="app-url">앱을 선택하면 여기에서 바로 열 수 있습니다.</p>
@@ -52,16 +49,49 @@
           <div id="conversation-list" class="conversation-list"></div>
         </section>
 
+        <details class="inspector-drawer sidebar-inspector">
+          <summary>작업 로그와 학습 보기</summary>
+          <div class="inspector-grid">
+            <section class="inspector-card">
+              <div class="section-head compact">
+                <h3>실행 상태</h3>
+                <div class="thread-status">
+                  <p class="activity-label">현재 단계</p>
+                  <p id="job-phase" class="activity-phase idle">IDLE</p>
+                  <p id="job-meta" class="meta">아직 실행 중인 작업이 없습니다.</p>
+                </div>
+              </div>
+              <pre id="status-output">Tailscale 런타임에 연결해 앱 목록을 불러오는 중입니다.</pre>
+              <article class="activity-card">
+                <p class="activity-label">최근 이벤트</p>
+                <div id="job-events" class="activity-events">
+                  <p class="activity-empty">작업이 시작되면 최근 실행 이벤트가 여기에 표시됩니다.</p>
+                </div>
+              </article>
+            </section>
+
+            <section class="inspector-card">
+              <div class="section-head compact">
+                <h3>이번 작업에서 배운 점</h3>
+                <p id="learning-meta" class="meta">아직 기록된 학습 로그가 없습니다.</p>
+              </div>
+              <div id="learning-summary" class="learning-summary">
+                <p class="learning-empty">작업이 끝나면 여기에서 설계 판단과 검증 내용을 바로 읽을 수 있습니다.</p>
+              </div>
+            </section>
+          </div>
+        </details>
+
         <section class="sidebar-section sidebar-footer">
           <p class="label">현재 작업 맥락</p>
           <p id="workspace-summary-text" class="workspace-summary-text">앱과 대화를 고르면 이번 세션의 작업 맥락이 정리됩니다.</p>
         </section>
       </aside>
 
-      <section class="main-stage">
-        <header class="thread-topbar panel">
+      <section class="main-stage panel">
+        <header class="thread-topbar">
           <div class="thread-title-block">
-            <p class="thread-kicker">대화형 작업 공간</p>
+            <p class="thread-kicker">현재 대화</p>
             <h2 id="hero-app-name">앱을 불러오는 중입니다.</h2>
             <p id="conversation-meta" class="meta">아직 대화 세션이 없습니다.</p>
           </div>
@@ -77,49 +107,16 @@
           </div>
         </header>
 
-        <section class="thread-surface panel">
+        <div class="thread-surface">
           <div class="thread-scroller">
             <div id="conversation-timeline" class="timeline"></div>
           </div>
-
-          <details class="inspector-drawer">
-            <summary>작업 로그와 학습 보기</summary>
-            <div class="inspector-grid">
-              <section class="inspector-card">
-                <div class="section-head compact">
-                  <h3>실행 상태</h3>
-                  <div class="thread-status">
-                    <p class="activity-label">현재 단계</p>
-                    <p id="job-phase" class="activity-phase idle">IDLE</p>
-                    <p id="job-meta" class="meta">아직 실행 중인 작업이 없습니다.</p>
-                  </div>
-                </div>
-                <pre id="status-output">Tailscale 런타임에 연결해 앱 목록을 불러오는 중입니다.</pre>
-                <article class="activity-card">
-                  <p class="activity-label">최근 이벤트</p>
-                  <div id="job-events" class="activity-events">
-                    <p class="activity-empty">작업이 시작되면 최근 실행 이벤트가 여기에 표시됩니다.</p>
-                  </div>
-                </article>
-              </section>
-
-              <section class="inspector-card">
-                <div class="section-head compact">
-                  <h3>이번 작업에서 배운 점</h3>
-                  <p id="learning-meta" class="meta">아직 기록된 학습 로그가 없습니다.</p>
-                </div>
-                <div id="learning-summary" class="learning-summary">
-                  <p class="learning-empty">작업이 끝나면 여기에서 설계 판단과 검증 내용을 바로 읽을 수 있습니다.</p>
-                </div>
-              </section>
-            </div>
-          </details>
 
           <section class="composer-dock">
             <div class="composer-shell">
               <div class="composer-header">
                 <div>
-                  <h3>메시지</h3>
+                  <h3>메시지 보내기</h3>
                   <p id="composer-hint" class="composer-hint">앱과 대화를 고르면 저장된 초안을 바로 이어서 쓸 수 있습니다.</p>
                 </div>
                 <p id="composer-count" class="composer-count">0자</p>
@@ -128,13 +125,13 @@
               <label class="field composer-field">
                 <textarea
                   id="request-text"
-                  rows="4"
+                  rows="3"
                   placeholder="무엇을 어떻게 바꾸고, 폰에서 어떻게 확인할지 자연어로 적어주세요."
                 ></textarea>
               </label>
 
               <details class="ux-feedback">
-                <summary>UI 불편 신호 함께 보내기</summary>
+                <summary>UI 불편 신호와 스크린샷 함께 보내기</summary>
                 <div class="ux-feedback-grid">
                   <label class="field">
                     <span>어느 화면이 불편한가</span>
@@ -157,7 +154,7 @@
                   </fieldset>
                   <label class="field">
                     <span>추가 설명</span>
-                    <textarea id="ux-note" rows="3" placeholder="무엇이 답답했고, 어떻게 바뀌면 좋아질지 짧게 적어주세요."></textarea>
+                    <textarea id="ux-note" rows="2" placeholder="무엇이 답답했고, 어떻게 바뀌면 좋아질지 짧게 적어주세요."></textarea>
                   </label>
                   <label class="field attachment-field">
                     <span>불편한 화면 스크린샷</span>
@@ -183,7 +180,7 @@
               </div>
             </div>
           </section>
-        </section>
+        </div>
       </section>
     </main>
 
