@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Keep the current desktop layout hierarchy unchanged.
-2. On narrow screens, make the active conversation pane render first and move the existing sidebar controls behind a one-tap drawer or sheet.
-3. Reuse the current sidebar content instead of inventing new mobile-only navigation data or transport.
-4. Preserve the autonomy rail, live run row, append stream strip, and composer as conversation-local surfaces in the main pane.
-5. Extend the static verifier and docs so future sessions can prove the mobile drawer exists and the active conversation remains the first visible workspace surface.
+1. Keep the current conversation-first shell, mobile drawer, and selected-conversation SSE path unchanged.
+2. Move the existing session strip into the same footer dock as the composer so phone-width interaction reads as one persistent conversation-local action region.
+3. Reuse the current session-strip state handling instead of introducing new transport or polling-derived behavior.
+4. Make the footer dock sticky on phone widths while keeping desktop layout unchanged and preserving machine-readable strip markers for browser verification.
+5. Extend the focused verifier and docs so future sessions can prove the footer dock contains both live state and composer without reintroducing competing status surfaces.

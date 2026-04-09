@@ -99,7 +99,6 @@
             <button id="nav-sheet-toggle" class="secondary small mobile-nav-toggle" type="button">앱과 대화</button>
             <h2 id="hero-app-name">앱을 불러오는 중입니다.</h2>
             <p id="conversation-meta" class="meta">아직 대화 세션이 없습니다.</p>
-            <p id="conversation-live-status" class="conversation-live-status" hidden>LIVE · SSE 연결됨</p>
           </div>
           <div class="thread-badges">
             <div class="status-chip">
@@ -132,17 +131,15 @@
             </div>
           </div>
 
-          <section id="live-run-row" class="live-run-row" hidden>
-            <p id="live-run-state" class="live-run-state">DONE</p>
-            <p id="live-run-detail" class="live-run-detail">선택된 대화의 현재 실행 상태가 여기에 표시됩니다.</p>
-          </section>
+          <section id="conversation-footer-dock" class="composer-dock" data-footer-dock="session-composer">
+            <section id="session-strip" class="session-strip" hidden>
+              <div class="session-strip-head">
+                <p id="session-strip-state" class="session-strip-state">LIVE</p>
+                <p id="session-strip-meta" class="session-strip-meta">SSE · append #0</p>
+              </div>
+              <p id="session-strip-detail" class="session-strip-detail">선택된 대화의 live transport와 현재 실행 상태가 여기에 표시됩니다.</p>
+            </section>
 
-          <section id="append-stream-strip" class="append-stream-strip" hidden>
-            <p id="append-stream-state" class="append-stream-state">OFFLINE</p>
-            <p id="append-stream-detail" class="append-stream-detail">선택된 대화의 live append stream 상태가 여기에 표시됩니다.</p>
-          </section>
-
-          <section class="composer-dock">
             <div class="composer-shell">
               <div class="composer-header">
                 <div>

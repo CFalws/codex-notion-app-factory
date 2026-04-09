@@ -1,5 +1,5 @@
 import { DECISION_FIELDS } from "./ops-constants.js";
-import { isAppendStreamConnected, maxConversationAppendId } from "./ops-store.js";
+import { maxConversationAppendId } from "./ops-store.js";
 
 function escapeHtml(value) {
   return String(value || "")
@@ -68,68 +68,6 @@ export function renderDraftStatus(dom, message) {
   dom.draftStatus.textContent = message;
 }
 
-export function renderConversationLiveStatus(dom, currentState, conversation) {
-  if (!dom.conversationLiveStatus) {
-    return;
-  }
-  const conversationId = conversation?.conversation_id || "";
-  if (!conversationId || !isAppendStreamConnected(currentState, conversationId)) {
-    dom.conversationLiveStatus.hidden = true;
-    dom.conversationLiveStatus.textContent = "";
-    return;
-  }
-  const lastAppendId = Number(currentState.appendStream?.lastAppendId || maxConversationAppendId(conversation) || 0);
-  dom.conversationLiveStatus.hidden = false;
-  dom.conversationLiveStatus.textContent = `LIVE · SSE append #${lastAppendId}`;
-}
-
-export function renderAppendStreamStrip(dom, currentState, conversation) {
-  if (!dom.appendStreamStrip || !dom.appendStreamState || !dom.appendStreamDetail || !dom.threadScroller) {
-    return;
-  }
-
-  const conversationId = conversation?.conversation_id || "";
-  if (!conversationId) {
-    dom.appendStreamStrip.hidden = true;
-    dom.appendStreamState.textContent = "OFFLINE";
-    dom.appendStreamDetail.textContent = "";
-    dom.appendStreamStrip.dataset.streamState = "offline";
-    dom.appendStreamStrip.dataset.renderSource = "snapshot";
-    dom.threadScroller.dataset.streamState = "offline";
-    dom.threadScroller.dataset.renderSource = "snapshot";
-    dom.threadScroller.dataset.liveConversationId = "";
-    return;
-  }
-
-  const appendStream = currentState.appendStream || {};
-  const status = String(appendStream.status || "offline").toLowerCase();
-  const lastAppendId = Number(appendStream.lastAppendId || maxConversationAppendId(conversation) || 0);
-  const lastRenderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
-  const lastLiveAppendId = Number(appendStream.lastLiveAppendId || 0);
-
-  const detailByStatus = {
-    connecting: `선택된 대화의 live stream을 여는 중입니다. 최신 append #${lastAppendId || 0}`,
-    live: `새 append는 SSE로 바로 도착합니다. 최근 live append #${lastLiveAppendId || lastAppendId || 0}`,
-    reconnecting: `재연결 중입니다. append #${lastAppendId || 0} 이후를 resume 대기합니다.`,
-    offline: `현재는 live stream이 없어서 snapshot 또는 polling 경로만 사용합니다.`,
-  };
-
-  dom.appendStreamStrip.hidden = false;
-  dom.appendStreamStrip.dataset.streamState = status;
-  dom.appendStreamStrip.dataset.renderSource = lastRenderSource;
-  dom.appendStreamStrip.dataset.liveConversationId = conversationId;
-  dom.appendStreamStrip.dataset.lastAppendId = String(lastAppendId || 0);
-  dom.appendStreamStrip.dataset.lastLiveAppendId = String(lastLiveAppendId || 0);
-  dom.appendStreamState.textContent = status.toUpperCase();
-  dom.appendStreamDetail.textContent = detailByStatus[status] || detailByStatus.offline;
-
-  dom.threadScroller.dataset.streamState = status;
-  dom.threadScroller.dataset.renderSource = lastRenderSource;
-  dom.threadScroller.dataset.liveConversationId = conversationId;
-  dom.threadScroller.dataset.lastAppendId = String(lastAppendId || 0);
-  dom.threadScroller.dataset.lastLiveAppendId = String(lastLiveAppendId || 0);
-}
-
 function deriveLiveRunState(conversation, currentState) {
   const jobId = String(currentState.currentJobId || conversation?.latest_job_id || "");
   const events = Array.isArray(conversation?.events) ? conversation.events : [];
@@ -147,6 +85,7 @@ function deriveLiveRunState(conversation, currentState) {
       source: "none",
       tone: "idle",
       jobId: "",
+      terminal: false,
     };
   }
 
@@ -158,6 +97,7 @@ function deriveLiveRunState(conversation, currentState) {
       source: "none",
       tone: "idle",
       jobId,
+      terminal: false,
     };
   }
 
@@ -169,6 +109,7 @@ function deriveLiveRunState(conversation, currentState) {
       source: `${eventSource}-event`,
       tone: "running",
       jobId,
+      terminal: false,
     };
   }
 
@@ -184,6 +125,7 @@ function deriveLiveRunState(conversation, currentState) {
       source: `${eventSource}-event`,
       tone: "waiting",
       jobId,
+      terminal: false,
     };
   }
 
@@ -200,6 +142,7 @@ function deriveLiveRunState(conversation, currentState) {
       source: `${eventSource}-event`,
       tone: "thinking",
       jobId,
+      terminal: false,
     };
   }
 
@@ -216,6 +159,7 @@ function deriveLiveRunState(conversation, currentState) {
       source: `${eventSource}-event`,
       tone: "done",
       jobId,
+      terminal: true,
     };
   }
 
@@ -227,6 +171,7 @@ function deriveLiveRunState(conversation, currentState) {
       source: `${eventSource}-event`,
       tone: "done",
       jobId,
+      terminal: true,
     };
   }
 
@@ -237,30 +182,96 @@ function deriveLiveRunState(conversation, currentState) {
     source: `${eventSource}-event`,
     tone: "thinking",
     jobId,
+    terminal: false,
   };
 }
 
-export function renderLiveRunRow(dom, currentState, conversation) {
-  if (!dom.liveRunRow || !dom.liveRunState || !dom.liveRunDetail) {
+export function renderSessionStrip(dom, currentState, conversation) {
+  if (!dom.sessionStrip || !dom.sessionStripState || !dom.sessionStripMeta || !dom.sessionStripDetail || !dom.threadScroller) {
     return;
   }
 
+  const conversationId = conversation?.conversation_id || "";
+  const appendStream = currentState.appendStream || {};
+  const status = String(appendStream.status || "offline").toLowerCase();
+  const lastAppendId = Number(appendStream.lastAppendId || maxConversationAppendId(conversation) || 0);
+  const lastRenderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
+  const lastLiveAppendId = Number(appendStream.lastLiveAppendId || 0);
   const liveRun = deriveLiveRunState(conversation, currentState);
-  if (!liveRun.visible) {
-    dom.liveRunRow.hidden = true;
-    dom.liveRunRow.dataset.liveRunState = "done";
-    dom.liveRunRow.dataset.liveRunSource = "none";
-    dom.liveRunRow.dataset.liveRunJob = "";
+
+  if (!conversationId) {
+    dom.sessionStrip.hidden = true;
+    dom.sessionStrip.dataset.sessionPresentation = "cleared";
+    dom.sessionStrip.dataset.sessionTerminal = "false";
+    dom.sessionStrip.dataset.streamState = "offline";
+    dom.sessionStrip.dataset.renderSource = "snapshot";
+    dom.sessionStrip.dataset.liveConversationId = "";
+    dom.sessionStrip.dataset.lastAppendId = "0";
+    dom.sessionStrip.dataset.lastLiveAppendId = "0";
+    dom.sessionStrip.dataset.liveRunState = "done";
+    dom.sessionStrip.dataset.liveRunSource = "none";
+    dom.sessionStrip.dataset.liveRunJob = "";
+    dom.sessionStrip.dataset.liveRunTone = "idle";
+    dom.threadScroller.dataset.streamState = "offline";
+    dom.threadScroller.dataset.renderSource = "snapshot";
+    dom.threadScroller.dataset.liveConversationId = "";
+    dom.threadScroller.dataset.lastAppendId = "0";
+    dom.threadScroller.dataset.lastLiveAppendId = "0";
+    dom.threadScroller.dataset.sessionPresentation = "cleared";
+    dom.threadScroller.dataset.sessionTerminal = "false";
     return;
   }
 
-  dom.liveRunRow.hidden = false;
-  dom.liveRunRow.dataset.liveRunState = liveRun.state;
-  dom.liveRunRow.dataset.liveRunSource = liveRun.source;
-  dom.liveRunRow.dataset.liveRunJob = liveRun.jobId || "";
-  dom.liveRunRow.dataset.liveRunTone = liveRun.tone;
-  dom.liveRunState.textContent = liveRun.state.replaceAll("-", " ").toUpperCase();
-  dom.liveRunDetail.textContent = liveRun.detail;
+  const presentation =
+    status === "reconnecting"
+      ? "reconnecting"
+      : status === "connecting"
+        ? "connecting"
+        : status === "live" && !liveRun.terminal && liveRun.tone !== "idle"
+          ? "live"
+          : liveRun.terminal
+            ? "terminal"
+            : "idle";
+  const shouldCollapse = presentation === "idle" || presentation === "terminal";
+  dom.sessionStrip.hidden = shouldCollapse;
+  dom.sessionStrip.dataset.sessionPresentation = presentation;
+  dom.sessionStrip.dataset.sessionTerminal = liveRun.terminal ? "true" : "false";
+  dom.sessionStrip.dataset.streamState = status;
+  dom.sessionStrip.dataset.renderSource = lastRenderSource;
+  dom.sessionStrip.dataset.liveConversationId = conversationId;
+  dom.sessionStrip.dataset.lastAppendId = String(lastAppendId || 0);
+  dom.sessionStrip.dataset.lastLiveAppendId = String(lastLiveAppendId || 0);
+  dom.sessionStrip.dataset.liveRunState = liveRun.state;
+  dom.sessionStrip.dataset.liveRunSource = liveRun.source;
+  dom.sessionStrip.dataset.liveRunJob = liveRun.jobId || "";
+  dom.sessionStrip.dataset.liveRunTone = liveRun.tone;
+
+  const streamLabelByStatus = {
+    connecting: "CONNECTING",
+    live: "LIVE",
+    reconnecting: "RECONNECTING",
+    offline: "OFFLINE",
+  };
+  const runLabel = liveRun.state.replaceAll("-", " ").toUpperCase();
+  dom.sessionStripState.textContent = `${streamLabelByStatus[status] || "OFFLINE"} · ${runLabel}`;
+  dom.sessionStripMeta.textContent =
+    `${status === "live" ? "SSE" : status === "reconnecting" ? "SSE RESUME" : status === "connecting" ? "SSE OPEN" : "SNAPSHOT"} · append #${lastLiveAppendId || lastAppendId || 0} · ${liveRun.source.toUpperCase()}`;
+  dom.sessionStripDetail.textContent =
+    status === "live"
+      ? `${liveRun.detail} 새 append는 SSE로 바로 반영됩니다.`
+      : status === "reconnecting"
+        ? `${liveRun.detail} 연결을 복구하는 동안 최근 append 이후를 resume 대기합니다.`
+        : status === "connecting"
+          ? `${liveRun.detail} 선택된 대화의 live stream을 여는 중입니다.`
+          : `${liveRun.detail} 현재는 snapshot 또는 polling 경로만 사용합니다.`;
+
+  dom.threadScroller.dataset.streamState = status;
+  dom.threadScroller.dataset.renderSource = lastRenderSource;
+  dom.threadScroller.dataset.liveConversationId = conversationId;
+  dom.threadScroller.dataset.lastAppendId = String(lastAppendId || 0);
+  dom.threadScroller.dataset.lastLiveAppendId = String(lastLiveAppendId || 0);
+  dom.threadScroller.dataset.sessionPresentation = presentation;
+  dom.threadScroller.dataset.sessionTerminal = liveRun.terminal ? "true" : "false";
 }
 
 export function renderComposerMeta(dom, { hint = "", count = 0 }) {
@@ -485,9 +496,10 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   if (!conversation) {
     dom.conversationMeta.textContent = "아직 대화 세션이 없습니다.";
     dom.conversationTimeline.innerHTML = '<p class="timeline-empty">새 대화를 만들면 요청과 이벤트가 여기 쌓입니다.</p>';
-    renderConversationLiveStatus(dom, currentState, null);
-    renderLiveRunRow(dom, currentState, null);
-    renderAppendStreamStrip(dom, currentState, null);
+    if (dom.threadScroller) {
+      dom.threadScroller.dataset.pendingConversationId ||= "";
+    }
+    renderSessionStrip(dom, currentState, null);
     updateHeroState(dom, {
       conversationState: "새 대화 필요",
       jobState: currentState.currentJobId ? "RUNNING" : "IDLE",
@@ -512,9 +524,10 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   });
 
   dom.conversationMeta.textContent = `${messages.length} messages · ${events.length} events`;
-  renderConversationLiveStatus(dom, currentState, conversation);
-  renderLiveRunRow(dom, currentState, conversation);
-  renderAppendStreamStrip(dom, currentState, conversation);
+  if (dom.threadScroller) {
+    dom.threadScroller.dataset.pendingConversationId = "";
+  }
+  renderSessionStrip(dom, currentState, conversation);
   updateHeroState(dom, {
     conversationState: `${messages.length} msgs · ${events.length} evts`,
   });

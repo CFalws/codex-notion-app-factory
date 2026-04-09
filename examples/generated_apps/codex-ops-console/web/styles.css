@@ -295,22 +295,6 @@ textarea {
   display: none;
 }
 
-.conversation-live-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  width: fit-content;
-  margin: 0.1rem 0 0;
-  padding: 0.26rem 0.62rem;
-  border: 1px solid rgba(47, 138, 89, 0.22);
-  border-radius: 999px;
-  background: rgba(47, 138, 89, 0.1);
-  color: var(--success);
-  font-size: 0.76rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-}
-
 .thread-title-block h2 {
   font-size: 1.55rem;
   line-height: 1.08;
@@ -345,7 +329,7 @@ textarea {
 
 .thread-surface {
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto auto auto;
+  grid-template-rows: minmax(0, 1fr) auto;
   min-height: 0;
   overflow: hidden;
 }
@@ -472,18 +456,32 @@ textarea {
   gap: 0.78rem;
 }
 
-.live-run-row {
+.session-strip {
+  display: grid;
+  gap: 0.38rem;
+  width: min(100%, 56rem);
+  margin: 0 auto;
+  padding: 0.72rem 1rem 0.78rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 243, 237, 0.9));
+  box-shadow: 0 12px 24px rgba(44, 25, 6, 0.06);
+}
+
+.session-strip-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.9rem;
-  padding: 0.72rem 1rem;
-  border-top: 1px solid var(--line);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 243, 237, 0.9));
+  gap: 0.8rem;
 }
 
-.live-run-state {
+.session-strip-state,
+.session-strip-meta,
+.session-strip-detail {
   margin: 0;
+}
+
+.session-strip-state {
   font-size: 0.74rem;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -491,69 +489,38 @@ textarea {
   color: var(--accent-ink);
 }
 
-.live-run-detail {
-  margin: 0;
+.session-strip-meta,
+.session-strip-detail {
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   line-height: 1.45;
+}
+
+.session-strip-meta {
   text-align: right;
 }
 
-.live-run-row[data-live-run-tone="running"] .live-run-state {
+.session-strip[data-stream-state="live"] .session-strip-state,
+.session-strip[data-live-run-tone="done"][data-stream-state="live"] .session-strip-state {
+  color: var(--success);
+}
+
+.session-strip[data-stream-state="reconnecting"] .session-strip-state,
+.session-strip[data-live-run-tone="waiting"] .session-strip-state {
+  color: var(--warning);
+}
+
+.session-strip[data-live-run-tone="running"] .session-strip-state {
   color: var(--danger);
 }
 
-.live-run-row[data-live-run-tone="thinking"] .live-run-state {
+.session-strip[data-live-run-tone="thinking"] .session-strip-state,
+.session-strip[data-stream-state="connecting"] .session-strip-state {
   color: var(--accent-ink);
 }
 
-.live-run-row[data-live-run-tone="waiting"] .live-run-state {
-  color: var(--warning);
-}
-
-.live-run-row[data-live-run-tone="done"] .live-run-state,
-.live-run-row[data-live-run-tone="idle"] .live-run-state {
-  color: var(--success);
-}
-
-.append-stream-strip {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.9rem;
-  padding: 0.7rem 1rem;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.88);
-}
-
-.append-stream-state {
-  margin: 0;
-  font-size: 0.74rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--accent-ink);
-}
-
-.append-stream-strip[data-stream-state="live"] .append-stream-state {
-  color: var(--success);
-}
-
-.append-stream-strip[data-stream-state="reconnecting"] .append-stream-state {
-  color: var(--warning);
-}
-
-.append-stream-strip[data-stream-state="offline"] .append-stream-state {
+.session-strip[data-stream-state="offline"][data-live-run-tone="idle"] .session-strip-state {
   color: var(--muted);
-}
-
-.append-stream-detail {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.9rem;
-  line-height: 1.45;
-  text-align: right;
 }
 
 .timeline-item {
@@ -625,6 +592,8 @@ textarea {
 }
 
 .composer-dock {
+  display: grid;
+  gap: 0.7rem;
   padding: 0.85rem 1rem 1rem;
   border-top: 1px solid var(--line);
   background: linear-gradient(180deg, rgba(243, 239, 232, 0) 0%, rgba(243, 239, 232, 0.78) 18%, var(--surface) 48%);
@@ -907,7 +876,14 @@ textarea {
   }
 
   .composer-dock {
-    padding: 0.7rem;
+    position: sticky;
+    bottom: 0;
+    z-index: 15;
+    padding: 0.7rem 0.7rem max(0.8rem, env(safe-area-inset-bottom));
+    background:
+      linear-gradient(180deg, rgba(243, 239, 232, 0.1) 0%, rgba(243, 239, 232, 0.88) 20%, rgba(255, 253, 250, 0.98) 56%),
+      var(--surface);
+    box-shadow: 0 -10px 24px rgba(44, 25, 6, 0.08);
   }
 }
 
@@ -931,10 +907,13 @@ textarea {
   }
 
   .autonomy-rail,
-  .live-run-row,
-  .append-stream-strip {
+  .composer-dock {
     padding-left: 0.85rem;
     padding-right: 0.85rem;
+  }
+
+  .session-strip {
+    width: 100%;
   }
 
   .composer-header,

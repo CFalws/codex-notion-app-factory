@@ -17,6 +17,11 @@ def require(content: str, needle: str, *, label: str) -> None:
         raise AssertionError(f"missing {label}: {needle}")
 
 
+def require_absent(content: str, needle: str, *, label: str) -> None:
+    if needle in content:
+        raise AssertionError(f"unexpected {label}: {needle}")
+
+
 def main() -> int:
     app_js = read("examples/generated_apps/codex-ops-console/web/app.js")
     api_js = read("examples/generated_apps/codex-ops-console/web/ops-api.js")
@@ -28,8 +33,14 @@ def main() -> int:
     index_html = read("examples/generated_apps/codex-ops-console/web/index.html")
     autonomy_index = index_html.index('id="autonomy-summary"')
     thread_scroller_index = index_html.index('id="thread-scroller"')
+    footer_dock_index = index_html.index('id="conversation-footer-dock"')
+    session_strip_index = index_html.index('id="session-strip"')
     if autonomy_index > thread_scroller_index:
         raise AssertionError("autonomy summary still appears inside the scrollable timeline region")
+    if not (thread_scroller_index < footer_dock_index < index_html.index('class="composer-shell"')):
+        raise AssertionError("footer dock does not wrap the session strip and composer after the thread scroller")
+    if session_strip_index > index_html.index('class="composer-shell"'):
+        raise AssertionError("session strip no longer appears before the composer inside the footer dock")
 
     require(api_js, "/api/internal/conversations/${conversationId}/append-stream", label="append SSE URL builder")
     require(conversations_js, "new window.EventSource(internalConversationAppendStreamUrl(conversationId))", label="EventSource wiring")
@@ -42,18 +53,26 @@ def main() -> int:
     require(conversations_js, 'delivery_source: "sse"', label="SSE provenance tagging")
     require(conversations_js, "state.appendStream.transport = \"sse\"", label="SSE transport evidence")
     require(jobs_js, "!isAppendStreamConnected(state, state.currentConversationId)", label="polling refetch skip while connected")
-    require(render_js, "LIVE · SSE append #", label="live indicator copy")
     require(render_js, "deriveLiveRunState", label="inline live run state derivation")
+    require(render_js, "renderSessionStrip", label="unified session strip renderer")
+    require(render_js, "dataset.sessionPresentation", label="session strip presentation dataset")
+    require(render_js, "dataset.sessionTerminal", label="session strip terminal dataset")
+    require(render_js, 'presentation === "idle" || presentation === "terminal"', label="idle or terminal collapse rule")
     require(render_js, "dataset.liveRunState", label="live run state dataset")
     require(render_js, "dataset.liveRunSource", label="live run source dataset")
     require(render_js, "data-append-source", label="append provenance attribute")
     require(render_js, "dataset.streamState = status", label="stream-state dataset")
     require(render_js, "dataset.renderSource = lastRenderSource", label="render-source dataset")
+    require(conversations_js, 'dom.threadScroller.dataset.pendingConversationId = conversationId', label="thread switch pending marker")
+    require(conversations_js, "state.currentConversationId && state.currentConversationId !== conversationId", label="thread switch clear guard")
     require(store_js, "appendStream", label="append stream state")
     require(store_js, "isAppendStreamConnected", label="append stream connection helper")
-    require(index_html, 'id="conversation-live-status"', label="live indicator DOM")
-    require(index_html, 'id="live-run-row"', label="live run row DOM")
-    require(index_html, 'id="append-stream-strip"', label="stream strip DOM")
+    require(index_html, 'id="session-strip"', label="session strip DOM")
+    require(index_html, 'id="session-strip-state"', label="session strip state DOM")
+    require(index_html, 'id="session-strip-meta"', label="session strip meta DOM")
+    require(index_html, 'id="session-strip-detail"', label="session strip detail DOM")
+    require(index_html, 'id="conversation-footer-dock"', label="conversation footer dock DOM")
+    require(index_html, 'data-footer-dock="session-composer"', label="footer dock mode DOM")
     require(index_html, 'class="autonomy-rail"', label="header-adjacent autonomy rail DOM")
     require(index_html, 'id="nav-sheet-toggle"', label="mobile nav toggle DOM")
     require(index_html, 'id="nav-sheet-close"', label="mobile nav close DOM")
@@ -62,8 +81,14 @@ def main() -> int:
     require(app_js, "setNavigationOpen", label="mobile nav state helper")
     require(app_js, 'window.innerWidth > 860', label="mobile nav resize reset")
     require(styles_css, 'body[data-nav-open="true"] .sidebar', label="mobile nav drawer CSS")
+    require(styles_css, ".session-strip", label="session strip CSS")
+    require(styles_css, "position: sticky;", label="sticky footer CSS")
+    require(styles_css, "env(safe-area-inset-bottom)", label="safe-area footer padding CSS")
     require(styles_css, ".mobile-nav-toggle", label="mobile nav button CSS")
-    print("ok: ops append SSE wiring, autonomy rail, and mobile nav drawer are present")
+    require_absent(index_html, 'id="conversation-live-status"', label="legacy live badge DOM")
+    require_absent(index_html, 'id="live-run-row"', label="legacy live run row DOM")
+    require_absent(index_html, 'id="append-stream-strip"', label="legacy append stream DOM")
+    print("ok: ops footer dock, session strip, autonomy rail, append SSE wiring, and mobile nav drawer are present")
     return 0
 
 

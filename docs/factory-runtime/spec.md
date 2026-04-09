@@ -8,7 +8,7 @@
 
 ## Problem
 
-The desktop workspace is materially closer to a conversation-first session now, but on phone widths the sidebar still owns the first visible surface. That means users reach app and thread controls before the active conversation and composer, which breaks the intended live-session feel.
+The selected conversation now has one compact session strip, but on phone widths the strip and composer still read as separate stacked surfaces. That weakens the live-session feel because state visibility and input reachability do not yet behave like one persistent conversation-local footer region.
 
 ## Target User
 
@@ -23,4 +23,4 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 ## Deliverable
 
-On narrow screens, keep the conversation workspace visible first and move the existing app and thread navigation into a one-tap drawer or sheet, while preserving the current autonomy rail, live run row, and append provenance markers in the active conversation pane.
+On phone widths, merge the existing selected-conversation session strip and composer into one persistent footer dock so live state remains visible while the input stays continuously reachable, without adding new transport or expanding status scope.

@@ -25,8 +25,7 @@ export function createConversationController(deps) {
     restoreDraft,
     syncDraftStatus,
     internalConversationAppendStreamUrl,
-    renderConversationLiveStatus,
-    renderAppendStreamStrip,
+    renderSessionStrip,
   } = deps;
 
   function resetAppendStream(conversationId = "") {
@@ -47,8 +46,7 @@ export function createConversationController(deps) {
     }
     state.appendStream.source = null;
     resetAppendStream("");
-    renderConversationLiveStatus(dom, state, state.conversationCache);
-    renderAppendStreamStrip(dom, state, state.conversationCache);
+    renderSessionStrip(dom, state, state.conversationCache);
   }
 
   function syncAppendCursor(conversation) {
@@ -128,8 +126,7 @@ export function createConversationController(deps) {
     state.appendStream.status = "connecting";
     state.appendStream.transport = "sse";
     state.appendStream.lastRenderSource = "snapshot";
-    renderConversationLiveStatus(dom, state, state.conversationCache);
-    renderAppendStreamStrip(dom, state, state.conversationCache);
+    renderSessionStrip(dom, state, state.conversationCache);
 
     state.appendStream.source.addEventListener("open", () => {
       if (state.currentConversationId !== conversationId || state.appendStream?.conversationId !== conversationId) {
@@ -137,8 +134,7 @@ export function createConversationController(deps) {
       }
       openedOnce = true;
       state.appendStream.status = "live";
-      renderConversationLiveStatus(dom, state, state.conversationCache);
-      renderAppendStreamStrip(dom, state, state.conversationCache);
+      renderSessionStrip(dom, state, state.conversationCache);
     });
 
     state.appendStream.source.addEventListener("conversation.append", (event) => {
@@ -162,8 +158,7 @@ export function createConversationController(deps) {
         return;
       }
       state.appendStream.status = "reconnecting";
-      renderConversationLiveStatus(dom, state, state.conversationCache);
-      renderAppendStreamStrip(dom, state, state.conversationCache);
+      renderSessionStrip(dom, state, state.conversationCache);
     });
   }
 
@@ -291,6 +286,17 @@ export function createConversationController(deps) {
       closeAppendStream();
       renderConversation(dom, state, null, persistSettings);
       return;
+    }
+
+    if (state.currentConversationId && state.currentConversationId !== conversationId) {
+      if (dom.threadScroller) {
+        dom.threadScroller.dataset.pendingConversationId = conversationId;
+      }
+      closeAppendStream();
+      state.currentConversationId = "";
+      state.currentJobId = "";
+      state.conversationCache = null;
+      renderConversation(dom, state, null, persistSettings);
     }
 
     const conversation = await fetchJson(dom, conversationUrl(conversationId));

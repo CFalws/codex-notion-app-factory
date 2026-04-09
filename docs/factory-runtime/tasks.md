@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep desktop conversation-first hierarchy unchanged.
-- [x] Make the active conversation the first visible surface on phone widths.
-- [x] Move existing app and thread navigation behind a one-tap mobile drawer or sheet.
-- [x] Preserve conversation-local live state surfaces above the composer in the main pane.
-- [x] Extend the static verifier so future sessions can prove the mobile navigation drawer wiring exists.
+- [x] Keep the current conversation-first shell, mobile drawer, and selected-conversation SSE path unchanged.
+- [x] Place the session strip inside the same footer dock region as the composer.
+- [x] Make the footer dock persistent on phone widths so live state and input stay reachable together.
+- [x] Preserve machine-readable session-strip state markers while removing any separate competing footer status surface.
+- [x] Extend focused verification so future sessions can prove the footer dock wraps both session strip and composer on the intended path.
