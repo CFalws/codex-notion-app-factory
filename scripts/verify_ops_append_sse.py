@@ -35,12 +35,17 @@ def main() -> int:
     thread_scroller_index = index_html.index('id="thread-scroller"')
     footer_dock_index = index_html.index('id="conversation-footer-dock"')
     session_strip_index = index_html.index('id="session-strip"')
+    sidebar_index = index_html.index('<aside class="sidebar panel">')
+    main_stage_index = index_html.index('<section class="main-stage panel">')
+    secondary_panel_index = index_html.index('id="secondary-panel"')
     if autonomy_index > thread_scroller_index:
         raise AssertionError("autonomy summary still appears inside the scrollable timeline region")
     if not (thread_scroller_index < footer_dock_index < index_html.index('class="composer-shell"')):
         raise AssertionError("footer dock does not wrap the session strip and composer after the thread scroller")
     if session_strip_index > index_html.index('class="composer-shell"'):
         raise AssertionError("session strip no longer appears before the composer inside the footer dock")
+    if not (sidebar_index < main_stage_index < secondary_panel_index):
+        raise AssertionError("desktop workspace no longer uses sidebar, main stage, then secondary panel order")
 
     require(api_js, "/api/internal/conversations/${conversationId}/append-stream", label="append SSE URL builder")
     require(conversations_js, "new window.EventSource(internalConversationAppendStreamUrl(conversationId))", label="EventSource wiring")
@@ -74,13 +79,20 @@ def main() -> int:
     require(index_html, 'id="conversation-footer-dock"', label="conversation footer dock DOM")
     require(index_html, 'data-footer-dock="session-composer"', label="footer dock mode DOM")
     require(index_html, 'class="autonomy-rail"', label="header-adjacent autonomy rail DOM")
+    require(index_html, 'id="secondary-panel"', label="secondary panel DOM")
+    require(index_html, 'id="secondary-panel-toggle"', label="secondary panel toggle DOM")
+    require(index_html, 'id="secondary-panel-close"', label="secondary panel close DOM")
     require(index_html, 'id="nav-sheet-toggle"', label="mobile nav toggle DOM")
     require(index_html, 'id="nav-sheet-close"', label="mobile nav close DOM")
     require(index_html, 'id="nav-sheet-scrim"', label="mobile nav scrim DOM")
     require(app_js, "internalConversationAppendStreamUrl", label="controller dependency wiring")
     require(app_js, "setNavigationOpen", label="mobile nav state helper")
+    require(app_js, "setSecondaryPanelOpen", label="secondary panel state helper")
     require(app_js, 'window.innerWidth > 860', label="mobile nav resize reset")
     require(styles_css, 'body[data-nav-open="true"] .sidebar', label="mobile nav drawer CSS")
+    require(styles_css, 'body[data-secondary-panel-open="true"] .desktop-shell', label="desktop secondary panel layout CSS")
+    require(styles_css, ".secondary-panel", label="secondary panel CSS")
+    require(styles_css, ".thread-sidecar", label="thread sidecar CSS")
     require(styles_css, ".session-strip", label="session strip CSS")
     require(styles_css, "position: sticky;", label="sticky footer CSS")
     require(styles_css, "env(safe-area-inset-bottom)", label="safe-area footer padding CSS")
@@ -88,7 +100,9 @@ def main() -> int:
     require_absent(index_html, 'id="conversation-live-status"', label="legacy live badge DOM")
     require_absent(index_html, 'id="live-run-row"', label="legacy live run row DOM")
     require_absent(index_html, 'id="append-stream-strip"', label="legacy append stream DOM")
-    print("ok: ops footer dock, session strip, autonomy rail, append SSE wiring, and mobile nav drawer are present")
+    require_absent(index_html, "sidebar-inspector", label="legacy sidebar inspector")
+    require_absent(index_html, "sidebar-footer", label="legacy sidebar footer")
+    print("ok: ops desktop secondary panel, footer dock, session strip, autonomy rail, append SSE wiring, and mobile nav drawer are present")
     return 0
 
 

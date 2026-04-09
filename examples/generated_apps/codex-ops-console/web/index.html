@@ -52,43 +52,6 @@
           <div id="conversation-list" class="conversation-list"></div>
         </section>
 
-        <details class="inspector-drawer sidebar-inspector">
-          <summary>작업 로그와 학습 보기</summary>
-          <div class="inspector-grid">
-            <section class="inspector-card">
-              <div class="section-head compact">
-                <h3>실행 상태</h3>
-                <div class="thread-status">
-                  <p class="activity-label">현재 단계</p>
-                  <p id="job-phase" class="activity-phase idle">IDLE</p>
-                  <p id="job-meta" class="meta">아직 실행 중인 작업이 없습니다.</p>
-                </div>
-              </div>
-              <pre id="status-output">Tailscale 런타임에 연결해 앱 목록을 불러오는 중입니다.</pre>
-              <article class="activity-card">
-                <p class="activity-label">최근 이벤트</p>
-                <div id="job-events" class="activity-events">
-                  <p class="activity-empty">작업이 시작되면 최근 실행 이벤트가 여기에 표시됩니다.</p>
-                </div>
-              </article>
-            </section>
-
-            <section class="inspector-card">
-              <div class="section-head compact">
-                <h3>이번 작업에서 배운 점</h3>
-                <p id="learning-meta" class="meta">아직 기록된 학습 로그가 없습니다.</p>
-              </div>
-              <div id="learning-summary" class="learning-summary">
-                <p class="learning-empty">작업이 끝나면 여기에서 설계 판단과 검증 내용을 바로 읽을 수 있습니다.</p>
-              </div>
-            </section>
-          </div>
-        </details>
-
-        <section class="sidebar-section sidebar-footer">
-          <p class="label">현재 작업 맥락</p>
-          <p id="workspace-summary-text" class="workspace-summary-text">앱과 대화를 고르면 이번 세션의 작업 맥락이 정리됩니다.</p>
-        </section>
       </aside>
       <button id="nav-sheet-scrim" class="nav-sheet-scrim" type="button" hidden aria-label="네비게이션 닫기"></button>
 
@@ -100,15 +63,18 @@
             <h2 id="hero-app-name">앱을 불러오는 중입니다.</h2>
             <p id="conversation-meta" class="meta">아직 대화 세션이 없습니다.</p>
           </div>
-          <div class="thread-badges">
-            <div class="status-chip">
-              <span>대화</span>
-              <strong id="hero-conversation-state">대화 준비 전</strong>
+          <div class="thread-sidecar">
+            <div class="thread-badges">
+              <div class="status-chip">
+                <span>대화</span>
+                <strong id="hero-conversation-state">대화 준비 전</strong>
+              </div>
+              <div class="status-chip prominent">
+                <span>상태</span>
+                <strong id="hero-job-state">IDLE</strong>
+              </div>
             </div>
-            <div class="status-chip prominent">
-              <span>상태</span>
-              <strong id="hero-job-state">IDLE</strong>
-            </div>
+            <button id="secondary-panel-toggle" class="secondary small desktop-panel-toggle" type="button">세션 패널</button>
           </div>
         </header>
 
@@ -172,6 +138,51 @@
           </section>
         </div>
       </section>
+
+      <aside id="secondary-panel" class="secondary-panel panel">
+        <div class="secondary-panel-head">
+          <div>
+            <p class="sidebar-kicker">Secondary Panel</p>
+            <h2>작업 상태와 학습</h2>
+          </div>
+          <button id="secondary-panel-close" class="secondary small" type="button">닫기</button>
+        </div>
+
+        <section class="sidebar-section secondary-summary">
+          <p class="label">현재 작업 맥락</p>
+          <p id="workspace-summary-text" class="workspace-summary-text">앱과 대화를 고르면 이번 세션의 작업 맥락이 정리됩니다.</p>
+        </section>
+
+        <div class="inspector-grid secondary-panel-grid">
+          <section class="inspector-card">
+            <div class="section-head compact">
+              <h3>실행 상태</h3>
+              <div class="thread-status">
+                <p class="activity-label">현재 단계</p>
+                <p id="job-phase" class="activity-phase idle">IDLE</p>
+                <p id="job-meta" class="meta">아직 실행 중인 작업이 없습니다.</p>
+              </div>
+            </div>
+            <pre id="status-output">Tailscale 런타임에 연결해 앱 목록을 불러오는 중입니다.</pre>
+            <article class="activity-card">
+              <p class="activity-label">최근 이벤트</p>
+              <div id="job-events" class="activity-events">
+                <p class="activity-empty">작업이 시작되면 최근 실행 이벤트가 여기에 표시됩니다.</p>
+              </div>
+            </article>
+          </section>
+
+          <section class="inspector-card">
+            <div class="section-head compact">
+              <h3>이번 작업에서 배운 점</h3>
+              <p id="learning-meta" class="meta">아직 기록된 학습 로그가 없습니다.</p>
+            </div>
+            <div id="learning-summary" class="learning-summary">
+              <p class="learning-empty">작업이 끝나면 여기에서 설계 판단과 검증 내용을 바로 읽을 수 있습니다.</p>
+            </div>
+          </section>
+        </div>
+      </aside>
     </main>
 
     <script type="module" src="./app.js"></script>

@@ -2,15 +2,14 @@
 
 ## Deployment Impact
 
-This changes the GitHub Pages operator workspace only. It merges the selected-conversation session strip and composer into one phone-width footer dock while leaving desktop hierarchy, mobile drawer behavior, and the existing live append path intact.
+This changes the GitHub Pages operator workspace only. It introduces a desktop secondary panel for nonessential operator content while leaving the selected-conversation live path, mobile drawer behavior, and phone footer dock intact.
 
 ## Rollout Notes
 
 1. Apply the proposal commit onto `main`.
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
-3. Open the console on a phone-width viewport and confirm the selected conversation is visible before app and thread controls.
-4. Open the mobile drawer with one tap, switch app or conversation, and confirm the drawer closes back to the active workspace.
-5. Verify the phone-width footer dock keeps the session strip and composer in one persistent region at the bottom of the active conversation.
-6. Confirm the session strip still updates through connecting, live, reconnecting, idle collapse, and terminal collapse using the selected-conversation live path.
-7. Switch conversations and confirm stale strip state clears immediately before the new thread loads.
-8. Confirm desktop width remains unchanged and the autonomy rail plus composer remain easy to access.
+3. Open the console on desktop width and confirm the thread rail remains continuously visible while the transcript and composer dominate the center pane.
+4. Verify workspace summary, execution logs, and learning content are collapsed behind the secondary panel by default and no longer compete with the main conversation pane.
+5. Open and close the secondary panel from the thread header and confirm the center conversation view remains intact.
+6. On phone width, confirm the existing mobile drawer and sticky footer dock still behave unchanged.
+7. Confirm the session strip still updates through connecting, live, reconnecting, idle collapse, and terminal collapse using the selected-conversation live path.

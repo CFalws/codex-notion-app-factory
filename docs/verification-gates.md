@@ -182,6 +182,7 @@ For the feature-flagged active-conversation append SSE path, verification should
 - a unified selected-conversation session strip exposes machine-readable transport state, run state, source, and append provenance derived from live conversation events rather than fragmented polling-only status surfaces
 - the unified session strip exposes machine-readable presentation and terminal-state markers so idle collapse, terminal collapse, reconnecting visibility, and immediate thread-switch clearing can be verified in the browser
 - on phone widths, the selected-conversation session strip and composer should share one persistent footer dock so live state stays visible while the input remains reachable in the active thread
+- on desktop widths, the thread rail should remain continuously accessible while prose-heavy operator content stays behind a collapsed secondary panel so the transcript remains the dominant workspace surface
 - conversation-local autonomy state should be visible outside the scrollable timeline body so message history remains the first visible content in the center pane
 - on phone widths, the active conversation should remain the first visible workspace surface and app or thread navigation should open through an explicit drawer or sheet rather than occupying the top of the reading flow
 

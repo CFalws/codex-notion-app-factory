@@ -8,7 +8,7 @@
 
 ## Problem
 
-The selected conversation now has one compact session strip, but on phone widths the strip and composer still read as separate stacked surfaces. That weakens the live-session feel because state visibility and input reachability do not yet behave like one persistent conversation-local footer region.
+Phone-width footer flow is materially closer to a live session now, but desktop still risks reading like an operator dashboard because execution logs, learning summaries, and workspace context remain mixed into the always-visible left rail instead of collapsing behind a secondary surface.
 
 ## Target User
 
@@ -23,4 +23,4 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 ## Deliverable
 
-On phone widths, merge the existing selected-conversation session strip and composer into one persistent footer dock so live state remains visible while the input stays continuously reachable, without adding new transport or expanding status scope.
+On desktop widths, keep the thread rail continuously visible, keep the transcript and composer dominant in the center pane, and move nonessential operator and status content behind a secondary panel that stays collapsed by default while a conversation is active.

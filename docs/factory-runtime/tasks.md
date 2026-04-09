@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep the current conversation-first shell, mobile drawer, and selected-conversation SSE path unchanged.
-- [x] Place the session strip inside the same footer dock region as the composer.
-- [x] Make the footer dock persistent on phone widths so live state and input stay reachable together.
-- [x] Preserve machine-readable session-strip state markers while removing any separate competing footer status surface.
-- [x] Extend focused verification so future sessions can prove the footer dock wraps both session strip and composer on the intended path.
+- [x] Keep the current selected-conversation SSE path, mobile drawer, and phone footer dock unchanged.
+- [x] Leave the thread list as a stable desktop left rail.
+- [x] Move workspace summary, execution logs, and learning content into a secondary panel instead of the always-visible left rail.
+- [x] Keep the transcript and composer as the dominant center workspace surfaces.
+- [x] Extend focused verification so future sessions can prove the desktop workspace hierarchy and collapsed secondary-panel behavior.

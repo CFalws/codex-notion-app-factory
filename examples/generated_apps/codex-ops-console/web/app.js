@@ -51,6 +51,10 @@ function setNavigationOpen(isOpen) {
   }
 }
 
+function setSecondaryPanelOpen(isOpen) {
+  document.body.dataset.secondaryPanelOpen = isOpen ? "true" : "false";
+}
+
 function syncComposerMeta() {
   const app = selectedAppData(dom);
   const text = dom.requestTextInput.value;
@@ -242,9 +246,13 @@ function wireEvents() {
   dom.navSheetToggle?.addEventListener("click", () => setNavigationOpen(true));
   dom.navSheetClose?.addEventListener("click", () => setNavigationOpen(false));
   dom.navSheetScrim?.addEventListener("click", () => setNavigationOpen(false));
+  dom.secondaryPanelToggle?.addEventListener("click", () => setSecondaryPanelOpen(true));
+  dom.secondaryPanelClose?.addEventListener("click", () => setSecondaryPanelOpen(false));
   window.addEventListener("resize", () => {
     if (window.innerWidth > 860) {
       setNavigationOpen(false);
+    } else {
+      setSecondaryPanelOpen(false);
     }
   });
   dom.appSelect.addEventListener("change", async () => {
@@ -331,6 +339,7 @@ function initControllers() {
 
 function init() {
   setNavigationOpen(false);
+  setSecondaryPanelOpen(false);
   loadSettings(dom, state);
   updateSelectedAppCard(dom, selectedAppData(dom));
   updateProposalButton(dom, state.latestProposalJobId);
