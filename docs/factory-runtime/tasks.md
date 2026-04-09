@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep the current selected-conversation SSE path, deployed workspace gate, transcript-first center pane, and selected-row live-owner treatment unchanged in ownership.
-- [x] Refine non-selected conversation cards to one fixed-priority snapshot state chip.
-- [x] Refine preview selection so message content wins over noisy event prose when available.
-- [x] Preserve one bounded preview line and one snapshot-only chip per non-selected row on desktop and phone widths.
-- [x] Extend focused verification so future sessions can prove ready, review, verify, done, failed, and idle states stay distinguishable without implying off-thread live ownership.
+- [x] Keep the current selected-conversation SSE path, deployed workspace gate, rail rendering, and footer live rail ownership unchanged.
+- [x] Reuse the existing selected-thread live-run state derivation, but surface exact proposal, review, verify, auto-apply, ready, and applied progression in the header and live rail.
+- [x] Add one phase-specific detail helper so the selected-thread header and live rail stay consistent with the same SSE-driven state.
+- [x] Preserve non-selected rows as snapshot-only and keep transcript plus composer reachability intact on desktop and phone widths.
+- [x] Extend focused verification so future sessions can prove visible phase progression still comes from the selected-thread SSE path.

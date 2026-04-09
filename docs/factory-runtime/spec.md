@@ -8,7 +8,7 @@
 
 ## Problem
 
-The workspace already has the intended selected-thread SSE proof path and a clearer selected-row live-owner treatment, but the rest of the left rail still makes thread choice more inferential than it should be. The remaining friction is that non-selected rows can still look too generic, because their snapshot label precedence and preview selection do not consistently surface the most useful state and content.
+The workspace already has the intended selected-thread SSE proof path, stronger rail clarity, and a compact live activity bar, but the active thread still flattens some realtime progression back into generic execution wording. The remaining friction is that the selected conversation should expose exact proposal, review, verify, auto-apply, ready, and applied progression directly in the center workspace instead of making the operator infer it from generic running language.
 
 ## Target User
 
@@ -19,9 +19,9 @@ The primary user is the operator or developer using the phone-friendly workspace
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
 - Reuse the existing selected-conversation SSE route instead of widening transport scope.
-- Constrain this iteration to render-only non-selected conversation-card snapshot labeling and preview selection on top of the existing rail contract.
-- Leave selected-thread transport, selected-row live-owner treatment, deployed verification gate, and polling fallback rules unchanged in this iteration.
+- Constrain this iteration to render-only selected-thread phase presentation inside the existing header and composer-adjacent live rail.
+- Leave selected-thread transport ownership, non-selected thread rendering, deployed verification gate, and polling fallback rules unchanged in this iteration.
 
 ## Deliverable
 
-Keep the existing selected-conversation SSE path and workspace shell, but normalize every non-selected conversation row to one fixed-priority snapshot state chip and one bounded recent preview line while preserving the selected row as the only live-owned lane.
+Keep the existing selected-conversation SSE path and workspace shell, but make the selected thread header and composer-adjacent live rail present exact SSE-driven phase progression with phase-specific detail copy for proposal, review, verify, auto apply, ready, and applied states.

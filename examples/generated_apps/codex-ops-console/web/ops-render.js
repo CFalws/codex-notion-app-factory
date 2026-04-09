@@ -554,6 +554,40 @@ function proposalChip(liveRun) {
   return { label: "NONE", tone: "muted" };
 }
 
+function phaseDetailHint(liveRun) {
+  if (liveRun.state === "proposal-phase") {
+    return "bounded hypothesis 정리 중";
+  }
+  if (liveRun.state === "review-phase") {
+    return "review 승인 신호 확인 중";
+  }
+  if (liveRun.state === "verify-phase") {
+    return "verify 결과 수집 중";
+  }
+  if (liveRun.state === "auto-apply") {
+    return "승인 후 자동 적용 진행 중";
+  }
+  if (liveRun.state === "proposal-ready") {
+    return "proposal 승인 또는 적용 대기";
+  }
+  if (liveRun.state === "applied") {
+    return "proposal 적용 반영 완료";
+  }
+  if (liveRun.state === "accepted" || liveRun.phase === "ACCEPTED") {
+    return "첫 응답 대기";
+  }
+  if (liveRun.state === "generating") {
+    return "첫 응답 생성 중";
+  }
+  if (liveRun.state === "failed") {
+    return "실패 또는 예외 확인 필요";
+  }
+  if (liveRun.state === "sending") {
+    return "메시지 handoff 진행 중";
+  }
+  return liveRun.detail || "현재 상태를 확인할 수 있습니다.";
+}
+
 function composerActionHint(status, presentation, liveRun) {
   if (status === "reconnecting") {
     return "복구 중";
@@ -563,6 +597,16 @@ function composerActionHint(status, presentation, liveRun) {
   }
   if (status === "connecting") {
     return "연결 중";
+  }
+  if (
+    liveRun.state === "proposal-phase" ||
+    liveRun.state === "review-phase" ||
+    liveRun.state === "verify-phase" ||
+    liveRun.state === "auto-apply" ||
+    liveRun.state === "proposal-ready" ||
+    liveRun.state === "applied"
+  ) {
+    return phaseDetailHint(liveRun);
   }
   if (liveRun.state === "proposal-ready") {
     return "적용 대기";
@@ -601,6 +645,17 @@ function composerActionHint(status, presentation, liveRun) {
     return "계속 입력";
   }
   return "입력 가능";
+}
+
+function threadMetaSummary(conversation, liveRun, messageCount, eventCount) {
+  const parts = [conversation.updated_at ? new Date(conversation.updated_at).toLocaleString() : ""];
+  if (liveRun?.visible && liveRun.phase && liveRun.phase !== "IDLE") {
+    parts.push(phaseDetailHint(liveRun));
+    return parts.filter(Boolean).join(" · ");
+  }
+  parts.push(`${messageCount} messages`);
+  parts.push(`${eventCount} events`);
+  return parts.filter(Boolean).join(" · ");
 }
 
 function sessionProvenance(status, lastAppendId, lastLiveAppendId, liveRun) {
@@ -1093,11 +1148,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   updateHeroState(dom, {
     threadTitle: conversation.title || "제목 없는 대화",
     threadKicker: "선택된 대화",
-    conversationState: [
-      conversation.updated_at ? new Date(conversation.updated_at).toLocaleString() : "",
-      `${messages.length} messages`,
-      `${events.length} events`,
-    ].filter(Boolean).join(" · "),
+    conversationState: threadMetaSummary(conversation, liveRun, messages.length, events.length),
     liveRun,
   });
   renderWorkspaceSummary(
