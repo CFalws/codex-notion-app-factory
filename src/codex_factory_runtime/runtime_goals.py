@@ -135,8 +135,6 @@ Execution rules:
         if proposal_ready is None:
             proposal_ready = bool(job.get("proposal"))
         path_verdict = str((intended_path or {}).get("verdict") or "").strip().lower()
-        if proposal_ready:
-            return "proposal_ready"
         if not path_verdict:
             return "intended_path_incomplete"
         if path_verdict != "expected":
@@ -144,6 +142,8 @@ Execution rules:
         reviews = verification_reviews or []
         if any(str(review.get("path_acceptability") or "").strip().lower() == "disqualifying" for review in reviews):
             return "verifier_path_disqualifying"
+        if proposal_ready:
+            return "proposal_ready"
         if str(goal_review.get("safety_assessment") or "").strip().lower().startswith("no"):
             return "safety_not_passed"
         if str(goal_review.get("alignment_assessment") or "").strip().lower().startswith("no"):

@@ -436,6 +436,75 @@ def verify_proposer_prompt_contract() -> None:
     require("next_focus=Target the degraded path directly." in prompt, f"proposer prompt should preserve next_focus: {prompt}")
 
 
+def verify_blocker_precedence_contract() -> None:
+    goals = GoalRuntime()
+    disqualifying_blocker = goals.continuation_blocker_reason(
+        {
+            "proposal": {"status": "ready_to_apply"},
+            "goal_review": {
+                "continue_recommended": "yes",
+                "alignment_assessment": "yes",
+                "safety_assessment": "yes",
+            },
+        },
+        proposal_ready=True,
+        intended_path={"verdict": "expected", "degraded_signals": []},
+        verification_reviews=[
+            {"verdict": "fail", "path_acceptability": "disqualifying"},
+            {"verdict": "fail", "path_acceptability": "disqualifying"},
+        ],
+    )
+    require(
+        disqualifying_blocker == "verifier_path_disqualifying",
+        f"verifier disqualification should outrank proposal_ready: {disqualifying_blocker}",
+    )
+
+    healthy_proposal_blocker = goals.continuation_blocker_reason(
+        {
+            "proposal": {"status": "ready_to_apply"},
+            "goal_review": {
+                "continue_recommended": "yes",
+                "alignment_assessment": "yes",
+                "safety_assessment": "yes",
+            },
+        },
+        proposal_ready=True,
+        intended_path={"verdict": "expected", "degraded_signals": []},
+        verification_reviews=[
+            {"verdict": "pass", "path_acceptability": "acceptable"},
+            {"verdict": "pass", "path_acceptability": "acceptable"},
+        ],
+    )
+    require(
+        healthy_proposal_blocker == "proposal_ready",
+        f"healthy proposal-ready iterations should still keep proposal_ready blocker: {healthy_proposal_blocker}",
+    )
+
+    autonomy = api_app.AutonomyRuntime()
+    proposer_prompt = autonomy.build_proposer_prompt(
+        {
+            "iterations": [
+                {
+                    "iteration": 1,
+                    "status": "paused",
+                    "continuation_blocker_reason": "verifier_path_disqualifying",
+                    "intended_path": {"verdict": "expected", "degraded_signals": []},
+                    "verification_reviews": [
+                        {"verdict": "fail", "path_acceptability": "disqualifying"},
+                    ],
+                    "goal_review": {"next_focus": "Fix the verifier-disqualifying path first."},
+                    "result_summary": "Proposal was ready, but verifier evidence disqualified the path.",
+                }
+            ]
+        },
+        {"app_id": "factory-runtime", "title": "Factory Runtime"},
+    )
+    require(
+        "blocker=verifier_path_disqualifying" in proposer_prompt,
+        f"proposer prompt should expose verifier_path_disqualifying blocker: {proposer_prompt}",
+    )
+
+
 def request(client: TestClient, method: str, path: str, *, api_key: bool = True, **kwargs: Any):
     headers = kwargs.pop("headers", {})
     if api_key:
@@ -785,6 +854,7 @@ def main() -> None:
             seed_apps(state)
             verify_prompt_contract(settings, state)
             verify_proposer_prompt_contract()
+            verify_blocker_precedence_contract()
             verify_goal_task_lifecycle(settings, state)
             verify_reconcile_orphaned_running_job(settings, state)
             verify_retryable_advisory_phase(settings, state)

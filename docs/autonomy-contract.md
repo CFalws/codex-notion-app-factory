@@ -99,6 +99,8 @@ Recommended values include:
 
 This gives the controller, operator console, and future sessions one shared explanation for why the loop paused, stopped, or could not continue.
 
+When multiple blocker candidates are present, the more conservative blocker should win. In particular, verifier `path_acceptability=disqualifying` should outrank `proposal_ready` so a failed intended path is not mislabeled as merely waiting for review.
+
 ## Verifier Path-Acceptability Contract
 
 Each autonomous verifier review should also state whether the observed intended path was acceptable:

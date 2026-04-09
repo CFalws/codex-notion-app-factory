@@ -8,7 +8,7 @@
 
 ## Problem
 
-Autonomous iterations now persist canonical blocker reasons, intended-path verdicts, and verifier path-acceptability, but the proposer still sees prior history mostly as freeform summary plus `next_focus`. That leaves the next bounded hypothesis under-informed when the previous iteration paused, degraded, or was rejected.
+Proposal-mode iterations can already record verifier `path_acceptability=disqualifying`, but the continuation blocker can still collapse to `proposal_ready`. That makes a failed intended path look like a normal review wait instead of the more conservative verifier-path failure the operator should see first.
 
 ## Target User
 
@@ -22,4 +22,4 @@ The primary user is the operator relying on unattended runtime self-improvement 
 
 ## Deliverable
 
-Feed the latest structured blocker and path evidence back into the proposer prompt so the next bounded hypothesis is explicitly grounded in why the previous iteration could not safely continue.
+Make `verifier_path_disqualifying` outrank `proposal_ready` in continuation-blocker precedence so iteration state, proposer context, and the ops summary all expose the same canonical blocker when verifier evidence says the path is not acceptable.

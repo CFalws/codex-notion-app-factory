@@ -160,6 +160,8 @@ When continuation policy stores a canonical blocker reason, verification should 
 - healthy iterations record `continuation_blocker_reason=none`
 - degraded intended-path iterations record `continuation_blocker_reason=intended_path_degraded`
 - verifier-disqualifying iterations record `continuation_blocker_reason=verifier_path_disqualifying`
+- proposal-ready iterations with verifier `path_acceptability=disqualifying` still record `continuation_blocker_reason=verifier_path_disqualifying`
+- healthy proposal-ready iterations keep `continuation_blocker_reason=proposal_ready`
 
 Review or verification rejection should fail verification only if the loop incorrectly pauses, stops, or loses state when policy says it should continue exploring.
 
