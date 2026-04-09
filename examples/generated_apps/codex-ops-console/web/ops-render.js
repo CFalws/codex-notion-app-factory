@@ -255,6 +255,72 @@ function deriveLiveRunState(conversation, currentState) {
   };
 }
 
+function latestMeaningfulConversationEvent(conversation, currentState) {
+  const jobId = String(currentState.currentJobId || conversation?.latest_job_id || "");
+  const events = Array.isArray(conversation?.events) ? conversation.events : [];
+  const relevantEvents = jobId ? events.filter((event) => !event.job_id || event.job_id === jobId) : events;
+  for (let index = relevantEvents.length - 1; index >= 0; index -= 1) {
+    const event = relevantEvents[index];
+    const type = String(event?.type || "");
+    const status = String(event?.status || "").toLowerCase();
+    if (
+      type === "proposal.ready" ||
+      type === "codex.exec.applied" ||
+      type === "job.completed" ||
+      type === "job.running" ||
+      type === "job.queued" ||
+      type === "message.accepted" ||
+      type === "runtime.exception" ||
+      type === "codex.exec.started" ||
+      type === "codex.exec.finished" ||
+      status === "failed" ||
+      status === "completed" ||
+      status === "applied"
+    ) {
+      return event;
+    }
+  }
+  return relevantEvents.length ? relevantEvents[relevantEvents.length - 1] : null;
+}
+
+function collapsedSessionSummary(conversation, currentState, liveRun) {
+  const latestEvent = latestMeaningfulConversationEvent(conversation, currentState);
+  const latestType = String(latestEvent?.type || "");
+  const latestStatus = String(latestEvent?.status || "").toLowerCase();
+  const appendId = Number(currentState.appendStream?.lastLiveAppendId || currentState.appendStream?.lastAppendId || maxConversationAppendId(conversation) || 0);
+  const source = String(latestEvent?.delivery_source || currentState.appendStream?.lastRenderSource || "snapshot").toLowerCase();
+  const outcomeLabel =
+    latestType === "proposal.ready"
+      ? "제안 준비"
+      : latestType === "codex.exec.applied" || latestStatus === "applied"
+        ? "적용 완료"
+        : latestType === "runtime.exception" || latestStatus === "failed"
+          ? "실패 기록"
+          : latestType
+            ? eventLabel(latestType)
+            : liveRun.terminal
+              ? "최근 실행 완료"
+              : "대기 중";
+  return {
+    state: liveRun.terminal ? `DONE · ${outcomeLabel.toUpperCase()}` : `IDLE · ${outcomeLabel.toUpperCase()}`,
+    detail: liveRun.terminal
+      ? `${outcomeLabel} 결과를 유지한 채 rail을 접었습니다.`
+      : latestEvent
+        ? `${outcomeLabel} 이후 현재는 idle 상태입니다.`
+        : "현재 실행 중인 작업은 없지만 최근 결과 요약은 여기에서 다시 펼쳐볼 수 있습니다.",
+    meta: `${source === "sse" ? "SSE" : source === "snapshot" ? "SNAPSHOT" : source.toUpperCase()} · append #${appendId || 0}`,
+  };
+}
+
+export function toggleSessionRail(dom, currentState) {
+  const rail = currentState.sessionRail || {};
+  currentState.sessionRail = {
+    conversationId: rail.conversationId || currentState.currentConversationId || "",
+    expanded: !Boolean(rail.expanded),
+  };
+  renderSessionStrip(dom, currentState, currentState.conversationCache);
+}
+
 export function renderSessionStrip(dom, currentState, conversation) {
   if (!dom.sessionStrip || !dom.sessionStripState || !dom.sessionStripMeta || !dom.sessionStripDetail || !dom.threadScroller) {
     return;
@@ -267,6 +333,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const lastRenderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
   const lastLiveAppendId = Number(appendStream.lastLiveAppendId || 0);
   const liveRun = deriveLiveRunState(conversation, currentState);
+  currentState.sessionRail ||= { conversationId: "", expanded: false };
 
   if (!conversationId) {
     dom.sessionStrip.hidden = true;
@@ -281,6 +348,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
     dom.sessionStrip.dataset.liveRunSource = "none";
     dom.sessionStrip.dataset.liveRunJob = "";
     dom.sessionStrip.dataset.liveRunTone = "idle";
+    dom.sessionStrip.dataset.sessionCollapsed = "false";
     dom.threadScroller.dataset.streamState = "offline";
     dom.threadScroller.dataset.renderSource = "snapshot";
     dom.threadScroller.dataset.liveConversationId = "";
@@ -291,7 +359,22 @@ export function renderSessionStrip(dom, currentState, conversation) {
     dom.threadScroller.dataset.liveRunState = "done";
     dom.threadScroller.dataset.liveRunSource = "none";
     dom.threadScroller.dataset.liveRunJob = "";
+    currentState.sessionRail = {
+      conversationId: "",
+      expanded: false,
+    };
+    if (dom.sessionStripToggle) {
+      dom.sessionStripToggle.hidden = true;
+      dom.sessionStripToggle.textContent = "세부 보기";
+    }
     return;
+  }
+
+  if (currentState.sessionRail.conversationId !== conversationId) {
+    currentState.sessionRail = {
+      conversationId,
+      expanded: false,
+    };
   }
 
   const presentation =
@@ -308,10 +391,13 @@ export function renderSessionStrip(dom, currentState, conversation) {
           : liveRun.terminal
             ? "terminal"
             : "idle";
-  const shouldCollapse = presentation === "idle" || presentation === "terminal";
-  dom.sessionStrip.hidden = shouldCollapse;
+  const canCollapse = presentation === "idle" || presentation === "terminal";
+  const shouldCollapse = canCollapse && !currentState.sessionRail.expanded;
+  const collapsedSummary = shouldCollapse ? collapsedSessionSummary(conversation, currentState, liveRun) : null;
+  dom.sessionStrip.hidden = false;
   dom.sessionStrip.dataset.sessionPresentation = presentation;
   dom.sessionStrip.dataset.sessionTerminal = liveRun.terminal ? "true" : "false";
+  dom.sessionStrip.dataset.sessionCollapsed = shouldCollapse ? "true" : "false";
   dom.sessionStrip.dataset.streamState = status;
   dom.sessionStrip.dataset.renderSource = lastRenderSource;
   dom.sessionStrip.dataset.liveConversationId = conversationId;
@@ -331,19 +417,25 @@ export function renderSessionStrip(dom, currentState, conversation) {
   };
   const runLabel = liveRun.state.replaceAll("-", " ").toUpperCase();
   const statusLabel = presentation === "sending" ? "SENDING" : (streamLabelByStatus[status] || "OFFLINE");
-  dom.sessionStripState.textContent = `${statusLabel} · ${runLabel}`;
-  dom.sessionStripMeta.textContent =
-    `${presentation === "sending" ? "LOCAL HANDOFF" : status === "live" ? "SSE" : status === "reconnecting" ? "SSE RESUME" : status === "connecting" ? "SSE OPEN" : "SNAPSHOT"} · append #${lastLiveAppendId || lastAppendId || 0} · ${liveRun.source.toUpperCase()}`;
-  dom.sessionStripDetail.textContent =
-    presentation === "sending"
+  dom.sessionStripState.textContent = shouldCollapse ? collapsedSummary.state : `${statusLabel} · ${runLabel}`;
+  dom.sessionStripMeta.textContent = shouldCollapse
+    ? collapsedSummary.meta
+    : `${presentation === "sending" ? "LOCAL HANDOFF" : status === "live" ? "SSE" : status === "reconnecting" ? "SSE RESUME" : status === "connecting" ? "SSE OPEN" : "SNAPSHOT"} · append #${lastLiveAppendId || lastAppendId || 0} · ${liveRun.source.toUpperCase()}`;
+  dom.sessionStripDetail.textContent = shouldCollapse
+    ? collapsedSummary.detail
+    : presentation === "sending"
       ? `${liveRun.detail} 첫 accepted 또는 live append 신호를 기다리는 중입니다.`
       : status === "live"
-      ? `${liveRun.detail} 새 append는 SSE로 바로 반영됩니다.`
-      : status === "reconnecting"
-        ? `${liveRun.detail} 연결을 복구하는 동안 최근 append 이후를 resume 대기합니다.`
-        : status === "connecting"
-          ? `${liveRun.detail} 선택된 대화의 live stream을 여는 중입니다.`
-          : `${liveRun.detail} 현재는 snapshot 또는 polling 경로만 사용합니다.`;
+        ? `${liveRun.detail} 새 append는 SSE로 바로 반영됩니다.`
+        : status === "reconnecting"
+          ? `${liveRun.detail} 연결을 복구하는 동안 최근 append 이후를 resume 대기합니다.`
+          : status === "connecting"
+            ? `${liveRun.detail} 선택된 대화의 live stream을 여는 중입니다.`
+            : `${liveRun.detail} 현재는 snapshot 또는 polling 경로만 사용합니다.`;
+  if (dom.sessionStripToggle) {
+    dom.sessionStripToggle.hidden = !canCollapse;
+    dom.sessionStripToggle.textContent = shouldCollapse ? "세부 보기" : "접기";
+  }
 
   dom.threadScroller.dataset.streamState = status;
   dom.threadScroller.dataset.renderSource = lastRenderSource;
@@ -355,6 +447,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.threadScroller.dataset.liveRunState = liveRun.state;
   dom.threadScroller.dataset.liveRunSource = liveRun.source;
   dom.threadScroller.dataset.liveRunJob = liveRun.jobId || "";
+  dom.threadScroller.dataset.sessionCollapsed = shouldCollapse ? "true" : "false";
 }
 
 export function renderComposerMeta(dom, { hint = "", count = 0 }) {

@@ -35,6 +35,10 @@ export const state = {
     jumpVisible: false,
     lastAppendId: 0,
   },
+  sessionRail: {
+    conversationId: "",
+    expanded: false,
+  },
 };
 
 export function maxConversationAppendId(conversation) {

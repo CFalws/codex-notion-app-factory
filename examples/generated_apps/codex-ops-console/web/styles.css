@@ -611,6 +611,10 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   text-align: right;
 }
 
+.session-strip-toggle {
+  min-width: 5.8rem;
+}
+
 .session-strip-state,
 .session-strip-meta,
 .session-strip-detail {
@@ -653,6 +657,32 @@ body[data-secondary-panel-open="true"] .desktop-shell {
 
 .session-strip[data-stream-state="offline"][data-live-run-tone="idle"] .session-strip-state {
   color: var(--muted);
+}
+
+.session-strip[data-session-collapsed="true"] {
+  align-items: center;
+  padding-block: 0.62rem;
+}
+
+.session-strip[data-session-collapsed="true"] .session-strip-main,
+.session-strip[data-session-collapsed="true"] .session-strip-side {
+  align-items: center;
+}
+
+.session-strip[data-session-collapsed="true"] .session-strip-main {
+  gap: 0.16rem;
+}
+
+.session-strip[data-session-collapsed="true"] .session-strip-detail {
+  max-width: min(100%, 44rem);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.82rem;
+}
+
+.session-strip[data-session-collapsed="true"] .session-strip-draft {
+  display: none;
 }
 
 .timeline-item {

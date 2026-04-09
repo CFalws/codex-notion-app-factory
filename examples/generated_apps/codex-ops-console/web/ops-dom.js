@@ -16,6 +16,7 @@ export const dom = {
   sessionStripState: document.getElementById("session-strip-state"),
   sessionStripMeta: document.getElementById("session-strip-meta"),
   sessionStripDetail: document.getElementById("session-strip-detail"),
+  sessionStripToggle: document.getElementById("session-strip-toggle"),
   autonomyContextStrip: document.getElementById("autonomy-context-strip"),
   autonomyMeta: document.getElementById("autonomy-meta"),
   autonomySummary: document.getElementById("autonomy-summary"),
