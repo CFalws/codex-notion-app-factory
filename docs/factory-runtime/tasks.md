@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep the current selected-conversation SSE path, live rail, composer, and conversation content structure unchanged.
-- [x] Make the phone-width navigation affordance explicitly control a drawer or sheet from the active thread header.
-- [x] Keep app-level operator controls behind the existing collapsed mobile section so they do not displace thread switching.
-- [x] Mark the active conversation shell as the primary mobile workspace surface and keep that state verifier-visible.
-- [x] Extend focused verification so future sessions can prove phone widths land on the conversation workspace instead of a navigation-first fallback structure.
+- [x] Keep the current selected-conversation SSE path, pending-turn handoff, live rail, composer, and conversation content structure unchanged.
+- [x] Map healthy selected-thread proposal, review, verify, auto-apply, ready, and applied events into one authoritative live phase model.
+- [x] Show those phases as compact distinct labels and detail text in the existing composer-adjacent activity surface without adding a new panel.
+- [x] Keep the phase model conversation-local so thread switching immediately clears or replaces the active phase label.
+- [x] Extend focused verification so future sessions can prove the central live phase surface derives from the intended SSE event path rather than generic fallback wording.

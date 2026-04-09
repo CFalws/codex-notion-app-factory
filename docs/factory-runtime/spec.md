@@ -8,7 +8,7 @@
 
 ## Problem
 
-The selected-thread live surface is stronger now, but phone-width layout still risks feeling like navigation-first chrome because thread switching and operator controls can visually compete with the active conversation. The remaining friction is that the mobile workspace does not yet make the active conversation unambiguously primary before navigation is opened.
+The selected-thread live surface now follows the healthy SSE path, but the central session surface still collapses proposal, review, verify, ready, and apply progress into generic thinking or done language. The remaining friction is operator visibility: the runtime already emits phase-specific conversation events, but the active workspace does not expose them clearly enough where the user reads and types.
 
 ## Target User
 
@@ -18,9 +18,9 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the existing feature-flagged internal SSE route instead of widening transport scope.
-- Leave broader polling, status, and fallback behavior unchanged in this iteration.
+- Reuse the existing selected-conversation SSE route instead of widening transport scope.
+- Leave submit handoff, polling fallback rules, and broader layout structure unchanged in this iteration.
 
 ## Deliverable
 
-Keep the existing selected-conversation SSE path and composer-adjacent live rail, but make phone-width navigation an explicit drawer or sheet with clear toggle semantics so the active conversation remains the first visible workspace surface until the user deliberately opens navigation.
+Keep the existing selected-conversation SSE path and composer-adjacent live rail, but promote proposal, review, verify, auto-apply, ready, and applied conversation events into one explicit live session-phase model so the active conversation shows the current phase directly inside the central workspace.

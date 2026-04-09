@@ -381,17 +381,18 @@ export function createConversationController(deps) {
     const liveConversationId = String(dom.threadScroller?.dataset.liveConversationId || "");
     const presentation = String(dom.threadScroller?.dataset.sessionPresentation || "cleared");
     const liveRunState = String(dom.threadScroller?.dataset.liveRunState || "done");
+    const liveRunPhase = String(dom.threadScroller?.dataset.liveRunPhase || "");
 
     let liveLabel = "";
     if (selectedConversationId && selectedConversationId === liveConversationId) {
       if (presentation === "connecting") {
         liveLabel = "CONNECTING";
       } else if (presentation === "live") {
-        liveLabel = liveRunState.replaceAll("-", " ").toUpperCase();
+        liveLabel = liveRunPhase || liveRunState.replaceAll("-", " ").toUpperCase();
       } else if (presentation === "reconnecting") {
         liveLabel = "RECONNECTING";
       } else if (presentation === "terminal") {
-        liveLabel = "DONE";
+        liveLabel = liveRunPhase || "DONE";
       }
     }
 

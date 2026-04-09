@@ -196,6 +196,7 @@ For the feature-flagged active-conversation append SSE path, verification should
 - conversation cards in the left navigation should expose one bounded recent preview line and a clearer compact state label so active, running, reconnecting, done, and idle threads are easier to distinguish without opening them
 - on phone widths, the navigation affordance should explicitly control a drawer or sheet and the active conversation shell should remain the default visible workspace surface until navigation is deliberately opened
 - on phone widths, the active conversation should remain the first visible workspace surface and app or thread navigation should open through an explicit drawer or sheet rather than occupying the top of the reading flow
+- the selected-thread live rail should map healthy SSE events such as `goal.proposal.phase.started`, `goal.review.phase.started`, `goal.verify.phase.started`, `goal.proposal.auto_apply.started`, `proposal.ready`, and `codex.exec.applied` into explicit machine-readable phase labels so the central workspace no longer collapses them into generic thinking or done wording
 
 ## Commit And Deploy Policy
 

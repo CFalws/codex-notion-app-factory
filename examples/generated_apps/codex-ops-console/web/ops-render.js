@@ -28,6 +28,13 @@ function eventLabel(eventType = "") {
     "job.queued": "작업 대기",
     "job.running": "작업 시작",
     "job.completed": "작업 완료",
+    "goal.proposal.phase.started": "제안 단계 시작",
+    "goal.proposal.phase.completed": "제안 단계 완료",
+    "goal.review.phase.started": "리뷰 단계 시작",
+    "goal.review.phase.completed": "리뷰 단계 완료",
+    "goal.verify.phase.started": "검증 단계 시작",
+    "goal.verify.phase.completed": "검증 단계 완료",
+    "goal.proposal.auto_apply.started": "자동 적용 시작",
     "proposal.saved": "제안 저장",
     "proposal.ready": "제안 준비",
     "runtime.context.loaded": "기존 맥락 로드",
@@ -73,6 +80,24 @@ function isThreadNearBottom(threadScroller) {
     return true;
   }
   return threadScroller.scrollTop + threadScroller.clientHeight >= threadScroller.scrollHeight - 72;
+}
+
+function phaseDetail(prefix, latestEvent, fallback) {
+  const body = simplifyText(latestEvent?.body || "");
+  return body ? `${prefix} ${body}` : fallback;
+}
+
+function runStateSnapshot({
+  visible = true,
+  state = "idle",
+  phase = "IDLE",
+  detail = "",
+  source = "none",
+  tone = "idle",
+  jobId = "",
+  terminal = false,
+}) {
+  return { visible, state, phase, detail, source, tone, jobId, terminal };
 }
 
 function syncJumpToLatest(dom, currentState, conversationId, renderSource) {
@@ -123,63 +148,168 @@ function deriveLiveRunState(conversation, currentState) {
   const pendingOutgoing = currentState.pendingOutgoing || {};
 
   if (!conversation?.conversation_id) {
-    return {
+    return runStateSnapshot({
       visible: false,
       state: "done",
+      phase: "IDLE",
       detail: "",
       source: "none",
       tone: "idle",
       jobId: "",
       terminal: false,
-    };
+    });
   }
 
   if (pendingOutgoing.status === "sending-user" && pendingOutgoing.conversationId === conversation.conversation_id) {
-    return {
+    return runStateSnapshot({
       visible: true,
       state: "sending",
+      phase: "SENDING",
       detail: "메시지를 live conversation에 등록하는 중입니다.",
       source: "local-submit",
       tone: "thinking",
       jobId,
       terminal: false,
-    };
+    });
   }
 
   if (pendingOutgoing.status === "awaiting-assistant" && pendingOutgoing.conversationId === conversation.conversation_id) {
-    return {
+    return runStateSnapshot({
       visible: true,
       state: "generating",
+      phase: "ACCEPTED",
       detail: "에이전트가 첫 응답을 준비 중입니다.",
       source: "accepted-event",
       tone: "thinking",
       jobId,
       terminal: false,
-    };
+    });
   }
 
   if (!latestEvent) {
-    return {
+    return runStateSnapshot({
       visible: true,
       state: "done",
+      phase: "IDLE",
       detail: "현재 이 대화에서 실행 중인 작업이 없습니다.",
       source: "none",
       tone: "idle",
       jobId,
       terminal: false,
-    };
+    });
+  }
+
+  if (latestStatus === "failed" || latestType === "runtime.exception") {
+    return runStateSnapshot({
+      visible: true,
+      state: "failed",
+      phase: "FAILED",
+      detail: phaseDetail("실행이 실패 또는 예외 상태로 끝났습니다.", latestEvent, "실행이 끝났지만 예외 또는 실패 신호가 기록되었습니다."),
+      source: `${eventSource}-event`,
+      tone: "done",
+      jobId,
+      terminal: true,
+    });
+  }
+
+  if (latestType === "goal.proposal.auto_apply.started") {
+    return runStateSnapshot({
+      visible: true,
+      state: "auto-apply",
+      phase: "AUTO APPLY",
+      detail: phaseDetail("승인된 proposal을 자동 적용 중입니다.", latestEvent, "승인된 proposal을 자동 적용 중입니다."),
+      source: `${eventSource}-event`,
+      tone: "running",
+      jobId,
+      terminal: false,
+    });
+  }
+
+  if (latestType.startsWith("goal.verify.phase.")) {
+    return runStateSnapshot({
+      visible: true,
+      state: "verify-phase",
+      phase: "VERIFY",
+      detail:
+        latestType === "goal.verify.phase.completed"
+          ? phaseDetail("검증 단계가 최신 결과를 정리했습니다.", latestEvent, "검증 단계가 최신 결과를 정리했습니다.")
+          : phaseDetail("Verifier가 구현 결과를 검증 중입니다.", latestEvent, "Verifier가 구현 결과를 검증 중입니다."),
+      source: `${eventSource}-event`,
+      tone: "running",
+      jobId,
+      terminal: false,
+    });
+  }
+
+  if (latestType.startsWith("goal.review.phase.")) {
+    return runStateSnapshot({
+      visible: true,
+      state: "review-phase",
+      phase: "REVIEW",
+      detail:
+        latestType === "goal.review.phase.completed"
+          ? phaseDetail("리뷰 단계가 최신 평가를 남겼습니다.", latestEvent, "리뷰 단계가 최신 평가를 남겼습니다.")
+          : phaseDetail("Reviewer가 현재 bounded hypothesis를 검토 중입니다.", latestEvent, "Reviewer가 현재 bounded hypothesis를 검토 중입니다."),
+      source: `${eventSource}-event`,
+      tone: "thinking",
+      jobId,
+      terminal: false,
+    });
+  }
+
+  if (latestType.startsWith("goal.proposal.phase.")) {
+    return runStateSnapshot({
+      visible: true,
+      state: "proposal-phase",
+      phase: "PROPOSAL",
+      detail:
+        latestType === "goal.proposal.phase.completed"
+          ? phaseDetail("제안 단계가 최신 bounded hypothesis를 정리했습니다.", latestEvent, "제안 단계가 최신 bounded hypothesis를 정리했습니다.")
+          : phaseDetail("현재 bounded hypothesis를 제안 중입니다.", latestEvent, "현재 bounded hypothesis를 제안 중입니다."),
+      source: `${eventSource}-event`,
+      tone: "thinking",
+      jobId,
+      terminal: false,
+    });
+  }
+
+  if (latestType === "proposal.ready") {
+    return runStateSnapshot({
+      visible: true,
+      state: "proposal-ready",
+      phase: "READY",
+      detail: phaseDetail("Proposal이 준비되어 다음 승인 또는 적용 결정을 기다립니다.", latestEvent, "Proposal이 준비되어 다음 승인 또는 적용 결정을 기다립니다."),
+      source: `${eventSource}-event`,
+      tone: "waiting",
+      jobId,
+      terminal: true,
+    });
+  }
+
+  if (latestType === "codex.exec.applied" || latestStatus === "applied") {
+    return runStateSnapshot({
+      visible: true,
+      state: "applied",
+      phase: "APPLIED",
+      detail: phaseDetail("최신 proposal 적용이 반영되었습니다.", latestEvent, "최신 proposal 적용이 반영되었습니다."),
+      source: `${eventSource}-event`,
+      tone: "done",
+      jobId,
+      terminal: true,
+    });
   }
 
   if (latestType === "codex.exec.started") {
-    return {
+    return runStateSnapshot({
       visible: true,
       state: "running-tool",
+      phase: "RUNNING",
       detail: "에이전트가 현재 tool 또는 Codex 실행 단계를 처리 중입니다.",
       source: `${eventSource}-event`,
       tone: "running",
       jobId,
       terminal: false,
-    };
+    });
   }
 
   if (
@@ -187,15 +317,19 @@ function deriveLiveRunState(conversation, currentState) {
     latestType === "job.queued" ||
     latestType === "codex.exec.finished"
   ) {
-    return {
+    return runStateSnapshot({
       visible: true,
-      state: "waiting",
-      detail: "다음 실행 단계나 응답 정리를 기다리는 중입니다.",
+      state: latestType === "message.accepted" ? "accepted" : "waiting",
+      phase: latestType === "message.accepted" ? "ACCEPTED" : "QUEUED",
+      detail:
+        latestType === "message.accepted"
+          ? phaseDetail("서버 handoff가 확인되어 첫 live 응답을 기다리는 중입니다.", latestEvent, "서버 handoff가 확인되어 첫 live 응답을 기다리는 중입니다.")
+          : "다음 실행 단계나 응답 정리를 기다리는 중입니다.",
       source: `${eventSource}-event`,
       tone: "waiting",
       jobId,
       terminal: false,
-    };
+    });
   }
 
   if (
@@ -204,55 +338,44 @@ function deriveLiveRunState(conversation, currentState) {
     latestType === "job.running" ||
     latestType.includes(".phase.started")
   ) {
-    return {
+    return runStateSnapshot({
       visible: true,
       state: "thinking",
-      detail: "에이전트가 현재 맥락을 읽고 다음 단계를 준비 중입니다.",
+      phase: latestType === "job.running" ? "RUNNING" : "PLANNING",
+      detail:
+        latestType === "job.running"
+          ? "에이전트가 현재 실행 단계를 처리 중입니다."
+          : "에이전트가 현재 맥락을 읽고 다음 단계를 준비 중입니다.",
       source: `${eventSource}-event`,
-      tone: "thinking",
+      tone: latestType === "job.running" ? "running" : "thinking",
       jobId,
       terminal: false,
-    };
+    });
   }
 
-  if (
-    latestType === "job.completed" ||
-    latestStatus === "completed" ||
-    latestType === "proposal.ready" ||
-    latestType === "codex.exec.applied"
-  ) {
-    return {
+  if (latestType === "job.completed" || latestStatus === "completed") {
+    return runStateSnapshot({
       visible: true,
       state: "done",
+      phase: "DONE",
       detail: "현재 활성 실행이 끝났고 최신 결과가 반영되었습니다.",
       source: `${eventSource}-event`,
       tone: "done",
       jobId,
       terminal: true,
-    };
+    });
   }
 
-  if (latestStatus === "failed" || latestType === "runtime.exception") {
-    return {
-      visible: true,
-      state: "done",
-      detail: "실행이 끝났지만 예외 또는 실패 신호가 기록되었습니다.",
-      source: `${eventSource}-event`,
-      tone: "done",
-      jobId,
-      terminal: true,
-    };
-  }
-
-  return {
+  return runStateSnapshot({
     visible: true,
     state: "thinking",
+    phase: "PLANNING",
     detail: "선택된 대화의 최신 실행 신호를 처리 중입니다.",
     source: `${eventSource}-event`,
     tone: "thinking",
     jobId,
     terminal: false,
-  };
+  });
 }
 
 function latestMeaningfulConversationEvent(conversation, currentState) {
@@ -264,6 +387,10 @@ function latestMeaningfulConversationEvent(conversation, currentState) {
     const type = String(event?.type || "");
     const status = String(event?.status || "").toLowerCase();
     if (
+      type.startsWith("goal.proposal.phase.") ||
+      type.startsWith("goal.review.phase.") ||
+      type.startsWith("goal.verify.phase.") ||
+      type === "goal.proposal.auto_apply.started" ||
       type === "proposal.ready" ||
       type === "codex.exec.applied" ||
       type === "job.completed" ||
@@ -289,20 +416,26 @@ function collapsedSessionSummary(conversation, currentState, liveRun) {
   const latestStatus = String(latestEvent?.status || "").toLowerCase();
   const appendId = Number(currentState.appendStream?.lastLiveAppendId || currentState.appendStream?.lastAppendId || maxConversationAppendId(conversation) || 0);
   const source = String(latestEvent?.delivery_source || currentState.appendStream?.lastRenderSource || "snapshot").toLowerCase();
-  const outcomeLabel =
-    latestType === "proposal.ready"
-      ? "제안 준비"
-      : latestType === "codex.exec.applied" || latestStatus === "applied"
-        ? "적용 완료"
-        : latestType === "runtime.exception" || latestStatus === "failed"
-          ? "실패 기록"
-          : latestType
-            ? eventLabel(latestType)
-            : liveRun.terminal
-              ? "최근 실행 완료"
-              : "대기 중";
+  let outcomeLabel = liveRun.terminal ? "최근 실행 완료" : "대기 중";
+  if (latestType === "goal.proposal.auto_apply.started") {
+    outcomeLabel = "자동 적용";
+  } else if (latestType.startsWith("goal.verify.phase.")) {
+    outcomeLabel = "검증 단계";
+  } else if (latestType.startsWith("goal.review.phase.")) {
+    outcomeLabel = "리뷰 단계";
+  } else if (latestType.startsWith("goal.proposal.phase.")) {
+    outcomeLabel = "제안 단계";
+  } else if (latestType === "proposal.ready") {
+    outcomeLabel = "제안 준비";
+  } else if (latestType === "codex.exec.applied" || latestStatus === "applied") {
+    outcomeLabel = "적용 완료";
+  } else if (latestType === "runtime.exception" || latestStatus === "failed") {
+    outcomeLabel = "실패 기록";
+  } else if (latestType) {
+    outcomeLabel = eventLabel(latestType);
+  }
   return {
-    state: liveRun.terminal ? `DONE · ${outcomeLabel.toUpperCase()}` : `IDLE · ${outcomeLabel.toUpperCase()}`,
+    state: liveRun.terminal ? `DONE · ${outcomeLabel.toUpperCase()}` : `IDLE · ${(liveRun.phase || outcomeLabel).toUpperCase()}`,
     detail: liveRun.terminal
       ? `${outcomeLabel} 결과를 유지한 채 rail을 접었습니다.`
       : latestEvent
@@ -345,6 +478,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
     dom.sessionStrip.dataset.lastAppendId = "0";
     dom.sessionStrip.dataset.lastLiveAppendId = "0";
     dom.sessionStrip.dataset.liveRunState = "done";
+    dom.sessionStrip.dataset.liveRunPhase = "IDLE";
     dom.sessionStrip.dataset.liveRunSource = "none";
     dom.sessionStrip.dataset.liveRunJob = "";
     dom.sessionStrip.dataset.liveRunTone = "idle";
@@ -357,6 +491,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
     dom.threadScroller.dataset.sessionPresentation = "cleared";
     dom.threadScroller.dataset.sessionTerminal = "false";
     dom.threadScroller.dataset.liveRunState = "done";
+    dom.threadScroller.dataset.liveRunPhase = "IDLE";
     dom.threadScroller.dataset.liveRunSource = "none";
     dom.threadScroller.dataset.liveRunJob = "";
     currentState.sessionRail = {
@@ -404,6 +539,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStrip.dataset.lastAppendId = String(lastAppendId || 0);
   dom.sessionStrip.dataset.lastLiveAppendId = String(lastLiveAppendId || 0);
   dom.sessionStrip.dataset.liveRunState = liveRun.state;
+  dom.sessionStrip.dataset.liveRunPhase = liveRun.phase;
   dom.sessionStrip.dataset.liveRunSource = liveRun.source;
   dom.sessionStrip.dataset.liveRunJob = liveRun.jobId || "";
   dom.sessionStrip.dataset.liveRunTone = liveRun.tone;
@@ -415,7 +551,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
     reconnecting: "RECONNECTING",
     offline: "OFFLINE",
   };
-  const runLabel = liveRun.state.replaceAll("-", " ").toUpperCase();
+  const runLabel = liveRun.phase || liveRun.state.replaceAll("-", " ").toUpperCase();
   const statusLabel = presentation === "sending" ? "SENDING" : (streamLabelByStatus[status] || "OFFLINE");
   dom.sessionStripState.textContent = shouldCollapse ? collapsedSummary.state : `${statusLabel} · ${runLabel}`;
   dom.sessionStripMeta.textContent = shouldCollapse
@@ -445,6 +581,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.threadScroller.dataset.sessionPresentation = presentation;
   dom.threadScroller.dataset.sessionTerminal = liveRun.terminal ? "true" : "false";
   dom.threadScroller.dataset.liveRunState = liveRun.state;
+  dom.threadScroller.dataset.liveRunPhase = liveRun.phase;
   dom.threadScroller.dataset.liveRunSource = liveRun.source;
   dom.threadScroller.dataset.liveRunJob = liveRun.jobId || "";
   dom.threadScroller.dataset.sessionCollapsed = shouldCollapse ? "true" : "false";

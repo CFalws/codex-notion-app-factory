@@ -2,14 +2,14 @@
 
 ## Deployment Impact
 
-This changes the GitHub Pages operator workspace only. It tightens the phone-width conversation-first layout by making navigation an explicit drawer or sheet while keeping the selected-conversation SSE path, transcript follow behavior, phone footer dock, and composer-adjacent live rail intact.
+This changes the GitHub Pages operator workspace only. It keeps the selected-conversation SSE path, transcript follow behavior, footer dock, and composer-adjacent live rail intact, but upgrades the live rail from generic run wording to explicit proposal, review, verify, auto-apply, ready, and applied session phases.
 
 ## Rollout Notes
 
 1. Apply the proposal commit onto `main`.
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
-3. Open the console on phone width and confirm the active conversation is visible before navigation is opened.
-4. Verify the mobile nav toggle explicitly opens the drawer or sheet, updates its expanded state, and does not leave the nav stack occupying the top reading flow by default.
-5. Verify thread switching remains one explicit action away and app-level controls stay behind the collapsed operator section.
-6. Confirm the live rail and composer remain in the active conversation workspace while navigation is closed.
-7. Confirm the composer-adjacent live rail remains the only visible in-pane live-status surface inside the conversation pane.
+3. Open an active conversation on desktop and phone widths and trigger proposal, review, verify, proposal-ready, and apply-relevant events through the healthy selected-thread SSE path.
+4. Verify the composer-adjacent live rail shows explicit `PROPOSAL`, `REVIEW`, `VERIFY`, `READY`, `AUTO APPLY`, and `APPLIED` phases instead of generic thinking or done wording.
+5. Confirm the phase label updates immediately on thread switch and never implies live state for non-selected conversations.
+6. Confirm the transcript-plus-bottom-composer layout remains unchanged and the live rail remains the only visible in-pane live-status surface inside the conversation pane.
+7. Confirm polling only appears as degraded fallback when the append stream is absent or interrupted.
