@@ -600,6 +600,31 @@ def verify_goal_continues_after_verification_rejection(settings: RuntimeSettings
     asyncio.run(_run())
 
 
+def verify_legacy_goal_defaults_continue(settings: RuntimeSettings, state: RuntimeState) -> None:
+    context = RuntimeApiContext(
+        settings=settings,
+        state=state,
+        runtime=api_app.CodexAgentsRuntime(settings, state),
+        goals=GoalRuntime(),
+        autonomy=api_app.AutonomyRuntime(),
+    )
+    legacy_goal = {
+        "goal_id": "legacy-goal",
+        "policy": {
+            "open_ended": True,
+        },
+        "max_iterations": 0,
+    }
+    require(
+        context._goal_can_explore_alternative(legacy_goal, iteration_number=1, failure_kind="review"),
+        "legacy goals without explicit review-failure policy should default to continued exploration",
+    )
+    require(
+        context._goal_can_explore_alternative(legacy_goal, iteration_number=1, failure_kind="verification"),
+        "legacy goals without explicit verification-failure policy should default to continued exploration",
+    )
+
+
 def verify_iap_provider() -> None:
     settings = build_iap_settings(Path(tempfile.mkdtemp(prefix="codex-iap-contract-")))
     original_verify = IapIdentityProvider.verify_iap_assertion
@@ -652,6 +677,7 @@ def main() -> None:
             verify_retryable_advisory_phase(settings, state)
             verify_goal_continues_after_review_rejection(settings, state)
             verify_goal_continues_after_verification_rejection(settings, state)
+            verify_legacy_goal_defaults_continue(settings, state)
             verify_iap_provider()
 
             client = TestClient(api_app.create_app(settings))

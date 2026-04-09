@@ -358,9 +358,9 @@ class RuntimeApiContext:
     ) -> bool:
         policy = goal.get("policy") or {}
         if failure_kind == "review":
-            allowed = bool(policy.get("continue_on_review_failure"))
+            allowed = bool(policy.get("continue_on_review_failure", True))
         elif failure_kind == "verification":
-            allowed = bool(policy.get("continue_on_verification_failure"))
+            allowed = bool(policy.get("continue_on_verification_failure", True))
         else:
             return False
         return allowed and self.goals.can_continue_after_iteration(goal, iteration_number=iteration_number)
