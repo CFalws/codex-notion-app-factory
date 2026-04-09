@@ -116,6 +116,16 @@ function persistDraft() {
   syncDraftStatus();
 }
 
+function reengageLiveFollowFromComposer() {
+  const liveFollow = state.liveFollow || {};
+  if (!state.currentConversationId || liveFollow.conversationId !== state.currentConversationId) {
+    return;
+  }
+  if (!liveFollow.isFollowing) {
+    jumpToLatest(dom, state);
+  }
+}
+
 function restoreDraft() {
   const appId = currentAppId();
   dom.requestTextInput.value = appId ? getDraft(state, appId, state.currentConversationId) : "";
@@ -299,6 +309,8 @@ function wireEvents() {
   dom.openAppButton.addEventListener("click", openSelectedApp);
   dom.applyProposalButton.addEventListener("click", applyProposal);
   dom.requestTextInput.addEventListener("input", persistDraft);
+  dom.requestTextInput.addEventListener("input", reengageLiveFollowFromComposer);
+  dom.requestTextInput.addEventListener("focus", reengageLiveFollowFromComposer);
   dom.requestTextInput.addEventListener("keydown", (event) => {
     if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
       event.preventDefault();

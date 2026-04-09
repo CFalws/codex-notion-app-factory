@@ -8,7 +8,7 @@
 
 ## Problem
 
-The workspace already has the intended selected-thread SSE proof path and explicit live-rail stream health, but the left conversation rail still makes users re-open the thread to confirm which conversation owns the live session. The remaining friction is navigation awareness: the active or generating thread should be recognizable directly from the rail.
+The workspace already has the intended selected-thread SSE proof path, explicit stream-health cues, and selected-row rail awareness, but the transcript still needs a better reading contract during live appends. The remaining friction is live reading flow: users should stay anchored on older content when they scroll up and only return to the latest append when they explicitly re-engage follow mode.
 
 ## Target User
 
@@ -19,9 +19,9 @@ The primary user is the operator or developer using the phone-friendly workspace
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
 - Reuse the existing selected-conversation SSE route instead of widening transport scope.
-- Constrain this iteration to render-only left-rail session marker work on top of the existing selected-thread state path.
-- Leave the selected-thread timeline, center-pane header, footer live rail, deployed verification gate, and polling fallback rules unchanged in this iteration.
+- Constrain this iteration to selected-thread transcript follow behavior and the existing jump-to-latest affordance.
+- Leave the selected-thread header, left rail markers, footer live rail, deployed verification gate, and polling fallback rules unchanged in this iteration.
 
 ## Deliverable
 
-Keep the existing selected-conversation SSE path and workspace shell, but make the selected conversation row in the left rail carry one compact session marker for the active thread while keeping non-selected rows snapshot-only and preserving selected-thread ownership tied only to the existing selected-thread state path.
+Keep the existing selected-conversation SSE path and workspace shell, but refine the selected-thread transcript so auto-follow only stays active while the reader is already near the latest append and the existing jump-to-latest control plus active composer can explicitly restore follow mode.

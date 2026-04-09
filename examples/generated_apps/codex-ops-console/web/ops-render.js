@@ -158,10 +158,12 @@ function syncJumpToLatest(dom, currentState, conversationId, renderSource) {
 export function updateLiveFollowFromScroll(dom, currentState) {
   const liveFollow = currentState.liveFollow || {};
   const isNearBottom = isThreadNearBottom(dom.threadScroller);
+  const latestAppendId = Number(dom.threadScroller?.dataset.lastAppendId || 0);
   currentState.liveFollow = {
     ...liveFollow,
     isFollowing: isNearBottom,
-    jumpVisible: Boolean(liveFollow.conversationId && !isNearBottom),
+    jumpVisible: isNearBottom ? false : Boolean(liveFollow.jumpVisible),
+    lastSeenAppendId: isNearBottom ? latestAppendId : Number(liveFollow.lastSeenAppendId || 0),
   };
   syncJumpToLatest(dom, currentState, liveFollow.conversationId || "", dom.threadScroller?.dataset.renderSource || "snapshot");
 }
@@ -176,6 +178,7 @@ export function jumpToLatest(dom, currentState) {
     ...liveFollow,
     isFollowing: true,
     jumpVisible: false,
+    lastSeenAppendId: Number(dom.threadScroller.dataset.lastAppendId || 0),
   };
   syncJumpToLatest(dom, currentState, liveFollow.conversationId || "", dom.threadScroller.dataset.renderSource || "snapshot");
 }
@@ -1004,6 +1007,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
       isFollowing: true,
       jumpVisible: false,
       lastAppendId: 0,
+      lastSeenAppendId: 0,
     };
     syncJumpToLatest(dom, currentState, "", "snapshot");
     updateHeroState(dom, {
@@ -1075,14 +1079,16 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   const renderSource = String(currentState.appendStream?.lastRenderSource || "snapshot").toLowerCase();
   const sessionTerminal = String(dom.threadScroller?.dataset.sessionTerminal || "false") === "true";
   const shouldKeepFollowing = !isSameConversation || previousFollow.isFollowing || wasNearBottom;
+  const previousSeenAppendId = Number(previousFollow.lastSeenAppendId || 0);
   const shouldShowJump = isSameConversation
-    ? !sessionTerminal && !shouldKeepFollowing && (renderSource === "sse" || latestAppendId > Number(previousFollow.lastAppendId || 0))
+    ? !sessionTerminal && !shouldKeepFollowing && latestAppendId > previousSeenAppendId
     : false;
   currentState.liveFollow = {
     conversationId: conversation.conversation_id,
     isFollowing: shouldKeepFollowing,
     jumpVisible: shouldShowJump,
     lastAppendId: latestAppendId,
+    lastSeenAppendId: shouldKeepFollowing ? latestAppendId : previousSeenAppendId,
   };
   updateHeroState(dom, {
     threadTitle: conversation.title || "제목 없는 대화",

@@ -34,6 +34,7 @@ export const state = {
     isFollowing: true,
     jumpVisible: false,
     lastAppendId: 0,
+    lastSeenAppendId: 0,
   },
   sessionRail: {
     conversationId: "",
