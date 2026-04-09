@@ -105,7 +105,7 @@ Codex should prefer these delivery targets in order:
 The persistent runtime uses:
 
 - FastAPI for request intake and conversation state
-- `X-API-Key` request authentication for `/api/*`
+- pluggable request authentication through trusted identity providers
 - the local Codex CLI for session-backed execution inside conversation-aware app lanes
 - persisted Codex thread ids for app-specific conversation continuity
 - app registry and memory files for durable state outside the model context window
@@ -141,6 +141,8 @@ Each request produces concrete outputs in the local repository:
   Explains how generated apps are assembled and deployed to GitHub Pages.
 - `docs/verification-gates.md`
   Defines the required verification gates before commit and deployment.
+- `docs/auth-architecture.md`
+  Describes the authentication abstraction and the recommended GCP IAP deployment model.
 - `docs/state-contract.md`
   Defines the file-backed state shapes that runtime changes must preserve.
 - `docs/change-boundaries.md`

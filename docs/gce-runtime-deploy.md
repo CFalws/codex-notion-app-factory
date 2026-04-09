@@ -30,7 +30,7 @@ This is intended to stay within free-tier or free-credit testing limits where po
 1. Create the VM.
 2. Copy the repository onto the VM.
 3. Run the bootstrap script as root.
-4. Set `CODEX_FACTORY_API_KEY` in `/etc/codex-factory.env`.
+4. Configure runtime auth in `/etc/codex-factory.env`.
 5. Log in to Codex once as the `codex` user.
 6. Start the `codex-factory` systemd service.
 7. Verify `http://<vm-ip>/health`.
@@ -50,15 +50,21 @@ sudo systemctl start codex-factory
 curl http://127.0.0.1:8787/health
 ```
 
+Example auth configuration for an IAP front door:
+
+```bash
+CODEX_FACTORY_AUTH_PROVIDERS=["loopback","iap"]
+CODEX_FACTORY_IAP_AUDIENCE=/projects/PROJECT_NUMBER/global/backendServices/BACKEND_SERVICE_ID
+CODEX_FACTORY_ALLOWED_USER_EMAILS=["you@example.com"]
+```
+
 ## Security Notes
 
-- The sample nginx config exposes the runtime publicly on port 80.
-- Set `CODEX_FACTORY_API_KEY` before opening the VM to the internet. The runtime now rejects `/api/*` requests that do not send the matching `X-API-Key` header.
-- For real use, still add at least one of:
-  - IP allowlisting
-  - a VPN or private network path
-  - HTTPS with a real hostname
-  - another front-door auth layer if multiple humans will operate it
+- The sample nginx config is only a bootstrap path, not the preferred long-term front door.
+- For production on GCP, prefer an HTTPS load balancer plus Identity-Aware Proxy in front of the VM.
+- Configure the runtime with `CODEX_FACTORY_AUTH_PROVIDERS=["loopback","iap"]` so server-local smoke tests continue to work while operator traffic is authenticated through IAP.
+- Set `CODEX_FACTORY_IAP_AUDIENCE` and `CODEX_FACTORY_ALLOWED_USER_EMAILS` before exposing the runtime through the load balancer.
+- Keep `CODEX_FACTORY_API_KEY` only as a compatibility path while migrating older tooling.
 
 ## Verification
 

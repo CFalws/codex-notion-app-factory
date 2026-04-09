@@ -105,7 +105,10 @@ class RuntimeApiContext:
             "codex_home": str(self.settings.codex_home) if self.settings.codex_home is not None else "(default ~/.codex)",
             "codex_profile": self.settings.codex_profile,
             "codex_model": self.settings.codex_model or "(default)",
-            "api_key_required": bool(self.settings.runtime_api_key),
+            "auth_providers": self.settings.auth_providers,
+            "api_key_required": "api_key" in self.settings.auth_providers,
+            "iap_enabled": "iap" in self.settings.auth_providers,
+            "allowed_user_emails": self.settings.allowed_user_emails,
         }
 
     def enqueue_request(

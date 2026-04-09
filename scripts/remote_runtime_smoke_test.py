@@ -19,8 +19,10 @@ def load_env_file(path: Path) -> None:
         os.environ.setdefault(key, value)
 
 
-def http_json(method: str, url: str, payload: dict[str, Any] | None = None, *, api_key: str) -> dict[str, Any]:
-    headers = {"Content-Type": "application/json", "X-API-Key": api_key}
+def http_json(method: str, url: str, payload: dict[str, Any] | None = None, *, api_key: str = "") -> dict[str, Any]:
+    headers = {"Content-Type": "application/json"}
+    if api_key:
+        headers["X-API-Key"] = api_key
     data = None
     if payload is not None:
         data = json.dumps(payload).encode("utf-8")
@@ -56,7 +58,7 @@ def main() -> None:
     env_file = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("/etc/codex-factory.env")
     load_env_file(env_file)
 
-    api_key = os.environ["CODEX_FACTORY_API_KEY"]
+    api_key = os.environ.get("CODEX_FACTORY_API_KEY", "").strip()
     base_url = os.environ.get("BASE_URL", "http://127.0.0.1")
     app_id = os.environ.get("APP_ID", "habit-tracker-pwa")
     configured_scratch_file = os.environ.get("SCRATCH_FILE", "").strip()

@@ -33,7 +33,11 @@ CODEX_COMMAND=codex
 CODEX_FACTORY_HOST=127.0.0.1
 CODEX_FACTORY_PORT=8787
 CODEX_FACTORY_AUTO_EXECUTE=true
-# Set this before exposing the runtime outside the VM.
+# Preferred GCP production auth:
+# CODEX_FACTORY_AUTH_PROVIDERS=["loopback","iap"]
+# CODEX_FACTORY_IAP_AUDIENCE=/projects/PROJECT_NUMBER/global/backendServices/BACKEND_SERVICE_ID
+# CODEX_FACTORY_ALLOWED_USER_EMAILS=["you@example.com"]
+# Legacy compatibility only:
 # CODEX_FACTORY_API_KEY=replace-with-a-long-random-string
 EOF
 

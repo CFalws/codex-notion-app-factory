@@ -23,6 +23,7 @@ except ModuleNotFoundError:
     raise
 
 from codex_factory_runtime import api_app
+from codex_factory_runtime.auth import IAP_JWT_HEADER, IapIdentityProvider
 from codex_factory_runtime.config import RuntimeSettings
 from codex_factory_runtime.state import RuntimeState, utc_now
 
@@ -141,12 +142,49 @@ def build_settings(temp_root: Path) -> RuntimeSettings:
         codex_skip_git_repo_check=True,
         cors_allowed_origins=[],
         auto_execute_requests=True,
+        auth_providers=["api_key"],
         runtime_api_key=API_KEY,
+        allowed_user_emails=[],
+        iap_expected_audience="",
         push_after_apply=True,
         push_remote="origin",
         push_branch="main",
     )
 
+
+
+
+def build_iap_settings(temp_root: Path) -> RuntimeSettings:
+    settings = build_settings(temp_root)
+    return RuntimeSettings(
+        repo_root=settings.repo_root,
+        state_root=settings.state_root,
+        registry_root=settings.registry_root,
+        requests_root=settings.requests_root,
+        runtime_root=settings.runtime_root,
+        jobs_root=settings.jobs_root,
+        proposals_root=settings.proposals_root,
+        worktrees_root=settings.worktrees_root,
+        conversations_root=settings.conversations_root,
+        host=settings.host,
+        port=settings.port,
+        codex_command=settings.codex_command,
+        codex_args=settings.codex_args,
+        codex_home=settings.codex_home,
+        codex_profile=settings.codex_profile,
+        codex_model=settings.codex_model,
+        codex_sandbox=settings.codex_sandbox,
+        codex_skip_git_repo_check=settings.codex_skip_git_repo_check,
+        cors_allowed_origins=settings.cors_allowed_origins,
+        auto_execute_requests=settings.auto_execute_requests,
+        auth_providers=["iap"],
+        runtime_api_key="",
+        allowed_user_emails=["owner@example.com"],
+        iap_expected_audience="/projects/123/global/backendServices/456",
+        push_after_apply=settings.push_after_apply,
+        push_remote=settings.push_remote,
+        push_branch=settings.push_branch,
+    )
 
 def seed_apps(state: RuntimeState) -> None:
     state.save_app(
@@ -280,6 +318,27 @@ def main() -> None:
 
             engineering_log = (settings.state_root / "engineering-log.md").read_text(encoding="utf-8")
             require("Simulated the runtime contract without invoking the Codex CLI." in engineering_log, "engineering log missing expected entry")
+
+            iap_settings = build_iap_settings(temp_root / "iap")
+            iap_state = RuntimeState(iap_settings)
+            seed_apps(iap_state)
+            original_verify = IapIdentityProvider.verify_iap_assertion
+            IapIdentityProvider.verify_iap_assertion = lambda self, token: {
+                "iss": "https://cloud.google.com/iap",
+                "aud": self.expected_audience,
+                "sub": "user-123",
+                "email": "owner@example.com",
+            }
+            try:
+                iap_client = TestClient(api_app.create_app(iap_settings))
+                iap_unauthorized = iap_client.get("/api/apps")
+                require(iap_unauthorized.status_code == 401, f"expected 401 without IAP assertion, got {iap_unauthorized.status_code}")
+                iap_authorized = iap_client.get("/api/apps", headers={IAP_JWT_HEADER: "fake-token"})
+                require(iap_authorized.status_code == 200, f"IAP auth failed: {iap_authorized.text}")
+                iap_rejected = iap_client.get("/api/apps", headers={IAP_JWT_HEADER: "fake-token", "x-api-key": API_KEY})
+                require(iap_rejected.status_code == 200, f"IAP auth with extra headers should still pass: {iap_rejected.text}")
+            finally:
+                IapIdentityProvider.verify_iap_assertion = original_verify
 
             print("runtime contract ok")
     finally:

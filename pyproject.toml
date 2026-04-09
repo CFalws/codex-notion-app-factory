@@ -5,6 +5,7 @@ description = "Stateful personal app factory with a Codex CLI runtime and a GitH
 requires-python = ">=3.11"
 dependencies = [
   "fastapi",
+  "google-auth",
   "pydantic",
   "uvicorn[standard]",
 ]

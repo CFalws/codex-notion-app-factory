@@ -55,7 +55,10 @@ class RuntimeSettings:
     codex_skip_git_repo_check: bool
     cors_allowed_origins: list[str]
     auto_execute_requests: bool
+    auth_providers: list[str]
     runtime_api_key: str
+    allowed_user_emails: list[str]
+    iap_expected_audience: str
     push_after_apply: bool
     push_remote: str
     push_branch: str
@@ -66,6 +69,10 @@ def load_settings() -> RuntimeSettings:
     state_root = Path(os.getenv("CODEX_FACTORY_STATE_ROOT", repo_root / "state")).expanduser().resolve()
     runtime_root = state_root / "runtime"
     codex_home = _env_path("CODEX_HOME")
+    runtime_api_key = os.getenv("CODEX_FACTORY_API_KEY", "").strip()
+    auth_providers = _env_list("CODEX_FACTORY_AUTH_PROVIDERS")
+    if not auth_providers and runtime_api_key:
+        auth_providers = ["api_key"]
     return RuntimeSettings(
         repo_root=repo_root,
         state_root=state_root,
@@ -87,7 +94,10 @@ def load_settings() -> RuntimeSettings:
         codex_skip_git_repo_check=_env_bool("CODEX_SKIP_GIT_REPO_CHECK", True),
         cors_allowed_origins=_env_list("CODEX_FACTORY_CORS_ALLOWED_ORIGINS"),
         auto_execute_requests=_env_bool("CODEX_FACTORY_AUTO_EXECUTE", True),
-        runtime_api_key=os.getenv("CODEX_FACTORY_API_KEY", "").strip(),
+        auth_providers=auth_providers,
+        runtime_api_key=runtime_api_key,
+        allowed_user_emails=_env_list("CODEX_FACTORY_ALLOWED_USER_EMAILS"),
+        iap_expected_audience=os.getenv("CODEX_FACTORY_IAP_AUDIENCE", "").strip(),
         push_after_apply=_env_bool("CODEX_FACTORY_PUSH_AFTER_APPLY", True),
         push_remote=os.getenv("CODEX_FACTORY_PUSH_REMOTE", "origin").strip() or "origin",
         push_branch=os.getenv("CODEX_FACTORY_PUSH_BRANCH", "main").strip() or "main",
