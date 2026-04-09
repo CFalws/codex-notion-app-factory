@@ -106,18 +106,21 @@
           </div>
         </header>
 
+        <section class="autonomy-rail">
+          <div class="autonomy-rail-shell">
+            <div class="section-head compact">
+              <h3>Session Guardrails</h3>
+              <p id="autonomy-meta" class="meta">최근 iteration 상태를 불러오는 중입니다.</p>
+            </div>
+            <div id="autonomy-summary" class="autonomy-summary autonomy-summary-rail">
+              <p class="autonomy-empty">자율 goal이 생기면 continuation blocker와 verifier 판단이 여기에 요약됩니다.</p>
+            </div>
+          </div>
+        </section>
+
         <div class="thread-surface">
           <div id="thread-scroller" class="thread-scroller">
             <div class="thread-column">
-              <section class="autonomy-card">
-                <div class="section-head compact">
-                  <h3>Autonomy Summary</h3>
-                  <p id="autonomy-meta" class="meta">최근 iteration 상태를 불러오는 중입니다.</p>
-                </div>
-                <div id="autonomy-summary" class="autonomy-summary">
-                  <p class="autonomy-empty">자율 goal이 생기면 continuation blocker와 verifier 판단이 여기에 요약됩니다.</p>
-                </div>
-              </section>
               <div id="conversation-timeline" class="timeline"></div>
             </div>
           </div>

@@ -25,6 +25,10 @@ def main() -> int:
     render_js = read("examples/generated_apps/codex-ops-console/web/ops-render.js")
     store_js = read("examples/generated_apps/codex-ops-console/web/ops-store.js")
     index_html = read("examples/generated_apps/codex-ops-console/web/index.html")
+    autonomy_index = index_html.index('id="autonomy-summary"')
+    thread_scroller_index = index_html.index('id="thread-scroller"')
+    if autonomy_index > thread_scroller_index:
+        raise AssertionError("autonomy summary still appears inside the scrollable timeline region")
 
     require(api_js, "/api/internal/conversations/${conversationId}/append-stream", label="append SSE URL builder")
     require(conversations_js, "new window.EventSource(internalConversationAppendStreamUrl(conversationId))", label="EventSource wiring")
@@ -49,8 +53,9 @@ def main() -> int:
     require(index_html, 'id="conversation-live-status"', label="live indicator DOM")
     require(index_html, 'id="live-run-row"', label="live run row DOM")
     require(index_html, 'id="append-stream-strip"', label="stream strip DOM")
+    require(index_html, 'class="autonomy-rail"', label="header-adjacent autonomy rail DOM")
     require(app_js, "internalConversationAppendStreamUrl", label="controller dependency wiring")
-    print("ok: ops append SSE wiring, provenance strip, and inline live run row are present")
+    print("ok: ops append SSE wiring, inline live run row, and autonomy rail are present")
     return 0
 
 

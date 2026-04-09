@@ -259,7 +259,7 @@ textarea {
 
 .main-stage {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
   min-height: 0;
   padding: 0;
   overflow: hidden;
@@ -337,10 +337,23 @@ textarea {
   overflow: hidden;
 }
 
+.autonomy-rail {
+  padding: 0 1rem 0.85rem;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.autonomy-rail-shell {
+  display: grid;
+  gap: 0.55rem;
+  width: min(100%, 56rem);
+  margin: 0 auto;
+}
+
 .thread-scroller {
   min-height: 0;
   overflow: auto;
-  padding: 0.8rem 1rem 0.7rem;
+  padding: 0.5rem 1rem 0.7rem;
 }
 
 .thread-column {
@@ -365,10 +378,18 @@ textarea {
   gap: 0.65rem;
 }
 
+.autonomy-summary-rail {
+  gap: 0.45rem;
+}
+
 .autonomy-chip-row {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+.autonomy-chip-row-compact {
+  gap: 0.42rem;
 }
 
 .autonomy-chip {
@@ -412,6 +433,25 @@ textarea {
   margin: 0;
   color: var(--muted);
   line-height: 1.5;
+}
+
+.autonomy-inline-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.8rem;
+}
+
+.autonomy-inline-item {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.autonomy-inline-item span {
+  margin-right: 0.35rem;
+  color: var(--ink);
+  font-weight: 700;
 }
 
 .timeline {

@@ -301,6 +301,10 @@ function blockerTone(blockerReason = "") {
 
 export function clearAutonomySummary(dom, message = "자율 goal이 생기면 continuation blocker와 verifier 판단이 여기에 요약됩니다.") {
   dom.autonomyMeta.textContent = "표시할 자율 goal이 없습니다.";
+  dom.autonomySummary.dataset.empty = "true";
+  dom.autonomySummary.dataset.blockerReason = "none";
+  dom.autonomySummary.dataset.pathVerdict = "unknown";
+  dom.autonomySummary.dataset.verifierAcceptability = "pending";
   dom.autonomySummary.innerHTML = `<p class="autonomy-empty">${escapeHtml(message)}</p>`;
 }
 
@@ -320,21 +324,19 @@ export function renderAutonomySummary(dom, goal) {
   const blockerClass = blockerTone(blockerReason);
 
   dom.autonomyMeta.textContent = `${goal.title || "Autonomy Goal"} · ${goal.status || "unknown"} · iteration ${iteration.iteration}`;
+  dom.autonomySummary.dataset.empty = "false";
+  dom.autonomySummary.dataset.blockerReason = blockerReason;
+  dom.autonomySummary.dataset.pathVerdict = pathVerdict.toLowerCase();
+  dom.autonomySummary.dataset.verifierAcceptability = verifierAcceptability.toLowerCase();
   dom.autonomySummary.innerHTML = `
-    <div class="autonomy-chip-row">
+    <div class="autonomy-chip-row autonomy-chip-row-compact">
       <span class="autonomy-chip ${pathVerdict === "EXPECTED" ? "healthy" : "blocked"}">${pathVerdict}</span>
       <span class="autonomy-chip ${verifierAcceptability === "DISQUALIFYING" ? "blocked" : verifierAcceptability === "ACCEPTABLE" ? "healthy" : "neutral"}">${verifierAcceptability}</span>
       <span class="autonomy-chip ${blockerClass}">BLOCKER ${escapeHtml(blockerReason.toUpperCase())}</span>
     </div>
-    <div class="autonomy-grid">
-      <article class="autonomy-item">
-        <p class="learning-label">Expected Path</p>
-        <p class="learning-value">${escapeHtml(expectedPath)}</p>
-      </article>
-      <article class="autonomy-item">
-        <p class="learning-label">Degraded Signals</p>
-        <p class="learning-value">${escapeHtml(degradedSignals.length ? degradedSignals.join(", ") : "none")}</p>
-      </article>
+    <div class="autonomy-inline-meta">
+      <p class="autonomy-inline-item"><span>Path</span>${escapeHtml(expectedPath)}</p>
+      <p class="autonomy-inline-item"><span>Signals</span>${escapeHtml(degradedSignals.length ? degradedSignals.join(", ") : "none")}</p>
     </div>
   `;
 }

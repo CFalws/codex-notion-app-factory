@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Add one compact live-run row for the selected conversation at the timeline/composer boundary.
-- [x] Drive the row from existing live conversation events instead of a separate polling-only status surface.
-- [x] Expose machine-readable run state and source attributes so browser verification can prove the intended live path.
-- [x] Keep the row hidden for inactive or missing conversations and avoid duplicating timeline content.
-- [x] Extend the static verifier so future sessions can prove the inline run row hooks exist.
+- [x] Move autonomy blocker and verifier status out of the scrollable thread body.
+- [x] Replace the large autonomy card with a compact header-adjacent rail that stays conversation-local.
+- [x] Preserve machine-readable autonomy state so existing verifier expectations still hold after the move.
+- [x] Leave the central thread body primarily for message history plus the live-run row and composer.
+- [x] Extend the static verifier so future sessions can prove the autonomy summary is no longer inside the scrollable timeline region.
