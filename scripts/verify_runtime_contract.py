@@ -677,37 +677,37 @@ def main() -> None:
                 f"restart-resume goal should emit awaiting restart event before startup recovery: {restart_event_types_before}",
             )
 
-            restart_client = TestClient(api_app.create_app(settings))
-            restart_resume_goal = wait_for_goal_status(restart_client, restart_resume_goal_id, "completed")
-            require(
-                restart_resume_goal["stop_reason"] == "goal_review_stop",
-                f"restart-resume goal should complete after startup recovery: {restart_resume_goal}",
-            )
-            require(
-                restart_resume_goal["awaiting_restart_resume"] is False,
-                f"restart-resume goal should clear pending restart marker after startup recovery: {restart_resume_goal}",
-            )
-            require(
-                restart_resume_goal["last_resume_reason"] == "restart_resume",
-                f"restart-resume goal should record why it was resumed: {restart_resume_goal}",
-            )
-            require(restart_resume_goal["last_resumed_at"], f"restart-resume goal should record when it was resumed: {restart_resume_goal}")
-            require(
-                len(restart_resume_goal["iterations"]) == 2,
-                f"restart-resume goal should continue with the next bounded iteration after startup recovery: {restart_resume_goal}",
-            )
-            restart_conversation_after = request(
-                restart_client, "GET", f"/api/conversations/{restart_resume_response.json()['conversation']['conversation_id']}"
-            ).json()
-            restart_resume_events = [event for event in restart_conversation_after["events"] if event["type"] == "goal.resumed"]
-            require(
-                restart_resume_events,
-                f"restart-resume goal should emit a goal.resumed event after startup recovery: {restart_conversation_after['events']}",
-            )
-            require(
-                restart_resume_events[-1]["data"].get("resume_reason") == "restart_resume",
-                f"restart-resume goal should label the resume path explicitly: {restart_resume_events[-1]}",
-            )
+            with TestClient(api_app.create_app(settings)) as restart_client:
+                restart_resume_goal = wait_for_goal_status(restart_client, restart_resume_goal_id, "completed")
+                require(
+                    restart_resume_goal["stop_reason"] == "goal_review_stop",
+                    f"restart-resume goal should complete after startup recovery: {restart_resume_goal}",
+                )
+                require(
+                    restart_resume_goal["awaiting_restart_resume"] is False,
+                    f"restart-resume goal should clear pending restart marker after startup recovery: {restart_resume_goal}",
+                )
+                require(
+                    restart_resume_goal["last_resume_reason"] == "restart_resume",
+                    f"restart-resume goal should record why it was resumed: {restart_resume_goal}",
+                )
+                require(restart_resume_goal["last_resumed_at"], f"restart-resume goal should record when it was resumed: {restart_resume_goal}")
+                require(
+                    len(restart_resume_goal["iterations"]) == 2,
+                    f"restart-resume goal should continue with the next bounded iteration after startup recovery: {restart_resume_goal}",
+                )
+                restart_conversation_after = request(
+                    restart_client, "GET", f"/api/conversations/{restart_resume_response.json()['conversation']['conversation_id']}"
+                ).json()
+                restart_resume_events = [event for event in restart_conversation_after["events"] if event["type"] == "goal.resumed"]
+                require(
+                    restart_resume_events,
+                    f"restart-resume goal should emit a goal.resumed event after startup recovery: {restart_conversation_after['events']}",
+                )
+                require(
+                    restart_resume_events[-1]["data"].get("resume_reason") == "restart_resume",
+                    f"restart-resume goal should label the resume path explicitly: {restart_resume_events[-1]}",
+                )
 
             proposal_runtime = ProposalRuntime(settings, state, CodexCliRunner(settings))
             blocking = proposal_runtime.blocking_repo_changes(

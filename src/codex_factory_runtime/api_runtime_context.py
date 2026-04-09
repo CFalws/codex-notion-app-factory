@@ -893,35 +893,37 @@ class RuntimeApiContext:
                         "push_status": proposal.get("push_status", ""),
                     },
                 )
-                if str(proposal.get("restart_service") or "").strip() and bool(
-                    (goal.get("policy") or {}).get("auto_resume_after_apply")
-                ):
-                    goal["status"] = "running"
-                    goal["stop_reason"] = ""
-                    goal["completed_at"] = ""
-                    goal["awaiting_restart_resume"] = True
-                    goal["awaiting_restart_iteration"] = iteration_number
-                    goal["awaiting_restart_job_id"] = payload["job"]["job_id"]
-                    self.state.save_goal(goal)
-                    self.append_event(
-                        conversation_id,
-                        event_type="goal.awaiting_restart_resume",
-                        body="서비스 재시작 후 자율 목표 루프를 자동으로 다시 시작합니다.",
-                        status="running",
-                        job_id=payload["job"]["job_id"],
-                        data={
-                            "goal_id": goal_id,
-                            "iteration": iteration_number,
-                            "resume_reason": "restart_resume",
-                        },
-                    )
-                    return
-
             next_status, stop_reason = self.goals.next_goal_status(
                 goal,
                 job,
                 proposal_ready=bool(job.get("proposal")) and not proposal_auto_applied,
             )
+            if (
+                proposal_auto_applied
+                and next_status == "running"
+                and str(proposal.get("restart_service") or "").strip()
+                and bool((goal.get("policy") or {}).get("auto_resume_after_apply"))
+            ):
+                goal["status"] = "running"
+                goal["stop_reason"] = ""
+                goal["completed_at"] = ""
+                goal["awaiting_restart_resume"] = True
+                goal["awaiting_restart_iteration"] = iteration_number
+                goal["awaiting_restart_job_id"] = payload["job"]["job_id"]
+                self.state.save_goal(goal)
+                self.append_event(
+                    conversation_id,
+                    event_type="goal.awaiting_restart_resume",
+                    body="서비스 재시작 후 자율 목표 루프를 자동으로 다시 시작합니다.",
+                    status="running",
+                    job_id=payload["job"]["job_id"],
+                    data={
+                        "goal_id": goal_id,
+                        "iteration": iteration_number,
+                        "resume_reason": "restart_resume",
+                    },
+                )
+                return
             goal["status"] = next_status
             goal["stop_reason"] = stop_reason
             if next_status in {"completed", "failed", "paused", "stopped"}:

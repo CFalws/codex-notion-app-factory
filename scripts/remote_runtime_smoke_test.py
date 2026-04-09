@@ -7,7 +7,7 @@ import sys
 import time
 from pathlib import Path
 from typing import Any
-from urllib import request
+from urllib import error, request
 
 
 def load_env_file(path: Path) -> None:
@@ -19,7 +19,15 @@ def load_env_file(path: Path) -> None:
         os.environ.setdefault(key, value)
 
 
-def http_json(method: str, url: str, payload: dict[str, Any] | None = None, *, api_key: str = "") -> dict[str, Any]:
+def http_json(
+    method: str,
+    url: str,
+    payload: dict[str, Any] | None = None,
+    *,
+    api_key: str = "",
+    retries: int = 0,
+    retry_delay_seconds: float = 2.0,
+) -> dict[str, Any]:
     headers = {"Content-Type": "application/json"}
     if api_key:
         headers["X-API-Key"] = api_key
@@ -27,8 +35,32 @@ def http_json(method: str, url: str, payload: dict[str, Any] | None = None, *, a
     if payload is not None:
         data = json.dumps(payload).encode("utf-8")
     req = request.Request(url, method=method, data=data, headers=headers)
-    with request.urlopen(req, timeout=30) as response:
-        return json.loads(response.read().decode("utf-8"))
+    attempts = max(1, retries + 1)
+    last_error: Exception | None = None
+    for attempt in range(attempts):
+        try:
+            with request.urlopen(req, timeout=30) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except (error.URLError, TimeoutError, ConnectionError) as exc:
+            last_error = exc
+            if attempt == attempts - 1:
+                raise
+            time.sleep(retry_delay_seconds)
+    if last_error is not None:
+        raise last_error
+    raise RuntimeError("http_json reached an unreachable state")
+
+
+def wait_for_health(base_url: str, timeout_seconds: float = 90.0) -> dict[str, Any]:
+    deadline = time.monotonic() + timeout_seconds
+    last_error: Exception | None = None
+    while time.monotonic() < deadline:
+        try:
+            return http_json("GET", f"{base_url}/health", retries=0)
+        except Exception as exc:  # noqa: BLE001
+            last_error = exc
+            time.sleep(2)
+    raise RuntimeError(f"Timed out waiting for runtime health: {last_error}")
 
 
 def wait_for_job(base_url: str, job_id: str, api_key: str, timeout_seconds: float = 180.0) -> dict[str, Any]:
@@ -56,9 +88,7 @@ def main() -> None:
     app_id = os.environ.get("APP_ID", "habit-tracker-pwa")
     configured_scratch_file = os.environ.get("SCRATCH_FILE", "").strip()
 
-    health_req = request.Request(f"{base_url}/health", method="GET")
-    with request.urlopen(health_req, timeout=30) as response:
-        health = json.loads(response.read().decode("utf-8"))
+    health = wait_for_health(base_url)
     repo_root = Path(health["repo_root"])
     scratch_file = resolve_scratch_file(base_url, app_id, api_key, configured_scratch_file)
 
@@ -73,6 +103,7 @@ def main() -> None:
             "execute_now": True,
         },
         api_key=api_key,
+        retries=8,
     )
     ping_job = wait_for_job(base_url, ping["job"]["job_id"], api_key)
     if ping_job.get("status") != "completed":
@@ -99,6 +130,7 @@ def main() -> None:
             "execute_now": True,
         },
         api_key=api_key,
+        retries=8,
     )
     edit_job = wait_for_job(base_url, edit["job"]["job_id"], api_key)
     if edit_job.get("status") != "completed":
