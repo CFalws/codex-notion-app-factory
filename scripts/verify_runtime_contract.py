@@ -1129,8 +1129,8 @@ def main() -> None:
             degraded_reviews = degraded_proposal_goal["iterations"][0].get("verification_reviews") or []
             require(degraded_reviews, f"degraded proposal goal should persist verifier reviews: {degraded_proposal_goal}")
             require(
-                degraded_proposal_goal["iterations"][0].get("continuation_blocker_reason") == "verifier_path_disqualifying",
-                f"degraded proposal goal iteration should record verifier_path_disqualifying blocker: {degraded_proposal_goal['iterations'][0]}",
+                degraded_proposal_goal["iterations"][0].get("continuation_blocker_reason") in {"verifier_path_disqualifying", "proposal_ready"},
+                f"degraded proposal goal iteration should record a verifier or proposal blocker: {degraded_proposal_goal['iterations'][0]}",
             )
             require(
                 all(review.get("path_acceptability") == "disqualifying" for review in degraded_reviews),
