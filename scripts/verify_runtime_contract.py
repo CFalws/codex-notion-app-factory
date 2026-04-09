@@ -436,6 +436,49 @@ def verify_proposer_prompt_contract() -> None:
     require("next_focus=Target the degraded path directly." in prompt, f"proposer prompt should preserve next_focus: {prompt}")
 
 
+def verify_review_rejection_proposer_context_contract() -> None:
+    autonomy = api_app.AutonomyRuntime()
+    goal = {
+        "title": "Review rejection recovery",
+        "objective": "Keep exploring bounded changes when review rejects one iteration.",
+        "iterations": [
+            {
+                "iteration": 1,
+                "status": "rejected_before_implementation",
+                "result_summary": "Reviewer rejection before implementation.",
+                "continuation_blocker_reason": "proposal_not_approved",
+                "proposal_reviews": [
+                    {
+                        "verdict": "reject",
+                        "rationale": "The hypothesis is still too close to the last rejected shape.",
+                        "blocking_issue": "Needs a different bounded option.",
+                        "suggested_adjustment": "Try another bounded hypothesis.",
+                    },
+                    {
+                        "verdict": "reject",
+                        "rationale": "The proposal is still too vague.",
+                        "blocking_issue": "Still too vague.",
+                        "suggested_adjustment": "Make the next hypothesis more specific.",
+                    },
+                ],
+            }
+        ],
+    }
+    prompt = autonomy.build_proposer_prompt(goal, {"app_id": "factory-runtime", "title": "Factory Runtime"})
+    require(
+        "blocker=proposal_not_approved" in prompt,
+        f"rejected proposer history should include proposal_not_approved blocker: {prompt}",
+    )
+    require(
+        "proposal_review_blocking_issues=Needs a different bounded option., Still too vague." in prompt,
+        f"rejected proposer history should include structured blocking issues: {prompt}",
+    )
+    require(
+        "proposal_review_suggested_adjustments=Make the next hypothesis more specific., Try another bounded hypothesis." in prompt,
+        f"rejected proposer history should include structured suggested adjustments: {prompt}",
+    )
+
+
 def verify_blocker_precedence_contract() -> None:
     goals = GoalRuntime()
     disqualifying_blocker = goals.continuation_blocker_reason(
@@ -854,6 +897,7 @@ def main() -> None:
             seed_apps(state)
             verify_prompt_contract(settings, state)
             verify_proposer_prompt_contract()
+            verify_review_rejection_proposer_context_contract()
             verify_blocker_precedence_contract()
             verify_goal_task_lifecycle(settings, state)
             verify_reconcile_orphaned_running_job(settings, state)

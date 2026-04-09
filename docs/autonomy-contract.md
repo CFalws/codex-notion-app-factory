@@ -161,3 +161,10 @@ Do not force future sessions to reconstruct prior failure signals from prose alo
 - `intended_path.degraded_signals`
 - verifier `verdict`
 - verifier `path_acceptability`
+
+When an iteration is rejected before implementation, proposer context should also preserve reviewer rejection evidence such as:
+
+- `blocking_issue`
+- `suggested_adjustment`
+
+That keeps the next bounded hypothesis anchored to the explicit rejection signal instead of a prose-only summary of what went wrong.

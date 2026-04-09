@@ -8,7 +8,7 @@
 
 ## Problem
 
-Proposal-mode iterations can already record verifier `path_acceptability=disqualifying`, but the continuation blocker can still collapse to `proposal_ready`. That makes a failed intended path look like a normal review wait instead of the more conservative verifier-path failure the operator should see first.
+Rejected-before-implementation iterations already persist `proposal_not_approved` plus reviewer `blocking_issue` and `suggested_adjustment`, but the next proposer prompt still reduces that to generic summary text. That makes recovery from review rejection weaker than it should be and increases the chance of repeating the same weak hypothesis.
 
 ## Target User
 
@@ -22,4 +22,4 @@ The primary user is the operator relying on unattended runtime self-improvement 
 
 ## Deliverable
 
-Make `verifier_path_disqualifying` outrank `proposal_ready` in continuation-blocker precedence so iteration state, proposer context, and the ops summary all expose the same canonical blocker when verifier evidence says the path is not acceptable.
+Carry reviewer rejection evidence into proposer input as labeled context alongside `proposal_not_approved`, so the next bounded hypothesis can react to the explicit blocking issue and suggested adjustment instead of relying on prose-only memory.

@@ -95,6 +95,7 @@ class AutonomyRuntime:
         review = item.get("goal_review") or {}
         intended_path = item.get("intended_path") or {}
         verifier_reviews = item.get("verification_reviews") or []
+        proposal_reviews = item.get("proposal_reviews") or []
         degraded_signals = ", ".join(str(signal).strip() for signal in (intended_path.get("degraded_signals") or []) if str(signal).strip()) or "(none)"
         verifier_verdicts = ", ".join(
             sorted({str(review.get("verdict") or "").strip() for review in verifier_reviews if str(review.get("verdict") or "").strip()})
@@ -108,12 +109,32 @@ class AutonomyRuntime:
                 }
             )
         ) or "(none)"
+        review_blocking_issues = ", ".join(
+            sorted(
+                {
+                    str(review_item.get("blocking_issue") or "").strip()
+                    for review_item in proposal_reviews
+                    if str(review_item.get("blocking_issue") or "").strip()
+                }
+            )
+        ) or "(none)"
+        review_suggested_adjustments = ", ".join(
+            sorted(
+                {
+                    str(review_item.get("suggested_adjustment") or "").strip()
+                    for review_item in proposal_reviews
+                    if str(review_item.get("suggested_adjustment") or "").strip()
+                }
+            )
+        ) or "(none)"
         return (
             f"- iteration {item.get('iteration')}: "
             f"status={str(item.get('status') or '').strip() or '(unknown)'} | "
             f"blocker={str(item.get('continuation_blocker_reason') or 'none').strip() or 'none'} | "
             f"intended_path={str(intended_path.get('verdict') or '').strip() or '(missing)'} | "
             f"degraded_signals={degraded_signals} | "
+            f"proposal_review_blocking_issues={review_blocking_issues} | "
+            f"proposal_review_suggested_adjustments={review_suggested_adjustments} | "
             f"verifier_verdicts={verifier_verdicts} | "
             f"verifier_path_acceptability={verifier_acceptability} | "
             f"next_focus={str(review.get('next_focus') or '').strip() or '(none)'} | "

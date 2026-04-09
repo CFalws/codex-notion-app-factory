@@ -170,6 +170,7 @@ When proposer prompts are built from prior autonomous history, verification shou
 - healthy prior iterations keep `blocker=none` and expected-path evidence visible in the proposer input
 - degraded or rejected prior iterations keep their blocker and path evidence visible in the proposer input
 - the next bounded hypothesis is not chosen from prose-only context when structured failure state already exists
+- rejected-before-implementation iterations preserve reviewer `blocking_issue` and `suggested_adjustment` in proposer input
 
 ## Commit And Deploy Policy
 
