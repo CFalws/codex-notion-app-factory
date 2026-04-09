@@ -8,7 +8,7 @@
 
 ## Problem
 
-The desktop layout is now materially conversation-first, but thread navigation still requires the user to infer which conversation is actively generating by reading the center pane or opening secondary status surfaces. The remaining friction is navigation ambiguity, not transport or layout ownership.
+The workspace now has a stronger conversation-first shell, but a standalone autonomy summary still sits above the transcript in the center pane. The remaining friction is dashboard-style context occupying the main reading path instead of letting the active thread own the viewport.
 
 ## Target User
 
@@ -23,4 +23,4 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 ## Deliverable
 
-Add compact selected-thread and live-run markers directly into the existing left rail so the user can identify the active and currently generating conversation from navigation alone, while keeping the center pane, footer dock, and secondary panel behavior unchanged.
+Replace the standalone center-pane autonomy block with a compact active-thread context strip in the thread header, and move the fuller autonomy detail into the secondary panel while keeping the selected-conversation session strip, footer dock, thread rail markers, and mobile drawer behavior unchanged.

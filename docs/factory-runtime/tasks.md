@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep the current selected-conversation SSE path, secondary panel, and footer dock unchanged.
-- [x] Add compact selected-thread markers directly to the existing left rail conversation cards.
-- [x] Add compact live-state markers for the selected thread using existing session-strip state instead of a new status surface.
-- [x] Clear left-rail live markers when the session returns to idle or the thread selection changes.
-- [x] Extend focused verification so future sessions can prove navigation shows the active or generating thread without duplicating status panels.
+- [x] Keep the current selected-conversation SSE path, footer dock, thread rail markers, and mobile drawer unchanged.
+- [x] Remove the standalone autonomy summary block from above the center-pane transcript.
+- [x] Add a compact active-thread autonomy context strip inside the thread header using the latest iteration autonomy data.
+- [x] Keep the fuller autonomy detail reachable through the secondary panel instead of the main reading path.
+- [x] Extend focused verification so future sessions can prove the transcript remains the first visible center-pane content while autonomy state still stays inspectable.

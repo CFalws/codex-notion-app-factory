@@ -317,12 +317,35 @@ function blockerTone(blockerReason = "") {
 }
 
 export function clearAutonomySummary(dom, message = "자율 goal이 생기면 continuation blocker와 verifier 판단이 여기에 요약됩니다.") {
+  if (dom.autonomyContextStrip) {
+    dom.autonomyContextStrip.hidden = true;
+  }
   dom.autonomyMeta.textContent = "표시할 자율 goal이 없습니다.";
   dom.autonomySummary.dataset.empty = "true";
   dom.autonomySummary.dataset.blockerReason = "none";
   dom.autonomySummary.dataset.pathVerdict = "unknown";
   dom.autonomySummary.dataset.verifierAcceptability = "pending";
   dom.autonomySummary.innerHTML = `<p class="autonomy-empty">${escapeHtml(message)}</p>`;
+  if (dom.autonomyDetailMeta) {
+    dom.autonomyDetailMeta.textContent = "표시할 자율 goal이 없습니다.";
+  }
+  if (dom.autonomyDetail) {
+    dom.autonomyDetail.dataset.empty = "true";
+    dom.autonomyDetail.dataset.blockerReason = "none";
+    dom.autonomyDetail.dataset.pathVerdict = "unknown";
+    dom.autonomyDetail.dataset.verifierAcceptability = "pending";
+    dom.autonomyDetail.innerHTML = `<p class="autonomy-empty">${escapeHtml(message)}</p>`;
+  }
+}
+
+function setAutonomyDataset(target, { blockerReason, pathVerdict, verifierAcceptability }) {
+  if (!target) {
+    return;
+  }
+  target.dataset.empty = "false";
+  target.dataset.blockerReason = blockerReason;
+  target.dataset.pathVerdict = pathVerdict.toLowerCase();
+  target.dataset.verifierAcceptability = verifierAcceptability.toLowerCase();
 }
 
 export function renderAutonomySummary(dom, goal) {
@@ -339,23 +362,39 @@ export function renderAutonomySummary(dom, goal) {
   const degradedSignals = Array.isArray(intendedPath.degraded_signals) ? intendedPath.degraded_signals : [];
   const expectedPath = String(intendedPath.expected_path || "").trim() || "unknown";
   const blockerClass = blockerTone(blockerReason);
+  const heading = `${goal.title || "Autonomy Goal"} · ${goal.status || "unknown"} · iteration ${iteration.iteration}`;
 
-  dom.autonomyMeta.textContent = `${goal.title || "Autonomy Goal"} · ${goal.status || "unknown"} · iteration ${iteration.iteration}`;
-  dom.autonomySummary.dataset.empty = "false";
-  dom.autonomySummary.dataset.blockerReason = blockerReason;
-  dom.autonomySummary.dataset.pathVerdict = pathVerdict.toLowerCase();
-  dom.autonomySummary.dataset.verifierAcceptability = verifierAcceptability.toLowerCase();
+  if (dom.autonomyContextStrip) {
+    dom.autonomyContextStrip.hidden = false;
+  }
+  dom.autonomyMeta.textContent = heading;
+  setAutonomyDataset(dom.autonomySummary, { blockerReason, pathVerdict, verifierAcceptability });
   dom.autonomySummary.innerHTML = `
-    <div class="autonomy-chip-row autonomy-chip-row-compact">
+    <div class="autonomy-context-line">
       <span class="autonomy-chip ${pathVerdict === "EXPECTED" ? "healthy" : "blocked"}">${pathVerdict}</span>
       <span class="autonomy-chip ${verifierAcceptability === "DISQUALIFYING" ? "blocked" : verifierAcceptability === "ACCEPTABLE" ? "healthy" : "neutral"}">${verifierAcceptability}</span>
       <span class="autonomy-chip ${blockerClass}">BLOCKER ${escapeHtml(blockerReason.toUpperCase())}</span>
-    </div>
-    <div class="autonomy-inline-meta">
-      <p class="autonomy-inline-item"><span>Path</span>${escapeHtml(expectedPath)}</p>
-      <p class="autonomy-inline-item"><span>Signals</span>${escapeHtml(degradedSignals.length ? degradedSignals.join(", ") : "none")}</p>
+      <span class="autonomy-context-iteration">ITERATION ${escapeHtml(String(iteration.iteration))}</span>
     </div>
   `;
+  if (dom.autonomyDetailMeta) {
+    dom.autonomyDetailMeta.textContent = heading;
+  }
+  if (dom.autonomyDetail) {
+    setAutonomyDataset(dom.autonomyDetail, { blockerReason, pathVerdict, verifierAcceptability });
+    dom.autonomyDetail.innerHTML = `
+      <div class="autonomy-chip-row autonomy-chip-row-compact">
+        <span class="autonomy-chip ${pathVerdict === "EXPECTED" ? "healthy" : "blocked"}">${pathVerdict}</span>
+        <span class="autonomy-chip ${verifierAcceptability === "DISQUALIFYING" ? "blocked" : verifierAcceptability === "ACCEPTABLE" ? "healthy" : "neutral"}">${verifierAcceptability}</span>
+        <span class="autonomy-chip ${blockerClass}">BLOCKER ${escapeHtml(blockerReason.toUpperCase())}</span>
+      </div>
+      <div class="autonomy-inline-meta">
+        <p class="autonomy-inline-item"><span>Iteration</span>${escapeHtml(String(iteration.iteration))}</p>
+        <p class="autonomy-inline-item"><span>Path</span>${escapeHtml(expectedPath)}</p>
+        <p class="autonomy-inline-item"><span>Signals</span>${escapeHtml(degradedSignals.length ? degradedSignals.join(", ") : "none")}</p>
+      </div>
+    `;
+  }
 }
 
 function phaseLabel(status, eventType = "") {

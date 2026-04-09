@@ -413,17 +413,15 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   overflow: hidden;
 }
 
-.autonomy-rail {
-  padding: 0 1rem 0.85rem;
-  border-bottom: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.72);
-}
-
-.autonomy-rail-shell {
+.autonomy-context-strip {
   display: grid;
-  gap: 0.55rem;
-  width: min(100%, 56rem);
-  margin: 0 auto;
+  gap: 0.35rem;
+  margin-top: 0.7rem;
+  padding: 0.72rem 0.85rem 0.8rem;
+  border: 1px solid rgba(88, 64, 40, 0.12);
+  border-radius: 1rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 243, 237, 0.92));
+  box-shadow: 0 10px 20px rgba(44, 25, 6, 0.04);
 }
 
 .thread-scroller {
@@ -458,6 +456,10 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   gap: 0.45rem;
 }
 
+.autonomy-summary-context {
+  gap: 0.3rem;
+}
+
 .autonomy-chip-row {
   display: flex;
   flex-wrap: wrap;
@@ -465,6 +467,13 @@ body[data-secondary-panel-open="true"] .desktop-shell {
 }
 
 .autonomy-chip-row-compact {
+  gap: 0.42rem;
+}
+
+.autonomy-context-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 0.42rem;
 }
 
@@ -511,6 +520,13 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   line-height: 1.5;
 }
 
+.autonomy-context-iteration {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
 .autonomy-inline-meta {
   display: flex;
   flex-wrap: wrap;
@@ -528,6 +544,10 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   margin-right: 0.35rem;
   color: var(--ink);
   font-weight: 700;
+}
+
+.autonomy-detail-card {
+  margin-top: 0.25rem;
 }
 
 .timeline {
@@ -1039,7 +1059,7 @@ body[data-secondary-panel-open="true"] .secondary-panel {
     padding: 0.85rem;
   }
 
-  .autonomy-rail,
+  .autonomy-context-strip,
   .composer-dock {
     padding-left: 0.85rem;
     padding-right: 0.85rem;

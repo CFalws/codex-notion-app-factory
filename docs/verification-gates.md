@@ -184,7 +184,7 @@ For the feature-flagged active-conversation append SSE path, verification should
 - on phone widths, the selected-conversation session strip and composer should share one persistent footer dock so live state stays visible while the input remains reachable in the active thread
 - on desktop widths, the thread rail should remain continuously accessible while prose-heavy operator content stays behind a collapsed secondary panel so the transcript remains the dominant workspace surface
 - the left thread rail should expose compact selected-thread and live-run markers derived from the existing selected-conversation session state so users can identify the active or generating thread without opening secondary panels
-- conversation-local autonomy state should be visible outside the scrollable timeline body so message history remains the first visible content in the center pane
+- conversation-local autonomy state should be reduced to a compact active-thread context strip in the thread header while fuller autonomy detail stays reachable in the secondary panel, so message history remains the first visible content in the center pane
 - on phone widths, the active conversation should remain the first visible workspace surface and app or thread navigation should open through an explicit drawer or sheet rather than occupying the top of the reading flow
 
 ## Commit And Deploy Policy
