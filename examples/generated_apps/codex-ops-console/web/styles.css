@@ -307,6 +307,10 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   opacity: 0.84;
 }
 
+.conversation-card-preview[data-preview-lines="1"] {
+  max-width: 100%;
+}
+
 .conversation-card-marker,
 .conversation-card-live {
   display: inline-flex;
@@ -370,6 +374,12 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   color: var(--success);
   border-color: rgba(47, 138, 89, 0.24);
   background: rgba(47, 138, 89, 0.08);
+}
+
+.conversation-card[data-thread-state="failed"] .conversation-card-live {
+  color: var(--danger);
+  border-color: rgba(182, 75, 65, 0.24);
+  background: rgba(182, 75, 65, 0.08);
 }
 
 .conversation-card[data-thread-state="idle"] .conversation-card-live {

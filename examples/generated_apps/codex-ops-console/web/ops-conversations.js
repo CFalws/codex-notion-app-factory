@@ -319,7 +319,7 @@ export function createConversationController(deps) {
     const latestType = String(latestEvent?.type || "");
     const latestStatus = String(latestEvent?.status || "").toLowerCase();
     if (latestStatus === "failed" || latestType === "runtime.exception") {
-      return "done";
+      return "failed";
     }
     if (
       latestType === "job.completed" ||
@@ -331,6 +331,55 @@ export function createConversationController(deps) {
       return "done";
     }
     return "idle";
+  }
+
+  function snapshotThreadLabel(threadState) {
+    if (threadState === "failed") {
+      return "FAILED";
+    }
+    if (threadState === "done") {
+      return "DONE";
+    }
+    return "IDLE";
+  }
+
+  function compactConversationLabel({ presentation = "", liveRunState = "", liveRunPhase = "", isSelected = false } = {}) {
+    if (!isSelected) {
+      return snapshotThreadLabel(liveRunState);
+    }
+    if (presentation === "connecting") {
+      return "CONNECT";
+    }
+    if (presentation === "reconnecting") {
+      return "RESUME";
+    }
+    if (presentation === "terminal") {
+      if (liveRunState === "failed" || liveRunPhase === "FAILED") {
+        return "FAILED";
+      }
+      return liveRunPhase || "DONE";
+    }
+    if (presentation === "live") {
+      if (liveRunPhase) {
+        return liveRunPhase;
+      }
+      if (liveRunState === "sending" || liveRunState === "generating") {
+        return "LIVE";
+      }
+      if (liveRunState === "running-tool" || liveRunState === "running tool") {
+        return "RUN";
+      }
+      return "LIVE";
+    }
+    return "ACTIVE";
+  }
+
+  function truncatePreview(value, maxLength = 88) {
+    const text = simplifyPreviewText(value);
+    if (text.length <= maxLength) {
+      return text;
+    }
+    return `${text.slice(0, maxLength - 1).trimEnd()}…`;
   }
 
   function conversationPreview(conversation) {
@@ -353,7 +402,7 @@ export function createConversationController(deps) {
       return rightCreated.localeCompare(leftCreated);
     });
     const item = candidates[0];
-    const body = simplifyPreviewText(item?.body || "");
+    const body = truncatePreview(item?.body || "");
     if (item?.role === "assistant") {
       return body || "최근 assistant 응답이 있습니다.";
     }
@@ -384,16 +433,15 @@ export function createConversationController(deps) {
     const liveRunPhase = String(dom.threadScroller?.dataset.liveRunPhase || "");
 
     let liveLabel = "";
+    let liveThreadState = "";
     if (selectedConversationId && selectedConversationId === liveConversationId) {
-      if (presentation === "connecting") {
-        liveLabel = "CONNECTING";
-      } else if (presentation === "live") {
-        liveLabel = liveRunPhase || liveRunState.replaceAll("-", " ").toUpperCase();
-      } else if (presentation === "reconnecting") {
-        liveLabel = "RECONNECTING";
-      } else if (presentation === "terminal") {
-        liveLabel = liveRunPhase || "DONE";
-      }
+      liveThreadState = presentation === "live" ? (liveRunState || "active") : presentation || "active";
+      liveLabel = compactConversationLabel({
+        presentation,
+        liveRunState,
+        liveRunPhase,
+        isSelected: true,
+      });
     }
 
     for (const card of dom.conversationList.querySelectorAll("[data-conversation-id]")) {
@@ -404,10 +452,10 @@ export function createConversationController(deps) {
       const snapshotState = String(card.dataset.snapshotThreadState || "idle");
       card.classList.toggle("active", isSelected);
       card.dataset.selected = isSelected ? "true" : "false";
-      card.dataset.threadState = isSelected ? (liveLabel ? liveLabel.toLowerCase() : "active") : snapshotState;
+      card.dataset.threadState = isSelected ? (liveThreadState || "active") : snapshotState;
       if (marker) {
         marker.hidden = !isSelected;
-        marker.textContent = "ACTIVE";
+        marker.textContent = "NOW";
       }
       if (liveState) {
         liveState.hidden = false;
@@ -444,24 +492,25 @@ export function createConversationController(deps) {
     dom.conversationList.innerHTML = conversations
       .map((conversation) => {
         const isActive = conversation.conversation_id === selectedConversationId;
+        const snapshotState = snapshotThreadState(conversation);
         return `
           <button
             type="button"
             class="conversation-card${isActive ? " active" : ""}"
             data-conversation-id="${conversation.conversation_id}"
             data-selected="${isActive ? "true" : "false"}"
-            data-thread-state="${snapshotThreadState(conversation)}"
-            data-snapshot-thread-state="${snapshotThreadState(conversation)}"
-            data-snapshot-state-label="${snapshotThreadState(conversation).toUpperCase()}"
+            data-thread-state="${snapshotState}"
+            data-snapshot-thread-state="${snapshotState}"
+            data-snapshot-state-label="${snapshotThreadLabel(snapshotState)}"
           >
             <span class="conversation-card-head">
               <span class="conversation-card-title">${conversation.title}</span>
-              <span class="conversation-card-marker" data-conversation-marker ${isActive ? "" : "hidden"}>ACTIVE</span>
+              <span class="conversation-card-marker" data-conversation-marker ${isActive ? "" : "hidden"}>NOW</span>
             </span>
-            <span class="conversation-card-preview">${escapeHtml(conversationPreview(conversation))}</span>
+            <span class="conversation-card-preview" data-preview-lines="1">${escapeHtml(conversationPreview(conversation))}</span>
             <span class="conversation-card-meta-row">
               <span class="conversation-card-meta">${new Date(conversation.updated_at).toLocaleString()}</span>
-              <span class="conversation-card-live" data-conversation-live-state>${snapshotThreadState(conversation).toUpperCase()}</span>
+              <span class="conversation-card-live" data-conversation-live-state>${snapshotThreadLabel(snapshotState)}</span>
             </span>
           </button>
         `;

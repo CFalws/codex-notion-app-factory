@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep the current selected-conversation SSE path, deployed workspace gate, transcript-first desktop layout, phone conversation-first sheet behavior, left rail markers, pending-turn handoff, and central timeline unchanged.
-- [x] Re-center the active header on selected-thread identity instead of selected-app identity.
-- [x] Render one compact selected-thread live phase badge in the header from the existing selected-thread state and keep it machine-readable.
-- [x] Demote app-level identity and explanatory copy out of the center-pane reading path while leaving richer detail in the sidebar and secondary panel.
-- [x] Extend focused verification so future sessions can prove the active header stays conversation-first without reintroducing app-centric header chrome or a second status path.
+- [x] Keep the current selected-conversation SSE path, deployed workspace gate, transcript-first center pane, phone conversation-first sheet behavior, and footer live rail unchanged.
+- [x] Tighten the left-rail card label vocabulary into a compact set for live, reconnecting, done, failed, and idle states.
+- [x] Keep one bounded recent preview line visible on each conversation card.
+- [x] Preserve selected-thread-only live precedence so non-selected threads remain snapshot-only.
+- [x] Extend focused verification so future sessions can prove the rail keeps the bounded preview and compact state-label contract without introducing a new primary signal path.
