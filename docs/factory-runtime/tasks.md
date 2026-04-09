@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep the current selected-conversation SSE path, left rail, collapsed secondary panel, mobile drawer, and pending outbound user bubble unchanged.
-- [x] Add one temporary assistant placeholder directly into the active conversation timeline after the local handoff is accepted.
-- [x] Reuse the existing pending handoff owner and composer-adjacent activity bar instead of creating a second status path.
-- [x] Clear or replace the assistant placeholder on first assistant append, terminal failure, idle reset, or thread switch so no stale artifact remains.
-- [x] Extend focused verification so future sessions can prove the assistant-side handoff stays inside the conversation pane and selected-conversation live path.
+- [x] Keep the current selected-conversation SSE path, left rail markers, composer-adjacent activity bar, collapsed secondary panel, and mobile drawer unchanged.
+- [x] Remove the top-of-thread live-status chips from the active pane header.
+- [x] Remove the in-pane autonomy header strip and keep autonomy detail in the secondary panel.
+- [x] Leave the active-thread header focused on conversation identity and navigation only so the transcript starts higher.
+- [x] Extend focused verification so future sessions can prove the activity bar remains the only visible live-status surface inside the conversation pane.

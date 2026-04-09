@@ -188,6 +188,7 @@ For the feature-flagged active-conversation append SSE path, verification should
 - the selected-thread live execution surface should appear as one compact composer-adjacent activity bar rather than separate strip and footer status elements, and it should remain driven by the existing selected-conversation SSE path
 - after composer submit, the active transcript should show one temporary pending outbound message and the activity bar should expose a short sending handoff state until the accepted response or first live append arrives, with no duplicate or stale pending item after clear conditions
 - after the local handoff is accepted, the transcript should show one temporary assistant placeholder until the first real assistant append arrives, and that placeholder should clear on assistant content, terminal failure, idle reset, or thread switch without leaving duplicate assistant turns
+- the active-thread header should be reduced to conversation identity and navigation only, with no duplicated live-status chips or autonomy strip above the timeline, so the transcript remains the first readable surface in the active pane
 - on phone widths, the active conversation should remain the first visible workspace surface and app or thread navigation should open through an explicit drawer or sheet rather than occupying the top of the reading flow
 
 ## Commit And Deploy Policy

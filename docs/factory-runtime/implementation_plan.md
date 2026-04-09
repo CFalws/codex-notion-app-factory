@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Keep the current selected-conversation SSE path, left rail, collapsed secondary panel, mobile drawer, and pending outbound user bubble unchanged.
-2. Extend the existing pending handoff owner so it can move from local user submit into an awaiting-assistant placeholder state after acceptance.
-3. Render one temporary assistant placeholder directly in the transcript while the first assistant append has not yet arrived.
-4. Clear or replace that placeholder on first assistant append, terminal failure, idle reset, or thread switch so no stale assistant stub remains.
-5. Extend the focused verifier and docs so future sessions can prove the assistant handoff stays inside the conversation pane rather than reverting to status-chrome-only feedback.
+1. Keep the current selected-conversation SSE path, left rail markers, composer-adjacent activity bar, collapsed secondary panel, and mobile drawer unchanged.
+2. Remove the top-of-thread status chips and in-pane autonomy strip so the header carries only conversation identity and navigation controls.
+3. Leave live execution state inside the composer-adjacent activity bar and leave deeper autonomy detail in the secondary panel.
+4. Ensure the transcript becomes the first readable content below the header on desktop and phone widths without losing selected-thread clarity.
+5. Extend the focused verifier and docs so future sessions can prove no duplicate live-status surface remains above the timeline.
