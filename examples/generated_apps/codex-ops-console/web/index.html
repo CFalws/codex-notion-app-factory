@@ -18,8 +18,8 @@
       <aside class="sidebar panel">
         <div class="sidebar-brand">
           <p class="sidebar-kicker">Codex Ops Console</p>
-          <h1>대화 작업 공간</h1>
-          <p class="sidebar-copy">앱별 대화를 이어가며 수정 요청과 결과를 한 화면에서 관리합니다.</p>
+          <h1>작업 공간</h1>
+          <p class="sidebar-copy">앱별 대화를 이어가며 수정 요청, 제안, 결과를 한 화면에서 다룹니다.</p>
           <button id="install-button" class="install-button" hidden>홈 화면에 추가</button>
         </div>
 
@@ -106,8 +106,10 @@
         </header>
 
         <div class="thread-surface">
-          <div class="thread-scroller">
-            <div id="conversation-timeline" class="timeline"></div>
+          <div id="thread-scroller" class="thread-scroller">
+            <div class="thread-column">
+              <div id="conversation-timeline" class="timeline"></div>
+            </div>
           </div>
 
           <section class="composer-dock">

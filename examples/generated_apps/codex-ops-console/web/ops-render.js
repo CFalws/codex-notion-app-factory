@@ -334,7 +334,9 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
       `;
     })
     .join("");
-  dom.conversationTimeline.scrollTop = dom.conversationTimeline.scrollHeight;
+  if (dom.threadScroller) {
+    dom.threadScroller.scrollTop = dom.threadScroller.scrollHeight;
+  }
 
   renderJobActivity(dom, conversation, currentState.currentJobId || conversation.latest_job_id || "");
 

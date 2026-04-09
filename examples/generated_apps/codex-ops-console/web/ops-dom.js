@@ -9,6 +9,7 @@ export const dom = {
   conversationList: document.getElementById("conversation-list"),
   newConversationButton: document.getElementById("new-conversation"),
   conversationMeta: document.getElementById("conversation-meta"),
+  threadScroller: document.getElementById("thread-scroller"),
   conversationTimeline: document.getElementById("conversation-timeline"),
   requestTextInput: document.getElementById("request-text"),
   uxSurfaceInput: document.getElementById("ux-surface"),

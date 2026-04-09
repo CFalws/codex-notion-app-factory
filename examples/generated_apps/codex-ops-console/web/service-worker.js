@@ -1,9 +1,16 @@
-const CACHE_NAME = "codex-ops-console-v2";
+const CACHE_NAME = "codex-ops-console-v3";
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
+  "./ops-api.js",
+  "./ops-constants.js",
+  "./ops-conversations.js",
+  "./ops-dom.js",
+  "./ops-jobs.js",
+  "./ops-render.js",
+  "./ops-store.js",
   "./manifest.webmanifest",
   "./icon.svg",
   "./apple-touch-icon.svg",
@@ -34,11 +41,17 @@ self.addEventListener("fetch", (event) => {
     sameOrigin &&
     (url.pathname.endsWith("/ops/") ||
       url.pathname.endsWith("/ops/index.html") ||
-      url.pathname.endsWith("/ops/app.js") ||
       url.pathname.endsWith("/ops/styles.css") ||
       url.pathname.endsWith("/ops/service-worker.js"));
+  const isOpsModuleAsset =
+    sameOrigin &&
+    (url.pathname.includes("/ops/") &&
+      (url.pathname.endsWith(".js") ||
+        url.pathname.endsWith(".css") ||
+        url.pathname.endsWith(".html") ||
+        url.pathname.endsWith(".webmanifest")));
 
-  if (isAppShellAsset) {
+  if (isAppShellAsset || isOpsModuleAsset) {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
