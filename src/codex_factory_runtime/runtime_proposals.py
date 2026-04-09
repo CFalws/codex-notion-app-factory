@@ -52,7 +52,6 @@ class ProposalRuntime:
         base_commit: str = "",
         head_commit: str = "",
         decision_summary: dict[str, str] | None = None,
-        ux_review: dict[str, str] | None = None,
     ) -> dict[str, Any]:
         return {
             "job_id": job_id,
@@ -69,7 +68,6 @@ class ProposalRuntime:
             "allowed_paths": record.get("allowed_paths") or [],
             "result_summary": result_summary,
             "decision_summary": decision_summary or {},
-            "ux_review": ux_review or {},
             "git_status": git_status,
             "git_show_stat": git_show_stat,
             "created_at": utc_now(),
@@ -84,7 +82,6 @@ class ProposalRuntime:
         job_context: dict[str, str],
         final_output: str,
         decision_summary: dict[str, str],
-        ux_review: dict[str, str],
     ) -> dict[str, Any]:
         worktree_path = Path(job_context["worktree_path"])
         head_commit = await self.cli.git_output(worktree_path, "rev-parse", "HEAD")
@@ -103,7 +100,6 @@ class ProposalRuntime:
             base_commit=base_commit,
             head_commit=head_commit,
             decision_summary=decision_summary,
-            ux_review=ux_review,
         )
         self.state.save_proposal(proposal)
         return proposal

@@ -36,35 +36,6 @@ GOAL_REVIEW_FIELDS = (
     "safety_assessment",
     "next_focus",
 )
-UX_REVIEW_START = "UX_REVIEW_JSON_START"
-UX_REVIEW_END = "UX_REVIEW_JSON_END"
-UX_REVIEW_FIELDS = (
-    "primary_journey",
-    "pain_interpretation",
-    "friction_points",
-    "simplification",
-    "mobile_risk",
-    "verification_steps",
-)
-UI_REQUEST_KEYWORDS = (
-    "ui",
-    "ux",
-    "화면",
-    "레이아웃",
-    "버튼",
-    "모바일",
-    "불편",
-    "사용성",
-    "헷갈",
-    "가독",
-    "클릭",
-    "터치",
-    "패널",
-    "대화 목록",
-    "작업 로그",
-    "입력창",
-)
-
 
 def is_proposal_mode(record: dict[str, Any]) -> bool:
     return str(record.get("execution_mode", "")).strip() == "proposal"
@@ -132,8 +103,6 @@ def build_prompt(
     job_context: dict[str, str] | None = None,
 ) -> str:
     intent_summary = request_payload.get("intent_summary") or {}
-    ux_context = request_payload.get("ux_context") or {}
-    attachments = request_payload.get("attachments") or []
     interpreted_intent = ""
     if intent_summary:
         interpreted_intent = f"""
@@ -143,31 +112,6 @@ Interpreted intent:
 - Assumptions: {intent_summary.get("assumptions", "(not set)")}
 - Ambiguity: {intent_summary.get("ambiguity", "(not set)")}
 - Success signal: {intent_summary.get("success_signal", "(not set)")}
-""".strip()
-    ux_context_text = ""
-    if ux_context:
-        pain_points = ux_context.get("pain_points") or []
-        pain_lines = ", ".join(str(item).strip() for item in pain_points if str(item).strip()) or "(not set)"
-        ux_context_text = f"""
-User-reported UX friction:
-- Affected surface: {ux_context.get("affected_surface", "(not set)")}
-- Pain points: {pain_lines}
-- Desired feel: {ux_context.get("desired_feel", "(not set)")}
-- Note: {ux_context.get("note", "(not set)")}
-""".strip()
-    attachment_text = ""
-    if attachments:
-        attachment_lines = []
-        for attachment in attachments:
-            filename = str(attachment.get("filename") or "unnamed image").strip()
-            content_type = str(attachment.get("content_type") or "image").strip()
-            attachment_lines.append(f"- {filename} ({content_type})")
-        attachment_text = f"""
-Attached screenshots:
-{chr(10).join(attachment_lines)}
-
-Use the screenshots as primary visual evidence for layout, hierarchy, tap targets, information density, and state visibility.
-If the screenshots and the request conflict, explain the tension explicitly in the UX review.
 """.strip()
     proposal_tail = ""
     if is_proposal_mode(record):
@@ -191,18 +135,6 @@ Rules for the goal review block:
 - `continue_recommended` must be either `yes` or `no`
 - Close with the exact marker line {GOAL_REVIEW_END}
 """.strip()
-    ux_tail = ""
-    if requires_ux_review(record, request_payload):
-        ux_tail = f"""
-Because this request touches UI or usability, also append a machine-readable UX review block before the engineering log.
-Rules for the UX review block:
-- Use the exact marker line {UX_REVIEW_START}
-- Follow it with a valid JSON object
-- Use only these keys: primary_journey, pain_interpretation, friction_points, simplification, mobile_risk, verification_steps
-- Put plain strings in every field
-- Close with the exact marker line {UX_REVIEW_END}
-- Treat user discomfort as a first-class bug even if the UI is technically functioning
-""".strip()
     return f"""
 {build_instructions(settings, record, job_context=job_context)}
 
@@ -217,8 +149,6 @@ Request:
 {request_payload["request_text"]}
 
 {interpreted_intent if interpreted_intent else ""}
-{ux_context_text if ux_context_text else ""}
-{attachment_text if attachment_text else ""}
 
 After completing the work, provide:
 1. the key code changes,
@@ -226,7 +156,6 @@ After completing the work, provide:
 3. the next best follow-up action if the work should continue.
 
 {goal_tail if goal_tail else ""}
-{ux_tail if ux_tail else ""}
 
 Then append a machine-readable engineering log block at the very end of your final answer.
 Rules for the block:
@@ -272,25 +201,8 @@ def sanitize_user_facing_text(text: str) -> str:
     return cleaned.strip()
 
 
-def requires_ux_review(record: dict[str, Any], request_payload: dict[str, Any]) -> bool:
-    if request_payload.get("attachments"):
-        return True
-    if request_payload.get("ux_context"):
-        return True
-    haystack = " ".join(
-        [
-            str(request_payload.get("title") or ""),
-            str(request_payload.get("request_text") or ""),
-            str(record.get("title") or ""),
-        ]
-    ).lower()
-    return any(keyword in haystack for keyword in UI_REQUEST_KEYWORDS)
-
-
 def infer_intent_summary(record: dict[str, Any], request_payload: dict[str, Any]) -> dict[str, str]:
     request_text = str(request_payload.get("request_text") or "").strip()
-    ux_context = request_payload.get("ux_context") or {}
-    attachments = request_payload.get("attachments") or []
     explicit_title = str(request_payload.get("title") or "").strip()
     first_line = next((line.strip() for line in request_text.splitlines() if line.strip()), "")
     explicit_request = explicit_title or first_line or "Continue the current app lane."
@@ -329,29 +241,6 @@ def infer_intent_summary(record: dict[str, Any], request_payload: dict[str, Any]
             "The response should satisfy the request without unnecessary file edits, and the result summary should stay "
             "aligned with the no-change intent."
         )
-    if ux_context:
-        affected_surface = str(ux_context.get("affected_surface") or "the affected UI surface").strip()
-        desired_feel = str(ux_context.get("desired_feel") or "more direct and less confusing").strip()
-        assumptions = (
-            "Treat this as UI continuation work, preserve phone usability, and prioritize removing the reported friction "
-            "before adding any new controls or complexity."
-        )
-        interpreted_outcome = (
-            f"Reduce friction in {affected_surface} so the flow feels {desired_feel} while preserving the current app lane."
-        )
-        success_signal = (
-            f"The {affected_surface} flow should feel measurably clearer on a phone, and the result summary should explain "
-            "what friction was removed and how to verify the improvement."
-        )
-    if attachments:
-        assumptions = (
-            "Treat the attached screenshots as current visual evidence, preserve phone usability, and prioritize removing "
-            "the visible friction before adding new UI complexity."
-        )
-        success_signal = (
-            "The implemented UI should address the friction visible in the attached screenshots, and the UX review should "
-            "explicitly describe what changed and how to verify the improvement on a phone."
-        )
 
     return {
         "explicit_request": compact_request or "Continue the current app lane.",
@@ -360,28 +249,6 @@ def infer_intent_summary(record: dict[str, Any], request_payload: dict[str, Any]
         "ambiguity": ambiguity,
         "success_signal": success_signal,
     }
-
-
-def extract_ux_review_json(final_output: str) -> tuple[str, dict[str, Any] | None]:
-    start = final_output.find(UX_REVIEW_START)
-    if start == -1:
-        return final_output.strip(), None
-    end = final_output.find(UX_REVIEW_END, start)
-    if end == -1:
-        return final_output.strip(), None
-
-    json_text = final_output[start + len(UX_REVIEW_START) : end].strip()
-    prefix = final_output[:start].rstrip()
-    suffix = final_output[end + len(UX_REVIEW_END) :].strip()
-    clean_output = prefix if not suffix else f"{prefix}\n\n{suffix}".strip()
-
-    try:
-        payload = json.loads(json_text)
-    except json.JSONDecodeError:
-        return clean_output, None
-    if not isinstance(payload, dict):
-        return clean_output, None
-    return clean_output, payload
 
 
 def extract_engineering_log_json(final_output: str) -> tuple[str, dict[str, Any] | None]:
@@ -439,18 +306,6 @@ def normalize_goal_review(parsed: dict[str, Any] | None) -> dict[str, str]:
             review[field] = text
     if review["continue_recommended"].lower() not in {"yes", "no"}:
         review["continue_recommended"] = ""
-    return review
-
-
-def normalize_ux_review(parsed: dict[str, Any] | None) -> dict[str, str]:
-    review = {field: "" for field in UX_REVIEW_FIELDS}
-    if not parsed:
-        return review
-    for field in UX_REVIEW_FIELDS:
-        value = parsed.get(field, "")
-        text = str(value).strip()
-        if text:
-            review[field] = text
     return review
 
 

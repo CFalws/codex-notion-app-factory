@@ -154,8 +154,6 @@ Each request produces concrete outputs in the local repository:
   Defines the file-backed state shapes that runtime changes must preserve.
 - `docs/intent-contract.md`
   Defines how raw requests are translated into persisted interpreted intent.
-- `docs/ux-feedback-loop.md`
-  Defines how UI discomfort is captured, interpreted, and reviewed so later sessions can improve usability instead of only shipping code.
 - `docs/autonomy-contract.md`
   Defines the open-ended goal-loop model, continuation policy, and stop conditions.
 - `docs/change-boundaries.md`
@@ -189,7 +187,7 @@ Each request produces concrete outputs in the local repository:
 - `examples/generated_apps/habit-tracker-pwa/`
   Example output generated for a mobile habit tracker.
 - `examples/generated_apps/codex-ops-console/`
-  Phone-first operator console that opens app-scoped conversations, submits multi-turn requests to the runtime server, accepts screenshot-backed UX feedback, shows conversation events and learning logs, and opens the target app after completion.
+  Phone-first operator console that opens app-scoped conversations, submits multi-turn requests to the runtime server, shows conversation events and learning logs, and opens the target app after completion.
 
 ## Example Workflow
 

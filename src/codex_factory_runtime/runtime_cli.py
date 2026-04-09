@@ -19,14 +19,9 @@ class CodexCliRunner:
         output_path: Path,
         *,
         use_resume: bool,
-        image_paths: list[str] | None = None,
         sandbox: str | None = None,
     ) -> list[str]:
         args = [self.settings.codex_command, *self.settings.codex_args, "exec"]
-        image_args: list[str] = []
-        for image_path in image_paths or []:
-            if image_path:
-                image_args.extend(["--image", image_path])
         if use_resume and session_id:
             if self.settings.codex_profile:
                 args.extend(["--profile", self.settings.codex_profile])
@@ -35,7 +30,6 @@ class CodexCliRunner:
                 args.extend(["--model", self.settings.codex_model])
             if self.settings.codex_skip_git_repo_check:
                 args.append("--skip-git-repo-check")
-            args.extend(image_args)
             args.extend(["--output-last-message", str(output_path), "--json", prompt])
             return args
         if self.settings.codex_profile:
@@ -47,7 +41,6 @@ class CodexCliRunner:
             args.extend(["--sandbox", chosen_sandbox])
         if self.settings.codex_skip_git_repo_check:
             args.append("--skip-git-repo-check")
-        args.extend(image_args)
         args.extend(["--output-last-message", str(output_path), "--json", prompt])
         return args
 
@@ -95,7 +88,6 @@ class CodexCliRunner:
         *,
         use_resume: bool,
         cwd: Path,
-        image_paths: list[str] | None = None,
         sandbox: str | None = None,
         timeout_seconds: int | None = None,
     ) -> tuple[int, str, str, str]:
@@ -104,7 +96,6 @@ class CodexCliRunner:
             prompt,
             output_path,
             use_resume=use_resume,
-            image_paths=image_paths,
             sandbox=sandbox,
         )
         returncode, stdout_text, stderr_text = await self.run_command(

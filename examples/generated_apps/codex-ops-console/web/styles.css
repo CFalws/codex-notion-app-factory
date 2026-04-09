@@ -142,7 +142,6 @@ textarea {
 .field span,
 .activity-label,
 .label,
-.ux-pain-field legend,
 .learning-group-head,
 .learning-label,
 .activity-event-kind,
@@ -176,7 +175,6 @@ textarea {
 .draft-status,
 .activity-empty,
 .learning-empty,
-.attachment-preview-empty,
 .timeline-empty {
   margin: 0;
   color: var(--muted);
@@ -396,63 +394,10 @@ textarea {
 }
 
 .timeline-meta,
-.activity-event-meta,
-.attachment-preview-meta {
+.activity-event-meta {
   margin: 0.45rem 0 0;
   color: var(--muted);
   font-size: 0.76rem;
-}
-
-.timeline-attachments,
-.attachment-preview-grid {
-  display: grid;
-  gap: 0.65rem;
-  margin-top: 0.75rem;
-}
-
-.timeline-attachments {
-  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
-}
-
-.attachment-preview-grid {
-  grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
-}
-
-.timeline-attachment,
-.attachment-preview-card {
-  display: grid;
-  gap: 0.45rem;
-  padding: 0.65rem;
-  border: 1px solid var(--line);
-  border-radius: 0.9rem;
-  background: #fff;
-}
-
-.timeline-attachment {
-  text-decoration: none;
-  color: inherit;
-}
-
-.timeline-attachment.compact {
-  padding: 0.55rem;
-}
-
-.timeline-attachment img,
-.attachment-preview-thumb {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-  border-radius: 0.7rem;
-  border: 1px solid var(--line);
-  background: var(--surface-soft);
-}
-
-.timeline-attachment span,
-.attachment-preview-name {
-  margin: 0;
-  color: var(--ink);
-  font-size: 0.82rem;
-  word-break: break-word;
 }
 
 .composer-dock {
@@ -554,36 +499,6 @@ textarea {
   cursor: pointer;
   font-weight: 700;
   color: var(--ink);
-}
-
-.ux-feedback-grid {
-  display: grid;
-  gap: 0.85rem;
-  margin-top: 0.85rem;
-}
-
-.ux-pain-field {
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.ux-pain-field legend {
-  margin-bottom: 0.45rem;
-}
-
-.ux-pain-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.55rem;
-}
-
-.attachment-input {
-  padding: 0.68rem 0.82rem;
-}
-
-.attachment-note {
-  margin-top: 0.4rem;
 }
 
 .inspector-drawer {

@@ -1,5 +1,4 @@
-import { DECISION_FIELDS, UX_REVIEW_FIELDS } from "./ops-constants.js";
-import { normalizeBaseUrl } from "./ops-store.js";
+import { DECISION_FIELDS } from "./ops-constants.js";
 
 function escapeHtml(value) {
   return String(value || "")
@@ -25,7 +24,6 @@ function eventLabel(eventType = "") {
     "conversation.created": "대화 시작",
     "message.accepted": "메시지 접수",
     "intent.interpreted": "의도 해석",
-    "attachment.saved": "스크린샷 저장",
     "job.queued": "작업 대기",
     "job.running": "작업 시작",
     "job.completed": "작업 완료",
@@ -39,60 +37,6 @@ function eventLabel(eventType = "") {
     "runtime.exception": "런타임 예외",
   };
   return labels[eventType] || eventType;
-}
-
-function attachmentUrl(attachment) {
-  const apiPath = String(attachment?.api_path || "").trim();
-  if (!apiPath) {
-    return "";
-  }
-  return `${normalizeBaseUrl()}${apiPath}`;
-}
-
-function renderAttachmentGallery(attachments = [], { compact = false } = {}) {
-  if (!attachments.length) {
-    return "";
-  }
-  const cards = attachments
-    .map((attachment) => {
-      const url = attachmentUrl(attachment);
-      const filename = escapeHtml(attachment.filename || "screenshot");
-      if (!url) {
-        return "";
-      }
-      return `
-        <a class="timeline-attachment ${compact ? "compact" : ""}" href="${url}" target="_blank" rel="noopener noreferrer">
-          <img src="${url}" alt="${filename}" loading="lazy" />
-          <span>${filename}</span>
-        </a>
-      `;
-    })
-    .filter(Boolean);
-  if (!cards.length) {
-    return "";
-  }
-  return `<div class="timeline-attachments">${cards.join("")}</div>`;
-}
-
-export function renderPendingAttachments(dom, previews = []) {
-  if (!previews.length) {
-    dom.uxScreenshotHint.textContent = "스크린샷을 붙이면 Codex가 실제 화면을 보고 UX 마찰을 해석합니다.";
-    dom.uxScreenshotPreview.innerHTML = '<p class="attachment-preview-empty">아직 첨부한 스크린샷이 없습니다.</p>';
-    return;
-  }
-
-  dom.uxScreenshotHint.textContent = `현재 ${previews.length}개의 스크린샷을 다음 메시지와 함께 보냅니다.`;
-  dom.uxScreenshotPreview.innerHTML = previews
-    .map(
-      (preview) => `
-        <article class="attachment-preview-card">
-          <img class="attachment-preview-thumb" src="${preview.objectUrl}" alt="${escapeHtml(preview.file.name)}" />
-          <p class="attachment-preview-name">${escapeHtml(preview.file.name)}</p>
-          <p class="attachment-preview-meta">${Math.max(1, Math.round(preview.file.size / 1024))} KB</p>
-        </article>
-      `,
-    )
-    .join("");
 }
 
 export function setStatus(dom, message) {
@@ -227,7 +171,7 @@ export function clearLearningSummary(dom, message = "작업이 끝나면 여기�
   dom.learningSummary.innerHTML = `<p class="learning-empty">${message}</p>`;
 }
 
-export function renderLearningSummary(dom, summary, heading, status = "RECORDED", uxReview = null) {
+export function renderLearningSummary(dom, summary, heading, status = "RECORDED") {
   const renderCards = (fields, payload) => {
     const cards = [];
     if (!payload) {
@@ -249,24 +193,14 @@ export function renderLearningSummary(dom, summary, heading, status = "RECORDED"
   };
 
   const decisionCards = renderCards(DECISION_FIELDS, summary);
-  const uxCards = renderCards(UX_REVIEW_FIELDS, uxReview);
 
-  if (!decisionCards.length && !uxCards.length) {
+  if (!decisionCards.length) {
     clearLearningSummary(dom, "이번 작업에는 아직 구조화된 학습 로그가 없습니다.");
     return;
   }
 
   dom.learningMeta.textContent = `${status} · ${heading}`;
-  dom.learningSummary.innerHTML = [
-    decisionCards.length
-      ? `<section class="learning-group"><p class="learning-group-head">설계 판단</p>${decisionCards.join("")}</section>`
-      : "",
-    uxCards.length
-      ? `<section class="learning-group"><p class="learning-group-head">UX 해석</p>${uxCards.join("")}</section>`
-      : "",
-  ]
-    .filter(Boolean)
-    .join("");
+  dom.learningSummary.innerHTML = `<section class="learning-group"><p class="learning-group-head">설계 판단</p>${decisionCards.join("")}</section>`;
 }
 
 export function renderConversation(dom, currentState, conversation, onPersist) {
@@ -328,7 +262,6 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
         <article class="timeline-item message ${item.role || "assistant"}">
           <p class="timeline-kind">${item.role === "user" ? "사용자" : "에이전트"}</p>
           <p class="timeline-body">${escapeHtml(simplifyText(item.body))}</p>
-          ${renderAttachmentGallery(item.metadata?.attachments || [], { compact: true })}
           <p class="timeline-meta">${item.created_at}${item.job_id ? ` · ${item.job_id}` : ""}</p>
         </article>
       `;
@@ -342,14 +275,12 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
 
   const assistantResult = [...messages].reverse().find((item) => item.role === "assistant");
   const decisionSummary = assistantResult && assistantResult.metadata ? assistantResult.metadata.decision_summary : null;
-  const uxReview = assistantResult && assistantResult.metadata ? assistantResult.metadata.ux_review : null;
-  if (decisionSummary || uxReview) {
+  if (decisionSummary) {
     renderLearningSummary(
       dom,
       decisionSummary,
       assistantResult.title || "이번 작업에서 배운 점",
       assistantResult.metadata?.status || "RECORDED",
-      uxReview,
     );
   }
 }

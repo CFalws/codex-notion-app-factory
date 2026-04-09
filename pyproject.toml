@@ -7,7 +7,6 @@ dependencies = [
   "fastapi",
   "google-auth",
   "pydantic",
-  "python-multipart",
   "uvicorn[standard]",
 ]
 

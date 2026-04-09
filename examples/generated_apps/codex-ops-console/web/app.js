@@ -8,7 +8,6 @@ import {
   jobUrl,
   appConversationsUrl,
   conversationUrl,
-  uploadConversationAttachments,
 } from "./ops-api.js";
 import { createConversationController } from "./ops-conversations.js";
 import { createJobController } from "./ops-jobs.js";
@@ -19,7 +18,6 @@ import {
   renderDraftStatus,
   renderJobActivity,
   renderLearningSummary,
-  renderPendingAttachments,
   renderConversation,
   renderWorkspaceSummary,
   setJobMeta,
@@ -39,46 +37,6 @@ let jobController;
 
 function currentAppId() {
   return selectedAppData(dom)?.appId || "";
-}
-
-function collectUxContext() {
-  const painPoints = dom.uxPainPoints.filter((input) => input.checked).map((input) => input.value);
-  const payload = {
-    affected_surface: dom.uxSurfaceInput.value.trim(),
-    pain_points: painPoints,
-    note: dom.uxNoteInput.value.trim(),
-    desired_feel: dom.uxDesiredFeelInput.value.trim(),
-  };
-  return Object.values(payload).some((value) => (Array.isArray(value) ? value.length : value)) ? payload : null;
-}
-
-function clearPendingAttachmentPreviewUrls() {
-  for (const preview of state.pendingAttachmentPreviews || []) {
-    URL.revokeObjectURL(preview.objectUrl);
-  }
-  state.pendingAttachmentPreviews = [];
-}
-
-function syncPendingAttachments() {
-  clearPendingAttachmentPreviewUrls();
-  const files = Array.from(dom.uxScreenshotInput.files || []);
-  state.pendingAttachmentPreviews = files.map((file) => ({
-    file,
-    objectUrl: URL.createObjectURL(file),
-  }));
-  renderPendingAttachments(dom, state.pendingAttachmentPreviews);
-}
-
-function clearUxContextInputs() {
-  dom.uxSurfaceInput.value = "";
-  dom.uxDesiredFeelInput.value = "";
-  dom.uxNoteInput.value = "";
-  dom.uxPainPoints.forEach((input) => {
-    input.checked = false;
-  });
-  dom.uxScreenshotInput.value = "";
-  clearPendingAttachmentPreviewUrls();
-  renderPendingAttachments(dom, []);
 }
 
 function syncComposerMeta() {
@@ -151,21 +109,12 @@ async function sendMessage() {
 
   try {
     const conversationId = await conversationController.ensureConversation();
-    const files = Array.from(dom.uxScreenshotInput.files || []);
-    let attachments = [];
-    if (files.length) {
-      setStatus(dom, "스크린샷을 업로드하는 중...");
-      const uploadPayload = await uploadConversationAttachments(dom, conversationId, files);
-      attachments = uploadPayload.attachments || [];
-    }
     const payload = await fetchJson(dom, conversationMessagesUrl(conversationId), {
       method: "POST",
       body: JSON.stringify({
         message_text: messageText,
         source: "mobile-ops-console",
         execute_now: true,
-        ux_context: collectUxContext(),
-        attachments,
       }),
     });
 
@@ -174,7 +123,6 @@ async function sendMessage() {
     setDraft(state, app.appId, "", "");
     setDraft(state, app.appId, conversationId, "");
     dom.requestTextInput.value = "";
-    clearUxContextInputs();
     syncComposerMeta();
     syncDraftStatus();
     renderConversation(dom, state, payload.conversation, persistSettings);
@@ -231,7 +179,6 @@ async function applyProposal() {
       payload.decision_summary || {},
       `제안 적용 · ${payload.title || payload.job_id}`,
       payload.status || "APPLIED",
-      payload.ux_review || {},
     );
     if (state.currentConversationId) {
       await conversationController.fetchConversation(state.currentConversationId);
@@ -294,7 +241,6 @@ function wireEvents() {
       sendMessage();
     }
   });
-  dom.uxScreenshotInput.addEventListener("change", syncPendingAttachments);
   dom.conversationList.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-conversation-id]");
     if (!button) {
@@ -357,7 +303,6 @@ function init() {
   });
   renderWorkspaceSummary(dom, "앱 목록과 최근 대화를 불러오면 현재 세션 맥락이 여기에 정리됩니다.");
   clearLearningSummary(dom);
-  renderPendingAttachments(dom, []);
   syncComposerMeta();
   syncDraftStatus();
   initControllers();
