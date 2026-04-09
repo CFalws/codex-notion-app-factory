@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep the current selected-conversation SSE path, deployed workspace gate, transcript-first center pane, phone conversation-first sheet behavior, and footer live rail unchanged.
-- [x] Tighten the left-rail card label vocabulary into a compact set for live, reconnecting, done, failed, and idle states.
-- [x] Keep one bounded recent preview line visible on each conversation card.
-- [x] Preserve selected-thread-only live precedence so non-selected threads remain snapshot-only.
-- [x] Extend focused verification so future sessions can prove the rail keeps the bounded preview and compact state-label contract without introducing a new primary signal path.
+- [x] Keep the current selected-conversation SSE path, deployed workspace gate, transcript-first center pane, phone conversation-first sheet behavior, and footer live rail placement unchanged.
+- [x] Tighten the footer live-rail detail vocabulary into compact action cues for sending, accepted, proposal, review, verify, ready, applied, failed, live execution, and idle states.
+- [x] Preserve the same selected-thread live-run inputs so no new polling-owned or inferred state path is introduced.
+- [x] Keep transcript and composer reachability unchanged on desktop and phone widths.
+- [x] Extend focused verification so future sessions can prove the live rail stays cue-first instead of drifting back to sentence-level strip explanations.

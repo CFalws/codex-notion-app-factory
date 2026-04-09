@@ -553,21 +553,42 @@ function proposalChip(liveRun) {
 
 function composerActionHint(status, presentation, liveRun) {
   if (liveRun.state === "proposal-ready") {
-    return "적용 또는 추가 지시 가능";
+    return "적용 대기";
   }
   if (liveRun.state === "applied") {
-    return "적용 완료, 다음 지시 가능";
+    return "적용 완료";
   }
   if (liveRun.state === "failed") {
-    return "실패 기록, 결과 확인 필요";
+    return "실패 확인";
   }
   if (presentation === "sending") {
-    return "첫 응답 대기";
+    return "전송 중";
+  }
+  if (liveRun.state === "accepted" || liveRun.phase === "ACCEPTED") {
+    return "handoff 완료";
+  }
+  if (liveRun.state === "proposal-phase") {
+    return "제안 중";
+  }
+  if (liveRun.state === "review-phase") {
+    return "리뷰 중";
+  }
+  if (liveRun.state === "verify-phase") {
+    return "검증 중";
+  }
+  if (liveRun.state === "auto-apply") {
+    return "자동 적용";
+  }
+  if (liveRun.state === "running-tool" || liveRun.state === "waiting" || liveRun.state === "thinking") {
+    return "실행 중";
+  }
+  if (liveRun.state === "generating") {
+    return "응답 생성";
   }
   if (status === "live" || status === "reconnecting" || status === "connecting") {
-    return "같은 composer에서 계속 입력 가능";
+    return "계속 입력";
   }
-  return "바로 입력 가능";
+  return "입력 가능";
 }
 
 function sessionProvenance(status, lastAppendId, lastLiveAppendId, liveRun) {
