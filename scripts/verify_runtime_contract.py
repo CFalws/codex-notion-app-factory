@@ -249,6 +249,19 @@ def seed_apps(state: RuntimeState) -> None:
             "allowed_paths": ["workspaces/habit-tracker-pwa"],
         }
     )
+    state.save_app(
+        {
+            "app_id": "factory-runtime",
+            "title": "Codex App Factory Runtime",
+            "workspace_path": ".",
+            "deployment_url": "https://example.invalid/codex-ops-console/",
+            "session_id": "",
+            "last_summary": "",
+            "execution_mode": "proposal",
+            "restart_service": "codex-factory",
+            "allowed_paths": ["src", "scripts", "examples/generated_apps/codex-ops-console"],
+        }
+    )
 
 
 def verify_prompt_contract(settings: RuntimeSettings, state: RuntimeState) -> None:
@@ -273,19 +286,31 @@ def verify_prompt_contract(settings: RuntimeSettings, state: RuntimeState) -> No
     require(isinstance(prompt, str), "build_prompt must return a string")
     require(bool(prompt.strip()), "build_prompt must return a non-empty prompt")
     require("Request:" in prompt, "build_prompt must include the request body")
-    state.save_app(
+    ui_prompt = build_prompt(
+        settings,
+        state.get_app("factory-runtime"),
         {
-            "app_id": "factory-runtime",
-            "title": "Codex App Factory Runtime",
-            "workspace_path": ".",
-            "deployment_url": "https://example.invalid/codex-ops-console/",
-            "session_id": "",
-            "last_summary": "",
-            "execution_mode": "proposal",
-            "restart_service": "codex-factory",
-            "allowed_paths": ["src", "scripts", "examples/generated_apps/codex-ops-console"],
-        }
+            "title": "UI discomfort fix",
+            "request_text": "The conversation list is confusing on mobile. Simplify it.",
+            "source": "verify-runtime-contract",
+            "conversation_id": "contract-conversation",
+            "ux_context": {
+                "affected_surface": "conversation list",
+                "pain_points": ["길 찾기 어려움", "모바일에서 누르기 불편"],
+                "note": "The list feels noisy and I cannot tell where to tap first.",
+                "desired_feel": "more obvious and calmer",
+            },
+            "intent_summary": {
+                "explicit_request": "Simplify the conversation list.",
+                "interpreted_outcome": "Reduce friction in the conversation list on mobile.",
+                "assumptions": "Keep the current lane and reduce clutter first.",
+                "ambiguity": "Medium",
+                "success_signal": "The mobile list should feel more obvious.",
+            },
+        },
     )
+    require("UX_REVIEW_JSON_START" in ui_prompt, "UI-oriented prompt must require a UX review block")
+    require("User-reported UX friction:" in ui_prompt, "UI-oriented prompt must include structured UX context")
 
 
 def request(client: TestClient, method: str, path: str, *, api_key: bool = True, **kwargs: Any):
@@ -345,7 +370,16 @@ def main() -> None:
                 client,
                 "POST",
                 f"/api/conversations/{conversation_id}/messages",
-                json={"message_text": "Reply with a simulated success message.", "source": "contract-test"},
+                json={
+                    "message_text": "The mobile conversation list feels confusing. Simplify it and explain the change.",
+                    "source": "contract-test",
+                    "ux_context": {
+                        "affected_surface": "conversation list",
+                        "pain_points": ["길 찾기 어려움", "모바일에서 누르기 불편"],
+                        "note": "It feels noisy and I cannot tell where to tap first.",
+                        "desired_feel": "calmer and more obvious",
+                    },
+                },
             )
             require(message_response.status_code == 200, f"message failed: {message_response.text}")
             payload = message_response.json()
@@ -353,12 +387,18 @@ def main() -> None:
             require(payload["job"]["status"] == "queued", "job should be queued before background execution completes")
             require(payload["request"]["intent_summary"]["explicit_request"], "request should include interpreted intent")
             require(payload["job"]["intent_summary"]["interpreted_outcome"], "job should include interpreted outcome")
+            require(payload["request"]["ux_context"]["affected_surface"] == "conversation list", "request should persist ux_context")
+            require(
+                payload["conversation"]["messages"][0]["metadata"]["ux_context"]["desired_feel"] == "calmer and more obvious",
+                "conversation request message should persist ux_context",
+            )
 
             job_response = request(client, "GET", f"/api/jobs/{job_id}")
             job = job_response.json()
             require(job["status"] == "completed", f"expected completed job, got {job['status']}")
             require(job["result_summary"].startswith("SIMULATED_OK:"), f"unexpected job summary: {job['result_summary']}")
             require(job["decision_summary"]["verification"], "decision summary should include verification evidence")
+            require(job["ux_context"]["affected_surface"] == "conversation list", "job should persist ux_context")
             require(job["intent_summary"]["success_signal"], "job intent summary should include success signal")
 
             conversation_after = request(client, "GET", f"/api/conversations/{conversation_id}").json()

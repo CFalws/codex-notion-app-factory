@@ -32,6 +32,7 @@ Examples:
 - API response shaping
 - conversation rendering changes
 - request intake changes that do not touch proposal apply or deployment behavior
+- UX signal capture or UX review rendering changes
 
 Required gates:
 
@@ -93,6 +94,8 @@ It proves:
 - conversations can be created
 - conversation messages create jobs
 - interpreted intent is persisted onto request, job, and conversation message state
+- UI-oriented requests can carry structured UX context
+- UI-oriented prompts require a structured UX review block
 - job completion updates the conversation timeline
 - proposal-mode apps still emit proposals
 - proposal apply still updates conversation state

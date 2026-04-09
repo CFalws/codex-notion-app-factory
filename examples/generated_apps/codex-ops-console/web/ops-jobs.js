@@ -30,6 +30,7 @@ export function createJobController(deps) {
         payload.decision_summary,
         payload.title || "이번 작업에서 배운 점",
         payload.status || "RECORDED",
+        payload.ux_review || {},
       );
     }
 

@@ -132,6 +132,7 @@ class RuntimeApiContext:
         request_text: str,
         source: str,
         conversation_id: str = "",
+        ux_context: dict[str, Any] | None = None,
     ) -> dict[str, str]:
         record = self.require_app(app_id)
         return infer_intent_summary(
@@ -141,6 +142,7 @@ class RuntimeApiContext:
                 "request_text": request_text,
                 "source": source,
                 "conversation_id": conversation_id,
+                "ux_context": ux_context or {},
             },
         )
 
@@ -155,6 +157,7 @@ class RuntimeApiContext:
         background_tasks: BackgroundTasks,
         conversation_id: str = "",
         intent_summary: dict[str, str] | None = None,
+        ux_context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         resolved_title = self.resolve_request_title(title, request_text)
         resolved_intent = intent_summary or self.interpret_intent(
@@ -163,6 +166,7 @@ class RuntimeApiContext:
             request_text=request_text,
             source=source,
             conversation_id=conversation_id,
+            ux_context=ux_context,
         )
         request_payload = self.state.create_request(
             app_id=app_id,
@@ -171,6 +175,7 @@ class RuntimeApiContext:
             source=source,
             conversation_id=conversation_id,
             intent_summary=resolved_intent,
+            ux_context=ux_context,
         )
         job = self.state.create_job(
             app_id=app_id,
@@ -178,6 +183,7 @@ class RuntimeApiContext:
             title=resolved_title,
             conversation_id=conversation_id,
             intent_summary=resolved_intent,
+            ux_context=ux_context,
         )
         self.append_event(
             conversation_id,
@@ -247,7 +253,11 @@ class RuntimeApiContext:
                 title=job.get("title") or "작업 결과",
                 body=job.get("result_summary") or "작업이 완료되었습니다.",
                 job_id=job_id,
-                metadata={"decision_summary": job.get("decision_summary") or {}, "status": job.get("status")},
+                metadata={
+                    "decision_summary": job.get("decision_summary") or {},
+                    "ux_review": job.get("ux_review") or {},
+                    "status": job.get("status"),
+                },
             )
             if job.get("proposal"):
                 self.append_event(
@@ -273,7 +283,11 @@ class RuntimeApiContext:
             title=job.get("title") or "작업 실패",
             body=job.get("error") or "작업이 실패했습니다.",
             job_id=job_id,
-            metadata={"decision_summary": job.get("decision_summary") or {}, "status": job.get("status")},
+            metadata={
+                "decision_summary": job.get("decision_summary") or {},
+                "ux_review": job.get("ux_review") or {},
+                "status": job.get("status"),
+            },
         )
 
     async def apply_proposal(self, job_id: str) -> dict[str, Any]:
@@ -299,7 +313,11 @@ class RuntimeApiContext:
             title=f"Proposal applied · {proposal.get('title') or job_id}",
             body=proposal.get("push_message") or proposal.get("result_summary") or "proposal이 적용되었습니다.",
             job_id=job_id,
-            metadata={"decision_summary": proposal.get("decision_summary") or {}, "status": proposal.get("status")},
+            metadata={
+                "decision_summary": proposal.get("decision_summary") or {},
+                "ux_review": proposal.get("ux_review") or {},
+                "status": proposal.get("status"),
+            },
         )
         return proposal
 

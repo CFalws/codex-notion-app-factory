@@ -1,4 +1,4 @@
-import { DECISION_FIELDS } from "./ops-constants.js";
+import { DECISION_FIELDS, UX_REVIEW_FIELDS } from "./ops-constants.js";
 
 function escapeHtml(value) {
   return String(value || "")
@@ -171,30 +171,46 @@ export function clearLearningSummary(dom, message = "작업이 끝나면 여기�
   dom.learningSummary.innerHTML = `<p class="learning-empty">${message}</p>`;
 }
 
-export function renderLearningSummary(dom, summary, heading, status = "RECORDED") {
-  const cards = [];
-  if (summary) {
-    for (const [key, label] of DECISION_FIELDS) {
-      const value = typeof summary[key] === "string" ? summary[key].trim() : "";
+export function renderLearningSummary(dom, summary, heading, status = "RECORDED", uxReview = null) {
+  const renderCards = (fields, payload) => {
+    const cards = [];
+    if (!payload) {
+      return cards;
+    }
+    for (const [key, label] of fields) {
+      const value = typeof payload[key] === "string" ? payload[key].trim() : "";
       if (!value) {
         continue;
       }
       cards.push(`
         <article class="learning-card">
           <p class="learning-label">${label}</p>
-          <p class="learning-value">${value}</p>
+          <p class="learning-value">${escapeHtml(simplifyText(value))}</p>
         </article>
       `);
     }
-  }
+    return cards;
+  };
 
-  if (!cards.length) {
+  const decisionCards = renderCards(DECISION_FIELDS, summary);
+  const uxCards = renderCards(UX_REVIEW_FIELDS, uxReview);
+
+  if (!decisionCards.length && !uxCards.length) {
     clearLearningSummary(dom, "이번 작업에는 아직 구조화된 학습 로그가 없습니다.");
     return;
   }
 
   dom.learningMeta.textContent = `${status} · ${heading}`;
-  dom.learningSummary.innerHTML = cards.join("");
+  dom.learningSummary.innerHTML = [
+    decisionCards.length
+      ? `<section class="learning-group"><p class="learning-group-head">설계 판단</p>${decisionCards.join("")}</section>`
+      : "",
+    uxCards.length
+      ? `<section class="learning-group"><p class="learning-group-head">UX 해석</p>${uxCards.join("")}</section>`
+      : "",
+  ]
+    .filter(Boolean)
+    .join("");
 }
 
 export function renderConversation(dom, currentState, conversation, onPersist) {
@@ -267,12 +283,14 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
 
   const assistantResult = [...messages].reverse().find((item) => item.role === "assistant");
   const decisionSummary = assistantResult && assistantResult.metadata ? assistantResult.metadata.decision_summary : null;
-  if (decisionSummary) {
+  const uxReview = assistantResult && assistantResult.metadata ? assistantResult.metadata.ux_review : null;
+  if (decisionSummary || uxReview) {
     renderLearningSummary(
       dom,
       decisionSummary,
       assistantResult.title || "이번 작업에서 배운 점",
       assistantResult.metadata?.status || "RECORDED",
+      uxReview,
     );
   }
 }

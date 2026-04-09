@@ -87,6 +87,26 @@ If the request is underspecified, the default behavior is:
 3. implement toward the interpreted outcome,
 4. verify against the likely user-visible success condition.
 
+## UX Friction Rule
+
+Technical correctness is not enough for UI work in this repository.
+
+When a request mentions confusion, discomfort, clutter, discoverability, mobile awkwardness, or any other UX pain:
+
+1. treat it as a real bug, not as a cosmetic preference
+2. capture the specific friction signal in durable state when available
+3. interpret the likely user journey that is breaking down
+4. prefer simplifying the current flow over adding more controls
+5. leave behind a structured UX review, not only a code summary
+
+For UI-facing work, the agent should actively look for:
+
+- navigation ambiguity
+- hidden state
+- too many competing actions
+- poor mobile tap flow
+- cognitive load from noisy summaries or overly technical language
+
 ## Autonomous Goal Loop Rule
 
 Open-ended autonomy is allowed in this repository, but only through explicit goal-loop state and policy checks.

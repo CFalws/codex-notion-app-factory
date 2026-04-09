@@ -40,6 +40,26 @@ function currentAppId() {
   return selectedAppData(dom)?.appId || "";
 }
 
+function collectUxContext() {
+  const painPoints = dom.uxPainPoints.filter((input) => input.checked).map((input) => input.value);
+  const payload = {
+    affected_surface: dom.uxSurfaceInput.value.trim(),
+    pain_points: painPoints,
+    note: dom.uxNoteInput.value.trim(),
+    desired_feel: dom.uxDesiredFeelInput.value.trim(),
+  };
+  return Object.values(payload).some((value) => (Array.isArray(value) ? value.length : value)) ? payload : null;
+}
+
+function clearUxContextInputs() {
+  dom.uxSurfaceInput.value = "";
+  dom.uxDesiredFeelInput.value = "";
+  dom.uxNoteInput.value = "";
+  dom.uxPainPoints.forEach((input) => {
+    input.checked = false;
+  });
+}
+
 function syncComposerMeta() {
   const app = selectedAppData(dom);
   const text = dom.requestTextInput.value;
@@ -116,6 +136,7 @@ async function sendMessage() {
         message_text: messageText,
         source: "mobile-ops-console",
         execute_now: true,
+        ux_context: collectUxContext(),
       }),
     });
 
@@ -124,6 +145,7 @@ async function sendMessage() {
     setDraft(state, app.appId, "", "");
     setDraft(state, app.appId, conversationId, "");
     dom.requestTextInput.value = "";
+    clearUxContextInputs();
     syncComposerMeta();
     syncDraftStatus();
     renderConversation(dom, state, payload.conversation, persistSettings);
@@ -180,6 +202,7 @@ async function applyProposal() {
       payload.decision_summary || {},
       `제안 적용 · ${payload.title || payload.job_id}`,
       payload.status || "APPLIED",
+      payload.ux_review || {},
     );
     if (state.currentConversationId) {
       await conversationController.fetchConversation(state.currentConversationId);

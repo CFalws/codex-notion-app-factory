@@ -93,6 +93,35 @@
           ></textarea>
         </label>
 
+        <details class="ux-feedback">
+          <summary>UI 불편 신호 함께 보내기</summary>
+          <div class="ux-feedback-grid">
+            <label class="field">
+              <span>어느 화면이 불편한가</span>
+              <input id="ux-surface" type="text" placeholder="예: 대화 목록, 작업 로그, 메시지 입력 영역" />
+            </label>
+            <label class="field">
+              <span>원하는 느낌</span>
+              <input id="ux-desired-feel" type="text" placeholder="예: 더 단순하게, 더 빠르게, 더 명확하게" />
+            </label>
+            <fieldset class="field ux-pain-field">
+              <legend>불편 유형</legend>
+              <div class="ux-pain-grid">
+                <label class="chip"><input type="checkbox" name="ux-pain-point" value="길 찾기 어려움" /><span>길 찾기 어려움</span></label>
+                <label class="chip"><input type="checkbox" name="ux-pain-point" value="상태가 안 보임" /><span>상태가 안 보임</span></label>
+                <label class="chip"><input type="checkbox" name="ux-pain-point" value="버튼 위치 불편" /><span>버튼 위치 불편</span></label>
+                <label class="chip"><input type="checkbox" name="ux-pain-point" value="정보가 너무 많음" /><span>정보가 너무 많음</span></label>
+                <label class="chip"><input type="checkbox" name="ux-pain-point" value="입력 흐름이 답답함" /><span>입력 흐름이 답답함</span></label>
+                <label class="chip"><input type="checkbox" name="ux-pain-point" value="모바일에서 누르기 불편" /><span>모바일에서 누르기 불편</span></label>
+              </div>
+            </fieldset>
+            <label class="field">
+              <span>추가 설명</span>
+              <textarea id="ux-note" rows="4" placeholder="무엇이 답답했고, 어떻게 바뀌면 좋아질지 짧게 적어주세요."></textarea>
+            </label>
+          </div>
+        </details>
+
         <div class="composer-meta">
           <p id="composer-hint" class="composer-hint">앱과 대화를 고르면 저장된 초안을 바로 이어서 쓸 수 있습니다.</p>
           <p id="composer-count" class="composer-count">0자</p>

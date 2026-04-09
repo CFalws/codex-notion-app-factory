@@ -3,6 +3,13 @@ from __future__ import annotations
 from pydantic import BaseModel, Field
 
 
+class UXContextBody(BaseModel):
+    affected_surface: str = Field(default="", description="What part of the UI feels uncomfortable.")
+    pain_points: list[str] = Field(default_factory=list, description="Structured UX pain-point tags.")
+    note: str = Field(default="", description="Free-form description of the friction.")
+    desired_feel: str = Field(default="", description="How the user wants the UI to feel instead.")
+
+
 class CreateRequestBody(BaseModel):
     app_id: str = Field(..., description="Registered app id to continue.")
     title: str = Field(default="", description="Optional short label for compatibility with older clients.")
@@ -10,6 +17,7 @@ class CreateRequestBody(BaseModel):
     source: str = Field(default="ops-console", description="Origin label for traceability.")
     execute_now: bool = Field(default=True, description="Whether to start the agent run immediately.")
     conversation_id: str = Field(default="", description="Existing conversation id for continuity.")
+    ux_context: UXContextBody | None = Field(default=None, description="Optional structured UX discomfort signal.")
 
 
 class CreateConversationBody(BaseModel):
@@ -23,6 +31,7 @@ class ConversationMessageBody(BaseModel):
     message_text: str = Field(..., description="Full natural-language message for the conversation.")
     source: str = Field(default="ops-console", description="Origin label for traceability.")
     execute_now: bool = Field(default=True, description="Whether to start the agent run immediately.")
+    ux_context: UXContextBody | None = Field(default=None, description="Optional structured UX discomfort signal.")
 
 
 class CreateGoalBody(BaseModel):

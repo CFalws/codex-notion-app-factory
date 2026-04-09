@@ -10,8 +10,10 @@ from .runtime_engineering import (
     default_decision_summary,
     extract_engineering_log_json,
     extract_goal_review_json,
+    extract_ux_review_json,
     normalize_decision_summary,
     normalize_goal_review,
+    normalize_ux_review,
     sanitize_user_facing_text,
 )
 from .runtime_proposals import ProposalRuntime
@@ -230,11 +232,13 @@ class CodexAgentsRuntime:
                     error=error_message,
                     result_summary=final_output,
                     decision_summary=decision_summary,
+                    ux_review={},
                     goal_review={},
                 )
 
             final_output = final_output or "Codex run completed without a final message."
             clean_summary, parsed_goal_review = extract_goal_review_json(final_output)
+            clean_summary, parsed_ux_review = extract_ux_review_json(clean_summary)
             clean_summary, parsed_summary = extract_engineering_log_json(clean_summary)
             clean_summary = sanitize_user_facing_text(clean_summary or "Codex run completed without a final message.")
             decision_summary = normalize_decision_summary(
@@ -244,6 +248,7 @@ class CodexAgentsRuntime:
                 system_area="execution",
                 verification="job completed",
             )
+            ux_review = normalize_ux_review(parsed_ux_review)
             goal_review = normalize_goal_review(parsed_goal_review)
 
             record["last_summary"] = clean_summary
@@ -274,6 +279,7 @@ class CodexAgentsRuntime:
                     job_context,
                     clean_summary,
                     decision_summary,
+                    ux_review,
                 )
                 self._emit_event(
                     event_callback,
@@ -301,6 +307,7 @@ class CodexAgentsRuntime:
                 result_summary=clean_summary,
                 error="",
                 decision_summary=decision_summary,
+                ux_review=ux_review,
                 goal_review=goal_review,
                 **extra_fields,
             )
@@ -346,6 +353,7 @@ class CodexAgentsRuntime:
                 completed_at=utc_now(),
                 error=error_message,
                 decision_summary=decision_summary,
+                ux_review={},
                 goal_review={},
             )
 

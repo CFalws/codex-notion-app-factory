@@ -40,6 +40,7 @@ Required fields:
 - `request_text`
 - `source`
 - `intent_summary`
+- `ux_context`
 - `created_at`
 - `updated_at`
 
@@ -55,6 +56,7 @@ Required fields:
 - `conversation_id`
 - `title`
 - `intent_summary`
+- `ux_context`
 - `status`
 - `created_at`
 - `updated_at`
@@ -67,6 +69,7 @@ Required fields:
 Optional fields:
 
 - `proposal`
+- `ux_review`
 - `goal_review`
 
 ## Goal Record
@@ -172,6 +175,7 @@ Expected metadata fields when the message type is `request`:
 
 - `source`
 - `intent_summary`
+- `ux_context`
 
 ### Conversation Event Shape
 
@@ -225,3 +229,27 @@ Required fields:
 - `assumptions`
 - `ambiguity`
 - `success_signal`
+
+## UX Context Shape
+
+`ux_context` is optional and is used only when the user is describing friction in the UI.
+
+Expected fields:
+
+- `affected_surface`
+- `pain_points`
+- `note`
+- `desired_feel`
+
+## UX Review Shape
+
+`ux_review` is optional and should appear on jobs or proposals when the request touches UI or usability.
+
+Expected fields:
+
+- `primary_journey`
+- `pain_interpretation`
+- `friction_points`
+- `simplification`
+- `mobile_risk`
+- `verification_steps`

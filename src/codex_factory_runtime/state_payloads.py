@@ -73,6 +73,7 @@ def build_request(
     status: str = "pending",
     conversation_id: str = "",
     intent_summary: dict[str, Any] | None = None,
+    ux_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     return {
         "request_id": request_id,
@@ -83,6 +84,7 @@ def build_request(
         "request_text": request_text,
         "source": source,
         "intent_summary": intent_summary or {},
+        "ux_context": ux_context or {},
         "created_at": now,
         "updated_at": now,
     }
@@ -97,6 +99,7 @@ def build_job(
     now: str,
     conversation_id: str = "",
     intent_summary: dict[str, Any] | None = None,
+    ux_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     return {
         "job_id": job_id,
@@ -105,6 +108,7 @@ def build_job(
         "conversation_id": conversation_id,
         "title": title,
         "intent_summary": intent_summary or {},
+        "ux_context": ux_context or {},
         "status": "queued",
         "created_at": now,
         "updated_at": now,
@@ -113,6 +117,7 @@ def build_job(
         "error": "",
         "result_summary": "",
         "decision_summary": {},
+        "ux_review": {},
         "goal_review": {},
     }
 

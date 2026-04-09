@@ -48,6 +48,7 @@ This is not a chatbot demo. It is an execution environment for turning requests 
 
 - runtime HTTP intake for phone-triggered maintenance and multi-turn conversations
 - persisted intent interpretation between raw user wording and executable work
+- structured UX discomfort capture and post-change UX review for UI-facing requests
 - open-ended autonomous goal loops that can keep improving toward a user objective until a policy stop condition is hit
 - private operator access over a Tailscale tailnet
 - explicit request contract and execution rules
@@ -153,6 +154,8 @@ Each request produces concrete outputs in the local repository:
   Defines the file-backed state shapes that runtime changes must preserve.
 - `docs/intent-contract.md`
   Defines how raw requests are translated into persisted interpreted intent.
+- `docs/ux-feedback-loop.md`
+  Defines how UI discomfort is captured, interpreted, and reviewed so later sessions can improve usability instead of only shipping code.
 - `docs/autonomy-contract.md`
   Defines the open-ended goal-loop model, continuation policy, and stop conditions.
 - `docs/change-boundaries.md`

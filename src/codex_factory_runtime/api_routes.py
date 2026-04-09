@@ -90,6 +90,7 @@ def register_routes(app: FastAPI, context: RuntimeApiContext) -> None:
             request_text=body.message_text,
             source=body.source,
             conversation_id=conversation_id,
+            ux_context=body.ux_context.model_dump() if body.ux_context else {},
         )
         context.state.append_conversation_message(
             conversation_id,
@@ -97,7 +98,11 @@ def register_routes(app: FastAPI, context: RuntimeApiContext) -> None:
             title=context.resolve_request_title(body.title, body.message_text),
             body=body.message_text,
             message_type="request",
-            metadata={"source": body.source, "intent_summary": intent_summary},
+            metadata={
+                "source": body.source,
+                "intent_summary": intent_summary,
+                "ux_context": body.ux_context.model_dump() if body.ux_context else {},
+            },
         )
         context.append_event(
             conversation_id,
@@ -114,6 +119,7 @@ def register_routes(app: FastAPI, context: RuntimeApiContext) -> None:
             background_tasks=background_tasks,
             conversation_id=conversation_id,
             intent_summary=intent_summary,
+            ux_context=body.ux_context.model_dump() if body.ux_context else {},
         )
         return {
             "conversation": context.state.get_conversation(conversation_id),
@@ -148,4 +154,5 @@ def register_routes(app: FastAPI, context: RuntimeApiContext) -> None:
             execute_now=body.execute_now,
             background_tasks=background_tasks,
             conversation_id=conversation_id,
+            ux_context=body.ux_context.model_dump() if body.ux_context else {},
         )
