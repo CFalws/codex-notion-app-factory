@@ -1,4 +1,7 @@
 export const dom = {
+  navSheetToggle: document.getElementById("nav-sheet-toggle"),
+  navSheetClose: document.getElementById("nav-sheet-close"),
+  navSheetScrim: document.getElementById("nav-sheet-scrim"),
   appSelect: document.getElementById("app-select"),
   refreshAppsButton: document.getElementById("refresh-apps"),
   heroAppName: document.getElementById("hero-app-name"),

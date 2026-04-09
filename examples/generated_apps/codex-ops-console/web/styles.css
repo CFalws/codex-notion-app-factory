@@ -162,6 +162,13 @@ textarea {
   border-bottom: 1px solid var(--line);
 }
 
+.sidebar-brand-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
 .sidebar-brand h1 {
   font-size: 1.7rem;
   line-height: 1.04;
@@ -280,6 +287,12 @@ textarea {
   display: grid;
   gap: 0.22rem;
   min-width: 0;
+}
+
+.mobile-nav-toggle,
+.nav-sheet-close,
+.nav-sheet-scrim {
+  display: none;
 }
 
 .conversation-live-status {
@@ -843,9 +856,40 @@ textarea {
     min-height: 100dvh;
   }
 
-  .sidebar,
   .main-stage {
-    min-height: 0;
+    min-height: calc(100dvh - 1.1rem);
+  }
+
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 30;
+    width: min(24rem, 92vw);
+    height: 100dvh;
+    transform: translateX(-105%);
+    transition: transform 180ms ease;
+    overflow: auto;
+  }
+
+  body[data-nav-open="true"] .sidebar {
+    transform: translateX(0);
+  }
+
+  .nav-sheet-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    width: 100vw;
+    height: 100vh;
+    border: 0;
+    background: rgba(20, 15, 10, 0.42);
+  }
+
+  .mobile-nav-toggle,
+  .nav-sheet-close {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
   }
 
   .conversation-list {
@@ -884,6 +928,13 @@ textarea {
 
   .thread-topbar {
     padding: 0.85rem;
+  }
+
+  .autonomy-rail,
+  .live-run-row,
+  .append-stream-strip {
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
   }
 
   .composer-header,

@@ -17,8 +17,13 @@
     <main class="desktop-shell">
       <aside class="sidebar panel">
         <div class="sidebar-brand">
-          <p class="sidebar-kicker">Codex Ops Console</p>
-          <h1>작업 공간</h1>
+          <div class="sidebar-brand-head">
+            <div>
+              <p class="sidebar-kicker">Codex Ops Console</p>
+              <h1>작업 공간</h1>
+            </div>
+            <button id="nav-sheet-close" class="secondary small nav-sheet-close" type="button">닫기</button>
+          </div>
           <p class="sidebar-copy">앱별 대화를 이어가며 수정 요청, 제안, 결과를 한 화면에서 다룹니다.</p>
           <button id="install-button" class="install-button" hidden>홈 화면에 추가</button>
         </div>
@@ -85,11 +90,13 @@
           <p id="workspace-summary-text" class="workspace-summary-text">앱과 대화를 고르면 이번 세션의 작업 맥락이 정리됩니다.</p>
         </section>
       </aside>
+      <button id="nav-sheet-scrim" class="nav-sheet-scrim" type="button" hidden aria-label="네비게이션 닫기"></button>
 
       <section class="main-stage panel">
         <header class="thread-topbar">
           <div class="thread-title-block">
             <p class="thread-kicker">현재 대화</p>
+            <button id="nav-sheet-toggle" class="secondary small mobile-nav-toggle" type="button">앱과 대화</button>
             <h2 id="hero-app-name">앱을 불러오는 중입니다.</h2>
             <p id="conversation-meta" class="meta">아직 대화 세션이 없습니다.</p>
             <p id="conversation-live-status" class="conversation-live-status" hidden>LIVE · SSE 연결됨</p>

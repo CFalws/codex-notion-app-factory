@@ -24,6 +24,7 @@ def main() -> int:
     jobs_js = read("examples/generated_apps/codex-ops-console/web/ops-jobs.js")
     render_js = read("examples/generated_apps/codex-ops-console/web/ops-render.js")
     store_js = read("examples/generated_apps/codex-ops-console/web/ops-store.js")
+    styles_css = read("examples/generated_apps/codex-ops-console/web/styles.css")
     index_html = read("examples/generated_apps/codex-ops-console/web/index.html")
     autonomy_index = index_html.index('id="autonomy-summary"')
     thread_scroller_index = index_html.index('id="thread-scroller"')
@@ -54,8 +55,15 @@ def main() -> int:
     require(index_html, 'id="live-run-row"', label="live run row DOM")
     require(index_html, 'id="append-stream-strip"', label="stream strip DOM")
     require(index_html, 'class="autonomy-rail"', label="header-adjacent autonomy rail DOM")
+    require(index_html, 'id="nav-sheet-toggle"', label="mobile nav toggle DOM")
+    require(index_html, 'id="nav-sheet-close"', label="mobile nav close DOM")
+    require(index_html, 'id="nav-sheet-scrim"', label="mobile nav scrim DOM")
     require(app_js, "internalConversationAppendStreamUrl", label="controller dependency wiring")
-    print("ok: ops append SSE wiring, inline live run row, and autonomy rail are present")
+    require(app_js, "setNavigationOpen", label="mobile nav state helper")
+    require(app_js, 'window.innerWidth > 860', label="mobile nav resize reset")
+    require(styles_css, 'body[data-nav-open="true"] .sidebar', label="mobile nav drawer CSS")
+    require(styles_css, ".mobile-nav-toggle", label="mobile nav button CSS")
+    print("ok: ops append SSE wiring, autonomy rail, and mobile nav drawer are present")
     return 0
 
 

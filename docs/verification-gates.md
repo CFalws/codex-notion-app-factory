@@ -181,6 +181,7 @@ For the feature-flagged active-conversation append SSE path, verification should
 - the workspace exposes machine-readable stream state and per-append provenance so browser verification can attribute visible appends to SSE rather than polling
 - inline active-session status in the selected conversation exposes machine-readable state and source derived from live conversation events rather than a separate polling-only status surface
 - conversation-local autonomy state should be visible outside the scrollable timeline body so message history remains the first visible content in the center pane
+- on phone widths, the active conversation should remain the first visible workspace surface and app or thread navigation should open through an explicit drawer or sheet rather than occupying the top of the reading flow
 
 ## Commit And Deploy Policy
 

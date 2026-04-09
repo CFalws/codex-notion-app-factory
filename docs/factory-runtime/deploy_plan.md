@@ -2,13 +2,13 @@
 
 ## Deployment Impact
 
-This changes the GitHub Pages operator workspace only. It repositions the autonomy summary into a compact header-adjacent rail while leaving the selected-conversation live workspace path intact. Broader polling, transport, and proposal behavior stay unchanged.
+This changes the GitHub Pages operator workspace only. It adds a narrow-screen navigation drawer while leaving desktop hierarchy and the selected-conversation live workspace path intact. Broader polling, transport, and proposal behavior stay unchanged.
 
 ## Rollout Notes
 
 1. Apply the proposal commit onto `main`.
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
-3. Open one active conversation and confirm message history is immediately visible without a large autonomy card above it.
-4. Confirm the autonomy blocker, path verdict, and verifier state are still visible in the compact rail below the header.
-5. Verify the rail still exposes machine-readable autonomy attributes and that the selected thread keeps the inline live-run row and append provenance markers.
-6. Check mobile width and confirm the thread plus composer remain easier to reach because the autonomy summary no longer occupies the top of the scrollable body.
+3. Open the console on a phone-width viewport and confirm the selected conversation is visible before app and thread controls.
+4. Open the mobile drawer with one tap, switch app or conversation, and confirm the drawer closes back to the active workspace.
+5. Verify the main pane still shows the autonomy rail, live run row, append stream strip, and composer in the active conversation path.
+6. Confirm desktop width remains unchanged and that machine-readable live-state markers are still present for browser verification.

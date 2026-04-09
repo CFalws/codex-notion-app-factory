@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Move autonomy blocker and verifier status out of the scrollable thread body.
-- [x] Replace the large autonomy card with a compact header-adjacent rail that stays conversation-local.
-- [x] Preserve machine-readable autonomy state so existing verifier expectations still hold after the move.
-- [x] Leave the central thread body primarily for message history plus the live-run row and composer.
-- [x] Extend the static verifier so future sessions can prove the autonomy summary is no longer inside the scrollable timeline region.
+- [x] Keep desktop conversation-first hierarchy unchanged.
+- [x] Make the active conversation the first visible surface on phone widths.
+- [x] Move existing app and thread navigation behind a one-tap mobile drawer or sheet.
+- [x] Preserve conversation-local live state surfaces above the composer in the main pane.
+- [x] Extend the static verifier so future sessions can prove the mobile navigation drawer wiring exists.

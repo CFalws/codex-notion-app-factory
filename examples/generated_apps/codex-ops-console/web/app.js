@@ -46,6 +46,13 @@ function currentAppId() {
   return selectedAppData(dom)?.appId || "";
 }
 
+function setNavigationOpen(isOpen) {
+  document.body.dataset.navOpen = isOpen ? "true" : "false";
+  if (dom.navSheetScrim) {
+    dom.navSheetScrim.hidden = !isOpen;
+  }
+}
+
 function syncComposerMeta() {
   const app = selectedAppData(dom);
   const text = dom.requestTextInput.value;
@@ -234,10 +241,27 @@ function wireServiceWorker() {
 }
 
 function wireEvents() {
-  dom.appSelect.addEventListener("change", conversationController.handleAppChange);
+  dom.navSheetToggle?.addEventListener("click", () => setNavigationOpen(true));
+  dom.navSheetClose?.addEventListener("click", () => setNavigationOpen(false));
+  dom.navSheetScrim?.addEventListener("click", () => setNavigationOpen(false));
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 860) {
+      setNavigationOpen(false);
+    }
+  });
+  dom.appSelect.addEventListener("change", async () => {
+    await conversationController.handleAppChange();
+    setNavigationOpen(false);
+  });
   dom.autoOpenInput.addEventListener("change", persistSettings);
-  dom.refreshAppsButton.addEventListener("click", conversationController.loadApps);
-  dom.newConversationButton.addEventListener("click", conversationController.createConversation);
+  dom.refreshAppsButton.addEventListener("click", async () => {
+    await conversationController.loadApps();
+    setNavigationOpen(false);
+  });
+  dom.newConversationButton.addEventListener("click", async () => {
+    await conversationController.createConversation();
+    setNavigationOpen(false);
+  });
   dom.sendRequestButton.addEventListener("click", sendMessage);
   dom.openAppButton.addEventListener("click", openSelectedApp);
   dom.applyProposalButton.addEventListener("click", applyProposal);
@@ -255,6 +279,7 @@ function wireEvents() {
     }
     state.savedConversationId = button.dataset.conversationId || "";
     await conversationController.handleConversationChange();
+    setNavigationOpen(false);
   });
 }
 
@@ -309,6 +334,7 @@ function initControllers() {
 }
 
 function init() {
+  setNavigationOpen(false);
   loadSettings(dom, state);
   updateSelectedAppCard(dom, selectedAppData(dom));
   updateProposalButton(dom, state.latestProposalJobId);

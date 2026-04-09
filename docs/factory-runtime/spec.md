@@ -8,7 +8,7 @@
 
 ## Problem
 
-The selected conversation now has live append state and an inline run row, but the large autonomy summary card still sits at the top of the scrollable thread and delays immediate access to message history. That keeps the center pane feeling like a dashboard stack instead of a conversation-first workspace.
+The desktop workspace is materially closer to a conversation-first session now, but on phone widths the sidebar still owns the first visible surface. That means users reach app and thread controls before the active conversation and composer, which breaks the intended live-session feel.
 
 ## Target User
 
@@ -23,4 +23,4 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 ## Deliverable
 
-Move autonomy blocker and verifier status out of the timeline body into a compact header-adjacent rail that preserves machine-readable state while leaving the central scroll region primarily for the conversation timeline plus composer.
+On narrow screens, keep the conversation workspace visible first and move the existing app and thread navigation into a one-tap drawer or sheet, while preserving the current autonomy rail, live run row, and append provenance markers in the active conversation pane.

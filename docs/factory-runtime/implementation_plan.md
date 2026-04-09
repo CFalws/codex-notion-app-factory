@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Keep the selected-conversation SSE path and inline live-run row unchanged.
-2. Remove the large autonomy summary card from the scrollable thread body and re-home it in a compact rail directly below the thread header.
-3. Preserve blocker, intended-path, and verifier state as machine-readable attributes so verifier tooling still finds the same data after the move.
-4. Keep the center scroll region focused on the timeline and leave the composer immediately reachable below it.
-5. Extend the static verifier and docs so future sessions can prove the autonomy summary no longer competes with thread history.
+1. Keep the current desktop layout hierarchy unchanged.
+2. On narrow screens, make the active conversation pane render first and move the existing sidebar controls behind a one-tap drawer or sheet.
+3. Reuse the current sidebar content instead of inventing new mobile-only navigation data or transport.
+4. Preserve the autonomy rail, live run row, append stream strip, and composer as conversation-local surfaces in the main pane.
+5. Extend the static verifier and docs so future sessions can prove the mobile drawer exists and the active conversation remains the first visible workspace surface.
