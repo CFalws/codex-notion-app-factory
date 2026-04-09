@@ -25,6 +25,7 @@ except ModuleNotFoundError:
 from codex_factory_runtime import api_app
 from codex_factory_runtime.auth import IAP_JWT_HEADER, TAILSCALE_LOGIN_HEADER, TAILSCALE_NAME_HEADER, IapIdentityProvider
 from codex_factory_runtime.config import RuntimeSettings
+from codex_factory_runtime.runtime_cli import CodexCliRunner
 from codex_factory_runtime.state import RuntimeState, utc_now
 
 
@@ -264,6 +265,16 @@ def main() -> None:
             seed_apps(state)
             client = TestClient(api_app.create_app(settings))
 
+            runner = CodexCliRunner(settings)
+            resume_command = runner.build_command(
+                "019d6fed-7653-7dd1-aa05-774a52a635d9",
+                "Reply with exactly CONTRACT_RESUME_OK.",
+                temp_root / "resume-last-message.txt",
+                use_resume=True,
+            )
+            require("--sandbox" not in resume_command, f"resume command must not include --sandbox: {resume_command}")
+            require("resume" in resume_command, f"resume command should include resume subcommand: {resume_command}")
+
             health = client.get("/health")
             require(health.status_code == 200, f"health failed: {health.text}")
 
@@ -310,6 +321,8 @@ def main() -> None:
                 all(name in event_types for name in ["conversation.created", "message.accepted", "job.queued", "job.running", "job.completed"]),
                 f"conversation events missing expected transitions: {event_types}",
             )
+            require("codex.exec.retrying" not in event_types, f"unexpected degraded retry event in contract flow: {event_types}")
+            require("runtime.exception" not in event_types, f"unexpected runtime exception event in contract flow: {event_types}")
 
             proposal_conversation = request(
                 client,

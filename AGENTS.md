@@ -92,6 +92,17 @@ Minimum expectations:
 - medium-risk change: `make verify`
 - high-risk runtime or deployment change: `make verify` plus deployed runtime verification
 
+Passing the surface-level result is not enough.
+
+The agent must also verify that the intended execution path was used.
+
+Examples:
+
+- session continuity should resume the existing Codex thread instead of silently falling back to a new one
+- private operator access should arrive through the intended trusted network path instead of a weaker public path
+- proposal-mode edits should stay inside proposal worktrees instead of mutating the running checkout directly
+- apply should report whether push actually happened instead of treating local-only apply as full success
+
 ## High-Risk Changes
 
 The following always count as high-risk:
@@ -104,6 +115,43 @@ The following always count as high-risk:
 - deployment scripts
 - service worker behavior
 - app-factory state schema changes
+
+## Degraded Path Rule
+
+The agent must treat fallback or degraded behavior as a first-class verification concern.
+
+Do not report a change as fully successful if any of the following happened without being explicitly expected:
+
+- retry or fallback execution path
+- unexpected session rotation
+- local-only success after remote push failure
+- authentication fallback to a weaker provider
+- direct mutation of a lane that should have stayed in proposal mode
+
+If a degraded path occurs:
+
+- record it explicitly
+- explain why it happened
+- verify whether it is acceptable
+- prefer fixing the root cause before closing the task
+
+## Verification Checklist
+
+For runtime, auth, proposal, and deployment work, the agent should explicitly ask:
+
+1. Did the system succeed through the intended path, not only through an eventual fallback?
+2. Did any retry, degraded mode, or hidden exception occur?
+3. Did state updates match the visible result?
+4. Did a new session, new proposal, or new deployment happen only when expected?
+5. Did the verification check both positive assertions and negative assertions?
+
+Negative assertions matter in this repository.
+
+Examples:
+
+- `codex.exec.retrying` should not appear during a healthy session resume
+- `runtime.exception` should not appear during a completed job
+- public ingress should not remain reachable after a tailnet-only transition
 
 ## Artifact Expectations
 

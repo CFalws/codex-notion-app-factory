@@ -7,6 +7,7 @@ The required standard is stronger:
 1. the code must parse
 2. the runtime contract must still hold
 3. risky changes must be exercised against a deployed runtime before they are pushed live
+4. the system must succeed through the intended path, not only through a fallback that happened to work
 
 ## Risk Levels
 
@@ -56,6 +57,15 @@ Required gates:
 
 ## What Each Gate Proves
 
+Verification in this repository has two kinds of assertions:
+
+- positive assertions
+  - something expected must happen
+- negative assertions
+  - something degraded or unintended must not happen
+
+Both matter. A completed job is not enough if it completed through the wrong path.
+
 ### `make verify-static`
 
 Fast local sanity checks.
@@ -86,6 +96,7 @@ It proves:
 - proposal-mode apps still emit proposals
 - proposal apply still updates conversation state
 - engineering-log entries are still written
+- resume command construction preserves the intended session-resume path
 
 It does not prove:
 
@@ -103,8 +114,28 @@ It proves:
 - API authentication works in production
 - a real conversation message can execute end to end
 - the conversation timeline updates in the deployed environment
+- degraded execution signals such as unexpected session-resume fallback can be detected
 
 It should be run before a risky production deployment and after deployment if the change touched runtime or operator-console behavior.
+
+## Degraded Path Checks
+
+For high-risk runtime and deployment changes, verification should explicitly look for degraded paths.
+
+Examples:
+
+- `codex.exec.retrying`
+  - acceptable only when the task explicitly expected a resume failure
+- `runtime.exception`
+  - should fail verification even if the UI later recovered
+- unexpected new `thread_id`
+  - should fail session continuity verification unless rotation was intended
+- local-only apply after push failure
+  - should not be reported as a full deployment success
+
+The rule is simple:
+
+`eventual success` is weaker than `correct success`.
 
 ## Commit And Deploy Policy
 
@@ -131,3 +162,12 @@ For medium and high risk changes:
 3. run `make verify-contract` if behavior changed
 4. run `make verify-deployed` if the change touches runtime, proposal, auth, deployment, or operator-console behavior
 5. only then commit and deploy
+
+## Session Continuity Gate
+
+Changes that touch Codex session reuse must prove all of the following:
+
+- the stored session id is reused when valid
+- no unexpected `codex.exec.retrying` event appears
+- no forbidden resume-only CLI options are injected into `codex exec resume`
+- a new session id is recorded only when the old one is genuinely invalid or missing

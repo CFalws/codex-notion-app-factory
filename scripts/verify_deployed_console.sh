@@ -67,6 +67,10 @@ required={"conversation.created","message.accepted","job.queued","job.running","
 missing=sorted(required-events)
 if missing:
     raise SystemExit(f"missing conversation events: {missing}")
+forbidden={"codex.exec.retrying","runtime.exception"}
+unexpected=sorted(forbidden & events)
+if unexpected:
+    raise SystemExit(f"unexpected degraded events: {unexpected}")
 messages=payload.get("messages", [])
 roles=[message["role"] for message in messages]
 if roles[:2] != ["user", "assistant"]:
