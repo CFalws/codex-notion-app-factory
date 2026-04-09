@@ -67,6 +67,47 @@ Required fields:
 Optional fields:
 
 - `proposal`
+- `goal_review`
+
+## Goal Record
+
+Path: `state/runtime/goals/<goal_id>.json`
+
+Required fields:
+
+- `goal_id`
+- `app_id`
+- `conversation_id`
+- `title`
+- `objective`
+- `source`
+- `status`
+- `created_at`
+- `updated_at`
+- `started_at`
+- `completed_at`
+- `max_iterations`
+- `current_iteration`
+- `last_job_id`
+- `best_job_id`
+- `best_summary`
+- `stop_reason`
+- `halt_requested`
+- `policy`
+- `iterations`
+
+### Goal Iteration Shape
+
+Required fields:
+
+- `iteration`
+- `request_id`
+- `job_id`
+- `status`
+- `result_summary`
+- `decision_summary`
+- `goal_review`
+- `completed_at`
 
 ## Proposal Record
 

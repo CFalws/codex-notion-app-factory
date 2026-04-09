@@ -23,3 +23,12 @@ class ConversationMessageBody(BaseModel):
     message_text: str = Field(..., description="Full natural-language message for the conversation.")
     source: str = Field(default="ops-console", description="Origin label for traceability.")
     execute_now: bool = Field(default=True, description="Whether to start the agent run immediately.")
+
+
+class CreateGoalBody(BaseModel):
+    app_id: str = Field(..., description="Registered app id to improve.")
+    objective: str = Field(..., description="Higher-level user objective the agent should keep improving toward.")
+    title: str = Field(default="", description="Optional goal label.")
+    source: str = Field(default="ops-console", description="Origin label for traceability.")
+    max_iterations: int = Field(default=0, ge=0, le=1000, description="0 means open-ended autonomy until a policy stop condition is hit.")
+    autostart: bool = Field(default=True, description="Whether to start the autonomous goal loop immediately.")

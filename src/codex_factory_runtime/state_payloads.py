@@ -113,4 +113,46 @@ def build_job(
         "error": "",
         "result_summary": "",
         "decision_summary": {},
+        "goal_review": {},
+    }
+
+
+def build_goal(
+    *,
+    app_id: str,
+    title: str,
+    objective: str,
+    source: str,
+    conversation_id: str,
+    now: str,
+    max_iterations: int,
+) -> dict[str, Any]:
+    return {
+        "goal_id": uuid4().hex,
+        "app_id": app_id,
+        "conversation_id": conversation_id,
+        "title": title.strip() or app_id,
+        "objective": objective,
+        "source": source,
+        "status": "queued",
+        "created_at": now,
+        "updated_at": now,
+        "started_at": "",
+        "completed_at": "",
+        "max_iterations": max_iterations,
+        "current_iteration": 0,
+        "last_job_id": "",
+        "best_job_id": "",
+        "best_summary": "",
+        "stop_reason": "",
+        "halt_requested": False,
+        "policy": {
+            "require_verification": True,
+            "pause_on_proposal": True,
+            "pause_on_failed_job": True,
+            "pause_on_safety_no": True,
+            "pause_on_alignment_no": True,
+            "open_ended": max_iterations == 0,
+        },
+        "iterations": [],
     }

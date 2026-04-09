@@ -9,7 +9,9 @@ from .runtime_engineering import (
     build_prompt,
     default_decision_summary,
     extract_engineering_log_json,
+    extract_goal_review_json,
     normalize_decision_summary,
+    normalize_goal_review,
 )
 from .runtime_proposals import ProposalRuntime
 from .state import RuntimeState, utc_now
@@ -227,10 +229,12 @@ class CodexAgentsRuntime:
                     error=error_message,
                     result_summary=final_output,
                     decision_summary=decision_summary,
+                    goal_review={},
                 )
 
             final_output = final_output or "Codex run completed without a final message."
-            clean_summary, parsed_summary = extract_engineering_log_json(final_output)
+            clean_summary, parsed_goal_review = extract_goal_review_json(final_output)
+            clean_summary, parsed_summary = extract_engineering_log_json(clean_summary)
             clean_summary = clean_summary or "Codex run completed without a final message."
             decision_summary = normalize_decision_summary(
                 request_payload,
@@ -239,6 +243,7 @@ class CodexAgentsRuntime:
                 system_area="execution",
                 verification="job completed",
             )
+            goal_review = normalize_goal_review(parsed_goal_review)
 
             record["last_summary"] = clean_summary
             self.state.save_app(record)
@@ -295,6 +300,7 @@ class CodexAgentsRuntime:
                 result_summary=clean_summary,
                 error="",
                 decision_summary=decision_summary,
+                goal_review=goal_review,
                 **extra_fields,
             )
         except Exception as exc:
@@ -339,6 +345,7 @@ class CodexAgentsRuntime:
                 completed_at=utc_now(),
                 error=error_message,
                 decision_summary=decision_summary,
+                goal_review={},
             )
 
     async def apply_proposal(self, job_id: str) -> dict[str, Any]:

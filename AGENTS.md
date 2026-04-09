@@ -87,6 +87,20 @@ If the request is underspecified, the default behavior is:
 3. implement toward the interpreted outcome,
 4. verify against the likely user-visible success condition.
 
+## Autonomous Goal Loop Rule
+
+Open-ended autonomy is allowed in this repository, but only through explicit goal-loop state and policy checks.
+
+Reference: `docs/autonomy-contract.md`
+
+That means:
+
+- one bounded hypothesis per iteration
+- explicit verification after each iteration
+- explicit comparison to prior iterations
+- explicit continuation, alignment, and safety review
+- stop or pause when policy says to stop or pause
+
 ## State Contract Rule
 
 Runtime changes must preserve the file-backed state contract unless the change explicitly migrates it.

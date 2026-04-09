@@ -48,6 +48,7 @@ This is not a chatbot demo. It is an execution environment for turning requests 
 
 - runtime HTTP intake for phone-triggered maintenance and multi-turn conversations
 - persisted intent interpretation between raw user wording and executable work
+- open-ended autonomous goal loops that can keep improving toward a user objective until a policy stop condition is hit
 - private operator access over a Tailscale tailnet
 - explicit request contract and execution rules
 - generated planning artifacts such as brief, spec, plan, and tasks
@@ -152,6 +153,8 @@ Each request produces concrete outputs in the local repository:
   Defines the file-backed state shapes that runtime changes must preserve.
 - `docs/intent-contract.md`
   Defines how raw requests are translated into persisted interpreted intent.
+- `docs/autonomy-contract.md`
+  Defines the open-ended goal-loop model, continuation policy, and stop conditions.
 - `docs/change-boundaries.md`
   Defines which module owns which class of change.
 - `docs/change-boundaries.md`

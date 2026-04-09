@@ -88,6 +88,17 @@ async def fake_run_request(
     )
 
     extra_fields: dict[str, Any] = {}
+    goal_review = {}
+    if request_payload.get("goal_loop"):
+        goal_review = {
+            "hypothesis": f"Iteration {request_payload['goal_loop']['iteration']} applies one bounded improvement step.",
+            "verification_result": "Simulated verification passed.",
+            "comparison_to_previous": "This simulated run represents incremental forward progress.",
+            "continue_recommended": "yes" if request_payload["goal_loop"]["iteration"] < 2 else "no",
+            "alignment_assessment": "yes",
+            "safety_assessment": "yes",
+            "next_focus": "Continue with the next bounded improvement step." if request_payload["goal_loop"]["iteration"] < 2 else "Stop after this iteration.",
+        }
     if str(record.get("execution_mode") or "").strip() == "proposal":
         proposal = {
             "job_id": job_id,
@@ -132,6 +143,7 @@ async def fake_run_request(
         result_summary=clean_summary,
         error="",
         decision_summary=decision_summary,
+        goal_review=goal_review,
         **extra_fields,
     )
 
@@ -162,6 +174,7 @@ def build_settings(temp_root: Path) -> RuntimeSettings:
         proposals_root=runtime_root / "proposals",
         worktrees_root=runtime_root / "worktrees",
         conversations_root=runtime_root / "conversations",
+        goals_root=runtime_root / "goals",
         host="127.0.0.1",
         port=8787,
         codex_command="codex",
@@ -197,6 +210,7 @@ def build_iap_settings(temp_root: Path) -> RuntimeSettings:
         proposals_root=settings.proposals_root,
         worktrees_root=settings.worktrees_root,
         conversations_root=settings.conversations_root,
+        goals_root=settings.goals_root,
         host=settings.host,
         port=settings.port,
         codex_command=settings.codex_command,
@@ -376,6 +390,27 @@ def main() -> None:
             app_conversations = request(client, "GET", "/api/apps/factory-runtime/conversations").json()
             require(len(app_conversations) == 1, f"expected 1 factory conversation, got {len(app_conversations)}")
 
+            goal_response = request(
+                client,
+                "POST",
+                "/api/goals",
+                json={
+                    "app_id": "habit-tracker-pwa",
+                    "objective": "Keep improving the phone operator experience until the goal review says to stop.",
+                    "source": "contract-test",
+                    "max_iterations": 0,
+                    "autostart": True,
+                },
+            )
+            require(goal_response.status_code == 200, f"goal creation failed: {goal_response.text}")
+            goal_payload = goal_response.json()
+            goal = request(client, "GET", f"/api/goals/{goal_payload['goal']['goal_id']}").json()
+            require(goal["status"] == "completed", f"goal should stop through goal review: {goal}")
+            require(goal["stop_reason"] == "goal_review_stop", f"goal should stop through goal review signal: {goal}")
+            require(len(goal["iterations"]) == 2, f"expected 2 goal iterations, got {len(goal['iterations'])}")
+            require(goal["iterations"][0]["goal_review"]["continue_recommended"] == "yes", "first goal iteration should continue")
+            require(goal["iterations"][1]["goal_review"]["continue_recommended"] == "no", "second goal iteration should stop")
+
             engineering_log = (settings.state_root / "engineering-log.md").read_text(encoding="utf-8")
             require("Simulated the runtime contract without invoking the Codex CLI." in engineering_log, "engineering log missing expected entry")
 
@@ -389,6 +424,7 @@ def main() -> None:
                 proposals_root=(temp_root / "tailscale" / "state" / "runtime" / "proposals"),
                 worktrees_root=(temp_root / "tailscale" / "state" / "runtime" / "worktrees"),
                 conversations_root=(temp_root / "tailscale" / "state" / "runtime" / "conversations"),
+                goals_root=(temp_root / "tailscale" / "state" / "runtime" / "goals"),
                 host=settings.host,
                 port=settings.port,
                 codex_command=settings.codex_command,

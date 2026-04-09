@@ -12,6 +12,7 @@ from .state_payloads import (
     build_conversation,
     build_conversation_event,
     build_conversation_message,
+    build_goal,
     build_job,
     build_request,
 )
@@ -37,6 +38,7 @@ class RuntimeState:
             self.settings.proposals_root,
             self.settings.worktrees_root,
             self.settings.conversations_root,
+            self.settings.goals_root,
         ]
         if self.settings.codex_home is not None:
             paths.append(self.settings.codex_home)
@@ -283,3 +285,53 @@ class RuntimeState:
         if not path.exists():
             raise KeyError(f"Unknown proposal job_id: {job_id}")
         return self._read_json(path)
+
+    def goal_path(self, goal_id: str) -> Path:
+        return self.settings.goals_root / f"{goal_id}.json"
+
+    def create_goal(
+        self,
+        *,
+        app_id: str,
+        title: str,
+        objective: str,
+        source: str,
+        conversation_id: str,
+        max_iterations: int,
+    ) -> dict[str, Any]:
+        payload = build_goal(
+            app_id=app_id,
+            title=title,
+            objective=objective,
+            source=source,
+            conversation_id=conversation_id,
+            now=utc_now(),
+            max_iterations=max_iterations,
+        )
+        self._write_json(self.goal_path(payload["goal_id"]), payload)
+        return payload
+
+    def save_goal(self, goal: dict[str, Any]) -> dict[str, Any]:
+        goal["updated_at"] = utc_now()
+        self._write_json(self.goal_path(goal["goal_id"]), goal)
+        return goal
+
+    def get_goal(self, goal_id: str) -> dict[str, Any]:
+        path = self.goal_path(goal_id)
+        if not path.exists():
+            raise KeyError(f"Unknown goal_id: {goal_id}")
+        return self._read_json(path)
+
+    def list_goals(self, *, app_id: str | None = None) -> list[dict[str, Any]]:
+        records: list[dict[str, Any]] = []
+        for path in sorted(self.settings.goals_root.glob("*.json")):
+            try:
+                payload = self._read_json(path)
+            except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+                logger.warning("Skipping unreadable goal file %s: %s", path, exc)
+                continue
+            if app_id and payload.get("app_id") != app_id:
+                continue
+            records.append(payload)
+        records.sort(key=lambda item: item.get("updated_at", ""), reverse=True)
+        return records

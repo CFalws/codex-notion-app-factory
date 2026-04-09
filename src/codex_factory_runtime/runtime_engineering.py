@@ -24,6 +24,17 @@ INTENT_SUMMARY_FIELDS = (
     "ambiguity",
     "success_signal",
 )
+GOAL_REVIEW_START = "GOAL_REVIEW_JSON_START"
+GOAL_REVIEW_END = "GOAL_REVIEW_JSON_END"
+GOAL_REVIEW_FIELDS = (
+    "hypothesis",
+    "verification_result",
+    "comparison_to_previous",
+    "continue_recommended",
+    "alignment_assessment",
+    "safety_assessment",
+    "next_focus",
+)
 
 
 def is_proposal_mode(record: dict[str, Any]) -> bool:
@@ -111,6 +122,19 @@ Before finishing:
 3. include the final commit hash in the summary,
 4. mention whether the proposal is ready to apply.
 """.strip()
+    goal_loop = request_payload.get("goal_loop") or {}
+    goal_tail = ""
+    if goal_loop:
+        goal_tail = f"""
+Because this request is part of an autonomous goal loop, also append a machine-readable goal review block before the engineering log.
+Rules for the goal review block:
+- Use the exact marker line {GOAL_REVIEW_START}
+- Follow it with a valid JSON object
+- Use only these keys: hypothesis, verification_result, comparison_to_previous, continue_recommended, alignment_assessment, safety_assessment, next_focus
+- Put plain strings in every field
+- `continue_recommended` must be either `yes` or `no`
+- Close with the exact marker line {GOAL_REVIEW_END}
+""".strip()
     return f"""
 {build_instructions(settings, record, job_context=job_context)}
 
@@ -130,6 +154,8 @@ After completing the work, provide:
 1. the key code changes,
 2. any deployment-impacting notes,
 3. the next best follow-up action if the work should continue.
+
+{goal_tail if goal_tail else ""}
 
 Then append a machine-readable engineering log block at the very end of your final answer.
 Rules for the block:
@@ -213,6 +239,42 @@ def extract_engineering_log_json(final_output: str) -> tuple[str, dict[str, Any]
     if not isinstance(payload, dict):
         return clean_output, None
     return clean_output, payload
+
+
+def extract_goal_review_json(final_output: str) -> tuple[str, dict[str, Any] | None]:
+    start = final_output.find(GOAL_REVIEW_START)
+    if start == -1:
+        return final_output.strip(), None
+    end = final_output.find(GOAL_REVIEW_END, start)
+    if end == -1:
+        return final_output.strip(), None
+
+    json_text = final_output[start + len(GOAL_REVIEW_START) : end].strip()
+    prefix = final_output[:start].rstrip()
+    suffix = final_output[end + len(GOAL_REVIEW_END) :].strip()
+    clean_output = prefix if not suffix else f"{prefix}\n\n{suffix}".strip()
+
+    try:
+        payload = json.loads(json_text)
+    except json.JSONDecodeError:
+        return clean_output, None
+    if not isinstance(payload, dict):
+        return clean_output, None
+    return clean_output, payload
+
+
+def normalize_goal_review(parsed: dict[str, Any] | None) -> dict[str, str]:
+    review = {field: "" for field in GOAL_REVIEW_FIELDS}
+    if not parsed:
+        return review
+    for field in GOAL_REVIEW_FIELDS:
+        value = parsed.get(field, "")
+        text = str(value).strip()
+        if text:
+            review[field] = text
+    if review["continue_recommended"].lower() not in {"yes", "no"}:
+        review["continue_recommended"] = ""
+    return review
 
 
 def default_decision_summary(

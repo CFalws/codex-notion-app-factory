@@ -4,7 +4,7 @@ from typing import Any
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 
-from .api_models import ConversationMessageBody, CreateConversationBody, CreateRequestBody
+from .api_models import ConversationMessageBody, CreateConversationBody, CreateGoalBody, CreateRequestBody
 from .api_runtime_context import RuntimeApiContext
 
 
@@ -27,6 +27,11 @@ def register_routes(app: FastAPI, context: RuntimeApiContext) -> None:
         context.require_app(app_id)
         return context.state.list_conversations(app_id=app_id)
 
+    @app.get("/api/apps/{app_id}/goals")
+    async def list_app_goals(app_id: str) -> list[dict[str, Any]]:
+        context.require_app(app_id)
+        return context.state.list_goals(app_id=app_id)
+
     @app.post("/api/conversations")
     async def create_conversation(body: CreateConversationBody) -> dict[str, Any]:
         context.require_app(body.app_id)
@@ -47,6 +52,30 @@ def register_routes(app: FastAPI, context: RuntimeApiContext) -> None:
     @app.get("/api/conversations/{conversation_id}")
     async def get_conversation(conversation_id: str) -> dict[str, Any]:
         return context.require_conversation(conversation_id)
+
+    @app.post("/api/goals")
+    async def create_goal(body: CreateGoalBody) -> dict[str, Any]:
+        context.require_app(body.app_id)
+        return context.create_goal(
+            app_id=body.app_id,
+            title=body.title,
+            objective=body.objective,
+            source=body.source,
+            max_iterations=body.max_iterations,
+            autostart=body.autostart,
+        )
+
+    @app.get("/api/goals/{goal_id}")
+    async def get_goal(goal_id: str) -> dict[str, Any]:
+        return context.get_goal_or_404(goal_id)
+
+    @app.post("/api/goals/{goal_id}/start")
+    async def start_goal(goal_id: str) -> dict[str, Any]:
+        return context.start_goal(goal_id)
+
+    @app.post("/api/goals/{goal_id}/halt")
+    async def halt_goal(goal_id: str) -> dict[str, Any]:
+        return context.halt_goal(goal_id)
 
     @app.post("/api/conversations/{conversation_id}/messages")
     async def create_conversation_message(

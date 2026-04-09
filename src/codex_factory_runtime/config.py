@@ -44,6 +44,7 @@ class RuntimeSettings:
     proposals_root: Path
     worktrees_root: Path
     conversations_root: Path
+    goals_root: Path
     host: str
     port: int
     codex_command: str
@@ -83,6 +84,7 @@ def load_settings() -> RuntimeSettings:
         proposals_root=runtime_root / "proposals",
         worktrees_root=runtime_root / "worktrees",
         conversations_root=runtime_root / "conversations",
+        goals_root=runtime_root / "goals",
         host=os.getenv("CODEX_FACTORY_HOST", "0.0.0.0"),
         port=int(os.getenv("CODEX_FACTORY_PORT", "8787")),
         codex_command=os.getenv("CODEX_COMMAND", "codex").strip(),

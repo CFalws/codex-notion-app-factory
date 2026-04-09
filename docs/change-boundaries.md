@@ -18,6 +18,8 @@ This repository should stay flexible by keeping volatile logic inside small modu
   Proposal worktree, merge, restart, and push behavior only.
 - `src/codex_factory_runtime/runtime_engineering.py`
   Prompt construction and engineering-log parsing/normalization only.
+- `src/codex_factory_runtime/runtime_goals.py`
+  Autonomous goal-loop request construction and continuation-stop policy only.
 - `src/codex_factory_runtime/state.py`
   Persistent state layout and file-backed state mutations only.
 
