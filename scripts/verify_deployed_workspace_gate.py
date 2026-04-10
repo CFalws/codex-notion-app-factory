@@ -198,6 +198,11 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'data-thread-transition="loading"', label="thread transition DOM")
     require(render_js, 'dom.conversationTimeline.innerHTML = isThreadTransition', label="thread transition placeholder render branch")
     require(render_js, '? renderThreadTransition(currentState)', label="thread transition placeholder render path")
+    require(
+        render_js,
+        ": '<p class=\"timeline-empty\">새 대화를 만들면 요청과 이벤트가 여기 쌓입니다.</p>';",
+        label="generic empty state fallback path",
+    )
     require(render_js, "dataset.threadTransitionState", label="thread transition state dataset")
     require(render_js, 'data-selected-thread-live-block="true"', label="inline session block DOM")
     require(render_js, "dataset.liveRunPhase", label="phase dataset")

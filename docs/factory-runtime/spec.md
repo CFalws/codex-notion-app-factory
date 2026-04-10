@@ -8,7 +8,7 @@
 
 ## Problem
 
-The selected-thread live state is verified, but the primary execution signal in the active conversation still competes with header summary copy instead of reading like one compact Codex-style live rail anchored to the transcript and composer. The composer-adjacent strip should become the primary healthy-path signal and disappear immediately when the path degrades.
+The selected-thread live state is now compact and verified, but an intentional thread switch can still feel like a reset if the active conversation shell drops to the generic empty view before the next snapshot attaches. The workspace should keep the conversation shell and composer dock mounted and show one compact attach placeholder tied to the target thread until the selected-thread handoff completes.
 
 ## Target User
 
@@ -18,11 +18,11 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the existing selected-thread SSE ownership, reconnect, polling, and terminal datasets instead of widening transport scope.
-- Constrain this iteration to the compact composer-adjacent live session strip in the selected-thread workspace.
-- Keep transport scope, runtime APIs, side-panel behavior, and cross-thread state unchanged.
-- Remove the strip immediately on downgrade or terminal resolution rather than stretching it into a degraded-path status surface.
+- Reuse the existing `threadTransition`, selected-thread SSE ownership, append-stream, and snapshot attach datasets instead of widening transport scope.
+- Constrain this iteration to intentional selected-thread switch continuity inside the center conversation shell.
+- Keep transport scope, runtime APIs, side-panel behavior, sticky live rail surfaces, and cross-thread mirroring unchanged.
+- Clear the old thread's live ownership immediately on switch and never show the generic empty-state reset during an intentional selected-thread handoff.
 
 ## Deliverable
 
-Keep the existing selected-conversation SSE path and conversation-first shell ownership, but render exactly one compact live session strip above the composer only while the selected thread is healthy and SSE-owned, keep it chip-first and selected-thread scoped, and clear it on reconnect downgrade, polling fallback, thread switch, or terminal completion.
+Keep the existing conversation-first shell and composer dock mounted during an intentional selected-thread handoff, render exactly one compact transition placeholder for the target conversation until the new snapshot and append stream attach, and ensure stale live-owned chips and rails from the old thread clear immediately while the generic empty-state view remains reserved for true no-conversation idle.
