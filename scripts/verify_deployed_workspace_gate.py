@@ -180,6 +180,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "renderSessionSummary", label="session summary helper")
     require(render_js, "composerOwnerState", label="composer owner state helper")
     require(render_js, "syncComposerOwnership", label="composer ownership sync helper")
+    require(render_js, "compactTargetLabel", label="compact target label helper")
+    require(render_js, "summaryHint", label="summary hint helper")
     require(render_js, "phaseChip", label="live phase chip helper")
     require(render_js, "transportChip", label="live transport chip helper")
     require(render_js, "shouldShowComposerLiveStrip", label="session strip visibility helper")

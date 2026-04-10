@@ -8,7 +8,7 @@
 
 ## Problem
 
-The selected-thread workspace already exposes ownership and transport clearly, but the submit-to-first-append handoff is still too noisy. After submit, the active thread can imply acceptance in more than one place instead of resolving to exactly one pending outbound user turn, then exactly one temporary assistant placeholder, until the first real assistant append or a clear condition takes over.
+The selected-thread workspace already exposes ownership and transport through the intended SSE path, but the center header and footer still require too much prose reading. The session summary row, composer owner row, and composer-adjacent live strip should read as one compact target-first structure instead of helper-copy chrome.
 
 ## Target User
 
@@ -18,11 +18,11 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the existing selected-conversation SSE route instead of widening transport scope.
-- Constrain this iteration to the selected-thread submit-to-first-append handoff in the existing center workspace and composer-adjacent activity bar.
-- Keep the selected-thread SSE path, footer composer, side-panel behavior, and rail ownership model unchanged.
-- Leave transport scope, runtime APIs, thread-switch behavior, and selected-row live ownership unchanged while making the handoff state singular and easier to read.
+- Reuse the existing selected-conversation SSE and handoff ownership model instead of widening transport scope.
+- Constrain this iteration to the selected-thread center header summary row, composer owner row, and composer-adjacent live strip.
+- Keep the selected-thread SSE path, footer composer structure, side-panel behavior, and rail ownership model unchanged.
+- Leave transport scope, runtime APIs, thread-switch behavior, handoff semantics, and selected-row live ownership unchanged while making the visible session chrome shorter and more chip-first.
 
 ## Deliverable
 
-Keep the existing selected-conversation SSE path and conversation-first shell ownership, but make the selected-thread handoff resolve to one bounded state at a time: one pending outbound user turn before acceptance, one temporary assistant placeholder after acceptance, one composer-adjacent handoff bar that matches that stage, and immediate clearing on first assistant append, terminal failure, idle reset, polling-only fallback, or thread switch.
+Keep the existing selected-conversation SSE path and conversation-first shell ownership, but compress the selected-thread summary row, composer owner row, and composer-adjacent live strip into one target-first chip structure: compact scope, path, state, and hint labels; compact owner target and attach labels; compact live strip detail copy; and no new status surface or prose-heavy helper row competing with the transcript.

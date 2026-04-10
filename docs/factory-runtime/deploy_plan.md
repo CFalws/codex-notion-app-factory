@@ -2,16 +2,16 @@
 
 ## Deployment Impact
 
-This iteration keeps the GitHub Pages operator workspace render layer contract centered on the selected-thread submit-to-first-append handoff. The bounded expectation is that the selected conversation exposes exactly one pending outbound user turn before acceptance, exactly one temporary assistant placeholder after acceptance, and one matching composer-adjacent handoff bar without duplicate accepted-status blocks.
+This iteration keeps the GitHub Pages operator workspace render layer contract centered on compact selected-thread session chrome. The bounded expectation is that the selected conversation exposes target, attach, handoff, and live transport through chip-first header and footer surfaces without relying on sentence-style helper copy or introducing a second status surface.
 
 ## Rollout Notes
 
 1. Apply the proposal commit onto `main`.
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
 3. Open the operator console on desktop and phone widths with one selected conversation connected through the internal append SSE path.
-4. Submit one message in the selected conversation and confirm the transcript shows exactly one pending outbound user turn before acceptance.
-5. After acceptance, confirm the transcript clears that user placeholder and shows exactly one temporary assistant placeholder instead of a second accepted-status block.
-6. Confirm the composer-adjacent activity bar matches the same selected-thread handoff stage and does not diverge from the transcript placeholder.
-7. Confirm first assistant append, terminal failure, idle reset, polling-only fallback, and thread switch each clear the temporary assistant placeholder immediately.
-8. Confirm no state ever shows both pending-user and pending-assistant surfaces at once, and no duplicate accepted-status block reappears in the transcript.
-9. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the selected-thread handoff proof still passes without degraded-path signals or duplicate pending surfaces.
+4. Confirm the selected-thread header summary shows a compact target chip plus compact path, state, and hint chips instead of a sentence-style summary row.
+5. Confirm the composer owner row exposes one compact owner chip, one compact target chip, and one compact attach hint without any paragraph-style helper copy.
+6. Confirm the composer-adjacent live strip keeps its existing machine-readable transport and phase chips while reducing detail copy to compact chip-like wording.
+7. Confirm switching, handoff, live, degraded transport, and idle states remain distinguishable in the same surfaces on desktop and phone widths.
+8. Confirm no new status surface appears and the transcript remains the dominant workspace surface.
+9. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the compact selected-thread session chrome proof still passes without degraded-path signals.

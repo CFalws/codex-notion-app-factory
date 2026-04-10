@@ -118,6 +118,20 @@ export function renderDraftStatus(dom, message) {
   dom.draftStatus.textContent = message;
 }
 
+function compactTargetLabel(value, fallback = "SELECTED") {
+  const simplified = simplifyText(value || "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!simplified) {
+    return fallback;
+  }
+  return simplified.length > 28 ? `${simplified.slice(0, 27).trimEnd()}…` : simplified;
+}
+
+function summaryHint(pathLabel, stateLabel) {
+  return `${pathLabel} · ${stateLabel}`;
+}
+
 function composerOwnerState(currentState, conversation) {
   const threadTransition = currentState.threadTransition || {};
   const pendingOutgoing = currentState.pendingOutgoing || {};
@@ -135,8 +149,8 @@ function composerOwnerState(currentState, conversation) {
       label: "SWITCHING",
       tone: "warning",
       conversationId: String(threadTransition.targetConversationId || ""),
-      target: String(threadTransition.targetTitle || "선택한 대화").trim() || "선택한 대화",
-      copy: "새 selected-thread snapshot을 붙이는 중이라 이전 thread로는 보낼 수 없습니다.",
+      target: compactTargetLabel(threadTransition.targetTitle || "선택한 대화", "ATTACH TARGET"),
+      copy: "ATTACH PENDING",
       blocked: true,
       blockedReason: "selected-thread attach가 끝날 때까지 잠시 기다려 주세요.",
     };
@@ -155,11 +169,11 @@ function composerOwnerState(currentState, conversation) {
       label: "HANDOFF",
       tone: "neutral",
       conversationId,
-      target: conversationTitle,
+      target: compactTargetLabel(conversationTitle, "CURRENT THREAD"),
       copy:
         pendingOutgoing.status === "sending-user"
-          ? "현재 메시지를 selected thread에 handoff하는 중입니다."
-          : "handoff는 확인되었고 첫 assistant append를 기다리는 중입니다.",
+          ? "SEND LOCK"
+          : "FIRST APPEND",
       blocked: false,
       blockedReason: "",
     };
@@ -171,8 +185,8 @@ function composerOwnerState(currentState, conversation) {
       label: "READY",
       tone: "healthy",
       conversationId,
-      target: conversationTitle,
-      copy: "이 입력창은 현재 선택된 thread에 바로 연결됩니다.",
+      target: compactTargetLabel(conversationTitle, "CURRENT THREAD"),
+      copy: "ACTIVE TARGET",
       blocked: false,
       blockedReason: "",
     };
@@ -183,8 +197,8 @@ function composerOwnerState(currentState, conversation) {
     label: "IDLE",
     tone: "muted",
     conversationId: "",
-    target: "대상을 선택하면 이 입력창의 연결 상태가 여기에 표시됩니다.",
-    copy: "선택된 대화의 target ownership을 이 줄에서 바로 확인합니다.",
+    target: "NO TARGET",
+    copy: "SELECT THREAD",
     blocked: false,
     blockedReason: "",
   };
@@ -238,36 +252,34 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   let pathLabel = "SNAPSHOT";
   let stateLabel = conversationId ? "READY" : "IDLE";
   let copy = conversationId
-    ? `${String(conversation?.title || "현재 대화")} 기준의 session context입니다.`
-    : "대화를 선택하면 selected-thread context가 여기에 고정됩니다.";
+    ? summaryHint("ACTIVE", "READY")
+    : summaryHint("NO TARGET", "IDLE");
 
   if (threadTransition.active && threadTransition.targetConversationId) {
     pathLabel = "SWITCHING";
     stateLabel = "ATTACH";
-    copy = `${String(threadTransition.targetTitle || "선택한 대화")} snapshot과 selected-thread path를 붙이는 중입니다.`;
+    copy = summaryHint("ATTACH", "PENDING");
   } else if (handoffState.stage === "pending-user") {
     pathLabel = "HANDOFF";
     stateLabel = "SENDING";
-    copy = "이전 메시지 handoff를 확인하는 중이라 composer ownership을 잠시 고정했습니다.";
+    copy = summaryHint("SEND", "LOCKED");
   } else if (handoffState.stage === "pending-assistant") {
     pathLabel = "HANDOFF";
     stateLabel = "ACCEPTED";
-    copy = "첫 assistant append가 붙을 때까지 selected-thread ownership을 유지합니다.";
+    copy = summaryHint("FIRST", "APPEND");
   } else if (status === "reconnecting") {
     pathLabel = "DEGRADED";
     stateLabel = "RESUME";
-    copy = "selected-thread attach는 유지하지만 live transport는 복구 중입니다.";
+    copy = summaryHint("RESUME", "PENDING");
   } else if (sseLiveOwner) {
     pathLabel = "SSE";
     stateLabel = String(liveRun?.phase || "LIVE").toUpperCase();
-    copy = liveRun?.jobId
-      ? `selected-thread live path · ${liveRun.jobId}`
-      : "selected-thread live path가 현재 중심 workspace를 소유합니다.";
+    copy = liveRun?.jobId ? `LIVE · ${liveRun.jobId}` : summaryHint("LIVE", "OWNED");
   }
 
   dom.sessionSummaryRow.dataset.summaryPath = pathLabel.toLowerCase();
   dom.sessionSummaryRow.dataset.summaryState = stateLabel.toLowerCase();
-  dom.sessionSummaryScope.textContent = "SELECTED THREAD";
+  dom.sessionSummaryScope.textContent = compactTargetLabel(conversation?.title || threadTransition.targetTitle || "", "SELECTED");
   dom.sessionSummaryPath.textContent = pathLabel;
   dom.sessionSummaryState.textContent = stateLabel;
   dom.sessionSummaryCopy.textContent = copy;
@@ -934,36 +946,36 @@ function proposalChip(liveRun) {
 
 function phaseDetailHint(liveRun) {
   if (liveRun.state === "proposal-phase") {
-    return "bounded hypothesis 정리 중";
+    return "HYPOTHESIS";
   }
   if (liveRun.state === "review-phase") {
-    return "review 승인 신호 확인 중";
+    return "REVIEW SIGNAL";
   }
   if (liveRun.state === "verify-phase") {
-    return "verify 결과 수집 중";
+    return "VERIFY SIGNAL";
   }
   if (liveRun.state === "auto-apply") {
-    return "승인 후 자동 적용 진행 중";
+    return "AUTO APPLY";
   }
   if (liveRun.state === "proposal-ready") {
-    return "proposal 승인 또는 적용 대기";
+    return "READY TO APPLY";
   }
   if (liveRun.state === "applied") {
-    return "proposal 적용 반영 완료";
+    return "APPLY COMPLETE";
   }
   if (liveRun.state === "accepted" || liveRun.phase === "ACCEPTED") {
-    return "첫 응답 대기";
+    return "FIRST APPEND";
   }
   if (liveRun.state === "generating") {
-    return "첫 응답 생성 중";
+    return "GENERATING";
   }
   if (liveRun.state === "failed") {
-    return "실패 또는 예외 확인 필요";
+    return "CHECK FAILURE";
   }
   if (liveRun.state === "sending") {
-    return "메시지 handoff 진행 중";
+    return "SEND LOCK";
   }
-  return liveRun.detail || "현재 상태를 확인할 수 있습니다.";
+  return liveRun.detail ? compactTargetLabel(liveRun.detail, "SESSION ACTIVE") : "SESSION ACTIVE";
 }
 
 function composerActionHint(status, presentation, liveRun) {

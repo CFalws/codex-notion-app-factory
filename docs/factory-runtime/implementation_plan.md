@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
 1. Keep the current selected-conversation SSE path, transcript shell, footer composer, and non-selected snapshot rows unchanged.
-2. Reuse the existing `pendingOutgoing` and selected-thread ownership state instead of introducing another handoff source.
-3. Keep the transcript limited to one pending outbound user turn before acceptance and one temporary assistant placeholder after acceptance, never both at once.
-4. Make the composer-adjacent handoff bar match that single selected-thread stage and clear accepted state immediately on first assistant append, terminal failure, polling-only fallback, idle reset, or thread switch.
-5. Keep the focused verifier and durable docs aligned with the single-stage selected-thread handoff contract.
+2. Reuse the existing selected-thread ownership, handoff, and live-strip datasets instead of introducing another session source.
+3. Compress the session summary row so target, path, state, and supporting hint read as compact chips instead of sentence-style helper copy.
+4. Compress the composer owner row and live strip so target, attach, transport, and phase cues stay short, target-first, and machine-readable without changing their ownership semantics.
+5. Keep the focused verifier and durable docs aligned with the compact selected-thread session chrome contract.

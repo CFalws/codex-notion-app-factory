@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
 - [x] Keep the current selected-conversation SSE path, transcript shell, footer composer, and non-selected snapshot rows unchanged.
-- [x] Reuse the existing `pendingOutgoing` and selected-thread ownership state instead of introducing another handoff source.
-- [x] Limit the transcript to exactly one pending outbound user turn before acceptance and exactly one temporary assistant placeholder after acceptance.
-- [x] Keep the composer-adjacent handoff bar aligned with that single selected-thread stage and clear accepted state on assistant append, terminal failure, idle reset, polling-only fallback, or thread switch.
-- [x] Keep the focused verifier and iteration artifacts aligned with the single-stage selected-thread handoff contract.
+- [x] Reuse the existing selected-thread ownership, handoff, and live-strip datasets instead of introducing another session source.
+- [x] Compress the session summary row into compact target, path, state, and hint chips.
+- [x] Compress the composer owner row and live strip into target-first compact chips without changing their ownership semantics.
+- [x] Keep the focused verifier and iteration artifacts aligned with the compact selected-thread session chrome contract.
