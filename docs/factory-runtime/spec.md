@@ -8,7 +8,7 @@
 
 ## Problem
 
-The selected-thread handoff path is now compact and verified, but recent thread history is still mostly trapped in the left rail. On phone-sized layouts that means the operator has to leave the active transcript and composer to move between the current thread and nearby recent threads, which breaks the Codex-style session feel even when the live path itself is correct.
+The selected-thread handoff and quick-switch paths are now compact and verified, but the workspace still makes users infer whether they are attached to the live tail after scrolling up to read history. That weakens the realtime-session feel because healthy SSE ownership remains active while the visible workspace no longer says whether follow is still attached or paused.
 
 ## Target User
 
@@ -18,11 +18,11 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the existing conversation list payload, `threadTransition`, selected-thread SSE ownership, append-stream, and snapshot labels instead of widening transport scope.
-- Constrain this iteration to a bounded quick-switch rail inside the center conversation workspace.
-- Keep the left rail, runtime APIs, side-panel behavior, SSE transport, and selected-thread handoff path unchanged.
-- Keep transcript and composer mounted during switches and ensure non-selected threads never retain live-owned treatment.
+- Reuse the existing `liveFollow`, selected-thread SSE ownership, append-stream, and jump-to-latest state instead of widening transport scope.
+- Constrain this iteration to live progress visibility inside the selected-thread header summary, jump-to-latest affordance, and composer-adjacent session strip.
+- Keep the left rail, runtime APIs, side-panel behavior, SSE transport, and recent-thread quick-switch rail unchanged.
+- Clear paused or following follow-state signals immediately on thread switch, reconnect downgrade, polling fallback, and terminal completion.
 
 ## Deliverable
 
-Render one compact recent-thread quick-switch rail beneath the conversation header using a bounded set of existing conversation-list entries, let the operator jump directly between the selected thread and recent threads from the center pane, mirror selected and live-state cues with chip-only labels, and continue to clear stale live ownership immediately on switch, downgrade, or terminal completion.
+Promote the existing selected-thread `liveFollow` state into the conversation-first workspace so the header summary, composer-adjacent session strip, and jump-to-latest affordance explicitly distinguish FOLLOWING versus FOLLOW PAUSED on the healthy selected-thread SSE path, while degraded and terminal paths clear those signals immediately.

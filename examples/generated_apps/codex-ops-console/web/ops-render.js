@@ -277,11 +277,19 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   } else if (sseLiveOwner) {
     pathLabel = "SSE";
     stateLabel = String(liveRun?.phase || "LIVE").toUpperCase();
-    copy = liveRun?.jobId ? `LIVE · ${liveRun.jobId}` : summaryHint("LIVE", "OWNED");
+    copy =
+      sessionIndicator.state === "paused"
+        ? liveRun?.jobId
+          ? `FOLLOW PAUSED · ${liveRun.jobId}`
+          : summaryHint("LIVE", "FOLLOW PAUSED")
+        : liveRun?.jobId
+          ? `FOLLOWING · ${liveRun.jobId}`
+          : summaryHint("LIVE", "FOLLOWING");
   }
 
   dom.sessionSummaryRow.dataset.summaryPath = pathLabel.toLowerCase();
   dom.sessionSummaryRow.dataset.summaryState = stateLabel.toLowerCase();
+  dom.sessionSummaryRow.dataset.followState = sessionIndicator.state;
   dom.sessionSummaryRow.dataset.liveSessionState = sessionIndicator.state;
   dom.sessionSummaryRow.dataset.liveSessionSource = sessionIndicator.source;
   dom.sessionSummaryRow.dataset.liveSessionReason = sessionIndicator.reason;
@@ -342,6 +350,7 @@ function selectedThreadLiveSessionIndicator(currentState, conversation, liveRun,
   const appendStream = currentState.appendStream || {};
   const threadTransition = currentState.threadTransition || {};
   const appSession = currentState.appSession || {};
+  const liveFollow = currentState.liveFollow || {};
   const conversationId = String(conversation?.conversation_id || "");
   const streamConversationId = String(appendStream.conversationId || "");
   const transport = String(appendStream.transport || "polling").toLowerCase();
@@ -363,6 +372,7 @@ function selectedThreadLiveSessionIndicator(currentState, conversation, liveRun,
     liveRun.phase !== "IDLE";
   const retrying = latestType === "codex.exec.retrying";
   const sessionRotationDetected = Boolean(appSession.rotationDetected) && Boolean(appSession.appId);
+  const followPaused = selectedThreadSseOwned && !Boolean(liveFollow.isFollowing);
   if (
     !hasActiveRun ||
     threadTransition.active ||
@@ -382,11 +392,11 @@ function selectedThreadLiveSessionIndicator(currentState, conversation, liveRun,
   if (selectedThreadSseOwned) {
     return {
       visible: true,
-      label: "SSE OWNER",
-      state: "live",
+      label: followPaused ? "FOLLOW PAUSED" : "FOLLOWING",
+      state: followPaused ? "paused" : "following",
       source: "sse",
-      reason: "selected-thread-sse",
-      tone: "healthy",
+      reason: followPaused ? "selected-thread-follow-paused" : "selected-thread-following",
+      tone: followPaused ? "warning" : "healthy",
       owned: true,
     };
   }
@@ -640,8 +650,15 @@ function syncJumpToLatest(dom, currentState, conversationId, renderSource) {
     Number(liveFollow.pendingAppendCount || 0),
     Number(liveFollow.lastAppendId || 0) - Number(liveFollow.lastSeenAppendId || 0),
   );
-  const followState = renderSource === "sse" ? "new" : "paused";
-  const isVisible = Boolean(conversationId && liveFollow.jumpVisible && unseenCount > 0);
+  const streamState = String(dom.threadScroller?.dataset.streamState || "offline").toLowerCase();
+  const liveOwned =
+    Boolean(conversationId) &&
+    String(dom.threadScroller?.dataset.sessionOwner || "none") === "selected-thread" &&
+    renderSource === "sse" &&
+    streamState === "live";
+  const pausedVisible = liveOwned && !Boolean(liveFollow.isFollowing);
+  const followState = unseenCount > 0 ? "new" : "paused";
+  const isVisible = Boolean(liveOwned && (pausedVisible || (liveFollow.jumpVisible && unseenCount > 0)));
   const stateLabel = followState === "new" ? "NEW" : "PAUSED";
   const detailLabel =
     followState === "new"
@@ -1246,6 +1263,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
     dom.sessionStrip.dataset.liveRunSource = "none";
     dom.sessionStrip.dataset.liveRunJob = "";
     dom.sessionStrip.dataset.liveRunTone = "idle";
+    dom.sessionStrip.dataset.followState = "idle";
     dom.sessionStrip.dataset.sessionOwner = "none";
     dom.sessionStrip.dataset.sessionCollapsed = "false";
     dom.threadScroller.dataset.streamState = "offline";
@@ -1317,6 +1335,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStrip.dataset.liveRunSource = liveRun.source;
   dom.sessionStrip.dataset.liveRunJob = liveRun.jobId || "";
   dom.sessionStrip.dataset.liveRunTone = liveRun.tone;
+  dom.sessionStrip.dataset.followState = sessionOwnerState.state;
 
   const railChips = [
     `<span class="session-chip" data-tone="${escapeHtml(sessionOwnerState.tone)}">${escapeHtml(sessionOwnerState.label)}</span>`,
@@ -1327,7 +1346,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
     railChips.push(`<span class="session-chip" data-tone="${escapeHtml(proposalState.tone)}">${escapeHtml(proposalState.label)}</span>`);
   }
   dom.sessionStripState.innerHTML = railChips.join("");
-  dom.sessionStripMeta.textContent = `selected thread · #${lastLiveAppendId || lastAppendId || 0}${liveRun.jobId ? ` · ${liveRun.jobId}` : ""}`;
+  dom.sessionStripMeta.textContent = `${sessionOwnerState.state === "paused" ? "follow paused" : "following"} · #${lastLiveAppendId || lastAppendId || 0}${liveRun.jobId ? ` · ${liveRun.jobId}` : ""}`;
   dom.sessionStripDetail.textContent = composerActionHint(status, presentation, liveRun);
   if (dom.sessionStripToggle) {
     dom.sessionStripToggle.hidden = true;

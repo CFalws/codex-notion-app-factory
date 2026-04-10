@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep the current selected-thread SSE path, conversation shell, footer composer dock, sticky active-session row, left navigation rail, and side-panel behavior unchanged.
-- [x] Add a compact recent-thread quick-switch rail beneath the conversation header using the existing conversation list payload and keep it bounded to a small set of recent threads.
-- [x] Reuse the existing selected-thread ownership, handoff, follow, and snapshot label helpers so the center-pane rail mirrors the same selected and live-state cues without adding a second source of truth.
-- [x] Route quick-switch clicks through the current `fetchConversation` and `threadTransition` path so transcript and composer continuity stay intact and stale live ownership still clears immediately.
-- [x] Align the focused verifier, deployed workspace gate, and iteration artifacts with the center-pane recent-thread rail contract.
+- [x] Keep the current selected-thread SSE path, conversation shell, footer composer dock, jump-to-latest affordance, recent-thread rail, and side-panel behavior unchanged.
+- [x] Promote the existing `liveFollow.isFollowing` state into the shared selected-thread session indicator so healthy SSE ownership can read as FOLLOWING or FOLLOW PAUSED without inventing another state source.
+- [x] Reuse that same follow-state signal in the session summary copy, composer-adjacent session strip metadata, and jump-to-latest visibility logic so paused follow becomes explicit while the user reads history.
+- [x] Keep the paused and following signals gated behind healthy selected-thread SSE ownership so reconnecting, polling fallback, thread switch, and terminal completion immediately clear them.
+- [x] Align the focused verifier, deployed workspace gate, and iteration artifacts with the explicit live-follow visibility contract.
