@@ -43,6 +43,21 @@
             <h2>대화</h2>
             <button id="new-conversation" class="secondary small">새 대화</button>
           </div>
+          <div
+            id="active-session-row"
+            class="active-session-row"
+            data-active-session-state="idle"
+            data-active-session-conversation-id=""
+            hidden
+          >
+            <div class="active-session-chip-row">
+              <span id="active-session-owner" class="active-session-chip" data-active-chip="owner">OWNER</span>
+              <span id="active-session-state" class="active-session-chip" data-active-chip="state">LIVE</span>
+              <span id="active-session-follow" class="active-session-chip" data-active-chip="follow">LIVE</span>
+            </div>
+            <p id="active-session-title" class="active-session-title">선택된 대화</p>
+            <p id="active-session-meta" class="active-session-meta">selected thread</p>
+          </div>
           <div id="conversation-list" class="conversation-list"></div>
         </section>
 

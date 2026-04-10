@@ -284,6 +284,74 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   padding-right: 0.2rem;
 }
 
+.active-session-row {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.75rem 0.82rem;
+  border: 1px solid rgba(31, 120, 224, 0.2);
+  border-radius: 1rem;
+  background:
+    linear-gradient(135deg, rgba(31, 120, 224, 0.1), rgba(255, 255, 255, 0) 52%),
+    rgba(255, 255, 255, 0.88);
+  box-shadow: 0 10px 22px rgba(31, 120, 224, 0.08);
+}
+
+.active-session-chip-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.active-session-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.6rem;
+  padding: 0.14rem 0.48rem;
+  border: 1px solid rgba(31, 120, 224, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--accent-ink);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.active-session-title {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.active-session-meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.active-session-row[data-active-session-state="switching"] .active-session-chip[data-active-chip="state"],
+.active-session-row[data-active-session-state="handoff"] .active-session-chip[data-active-chip="state"],
+.active-session-row[data-active-session-follow="handoff"] .active-session-chip[data-active-chip="follow"],
+.active-session-row[data-active-session-state="paused"] .active-session-chip[data-active-chip="state"],
+.active-session-row[data-active-session-follow="paused"] .active-session-chip[data-active-chip="follow"] {
+  color: var(--warning);
+  border-color: rgba(178, 114, 24, 0.24);
+  background: rgba(178, 114, 24, 0.1);
+}
+
+.active-session-row[data-active-session-state="live"] .active-session-chip[data-active-chip="state"],
+.active-session-row[data-active-session-follow="live"] .active-session-chip[data-active-chip="follow"],
+.active-session-row[data-active-session-follow="new"] .active-session-chip[data-active-chip="follow"] {
+  color: #fff;
+  border-color: rgba(31, 120, 224, 0.32);
+  background: linear-gradient(135deg, rgba(31, 120, 224, 0.94), rgba(18, 83, 163, 0.94));
+}
+
 .conversation-card {
   display: grid;
   gap: 0.38rem;

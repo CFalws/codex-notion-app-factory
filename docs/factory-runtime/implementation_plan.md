@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Keep the current selected-conversation SSE path, transcript shell, footer composer dock, and rail ownership model unchanged.
-2. Reuse the existing `threadTransition` state and selected-thread ownership clearing instead of introducing another switch-state source.
-3. Keep the center workspace mounted during intentional thread switches and render at most one compact `SWITCHING` placeholder until the new snapshot attaches.
-4. Limit the generic empty-state branch to true no-conversation idle so thread switches never flash a reset view.
-5. Keep the focused verifier and durable docs aligned with the selected-thread switch continuity contract.
+1. Keep the current selected-conversation SSE path, transcript shell, footer composer dock, and side-panel behavior unchanged.
+2. Reuse the existing selected-thread handoff, live-follow, append-stream, and thread-transition state instead of introducing another session source.
+3. Add one compact active-session row above the conversation list that mirrors selected-thread owner, phase, follow or unseen state, and switching status.
+4. Clear the active-session row immediately on true idle, terminal resolution, reconnect downgrade, polling fallback, or thread switch so stale ownership never survives.
+5. Keep the focused verifier and durable docs aligned with the sticky active-session row contract.

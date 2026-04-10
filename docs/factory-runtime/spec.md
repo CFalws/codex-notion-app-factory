@@ -8,7 +8,7 @@
 
 ## Problem
 
-The selected-thread workspace still risks feeling discontinuous during intentional thread switches if the center pane drops to a generic empty reset before the new snapshot binds. The switch path should keep the conversation shell mounted, clear stale old-thread ownership immediately, and render only one compact transition placeholder until attach completes.
+The selected-thread center pane is now more message-first, but session ownership and unseen live pressure are still hard to read from the navigation column alone. The left rail should mirror the active selected-thread session state in one compact sticky row so users can keep track of owner, switching, reconnecting, handoff, and unseen live pressure without leaving the conversation-first workspace.
 
 ## Target User
 
@@ -18,11 +18,11 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the existing selected-conversation SSE ownership, thread transition, and composer ownership model instead of widening transport scope.
-- Constrain this iteration to the selected-thread switch continuity contract in the center-pane render path.
-- Keep the selected-thread SSE path, footer composer structure, side-panel behavior, and left-rail ownership semantics unchanged.
-- Leave transport scope, runtime APIs, polling fallback rules, and proposal flow unchanged while tightening the switch continuity contract.
+- Reuse the existing selected-conversation SSE ownership, thread transition, and live-follow datasets instead of widening transport scope.
+- Constrain this iteration to the left conversation navigation render path.
+- Keep the selected-thread SSE path, footer composer structure, side-panel behavior, and center-pane session chrome unchanged.
+- Leave transport scope, runtime APIs, polling fallback rules, and proposal flow unchanged while tightening selected-thread navigation mirroring.
 
 ## Deliverable
 
-Keep the existing selected-conversation SSE path and conversation-first shell ownership, but preserve one continuous workspace during intentional thread switches: clear old-thread live ownership immediately, keep the transcript and composer dock mounted, and render at most one compact `SWITCHING` placeholder until the new selected-thread snapshot attaches, with the generic empty state limited to true no-conversation idle.
+Keep the existing selected-conversation SSE path and conversation-first shell ownership, but add one compact sticky active-session row above the conversation list that mirrors the selected-thread conversation id, current owner or phase cue, follow or unseen state, and switching status from existing selected-thread state, then clears on true idle, terminal resolution, reconnect downgrade, polling fallback, or thread switch.

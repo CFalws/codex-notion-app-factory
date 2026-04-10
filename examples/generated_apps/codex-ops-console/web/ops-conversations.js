@@ -468,6 +468,100 @@ export function createConversationController(deps) {
     return "LIVE";
   }
 
+  function syncActiveSessionRow({
+    selectedConversationId = "",
+    liveConversationId = "",
+    presentation = "cleared",
+    liveRunState = "done",
+    liveRunPhase = "",
+    pendingStage = "idle",
+    jumpVisible = false,
+    isFollowing = false,
+    sessionTerminal = false,
+    renderSource = "snapshot",
+  } = {}) {
+    if (
+      !dom.activeSessionRow ||
+      !dom.activeSessionOwner ||
+      !dom.activeSessionState ||
+      !dom.activeSessionFollow ||
+      !dom.activeSessionTitle ||
+      !dom.activeSessionMeta
+    ) {
+      return;
+    }
+
+    const threadTransition = state.threadTransition || {};
+    const selectedThreadSseOwned =
+      selectedConversationId &&
+      selectedConversationId === liveConversationId &&
+      renderSource === "sse";
+
+    let visible = false;
+    let conversationId = "";
+    let rowState = "idle";
+    let ownerLabel = "OWNER";
+    let stateLabel = "LIVE";
+    let followLabel = "LIVE";
+    let title = "";
+    let meta = "";
+
+    if (threadTransition.active && threadTransition.targetConversationId) {
+      visible = true;
+      conversationId = String(threadTransition.targetConversationId || "");
+      rowState = "switching";
+      stateLabel = "SWITCHING";
+      followLabel = "ATTACH";
+      title =
+        String(threadTransition.targetTitle || "").trim() ||
+        threadTitleForConversation(conversationId) ||
+        "선택한 대화";
+      meta = "selected thread · attach pending";
+    } else if (
+      selectedConversationId &&
+      !sessionTerminal &&
+      (pendingStage === "pending-user" || pendingStage === "pending-assistant" || selectedThreadSseOwned)
+    ) {
+      visible = true;
+      conversationId = selectedConversationId;
+      rowState = liveOwnerState({ pendingStage, presentation, isFollowing, jumpVisible });
+      stateLabel = compactConversationLabel({
+        presentation,
+        liveRunState,
+        liveRunPhase,
+        pendingStage,
+        isSelected: true,
+      });
+      followLabel = liveOwnerFollowLabel({ pendingStage, isFollowing, jumpVisible, presentation });
+      title =
+        threadTitleForConversation(selectedConversationId) ||
+        String(dom.threadTitle?.textContent || "").trim() ||
+        "현재 대화";
+      if (pendingStage === "pending-user" || pendingStage === "pending-assistant") {
+        meta = "selected thread · handoff";
+      } else if (presentation === "reconnecting") {
+        meta = "selected thread · reconnecting";
+      } else if (jumpVisible) {
+        meta = "selected thread · unseen live appends";
+      } else if (isFollowing) {
+        meta = "selected thread · live follow";
+      } else {
+        meta = "selected thread · paused";
+      }
+    }
+
+    dom.activeSessionRow.hidden = !visible;
+    dom.activeSessionRow.dataset.activeSessionState = visible ? rowState : "idle";
+    dom.activeSessionRow.dataset.activeSessionConversationId = visible ? conversationId : "";
+    dom.activeSessionRow.dataset.activeSessionPresentation = visible ? presentation : "cleared";
+    dom.activeSessionRow.dataset.activeSessionFollow = visible ? followLabel.toLowerCase() : "idle";
+    dom.activeSessionOwner.textContent = ownerLabel;
+    dom.activeSessionState.textContent = stateLabel;
+    dom.activeSessionFollow.textContent = followLabel;
+    dom.activeSessionTitle.textContent = visible ? title : "선택된 대화";
+    dom.activeSessionMeta.textContent = visible ? meta : "selected thread";
+  }
+
   function clearThreadTransition() {
     state.threadTransition = {
       active: false,
@@ -643,6 +737,19 @@ export function createConversationController(deps) {
         liveFollowText.dataset.liveOwnerState = isSelected && showLiveMirror ? liveOwnerStateLabel : "idle";
       }
     }
+
+    syncActiveSessionRow({
+      selectedConversationId,
+      liveConversationId,
+      presentation,
+      liveRunState,
+      liveRunPhase,
+      pendingStage,
+      jumpVisible,
+      isFollowing,
+      sessionTerminal,
+      renderSource,
+    });
   }
 
   async function refreshGoalSummary() {
@@ -667,6 +774,7 @@ export function createConversationController(deps) {
   function renderConversationList(conversations, selectedConversationId = "") {
     if (!conversations.length) {
       dom.conversationList.innerHTML = '<p class="conversation-list-empty">아직 대화가 없습니다.</p>';
+      syncConversationCardState();
       return;
     }
 
