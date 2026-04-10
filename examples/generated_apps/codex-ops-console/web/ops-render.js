@@ -658,9 +658,11 @@ function syncJumpToLatest(dom, currentState, conversationId, renderSource) {
     String(dom.threadScroller?.dataset.sessionOwner || "none") === "selected-thread" &&
     renderSource === "sse" &&
     streamState === "live";
-  const pausedVisible = liveOwned && !Boolean(liveFollow.isFollowing);
-  const followState = unseenCount > 0 ? "new" : "paused";
-  const isVisible = Boolean(liveOwned && (pausedVisible || (liveFollow.jumpVisible && unseenCount > 0)));
+  const detached = !Boolean(liveFollow.isFollowing);
+  const hasBacklog = unseenCount > 0;
+  const pausedVisible = liveOwned && detached && !hasBacklog;
+  const followState = hasBacklog ? "new" : "paused";
+  const isVisible = Boolean(liveOwned && detached && Boolean(liveFollow.jumpVisible) && hasBacklog);
   const stateLabel = followState === "new" ? "NEW" : "PAUSED";
   const detailLabel =
     followState === "new"
@@ -670,6 +672,7 @@ function syncJumpToLatest(dom, currentState, conversationId, renderSource) {
       : "live follow paused";
   dom.jumpToLatestButton.hidden = !isVisible;
   dom.jumpToLatestButton.dataset.followConversationId = conversationId || "";
+  dom.jumpToLatestButton.dataset.followOwned = liveOwned ? "selected-thread" : "none";
   dom.jumpToLatestButton.dataset.followMode = liveFollow.isFollowing ? "following" : "paused";
   dom.jumpToLatestButton.dataset.followState = isVisible ? followState : "hidden";
   dom.jumpToLatestButton.dataset.followCount = String(isVisible ? unseenCount : 0);

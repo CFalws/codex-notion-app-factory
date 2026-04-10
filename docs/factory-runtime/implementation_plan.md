@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Keep the current selected-thread SSE path, conversation shell, footer composer dock, recent-thread rail, and side-panel behavior unchanged.
-2. Reuse existing selected-thread append-stream, pending handoff, and live-run selectors to derive one inline transcript-tail session block without introducing a second live state source.
-3. Show HANDOFF while the selected thread is awaiting the first assistant append, and show LIVE only while healthy SSE ownership remains active for that same selected thread.
-4. Append the block at the transcript tail so the conversation stream stays the dominant surface, and clear it immediately on first real assistant append, terminal completion, reconnect downgrade, polling fallback, or thread switch.
-5. Align the focused verifier, deployed workspace gate, and iteration artifacts with the single inline transcript-tail session block contract.
+1. Keep the current selected-thread SSE path, conversation shell, transcript-tail live block, footer dock, recent-thread rail, and side-panel behavior unchanged.
+2. Reuse existing live-follow and selected-thread ownership state to scope the bottom follow affordance to the current healthy SSE-owned thread only.
+3. Tighten the visibility rule so the follow control appears only when the operator is detached from the tail and unseen live appends actually exist.
+4. Preserve explicit NEW versus PAUSED state mapping and unseen-count datasets while clearing the control immediately on jump-to-latest, thread switch, reconnect downgrade, polling fallback, or terminal completion.
+5. Align the focused verifier, deployed workspace gate, and iteration artifacts with the detached-tail follow affordance contract.
