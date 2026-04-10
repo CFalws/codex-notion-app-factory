@@ -8,7 +8,7 @@
 
 ## Problem
 
-Selected-thread attach and reconnect now come from the SSE stream, but phase rendering still synthesizes proposal, review, verify, ready, applied, and other states from mixed latest-event heuristics. That lets non-authoritative or partial signals look like real live progression, which raises operator inference again and breaks the intended-path guarantee for a Codex-style session workspace.
+Selected-thread attach, reconnect, and phase ownership are now bounded, but intentional thread switches still need explicit continuity evidence. The workspace should keep one mounted shell and composer during switch, clear old-thread live ownership immediately, and carry a single compact switching placeholder without letting stale phase datasets or empty-state fallback leak into the selected-thread experience.
 
 ## Target User
 
@@ -18,12 +18,13 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the existing selected-thread append SSE transport and keep `conversation.append` events unchanged.
-- Keep the change bounded to one additive authoritative phase payload on selected-thread bootstrap and append envelopes.
-- Limit authoritative phase values to `PROPOSAL`, `REVIEW`, `VERIFY`, `READY`, `APPLIED`, and `FAILED`.
-- When phase is missing, stale, non-authoritative, or outside that subset, render a neutral `LIVE` or `UNKNOWN` state instead of inferring progression from event heuristics.
-- Keep degraded reconnect, polling fallback, ownership loss, terminal idle, and switch states visibly non-owned or cleared so they cannot look like stale healthy live progression.
+- Reuse the existing selected-thread switch, attach, and authoritative phase datasets.
+- Keep the change bounded to intentional selected-thread switching in the existing conversation-first shell.
+- Do not add new inferred phases or parallel status panels.
+- Keep the center conversation shell and bottom-fixed composer mounted through switch.
+- Clear old-thread live ownership immediately and mark switching state as non-authoritative.
+- Use one compact switch placeholder and clear it as soon as the new selected thread attaches or degrades.
 
 ## Deliverable
 
-Define and verify one additive selected-thread authoritative phase contract so the healthy SSE path exposes one machine-readable phase model across bootstrap, append updates, session strip, thread scroller, and inline live block, while all non-authoritative cases degrade to `LIVE` or `UNKNOWN`.
+Define and verify one compact selected-thread switch continuity contract so intentional thread changes keep the shell mounted, preserve the composer dock, expose one switching placeholder, and explicitly reset phase ownership to non-authoritative `UNKNOWN` until the new selected thread attaches.

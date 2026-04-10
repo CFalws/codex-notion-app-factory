@@ -608,6 +608,7 @@ def assert_browser_runtime_surface(
                   return Boolean(
                     transition &&
                     document.querySelectorAll('[data-thread-transition="loading"]').length === 1 &&
+                    transition.dataset.threadTransitionPhase === "switching" &&
                     transition.dataset.threadTransitionConversationId === targetConversationId &&
                     summary &&
                     summary.hidden &&
@@ -627,6 +628,9 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.composerState === "switching" &&
                     sessionStrip.dataset.composerTransport === "attach" &&
                     sessionStrip.dataset.composerTargetConversationId === targetConversationId &&
+                    sessionStrip.dataset.phaseValue === "UNKNOWN" &&
+                    sessionStrip.dataset.phaseAuthoritative === "false" &&
+                    sessionStrip.dataset.phaseProvenance === "thread-transition" &&
                     composerOwnerRow &&
                     composerOwnerRow.hidden &&
                     composerOwnerRow.dataset.composerOwnerMerged === "true" &&
@@ -637,6 +641,9 @@ def assert_browser_runtime_surface(
                     threadScroller &&
                     threadScroller.dataset.threadTransitionState === "loading" &&
                     threadScroller.dataset.threadTransitionConversationId === targetConversationId &&
+                    threadScroller.dataset.phaseValue === "UNKNOWN" &&
+                    threadScroller.dataset.phaseAuthoritative === "false" &&
+                    threadScroller.dataset.phaseProvenance === "thread-transition" &&
                     threadScroller.dataset.sessionOwner !== "selected-thread" &&
                     follow &&
                     follow.dataset.followOwned !== "selected-thread" &&
@@ -764,6 +771,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "renderThreadTransition", label="thread transition helper")
     require(render_js, "pendingHandoffState", label="pending handoff helper")
     require(render_js, 'data-thread-transition="loading"', label="thread transition DOM")
+    require(render_js, 'data-thread-transition-phase="switching"', label="thread transition phase dataset")
     require(render_js, 'dom.conversationTimeline.innerHTML = isThreadTransition', label="thread transition placeholder render branch")
     require(render_js, '? renderThreadTransition(currentState)', label="thread transition placeholder render path")
     require(
@@ -809,6 +817,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "dataset.phaseValue", label="phase value dataset")
     require(render_js, "dataset.phaseAuthoritative", label="phase authoritative dataset")
     require(render_js, "dataset.phaseProvenance", label="phase provenance dataset")
+    require(render_js, 'ownerState.state === "switching" ? "UNKNOWN"', label="switching phase value reset")
+    require(render_js, '"thread-transition"', label="switching phase provenance")
     require(render_js, "dataset.sessionOwner", label="session owner dataset")
     require(render_js, "dataset.liveOwned", label="live ownership dataset")
     require(render_js, "dataset.composerOwnerState", label="composer owner state dataset")

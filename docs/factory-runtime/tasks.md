@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Add one additive `session_phase` payload to selected-thread `session.bootstrap` and `conversation.append` envelopes.
-- [x] Limit authoritative phase values to `PROPOSAL`, `REVIEW`, `VERIFY`, `READY`, `APPLIED`, and `FAILED`.
-- [x] Move selected-thread live surfaces onto that single phase model and render `LIVE` or `UNKNOWN` when the payload is non-authoritative.
-- [x] Expose phase value, authoritative bit, and provenance consistently in the session strip, thread scroller, and inline live block.
-- [x] Align the focused verifier and iteration artifacts with the authoritative selected-thread phase contract.
+- [x] Keep the existing conversation shell and bottom-fixed composer mounted during intentional selected-thread switch.
+- [x] Preserve exactly one compact switching placeholder in the center timeline while the new selected-thread snapshot and SSE attach are pending.
+- [x] Clear old-thread live ownership and reset switching phase datasets to non-authoritative `UNKNOWN` with `thread-transition` provenance.
+- [x] Prove the switch path avoids generic empty-state fallback and uses existing selected-thread datasets rather than polling inference.
+- [x] Align the focused verifier and iteration artifacts with the bounded switch continuity contract.

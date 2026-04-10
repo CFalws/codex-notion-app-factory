@@ -2,17 +2,16 @@
 
 ## Deployment Impact
 
-This iteration changes selected-thread phase semantics on the existing SSE route. The bounded expectation is that healthy selected-thread attach and resume expose one authoritative phase payload across the existing live surfaces, while non-authoritative cases stay neutral as `LIVE` or `UNKNOWN`.
+This iteration changes selected-thread switching semantics in the existing conversation-first workspace. The bounded expectation is that intentional thread switches keep the shell and composer mounted, show one switching placeholder, and explicitly clear phase ownership to non-authoritative `UNKNOWN` until the new selected thread attaches or degrades.
 
 ## Rollout Notes
 
 1. Apply the proposal commit onto `main`.
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
 3. Open the operator console on desktop and phone widths with a selected thread and visible conversation history.
-4. Click into a selected thread on a healthy internal SSE path and confirm attach completes without a separate `GET /api/conversations/{id}` fetch after selection.
-5. Confirm `session.bootstrap` carries `session_phase`, version `2`, and attach mode `sse-bootstrap`.
-6. Submit a request and confirm the session strip, thread scroller, and inline live block all report the same phase value and provenance from the authoritative phase model.
-7. Confirm `PROPOSAL`, `REVIEW`, `VERIFY`, `READY`, `APPLIED`, and `FAILED` appear only when `phaseAuthoritative=true`.
-8. Confirm all other selected-thread live cases render `LIVE` or `UNKNOWN` instead of inferred proposal or review states.
-9. Trigger a transient reconnect and confirm the resumed selected-thread path still preserves the same phase value and provenance across the live surfaces.
-10. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible phase contract passes on the intended attach and resume paths.
+4. Click from one selected thread to another while the first thread is still visible and confirm the center pane never flashes the generic empty state.
+5. Confirm exactly one `data-thread-transition="loading"` placeholder appears and carries `data-thread-transition-phase="switching"` until the target thread attaches or degrades.
+6. Confirm the session strip stays mounted with `composerState=switching`, `composerTransport=attach`, and the target conversation id set to the new selected thread.
+7. Confirm the session strip and thread scroller both expose `phaseValue=UNKNOWN`, `phaseAuthoritative=false`, and `phaseProvenance=thread-transition` during the switch.
+8. Confirm old-thread live ownership clears immediately across the inline live block, active-session row, follow control, and thread scroller datasets.
+9. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible switch continuity contract passes on the intended path.

@@ -1482,7 +1482,7 @@ function renderThreadTransition(currentState) {
   const threadTransition = currentState.threadTransition || {};
   const targetTitle = String(threadTransition.targetTitle || "선택한 대화").trim();
   return `
-    <article class="timeline-transition" data-thread-transition="loading" data-thread-transition-conversation-id="${escapeHtml(String(threadTransition.targetConversationId || ""))}">
+    <article class="timeline-transition" data-thread-transition="loading" data-thread-transition-phase="switching" data-thread-transition-conversation-id="${escapeHtml(String(threadTransition.targetConversationId || ""))}">
       <p class="timeline-kind">세션 전환</p>
       <div class="timeline-transition-row">
         <span class="timeline-transition-chip">SWITCH</span>
@@ -1633,6 +1633,10 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const canCollapse = false;
   const shouldCollapse = false;
   const collapsedSummary = null;
+  const phaseDatasetValue = ownerState.state === "switching" ? "UNKNOWN" : liveRun.phase || sessionPhase.value;
+  const phaseDatasetAuthoritative = ownerState.state === "switching" ? "false" : liveRun.phase && sessionPhase.authoritative ? "true" : "false";
+  const phaseDatasetProvenance =
+    ownerState.state === "switching" ? "thread-transition" : liveRun.source || sessionPhase.source;
   const liveOwned =
     transportState.owned &&
     inlineState.selectedThreadSseOwned &&
@@ -1649,9 +1653,9 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStrip.dataset.bootstrapVersion = bootstrapVersion;
   dom.sessionStrip.dataset.resumeMode = resumeMode;
   dom.sessionStrip.dataset.resumeCursor = String(resumeCursor);
-  dom.sessionStrip.dataset.phaseValue = liveRun.phase || sessionPhase.value;
-  dom.sessionStrip.dataset.phaseAuthoritative = liveRun.phase && sessionPhase.authoritative ? "true" : "false";
-  dom.sessionStrip.dataset.phaseProvenance = liveRun.source || sessionPhase.source;
+  dom.sessionStrip.dataset.phaseValue = phaseDatasetValue;
+  dom.sessionStrip.dataset.phaseAuthoritative = phaseDatasetAuthoritative;
+  dom.sessionStrip.dataset.phaseProvenance = phaseDatasetProvenance;
   dom.sessionStrip.dataset.renderSource = lastRenderSource;
   dom.sessionStrip.dataset.liveConversationId = conversationId;
   dom.sessionStrip.dataset.lastAppendId = String(lastAppendId || 0);
@@ -1700,9 +1704,9 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.threadScroller.dataset.bootstrapVersion = bootstrapVersion;
   dom.threadScroller.dataset.resumeMode = resumeMode;
   dom.threadScroller.dataset.resumeCursor = String(resumeCursor);
-  dom.threadScroller.dataset.phaseValue = liveRun.phase || sessionPhase.value;
-  dom.threadScroller.dataset.phaseAuthoritative = liveRun.phase && sessionPhase.authoritative ? "true" : "false";
-  dom.threadScroller.dataset.phaseProvenance = liveRun.source || sessionPhase.source;
+  dom.threadScroller.dataset.phaseValue = phaseDatasetValue;
+  dom.threadScroller.dataset.phaseAuthoritative = phaseDatasetAuthoritative;
+  dom.threadScroller.dataset.phaseProvenance = phaseDatasetProvenance;
   dom.threadScroller.dataset.renderSource = lastRenderSource;
   dom.threadScroller.dataset.liveConversationId = conversationId;
   dom.threadScroller.dataset.lastAppendId = String(lastAppendId || 0);

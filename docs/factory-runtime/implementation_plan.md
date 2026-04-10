@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Add one additive `session_phase` payload to selected-thread `session.bootstrap` and `conversation.append` envelopes, sourced only from unambiguous SSE-owned signals.
-2. Store that phase model in selected-thread append-stream state and have the existing live surfaces read it instead of deriving proposal, review, verify, ready, or applied from latest-event heuristics.
-3. Render only the bounded authoritative subset as real phases, and render `LIVE` or `UNKNOWN` whenever the phase payload is missing, stale, or non-authoritative.
-4. Expose phase value, authoritative bit, and provenance consistently across the session strip, thread scroller, and inline live block.
-5. Tighten focused verification and iteration artifacts around the bounded authoritative phase contract.
+1. Reuse the existing thread-transition placeholder path and selected-thread continuity shell instead of introducing a new switching surface.
+2. Make switching explicitly clear phase datasets to non-authoritative `UNKNOWN` with `thread-transition` provenance while the target snapshot and SSE attach are pending.
+3. Keep the session strip and composer dock mounted, keep the placeholder singular, and leave old-thread live ownership cleared across the switch path.
+4. Tighten browser verification so the switch placeholder, composer target state, and cleared ownership all remain true without empty-state fallback.
+5. Align focused verifier and iteration artifacts around the bounded switch continuity contract.

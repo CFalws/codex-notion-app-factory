@@ -516,6 +516,8 @@ def main() -> int:
     require(render_js, "dataset.phaseValue", label="phase value dataset")
     require(render_js, "dataset.phaseAuthoritative", label="phase authoritative dataset")
     require(render_js, "dataset.phaseProvenance", label="phase provenance dataset")
+    require(render_js, 'ownerState.state === "switching" ? "UNKNOWN"', label="switching phase value reset")
+    require(render_js, '"thread-transition"', label="switching phase provenance")
     require(render_js, "dataset.renderSource = lastRenderSource", label="render-source dataset")
     require(conversations_js, 'dom.threadScroller.dataset.pendingConversationId = conversationId', label="thread switch pending marker")
     require(conversations_js, "state.currentConversationId && state.currentConversationId !== conversationId", label="thread switch clear guard")
