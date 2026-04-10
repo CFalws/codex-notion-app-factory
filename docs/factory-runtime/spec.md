@@ -8,7 +8,7 @@
 
 ## Problem
 
-The selected-thread live state is now compact and verified, but an intentional thread switch can still feel like a reset if the active conversation shell drops to the generic empty view before the next snapshot attaches. The workspace should keep the conversation shell and composer dock mounted and show one compact attach placeholder tied to the target thread until the selected-thread handoff completes.
+The selected-thread handoff path is now compact and verified, but recent thread history is still mostly trapped in the left rail. On phone-sized layouts that means the operator has to leave the active transcript and composer to move between the current thread and nearby recent threads, which breaks the Codex-style session feel even when the live path itself is correct.
 
 ## Target User
 
@@ -18,11 +18,11 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the existing `threadTransition`, selected-thread SSE ownership, append-stream, and snapshot attach datasets instead of widening transport scope.
-- Constrain this iteration to intentional selected-thread switch continuity inside the center conversation shell.
-- Keep transport scope, runtime APIs, side-panel behavior, sticky live rail surfaces, and cross-thread mirroring unchanged.
-- Clear the old thread's live ownership immediately on switch and never show the generic empty-state reset during an intentional selected-thread handoff.
+- Reuse the existing conversation list payload, `threadTransition`, selected-thread SSE ownership, append-stream, and snapshot labels instead of widening transport scope.
+- Constrain this iteration to a bounded quick-switch rail inside the center conversation workspace.
+- Keep the left rail, runtime APIs, side-panel behavior, SSE transport, and selected-thread handoff path unchanged.
+- Keep transcript and composer mounted during switches and ensure non-selected threads never retain live-owned treatment.
 
 ## Deliverable
 
-Keep the existing conversation-first shell and composer dock mounted during an intentional selected-thread handoff, render exactly one compact transition placeholder for the target conversation until the new snapshot and append stream attach, and ensure stale live-owned chips and rails from the old thread clear immediately while the generic empty-state view remains reserved for true no-conversation idle.
+Render one compact recent-thread quick-switch rail beneath the conversation header using a bounded set of existing conversation-list entries, let the operator jump directly between the selected thread and recent threads from the center pane, mirror selected and live-state cues with chip-only labels, and continue to clear stale live ownership immediately on switch, downgrade, or terminal completion.

@@ -842,6 +842,127 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   border-top: 1px solid rgba(221, 210, 196, 0.6);
 }
 
+.recent-thread-rail {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.78rem 1.05rem 0.5rem;
+  border-bottom: 1px solid rgba(221, 210, 196, 0.56);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(247, 243, 237, 0.86) 100%);
+}
+
+.recent-thread-rail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.recent-thread-rail-copy {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.recent-thread-rail-list {
+  display: flex;
+  gap: 0.45rem;
+  overflow: auto;
+  padding-bottom: 0.1rem;
+  scrollbar-width: thin;
+}
+
+.recent-thread-chip {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+  padding: 0.62rem 0.72rem;
+  border: 1px solid rgba(221, 210, 196, 0.92);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
+  box-shadow: 0 8px 18px rgba(44, 25, 6, 0.05);
+}
+
+.recent-thread-chip.active {
+  border-color: rgba(31, 120, 224, 0.24);
+  background:
+    linear-gradient(135deg, rgba(31, 120, 224, 0.08), rgba(255, 255, 255, 0.94) 58%),
+    rgba(255, 255, 255, 0.96);
+}
+
+.recent-thread-chip-title {
+  max-width: 10.5rem;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-thread-chip-row {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.recent-thread-token {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.5rem;
+  padding: 0.12rem 0.46rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.recent-thread-chip[data-selected="true"] .recent-thread-token[data-recent-thread-marker] {
+  border-color: rgba(31, 120, 224, 0.24);
+  background: rgba(31, 120, 224, 0.08);
+  color: var(--accent-ink);
+}
+
+.recent-thread-chip[data-live-owner="true"] .recent-thread-token[data-recent-thread-owner],
+.recent-thread-chip[data-thread-state="running-tool"] .recent-thread-token[data-recent-thread-state],
+.recent-thread-chip[data-thread-state="done"] .recent-thread-token[data-recent-thread-state],
+.recent-thread-chip[data-thread-state="ready"] .recent-thread-token[data-recent-thread-state],
+.recent-thread-chip[data-thread-state="review"] .recent-thread-token[data-recent-thread-state],
+.recent-thread-chip[data-thread-state="verify"] .recent-thread-token[data-recent-thread-state],
+.recent-thread-chip[data-thread-state="proposal"] .recent-thread-token[data-recent-thread-state] {
+  border-color: rgba(47, 138, 89, 0.24);
+  background: rgba(47, 138, 89, 0.1);
+  color: var(--success);
+}
+
+.recent-thread-chip[data-live-owner-state="paused"] .recent-thread-token[data-recent-thread-follow],
+.recent-thread-chip[data-thread-state="reconnecting"] .recent-thread-token[data-recent-thread-state] {
+  border-color: rgba(178, 114, 24, 0.24);
+  background: rgba(178, 114, 24, 0.08);
+  color: var(--warning);
+}
+
+.recent-thread-chip[data-thread-state="switching"] .recent-thread-token[data-recent-thread-state],
+.recent-thread-chip[data-thread-state="switching"] .recent-thread-token[data-recent-thread-follow] {
+  border-color: rgba(31, 120, 224, 0.24);
+  background: rgba(31, 120, 224, 0.08);
+  color: var(--accent-ink);
+}
+
+.recent-thread-chip[data-live-owner-state="new"] .recent-thread-token[data-recent-thread-follow] {
+  color: #fff;
+  border-color: rgba(31, 120, 224, 0.36);
+  background: linear-gradient(135deg, rgba(31, 120, 224, 0.94), rgba(18, 83, 163, 0.94));
+}
+
 .jump-to-latest {
   display: inline-flex;
   align-items: center;

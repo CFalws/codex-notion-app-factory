@@ -16,6 +16,7 @@ export const state = {
     rotationDetectedAt: "",
   },
   conversationCache: null,
+  recentConversations: [],
   draftCache: {},
   pendingAttachmentPreviews: [],
   pendingOutgoing: {

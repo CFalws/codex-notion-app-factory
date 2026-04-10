@@ -410,6 +410,14 @@ function wireEvents() {
     await conversationController.handleConversationChange();
     setNavigationOpen(false);
   });
+  dom.recentThreadRailList?.addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-conversation-id]");
+    if (!button) {
+      return;
+    }
+    state.savedConversationId = button.dataset.conversationId || "";
+    await conversationController.handleConversationChange();
+  });
 }
 
 function initControllers() {
