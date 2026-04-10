@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep the current selected-conversation SSE path, left rail, and live-follow behavior unchanged.
-- [x] Rework the selected-thread center pane into one conversation-first session surface with transcript history and composer aligned to the same column.
-- [x] Add one inline selected-thread session block that appears for pending-assistant handoff or active SSE-owned live progress and clears on terminal resolution.
-- [x] Preserve transcript plus composer reachability on desktop and phone widths while secondary operator detail stays compact and separate.
-- [x] Extend focused verification so future sessions can prove the conversation-first workspace marker and inline selected-thread session block remain present.
+- [x] Keep the current selected-conversation SSE path, center-pane inline session block, and live-follow behavior unchanged.
+- [x] Mirror the selected-thread handoff and live session state into the selected conversation card only.
+- [x] Add compact selected-card detail and follow chips that cover pending handoff, active live progress, and fresh assistant-append completion, then clear on terminal resolution or thread switch.
+- [x] Preserve transcript plus composer primacy on desktop and phone widths while keeping non-selected rows snapshot-only.
+- [x] Extend focused verification so future sessions can prove the selected rail row alone mirrors the selected-thread live path.

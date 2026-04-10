@@ -168,7 +168,14 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "session-chip", label="chip-first session rail")
     require(conversations_js, "appendEnvelope.conversation_id !== activeConversationId", label="selected-thread SSE guard")
     require(conversations_js, "data-conversation-live-state", label="selected card live dataset")
+    require(conversations_js, "data-conversation-live-owner-row", label="selected card live owner row")
+    require(conversations_js, "data-conversation-live-detail", label="selected card live detail")
+    require(conversations_js, "data-conversation-live-follow", label="selected card live follow")
+    require(conversations_js, "liveOwnerDetail", label="selected card live detail helper")
+    require(conversations_js, "liveOwnerFollowLabel", label="selected card live follow helper")
+    require(conversations_js, 'card.dataset.liveOwner = isSelected && showLiveMirror ? "true" : "false";', label="selected live owner dataset")
     require(conversations_js, 'state.appendStream.transport = "sse"', label="selected-thread sse transport")
+    require(styles, ".conversation-card-live-owner-row", label="selected card live owner row CSS")
 
 
 def assert_conversation_events(
