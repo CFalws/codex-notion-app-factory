@@ -90,6 +90,10 @@ function phaseDetailCopy(liveRun) {
 }
 
 function compactPhaseDetailCopy(liveRun, fallback = "SESSION ACTIVE") {
+  const hint = phaseDetailHint(liveRun);
+  if (hint && hint !== "SESSION ACTIVE") {
+    return hint;
+  }
   return compactTargetLabel(phaseDetailCopy(liveRun), fallback);
 }
 
@@ -164,7 +168,7 @@ function composerOwnerState(currentState, conversation) {
       tone: "warning",
       conversationId: String(threadTransition.targetConversationId || ""),
       target: compactTargetLabel(threadTransition.targetTitle || "선택한 대화", "ATTACH TARGET"),
-      copy: "ATTACH PENDING",
+      copy: "ATTACH",
       blocked: true,
       blockedReason: "selected-thread attach가 끝날 때까지 잠시 기다려 주세요.",
     };
@@ -186,8 +190,8 @@ function composerOwnerState(currentState, conversation) {
       target: compactTargetLabel(conversationTitle, "CURRENT THREAD"),
       copy:
         pendingOutgoing.status === "sending-user"
-          ? "SEND LOCK"
-          : "FIRST APPEND",
+          ? "SEND"
+          : "ACCEPTED",
       blocked: false,
       blockedReason: "",
     };
@@ -200,7 +204,7 @@ function composerOwnerState(currentState, conversation) {
       tone: "healthy",
       conversationId,
       target: compactTargetLabel(conversationTitle, "CURRENT THREAD"),
-      copy: "ACTIVE TARGET",
+      copy: "LOCKED",
       blocked: false,
       blockedReason: "",
     };
@@ -212,7 +216,7 @@ function composerOwnerState(currentState, conversation) {
     tone: "muted",
     conversationId: "",
     target: "NO TARGET",
-    copy: "SELECT THREAD",
+    copy: "SELECT",
     blocked: false,
     blockedReason: "",
   };
@@ -358,10 +362,8 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
     stateLabel = String(liveRun?.phase || "LIVE").toUpperCase();
     copy =
       sessionIndicator.state === "paused"
-        ? liveRun?.jobId
-          ? `SSE OWNER · ${liveRun.jobId}`
-          : summaryHint("SSE OWNER", "FOLLOW PAUSED")
-        : `SSE OWNER · ${compactPhaseDetailCopy(liveRun, stateLabel)}`;
+        ? summaryHint("SSE OWNER", "FOLLOW PAUSED")
+        : compactPhaseDetailCopy(liveRun, stateLabel);
   }
 
   dom.sessionSummaryRow.dataset.summaryPath = pathLabel.toLowerCase();
@@ -1505,7 +1507,7 @@ function composerActionHint(status, presentation, liveRun) {
 function threadMetaSummary(conversation, liveRun, messageCount, eventCount) {
   const parts = [conversation.updated_at ? new Date(conversation.updated_at).toLocaleString() : ""];
   if (liveRun?.visible && liveRun.phase && liveRun.phase !== "IDLE") {
-    parts.push(phaseDetailCopy(liveRun));
+    parts.push(compactPhaseDetailCopy(liveRun, String(liveRun.phase || "LIVE").toUpperCase()));
     return parts.filter(Boolean).join(" · ");
   }
   parts.push(`${messageCount} messages`);

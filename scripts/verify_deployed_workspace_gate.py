@@ -307,11 +307,13 @@ def assert_browser_runtime_surface(
                 """conversationId => {
                   const liveActivity = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
                   const summary = document.querySelector("#session-summary-row");
+                  const summaryCopy = document.querySelector("#session-summary-copy");
                   const threadPhase = document.querySelector("#thread-phase-chip");
                   const activeSessionRow = document.querySelector("#active-session-row");
                   const sessionStrip = document.querySelector("#session-strip");
                   const sessionStripState = document.querySelector("#session-strip-state");
                   const sessionStripDetail = document.querySelector("#session-strip-detail");
+                  const composerOwnerCopy = document.querySelector("#composer-owner-copy");
                   const composerDock = document.querySelector("#conversation-footer-dock");
                   const sendRequest = document.querySelector("#send-request");
                   const follow = document.querySelector("#jump-to-latest");
@@ -322,6 +324,9 @@ def assert_browser_runtime_surface(
                     liveActivity.dataset.liveRunPhase !== "IDLE" &&
                     summary &&
                     summary.dataset.liveSessionOwned === "true" &&
+                    summaryCopy &&
+                    summaryCopy.textContent.trim().length > 0 &&
+                    !summaryCopy.textContent.includes("SSE OWNER") &&
                     threadPhase &&
                     ["PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED"].includes(threadPhase.dataset.threadPhase || "") &&
                     threadPhase.dataset.threadPhaseDetail &&
@@ -342,6 +347,8 @@ def assert_browser_runtime_surface(
                     ["PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED"].some(label => sessionStripState.textContent.includes(label)) &&
                     sessionStripDetail &&
                     sessionStripDetail.textContent.trim().length > 0 &&
+                    composerOwnerCopy &&
+                    ["LOCKED", "SEND", "ACCEPTED", "ATTACH", "SELECT"].includes(composerOwnerCopy.textContent.trim()) &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     sendRequest &&
@@ -627,10 +634,17 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'label: "SSE OWNER"', label="live-session healthy ownership label")
     require(render_js, 'label: "RECONNECT"', label="live-session reconnect label")
     require(render_js, 'label: "POLLING"', label="live-session polling label")
+    require(render_js, 'copy: "ATTACH"', label="composer switching compact copy")
+    require(render_js, 'pendingOutgoing.status === "sending-user"', label="composer sending compact copy guard")
+    require(render_js, '? "SEND"', label="composer sending compact copy")
+    require(render_js, ': "ACCEPTED"', label="composer accepted compact copy")
+    require(render_js, 'copy: "LOCKED"', label="composer ready compact copy")
+    require(render_js, 'copy: "SELECT"', label="composer idle compact copy")
     require(render_js, "phaseDetailCopy", label="phase detail copy helper")
     require(render_js, "compactPhaseDetailCopy", label="compact phase detail copy helper")
     require(render_js, 'dom.threadPhaseChip.dataset.threadPhaseDetail = liveRun?.visible ? phaseDetailCopy(liveRun) : "idle";', label="thread phase detail dataset")
     require(render_js, 'dom.threadPhaseChip.title = liveRun?.visible ? phaseDetailCopy(liveRun) : "현재 활성 세션이 없습니다.";', label="thread phase detail title")
+    require(render_js, ': compactPhaseDetailCopy(liveRun, stateLabel);', label="summary live phase compact copy")
     require(render_js, 'type === "codex.exec.retrying"', label="live-session retry degradation mapping")
     require(render_js, "selectedThreadSseOwned", label="selected-thread SSE handoff guard")
     require(render_js, 'const handoffVisible = handoffState.stage === "pending-assistant" && selectedThreadSseOwned;', label="inline handoff visibility guard")
