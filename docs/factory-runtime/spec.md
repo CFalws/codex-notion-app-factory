@@ -8,7 +8,7 @@
 
 ## Problem
 
-Healthy selected-thread inline live and degraded markers are now in place and deployed verification can now prove them in the browser, but live autonomy-phase visibility still depends on an extra app-goals refetch. That makes the session surface feel less immediate than the append stream that already carries the phase events.
+Healthy selected-thread inline live and degraded markers are now in place, and live autonomy summary is already projected from append events, but the central transcript still renders many session milestones as generic event cards. That leaves the operator inferring phase progression instead of seeing one conversation-first session timeline.
 
 ## Target User
 
@@ -18,10 +18,10 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the existing selected-thread SSE append stream and autonomy summary shape instead of changing backend transport or state schema.
-- Keep the change bounded to client-side selected-thread append handling and the live session summary projection it feeds.
-- Preserve full goal fetches for initial load, thread attach, and degraded recovery paths.
+- Reuse the existing selected-thread append events, live-run state, and autonomy summary projection instead of changing backend transport or state schema.
+- Keep the change bounded to the transcript render layer for selected-thread session milestones.
+- Preserve the current degraded-session indicator and thread-switch placeholder behavior without duplicating state in separate panels.
 
 ## Deliverable
 
-Define and verify a client-side projection so proposal, review, verify, auto-apply, ready, applied, and failure transitions update the selected-thread live session surfaces directly from healthy SSE append events without an app-goals refetch on each live phase event.
+Define and verify one compact session-event projection layer so proposal, review, verify, auto-apply, ready, applied, and failure transitions render directly in the selected-thread conversation timeline from append events while healthy SSE ownership holds.

@@ -726,6 +726,66 @@ function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
   `;
 }
 
+function sessionTimelineEventModel(item) {
+  const type = String(item?.type || "");
+  const status = String(item?.status || "").toLowerCase();
+  const jobId = String(item?.job_id || "").trim();
+  const suffix = jobId ? ` · ${jobId}` : "";
+  if (type === "job.running") {
+    return { milestone: "ACTIVE", phase: "RUNNING", tone: "neutral", verdict: "EXPECTED", verdictTone: "healthy" };
+  }
+  if (type === "goal.proposal.phase.started") {
+    return { milestone: "PHASE", phase: "PROPOSAL", tone: "neutral", verdict: "EXPECTED", verdictTone: "healthy" };
+  }
+  if (type === "goal.review.phase.started") {
+    return { milestone: "PHASE", phase: "REVIEW", tone: "neutral", verdict: "EXPECTED", verdictTone: "healthy" };
+  }
+  if (type === "goal.verify.phase.started") {
+    return { milestone: "PHASE", phase: "VERIFY", tone: "neutral", verdict: "EXPECTED", verdictTone: "healthy" };
+  }
+  if (type === "goal.proposal.auto_apply.started") {
+    return { milestone: "PHASE", phase: "AUTO APPLY", tone: "warning", verdict: "EXPECTED", verdictTone: "healthy" };
+  }
+  if (type === "proposal.ready") {
+    return { milestone: "READY", phase: "READY", tone: "healthy", verdict: "ACCEPTABLE", verdictTone: "healthy" };
+  }
+  if (type === "codex.exec.applied" || status === "applied") {
+    return { milestone: "APPLY", phase: "APPLIED", tone: "healthy", verdict: "ACCEPTABLE", verdictTone: "healthy" };
+  }
+  if (type === "runtime.exception" || status === "failed") {
+    return { milestone: "FAILED", phase: "FAILED", tone: "danger", verdict: "DISQUALIFYING", verdictTone: "danger" };
+  }
+  if (status === "completed") {
+    return { milestone: "DONE", phase: "COMPLETED", tone: "healthy", verdict: "ACCEPTABLE", verdictTone: "healthy" };
+  }
+  if (!suffix) {
+    return null;
+  }
+  return null;
+}
+
+function renderSessionTimelineEvent(item) {
+  const model = sessionTimelineEventModel(item);
+  if (!model) {
+    return "";
+  }
+  const body = simplifyText(item?.body || "");
+  const jobId = String(item?.job_id || "").trim();
+  const meta = `selected thread · session event${jobId ? ` · ${escapeHtml(jobId)}` : ""}${item.delivery_source === "sse" ? ' · <span class="timeline-provenance">SSE LIVE</span>' : ""}`;
+  return `
+    <article class="timeline-item session-event" data-session-event="true" data-session-phase="${escapeHtml(model.phase)}" data-session-milestone="${escapeHtml(model.milestone)}" data-session-verdict="${escapeHtml(model.verdict.toLowerCase())}" data-append-id="${Number(item.append_id || 0)}" data-append-source="${escapeHtml(String(item.delivery_source || "snapshot"))}">
+      <p class="timeline-kind">세션 진행</p>
+      <div class="timeline-live-row">
+        <span class="timeline-live-chip" data-tone="neutral">${escapeHtml(model.milestone)}</span>
+        <span class="timeline-live-chip" data-tone="${escapeHtml(model.tone)}">${escapeHtml(model.phase)}</span>
+        <span class="timeline-live-chip" data-tone="${escapeHtml(model.verdictTone)}">${escapeHtml(model.verdict)}</span>
+      </div>
+      <p class="timeline-body">${escapeHtml(body || `${eventLabel(item.type)} 이벤트가 선택된 세션 타임라인에 반영되었습니다.`)}</p>
+      <p class="timeline-meta">${meta}</p>
+    </article>
+  `;
+}
+
 function pendingHandoffState(conversation, currentState) {
   const conversationId = String(conversation?.conversation_id || "");
   const pendingOutgoing = currentState.pendingOutgoing || {};
@@ -1963,6 +2023,10 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   const renderedItems = items
     .map((item) => {
       if (item.kind === "event") {
+        const sessionEvent = renderSessionTimelineEvent(item);
+        if (sessionEvent) {
+          return sessionEvent;
+        }
         return `
             <article class="timeline-item event ${item.status || "info"}" data-append-id="${Number(item.append_id || 0)}" data-append-source="${escapeHtml(String(item.delivery_source || "snapshot"))}">
             <p class="timeline-kind">${escapeHtml(eventLabel(item.type))}</p>
