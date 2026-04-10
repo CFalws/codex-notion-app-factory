@@ -118,6 +118,68 @@ export function renderDraftStatus(dom, message) {
   dom.draftStatus.textContent = message;
 }
 
+function renderSessionSummary(dom, currentState, conversation, liveRun, handoffState = { stage: "idle" }) {
+  if (
+    !dom.sessionSummaryRow ||
+    !dom.sessionSummaryScope ||
+    !dom.sessionSummaryPath ||
+    !dom.sessionSummaryState ||
+    !dom.sessionSummaryCopy
+  ) {
+    return;
+  }
+
+  const appendStream = currentState.appendStream || {};
+  const threadTransition = currentState.threadTransition || {};
+  const conversationId = String(conversation?.conversation_id || "");
+  const streamConversationId = String(appendStream.conversationId || "");
+  const renderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
+  const transport = String(appendStream.transport || "polling").toLowerCase();
+  const status = String(appendStream.status || "offline").toLowerCase();
+  const sseLiveOwner =
+    conversationId &&
+    streamConversationId === conversationId &&
+    transport === "sse" &&
+    renderSource === "sse";
+
+  let pathLabel = "SNAPSHOT";
+  let stateLabel = conversationId ? "READY" : "IDLE";
+  let copy = conversationId
+    ? `${String(conversation?.title || "현재 대화")} 기준의 session context입니다.`
+    : "대화를 선택하면 selected-thread context가 여기에 고정됩니다.";
+
+  if (threadTransition.active && threadTransition.targetConversationId) {
+    pathLabel = "SWITCHING";
+    stateLabel = "ATTACH";
+    copy = `${String(threadTransition.targetTitle || "선택한 대화")} snapshot과 selected-thread path를 붙이는 중입니다.`;
+  } else if (handoffState.stage === "pending-user") {
+    pathLabel = "HANDOFF";
+    stateLabel = "SENDING";
+    copy = "이전 메시지 handoff를 확인하는 중이라 composer ownership을 잠시 고정했습니다.";
+  } else if (handoffState.stage === "pending-assistant") {
+    pathLabel = "HANDOFF";
+    stateLabel = "ACCEPTED";
+    copy = "첫 assistant append가 붙을 때까지 selected-thread ownership을 유지합니다.";
+  } else if (status === "reconnecting") {
+    pathLabel = "DEGRADED";
+    stateLabel = "RESUME";
+    copy = "selected-thread attach는 유지하지만 live transport는 복구 중입니다.";
+  } else if (sseLiveOwner) {
+    pathLabel = "SSE";
+    stateLabel = String(liveRun?.phase || "LIVE").toUpperCase();
+    copy = liveRun?.jobId
+      ? `selected-thread live path · ${liveRun.jobId}`
+      : "selected-thread live path가 현재 중심 workspace를 소유합니다.";
+  }
+
+  dom.sessionSummaryRow.dataset.summaryPath = pathLabel.toLowerCase();
+  dom.sessionSummaryRow.dataset.summaryState = stateLabel.toLowerCase();
+  dom.sessionSummaryScope.textContent = "SELECTED THREAD";
+  dom.sessionSummaryPath.textContent = pathLabel;
+  dom.sessionSummaryState.textContent = stateLabel;
+  dom.sessionSummaryCopy.textContent = copy;
+}
+
 function isThreadNearBottom(threadScroller) {
   if (!threadScroller) {
     return true;
@@ -1308,8 +1370,20 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
     renderWorkspaceSummary(
       dom,
       isThreadTransition
-        ? `${String(threadTransition.targetTitle || "선택한 대화")}로 전환 중입니다. 기존 live 표시는 정리했고 새 snapshot과 selected-thread SSE 경로가 연결되면 이 자리에서 바로 이어집니다.`
-        : "아직 대화가 없습니다. 새 대화를 만들거나 바로 메시지를 보내면 현재 앱 레인에서 이어서 작업합니다.",
+        ? "더 깊은 실행 맥락은 이 패널에서 확인합니다."
+        : "더 깊은 실행 맥락은 이 패널에서 확인합니다.",
+    );
+    renderSessionSummary(
+      dom,
+      currentState,
+      null,
+      runStateSnapshot({
+        visible: false,
+        phase: "IDLE",
+        source: "none",
+        tone: "idle",
+      }),
+      { stage: "idle" },
     );
     renderJobActivity(dom, null, "");
     return;
@@ -1365,13 +1439,13 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
     conversationState: threadMetaSummary(conversation, liveRun, messages.length, events.length),
     liveRun,
   });
+  renderSessionSummary(dom, currentState, conversation, liveRun, handoffState);
   renderWorkspaceSummary(
     dom,
     [
-      conversation.title,
-      conversation.latest_job_id ? `최근 job: ${conversation.latest_job_id}` : "최근 job 없음",
-      messages.length ? `메시지 ${messages.length}개` : "메시지 없음",
-      events.length ? `이벤트 ${events.length}개` : "이벤트 없음",
+      conversation.latest_job_id ? `job ${conversation.latest_job_id}` : "job 없음",
+      messages.length ? `메시지 ${messages.length}` : "메시지 0",
+      events.length ? `이벤트 ${events.length}` : "이벤트 0",
     ].join(" · "),
   );
 

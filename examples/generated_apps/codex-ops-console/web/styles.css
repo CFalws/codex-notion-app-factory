@@ -601,6 +601,63 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   font-size: 0.88rem;
 }
 
+.session-summary-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.55rem;
+  margin-top: 0.1rem;
+}
+
+.session-summary-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.9rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.session-summary-copy {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.session-summary-row[data-summary-path="sse"] .session-summary-chip[data-summary-chip="path"],
+.session-summary-row[data-summary-state^="proposal"] .session-summary-chip[data-summary-chip="state"],
+.session-summary-row[data-summary-state="review"] .session-summary-chip[data-summary-chip="state"],
+.session-summary-row[data-summary-state="verify"] .session-summary-chip[data-summary-chip="state"],
+.session-summary-row[data-summary-state="ready"] .session-summary-chip[data-summary-chip="state"],
+.session-summary-row[data-summary-state="applied"] .session-summary-chip[data-summary-chip="state"] {
+  border-color: rgba(47, 138, 89, 0.24);
+  background: rgba(47, 138, 89, 0.1);
+  color: var(--success);
+}
+
+.session-summary-row[data-summary-path="switching"] .session-summary-chip[data-summary-chip="path"],
+.session-summary-row[data-summary-state="attach"] .session-summary-chip[data-summary-chip="state"] {
+  border-color: rgba(31, 120, 224, 0.2);
+  background: rgba(31, 120, 224, 0.08);
+  color: var(--accent-ink);
+}
+
+.session-summary-row[data-summary-path="handoff"] .session-summary-chip[data-summary-chip="path"],
+.session-summary-row[data-summary-state="sending"] .session-summary-chip[data-summary-chip="state"],
+.session-summary-row[data-summary-state="accepted"] .session-summary-chip[data-summary-chip="state"],
+.session-summary-row[data-summary-state="resume"] .session-summary-chip[data-summary-chip="state"] {
+  border-color: rgba(178, 114, 24, 0.24);
+  background: rgba(178, 114, 24, 0.08);
+  color: var(--warning);
+}
+
 .thread-phase-chip {
   display: inline-flex;
   align-items: center;
@@ -1349,10 +1406,10 @@ body[data-secondary-panel-open="true"] .secondary-panel {
 }
 
 .secondary-summary {
-  padding: 0.95rem;
+  padding: 0.8rem 0.9rem;
   border: 1px solid var(--line);
   border-radius: 1rem;
-  background: rgba(247, 243, 237, 0.65);
+  background: rgba(247, 243, 237, 0.55);
 }
 
 .secondary-panel-grid {

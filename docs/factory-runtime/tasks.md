@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
 - [x] Keep the current selected-conversation SSE path, dock behavior, selected-row live-owner contract, and non-selected snapshot rows unchanged.
-- [x] Add one bounded `threadTransition` state so intentional thread switches render a compact in-place handoff instead of a blank reset.
-- [x] Keep the center conversation surface and composer dock persistent while the target thread snapshot is loading.
-- [x] Clear prior-thread live ownership immediately on thread switch without leaving stale live markers in the rail or center pane.
-- [x] Extend focused verification so future sessions can prove thread-switch continuity and transition placeholder behavior remain strict.
+- [x] Add one compact selected-thread session summary row in the center header with scope, path, state, and bounded summary copy.
+- [x] Keep the secondary panel collapsed by default and reduce the always-visible workspace summary to optional side-panel context only.
+- [x] Preserve transcript, live strip, and composer dominance in the center pane without introducing another detailed live-status surface.
+- [x] Extend focused verification so future sessions can prove the compact summary row and collapsed-by-default secondary panel contract remain strict.

@@ -111,6 +111,9 @@ function setNavigationOpen(isOpen) {
 
 function setSecondaryPanelOpen(isOpen) {
   document.body.dataset.secondaryPanelOpen = isOpen ? "true" : "false";
+  if (dom.secondaryPanelToggle) {
+    dom.secondaryPanelToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  }
 }
 
 function syncNavOpsSection() {
