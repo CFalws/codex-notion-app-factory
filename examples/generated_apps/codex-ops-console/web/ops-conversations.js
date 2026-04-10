@@ -333,6 +333,12 @@ export function createConversationController(deps) {
     if (latestType === "goal.proposal.phase.started" || latestType === "goal.proposal.auto_apply.started") {
       return "proposal";
     }
+    if (latestType === "message.accepted" || latestType === "job.queued") {
+      return "waiting";
+    }
+    if (latestType === "job.running" || latestType === "codex.exec.started") {
+      return "running-tool";
+    }
     if (
       latestType === "job.completed" ||
       latestType === "codex.exec.applied" ||
@@ -359,6 +365,12 @@ export function createConversationController(deps) {
     }
     if (threadState === "proposal") {
       return "PROPOSAL";
+    }
+    if (threadState === "waiting") {
+      return "WAITING";
+    }
+    if (threadState === "running-tool") {
+      return "ACTIVE";
     }
     if (threadState === "done") {
       return "DONE";
@@ -627,6 +639,27 @@ export function createConversationController(deps) {
   function eventPreview(item) {
     const body = truncatePreview(item?.body || "");
     const type = String(item?.type || "");
+    if (type === "message.accepted") {
+      return "메시지가 접수되어 첫 응답을 기다리는 중입니다.";
+    }
+    if (type === "job.queued") {
+      return "작업이 대기열에 올라 있습니다.";
+    }
+    if (type === "job.running" || type === "codex.exec.started") {
+      return "최근 작업이 현재 진행 중입니다.";
+    }
+    if (type === "goal.proposal.phase.started") {
+      return "제안 단계가 진행 중입니다.";
+    }
+    if (type === "goal.review.phase.started") {
+      return "리뷰 단계가 진행 중입니다.";
+    }
+    if (type === "goal.verify.phase.started") {
+      return "검증 단계가 진행 중입니다.";
+    }
+    if (type === "goal.proposal.auto_apply.started") {
+      return "자동 적용 단계가 진행 중입니다.";
+    }
     if (type === "proposal.ready") {
       return "제안이 준비되었습니다.";
     }
