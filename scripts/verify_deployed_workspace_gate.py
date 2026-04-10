@@ -407,6 +407,7 @@ def assert_browser_runtime_surface(
                   const sessionStrip = document.querySelector("#session-strip");
                   const sessionStripState = document.querySelector("#session-strip-state");
                   const sessionStripDetail = document.querySelector("#session-strip-detail");
+                  const threadScroller = document.querySelector("#thread-scroller");
                   const composerOwnerRow = document.querySelector("#composer-owner-row");
                   const composerDock = document.querySelector("#conversation-footer-dock");
                   const sendRequest = document.querySelector("#send-request");
@@ -420,6 +421,7 @@ def assert_browser_runtime_surface(
                     healthyBlock.dataset.liveBlockReason === "healthy" &&
                     healthyBlock.dataset.liveBlockPhase &&
                     healthyBlock.dataset.liveBlockPhase !== "IDLE" &&
+                    ["true", "false"].includes(healthyBlock.dataset.liveBlockPhaseAuthoritative || "") &&
                     summary &&
                     summary.hidden &&
                     summary.dataset.liveSessionOwned === "true" &&
@@ -428,7 +430,7 @@ def assert_browser_runtime_surface(
                     !summaryCopy.textContent.includes("SSE OWNER") &&
                     threadPhase &&
                     threadPhase.hidden &&
-                    ["PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED"].includes(threadPhase.dataset.threadPhase || "") &&
+                    threadPhase.dataset.threadPhase === healthyBlock.dataset.liveBlockPhase &&
                     threadPhase.dataset.threadPhaseDetail &&
                     threadPhase.dataset.threadPhaseDetail !== "idle" &&
                     activeSessionRow &&
@@ -436,19 +438,34 @@ def assert_browser_runtime_surface(
                     activeSessionRow.dataset.activeSessionOwned === "true" &&
                     activeSessionRow.dataset.activeSessionSource === "sse" &&
                     ["live", "paused"].includes(activeSessionRow.dataset.activeSessionState || "") &&
-                    ["PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED"].includes(activeSessionRow.dataset.activeSessionPhase || "") &&
+                    activeSessionRow.dataset.activeSessionPhase === healthyBlock.dataset.liveBlockPhase &&
                     ["live", "paused", "new"].includes(activeSessionRow.dataset.activeSessionFollow || "") &&
                     activeSessionRow.textContent.includes("OWNER") &&
                     sessionStrip &&
                     !sessionStrip.hidden &&
+                    threadScroller &&
                     sessionStrip.dataset.composerState === "ready" &&
                     sessionStrip.dataset.composerTransport === "sse-owner" &&
                     sessionStrip.dataset.composerTransportSource === "sse" &&
                     sessionStrip.dataset.composerTransportOwned === "true" &&
-                    sessionStrip.dataset.liveRunSource === "sse-event" &&
+                    sessionStrip.dataset.phaseValue === healthyBlock.dataset.liveBlockPhase &&
+                    sessionStrip.dataset.phaseProvenance === healthyBlock.dataset.liveBlockPhaseProvenance &&
+                    sessionStrip.dataset.phaseAuthoritative === healthyBlock.dataset.liveBlockPhaseAuthoritative &&
+                    threadScroller.dataset.phaseValue === healthyBlock.dataset.liveBlockPhase &&
+                    threadScroller.dataset.phaseProvenance === healthyBlock.dataset.liveBlockPhaseProvenance &&
+                    threadScroller.dataset.phaseAuthoritative === healthyBlock.dataset.liveBlockPhaseAuthoritative &&
                     sessionStripState &&
-                    sessionStripState.textContent.includes("READY") &&
-                    ["PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED"].some(label => sessionStripState.textContent.includes(label)) &&
+                    sessionStripState.textContent.includes(healthyBlock.dataset.liveBlockPhase || "") &&
+                    (
+                      (
+                        healthyBlock.dataset.liveBlockPhaseAuthoritative === "true" &&
+                        ["PROPOSAL", "REVIEW", "VERIFY", "READY", "APPLIED", "FAILED"].includes(healthyBlock.dataset.liveBlockPhase || "")
+                      ) ||
+                      (
+                        healthyBlock.dataset.liveBlockPhaseAuthoritative === "false" &&
+                        ["LIVE", "UNKNOWN"].includes(healthyBlock.dataset.liveBlockPhase || "")
+                      )
+                    ) &&
                     sessionStripDetail &&
                     sessionStripDetail.textContent.trim().length > 0 &&
                     composerOwnerRow &&
@@ -479,6 +496,7 @@ def assert_browser_runtime_surface(
                 """conversationId => {
                   const sessionStrip = document.querySelector("#session-strip");
                   const threadScroller = document.querySelector("#thread-scroller");
+                  const healthyBlock = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-block-owner="selected-thread"]');
                   const composerDock = document.querySelector("#conversation-footer-dock");
                   const emptyState = document.querySelector(".timeline-empty");
                   const fetchMark = Number(window.__verifyFetchMark || 0);
@@ -516,6 +534,11 @@ def assert_browser_runtime_surface(
                     threadScroller.dataset.bootstrapVersion === "2" &&
                     threadScroller.dataset.resumeMode === "resumed" &&
                     Number(threadScroller.dataset.resumeCursor || "0") > 0 &&
+                    healthyBlock &&
+                    sessionStrip.dataset.phaseValue === healthyBlock.dataset.liveBlockPhase &&
+                    sessionStrip.dataset.phaseProvenance === healthyBlock.dataset.liveBlockPhaseProvenance &&
+                    threadScroller.dataset.phaseValue === healthyBlock.dataset.liveBlockPhase &&
+                    threadScroller.dataset.phaseProvenance === healthyBlock.dataset.liveBlockPhaseProvenance &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     resumeEvents.length >= 1 &&
@@ -783,6 +806,9 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "dataset.bootstrapVersion", label="bootstrap version dataset")
     require(render_js, "dataset.resumeMode", label="resume mode dataset")
     require(render_js, "dataset.resumeCursor", label="resume cursor dataset")
+    require(render_js, "dataset.phaseValue", label="phase value dataset")
+    require(render_js, "dataset.phaseAuthoritative", label="phase authoritative dataset")
+    require(render_js, "dataset.phaseProvenance", label="phase provenance dataset")
     require(render_js, "dataset.sessionOwner", label="session owner dataset")
     require(render_js, "dataset.liveOwned", label="live ownership dataset")
     require(render_js, "dataset.composerOwnerState", label="composer owner state dataset")
@@ -897,6 +923,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'phase: "REVIEW"', label="review phase mapping")
     require(render_js, 'phase: "VERIFY"', label="verify phase mapping")
     require(render_js, 'phase: "READY"', label="proposal ready phase mapping")
+    require(render_js, 'phase: sessionPhase.value === "LIVE" ? "LIVE" : "UNKNOWN"', label="neutral live phase mapping")
     require(render_js, "session-chip", label="chip-first session rail")
     require(conversations_js, "appendEnvelope.conversation_id !== activeConversationId", label="selected-thread SSE guard")
     require(conversations_js, "syncSelectedAppSession", label="selected app session sync helper")

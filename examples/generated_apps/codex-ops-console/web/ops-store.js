@@ -42,6 +42,16 @@ export const state = {
     resumeCursor: 0,
     reconnectAttempt: 0,
     reconnectTimerId: 0,
+    sessionPhase: {
+      value: "UNKNOWN",
+      authoritative: false,
+      reason: "idle",
+      appendId: 0,
+      source: "none",
+      eventType: "",
+      status: "",
+      jobId: "",
+    },
   },
   liveFollow: {
     conversationId: "",

@@ -33,6 +33,24 @@ export function createConversationController(deps) {
   const RESUME_BOOTSTRAP_TIMEOUT_MS = 1500;
   const MAX_RESUME_ATTEMPTS = 3;
 
+  function normalizeSessionPhase(payload = {}, fallbackSource = "none") {
+    const value = String(payload?.value || "UNKNOWN").toUpperCase();
+    return {
+      value,
+      authoritative: Boolean(payload?.authoritative),
+      reason: String(payload?.reason || (value === "LIVE" ? "non-authoritative-live" : "missing-phase")),
+      appendId: Math.max(Number(payload?.append_id || payload?.appendId || 0), 0),
+      source: String(payload?.source || fallbackSource || "none").toLowerCase(),
+      eventType: String(payload?.event_type || payload?.eventType || ""),
+      status: String(payload?.status || "").toLowerCase(),
+      jobId: String(payload?.job_id || payload?.jobId || ""),
+    };
+  }
+
+  function resetSessionPhase() {
+    state.appendStream.sessionPhase = normalizeSessionPhase({}, "none");
+  }
+
   function clearPendingOutgoing(conversationId = "") {
     if (conversationId && state.pendingOutgoing?.conversationId !== conversationId) {
       return;
@@ -138,6 +156,7 @@ export function createConversationController(deps) {
     state.appendStream.resumeCursor = 0;
     state.appendStream.reconnectAttempt = 0;
     state.appendStream.reconnectTimerId = 0;
+    resetSessionPhase();
     if (!conversationId) {
       state.appendStream.lastAppendId = 0;
     }
@@ -296,6 +315,7 @@ export function createConversationController(deps) {
     state.appendStream.transport = "sse";
     state.appendStream.status = "live";
     state.appendStream.lastRenderSource = "sse";
+    state.appendStream.sessionPhase = normalizeSessionPhase(appendEnvelope.session_phase || {}, "sse");
     stopPolling();
     renderConversation(dom, state, conversation, persistSettings);
     syncConversationCardState();
@@ -553,6 +573,7 @@ export function createConversationController(deps) {
         state.appendStream.resumeMode = isResumeAttempt ? "resumed" : "bootstrap";
         state.appendStream.resumeCursor = Math.max(Number(payload.resume_from_append_id || resumeCursor || 0), 0);
         state.appendStream.reconnectAttempt = reconnectAttempt;
+        state.appendStream.sessionPhase = normalizeSessionPhase(payload.session_phase || {}, "sse");
         renderSessionStrip(dom, state, state.conversationCache);
         syncConversationCardState();
         settle(payload);
@@ -1468,6 +1489,7 @@ export function createConversationController(deps) {
         ? String(bootstrap.version)
         : state.appendStream.bootstrapVersion || "";
     state.appendStream.resumeCursor = Math.max(Number(bootstrap?.resume_from_append_id || 0), 0);
+    state.appendStream.sessionPhase = normalizeSessionPhase(bootstrap?.session_phase || {}, "sse");
     restoreDraft();
     syncDraftStatus();
 

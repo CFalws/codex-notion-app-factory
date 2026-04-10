@@ -405,6 +405,46 @@ function phaseDetail(prefix, latestEvent, fallback) {
   return body ? `${prefix} ${body}` : fallback;
 }
 
+function selectedThreadSessionPhase(conversation, currentState) {
+  const appendStream = currentState?.appendStream || {};
+  const conversationId = String(conversation?.conversation_id || "");
+  const currentConversationId = String(currentState?.currentConversationId || "");
+  const streamConversationId = String(appendStream.conversationId || "");
+  const transport = String(appendStream.transport || "polling").toLowerCase();
+  const renderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
+  const status = String(appendStream.status || "offline").toLowerCase();
+  const selectedThreadStream =
+    Boolean(conversationId) &&
+    currentConversationId === conversationId &&
+    streamConversationId === conversationId &&
+    transport === "sse" &&
+    renderSource === "sse" &&
+    (status === "live" || status === "connecting");
+  if (!selectedThreadStream) {
+    return {
+      value: "UNKNOWN",
+      authoritative: false,
+      reason: "non-authoritative-stream",
+      appendId: 0,
+      source: "none",
+      eventType: "",
+      status: "",
+      jobId: "",
+    };
+  }
+  const model = appendStream.sessionPhase || {};
+  return {
+    value: String(model.value || "UNKNOWN").toUpperCase(),
+    authoritative: Boolean(model.authoritative),
+    reason: String(model.reason || "missing-phase"),
+    appendId: Math.max(Number(model.appendId || model.append_id || 0), 0),
+    source: String(model.source || "sse").toLowerCase(),
+    eventType: String(model.eventType || model.event_type || ""),
+    status: String(model.status || "").toLowerCase(),
+    jobId: String(model.jobId || model.job_id || ""),
+  };
+}
+
 function isSessionAuthorityEvent(event) {
   const type = String(event?.type || "");
   const status = String(event?.status || "").toLowerCase();
@@ -709,6 +749,7 @@ function shouldShowComposerLiveStrip(conversation, currentState, liveRun, handof
 function renderInlineSessionBlock(conversation, currentState, liveRun, handoffState) {
   const appendStream = currentState.appendStream || {};
   const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
+  const phaseModel = selectedThreadSessionPhase(conversation, currentState);
   const { handoffVisible, degradedVisible, liveVisible, status, sessionIndicator } = inlineState;
 
   if (!inlineState.visible) {
@@ -755,7 +796,7 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
       ? `selected thread · SSE · HANDOFF${liveRun.jobId ? ` · ${escapeHtml(liveRun.jobId)}` : ""}`
       : `selected thread · SSE · ${escapeHtml(status.toUpperCase())} · append #${appendId || 0}${liveRun.jobId ? ` · ${escapeHtml(liveRun.jobId)}` : ""}`;
   return `
-    <section class="session-inline-block" data-selected-thread-live-block="${degradedVisible ? "false" : "true"}" data-selected-thread-degraded-block="${degradedVisible ? "true" : "false"}" data-live-block-owner="selected-thread" data-live-owned="${degradedVisible ? "false" : "true"}" data-live-block-stage="${escapeHtml(stage)}" data-live-block-phase="${escapeHtml(phaseLabel)}" data-live-block-source="${escapeHtml(sourceLabel)}" data-live-block-reason="${escapeHtml(degradedVisible ? String(sessionIndicator.reason || "polling-fallback") : "healthy")}" data-live-block-terminal="${handoffVisible || degradedVisible ? "false" : liveRun.terminal ? "true" : "false"}">
+    <section class="session-inline-block" data-selected-thread-live-block="${degradedVisible ? "false" : "true"}" data-selected-thread-degraded-block="${degradedVisible ? "true" : "false"}" data-live-block-owner="selected-thread" data-live-owned="${degradedVisible ? "false" : "true"}" data-live-block-stage="${escapeHtml(stage)}" data-live-block-phase="${escapeHtml(phaseLabel)}" data-live-block-source="${escapeHtml(sourceLabel)}" data-live-block-phase-provenance="${escapeHtml(degradedVisible ? String(sessionIndicator.source || "polling") : String(phaseModel.source || liveRun.source || "none"))}" data-live-block-phase-authoritative="${degradedVisible ? "false" : phaseModel.authoritative ? "true" : "false"}" data-live-block-reason="${escapeHtml(degradedVisible ? String(sessionIndicator.reason || "polling-fallback") : "healthy")}" data-live-block-terminal="${handoffVisible || degradedVisible ? "false" : liveRun.terminal ? "true" : "false"}">
       <p class="session-inline-kicker">Selected Thread Session</p>
       <div class="session-inline-row">
         <span class="session-inline-chip" data-tone="${degradedVisible ? "warning" : "neutral"}">${degradedVisible ? "DEGRADED" : handoffVisible ? "HANDOFF" : "LIVE"}</span>
@@ -1079,13 +1120,7 @@ export function jumpToLatest(dom, currentState) {
 
 function deriveLiveRunState(conversation, currentState) {
   const jobId = sessionAuthorityJobId(conversation, currentState);
-  const relevantEvents = sessionAuthorityEvents(conversation, currentState);
-  const latestEvent = relevantEvents.length ? relevantEvents[relevantEvents.length - 1] : null;
-  const latestType = String(latestEvent?.type || "");
-  const latestStatus = String(latestEvent?.status || "").toLowerCase();
-  const eventSource = String(latestEvent?.delivery_source || "snapshot").toLowerCase();
-  const latestAppendId = Number(latestEvent?.append_id || 0);
-  const latestCreatedAt = String(latestEvent?.created_at || "");
+  const sessionPhase = selectedThreadSessionPhase(conversation, currentState);
   const pendingOutgoing = currentState.pendingOutgoing || {};
 
   if (!conversation?.conversation_id) {
@@ -1132,219 +1167,97 @@ function deriveLiveRunState(conversation, currentState) {
     });
   }
 
-  if (!latestEvent) {
-    return runStateSnapshot({
-      visible: true,
-      state: "done",
-      phase: "IDLE",
-      detail: "현재 이 대화에서 실행 중인 작업이 없습니다.",
-      source: "none",
-      tone: "idle",
-      jobId,
-      terminal: false,
-    });
-  }
-
-  if (latestStatus === "failed" || latestType === "runtime.exception") {
+  if (sessionPhase.authoritative && sessionPhase.value === "FAILED") {
     return runStateSnapshot({
       visible: true,
       state: "failed",
       phase: "FAILED",
-      detail: phaseDetail("실행이 실패 또는 예외 상태로 끝났습니다.", latestEvent, "실행이 끝났지만 예외 또는 실패 신호가 기록되었습니다."),
-      source: `${eventSource}-event`,
+      detail: "선택된 대화의 authoritative SSE phase가 실패를 보고했습니다.",
+      source: sessionPhase.source,
       tone: "done",
-      jobId,
+      jobId: sessionPhase.jobId || jobId,
       terminal: true,
-      appendId: latestAppendId,
-      createdAt: latestCreatedAt,
+      appendId: sessionPhase.appendId,
     });
   }
-
-  if (latestType === "goal.proposal.auto_apply.started") {
-    return runStateSnapshot({
-      visible: true,
-      state: "auto-apply",
-      phase: "AUTO APPLY",
-      detail: phaseDetail("승인된 proposal을 자동 적용 중입니다.", latestEvent, "승인된 proposal을 자동 적용 중입니다."),
-      source: `${eventSource}-event`,
-      tone: "running",
-      jobId,
-      terminal: false,
-      appendId: latestAppendId,
-      createdAt: latestCreatedAt,
-    });
-  }
-
-  if (latestType.startsWith("goal.verify.phase.")) {
+  if (sessionPhase.authoritative && sessionPhase.value === "VERIFY") {
     return runStateSnapshot({
       visible: true,
       state: "verify-phase",
       phase: "VERIFY",
-      detail:
-        latestType === "goal.verify.phase.completed"
-          ? phaseDetail("검증 단계가 최신 결과를 정리했습니다.", latestEvent, "검증 단계가 최신 결과를 정리했습니다.")
-          : phaseDetail("Verifier가 구현 결과를 검증 중입니다.", latestEvent, "Verifier가 구현 결과를 검증 중입니다."),
-      source: `${eventSource}-event`,
+      detail: "선택된 대화의 authoritative SSE phase가 검증 단계를 보고했습니다.",
+      source: sessionPhase.source,
       tone: "running",
-      jobId,
+      jobId: sessionPhase.jobId || jobId,
       terminal: false,
-      appendId: latestAppendId,
-      createdAt: latestCreatedAt,
+      appendId: sessionPhase.appendId,
     });
   }
-
-  if (latestType.startsWith("goal.review.phase.")) {
+  if (sessionPhase.authoritative && sessionPhase.value === "REVIEW") {
     return runStateSnapshot({
       visible: true,
       state: "review-phase",
       phase: "REVIEW",
-      detail:
-        latestType === "goal.review.phase.completed"
-          ? phaseDetail("리뷰 단계가 최신 평가를 남겼습니다.", latestEvent, "리뷰 단계가 최신 평가를 남겼습니다.")
-          : phaseDetail("Reviewer가 현재 bounded hypothesis를 검토 중입니다.", latestEvent, "Reviewer가 현재 bounded hypothesis를 검토 중입니다."),
-      source: `${eventSource}-event`,
+      detail: "선택된 대화의 authoritative SSE phase가 리뷰 단계를 보고했습니다.",
+      source: sessionPhase.source,
       tone: "thinking",
-      jobId,
+      jobId: sessionPhase.jobId || jobId,
       terminal: false,
-      appendId: latestAppendId,
-      createdAt: latestCreatedAt,
+      appendId: sessionPhase.appendId,
     });
   }
-
-  if (latestType.startsWith("goal.proposal.phase.")) {
+  if (sessionPhase.authoritative && sessionPhase.value === "PROPOSAL") {
     return runStateSnapshot({
       visible: true,
       state: "proposal-phase",
       phase: "PROPOSAL",
-      detail:
-        latestType === "goal.proposal.phase.completed"
-          ? phaseDetail("제안 단계가 최신 bounded hypothesis를 정리했습니다.", latestEvent, "제안 단계가 최신 bounded hypothesis를 정리했습니다.")
-          : phaseDetail("현재 bounded hypothesis를 제안 중입니다.", latestEvent, "현재 bounded hypothesis를 제안 중입니다."),
-      source: `${eventSource}-event`,
+      detail: "선택된 대화의 authoritative SSE phase가 제안 단계를 보고했습니다.",
+      source: sessionPhase.source,
       tone: "thinking",
-      jobId,
+      jobId: sessionPhase.jobId || jobId,
       terminal: false,
-      appendId: latestAppendId,
-      createdAt: latestCreatedAt,
+      appendId: sessionPhase.appendId,
     });
   }
-
-  if (latestType === "proposal.ready") {
+  if (sessionPhase.authoritative && sessionPhase.value === "READY") {
     return runStateSnapshot({
       visible: true,
       state: "proposal-ready",
       phase: "READY",
-      detail: phaseDetail("Proposal이 준비되어 다음 승인 또는 적용 결정을 기다립니다.", latestEvent, "Proposal이 준비되어 다음 승인 또는 적용 결정을 기다립니다."),
-      source: `${eventSource}-event`,
+      detail: "선택된 대화의 authoritative SSE phase가 ready 상태를 보고했습니다.",
+      source: sessionPhase.source,
       tone: "waiting",
-      jobId,
+      jobId: sessionPhase.jobId || jobId,
       terminal: true,
-      appendId: latestAppendId,
-      createdAt: latestCreatedAt,
+      appendId: sessionPhase.appendId,
     });
   }
-
-  if (latestType === "codex.exec.applied" || latestStatus === "applied") {
+  if (sessionPhase.authoritative && sessionPhase.value === "APPLIED") {
     return runStateSnapshot({
       visible: true,
       state: "applied",
       phase: "APPLIED",
-      detail: phaseDetail("최신 proposal 적용이 반영되었습니다.", latestEvent, "최신 proposal 적용이 반영되었습니다."),
-      source: `${eventSource}-event`,
+      detail: "선택된 대화의 authoritative SSE phase가 applied 상태를 보고했습니다.",
+      source: sessionPhase.source,
       tone: "done",
-      jobId,
+      jobId: sessionPhase.jobId || jobId,
       terminal: true,
-      appendId: latestAppendId,
-      createdAt: latestCreatedAt,
+      appendId: sessionPhase.appendId,
     });
   }
-
-  if (latestType === "codex.exec.started") {
-    return runStateSnapshot({
-      visible: true,
-      state: "running-tool",
-      phase: "RUNNING",
-      detail: "에이전트가 현재 tool 또는 Codex 실행 단계를 처리 중입니다.",
-      source: `${eventSource}-event`,
-      tone: "running",
-      jobId,
-      terminal: false,
-      appendId: latestAppendId,
-      createdAt: latestCreatedAt,
-    });
-  }
-
-  if (
-    latestType === "message.accepted" ||
-    latestType === "job.queued" ||
-    latestType === "codex.exec.finished"
-  ) {
-    return runStateSnapshot({
-      visible: true,
-      state: latestType === "message.accepted" ? "accepted" : "waiting",
-      phase: latestType === "message.accepted" ? "ACCEPTED" : "QUEUED",
-      detail:
-        latestType === "message.accepted"
-          ? phaseDetail("서버 handoff가 확인되어 첫 live 응답을 기다리는 중입니다.", latestEvent, "서버 handoff가 확인되어 첫 live 응답을 기다리는 중입니다.")
-          : "다음 실행 단계나 응답 정리를 기다리는 중입니다.",
-      source: `${eventSource}-event`,
-      tone: "waiting",
-      jobId,
-      terminal: false,
-      appendId: latestAppendId,
-      createdAt: latestCreatedAt,
-    });
-  }
-
-  if (
-    latestType === "intent.interpreted" ||
-    latestType.startsWith("runtime.") ||
-    latestType === "job.running" ||
-    latestType.includes(".phase.started")
-  ) {
-    return runStateSnapshot({
-      visible: true,
-      state: "thinking",
-      phase: latestType === "job.running" ? "RUNNING" : "PLANNING",
-      detail:
-        latestType === "job.running"
-          ? "에이전트가 현재 실행 단계를 처리 중입니다."
-          : "에이전트가 현재 맥락을 읽고 다음 단계를 준비 중입니다.",
-      source: `${eventSource}-event`,
-      tone: latestType === "job.running" ? "running" : "thinking",
-      jobId,
-      terminal: false,
-      appendId: latestAppendId,
-      createdAt: latestCreatedAt,
-    });
-  }
-
-  if (latestType === "job.completed" || latestStatus === "completed") {
-    return runStateSnapshot({
-      visible: true,
-      state: "done",
-      phase: "DONE",
-      detail: "현재 활성 실행이 끝났고 최신 결과가 반영되었습니다.",
-      source: `${eventSource}-event`,
-      tone: "done",
-      jobId,
-      terminal: true,
-      appendId: latestAppendId,
-      createdAt: latestCreatedAt,
-    });
-  }
-
   return runStateSnapshot({
     visible: true,
-    state: "thinking",
-    phase: "PLANNING",
-    detail: "선택된 대화의 최신 실행 신호를 처리 중입니다.",
-    source: `${eventSource}-event`,
-    tone: "thinking",
-    jobId,
+    state: sessionPhase.value === "LIVE" ? "live" : "unknown",
+    phase: sessionPhase.value === "LIVE" ? "LIVE" : "UNKNOWN",
+    detail:
+      sessionPhase.value === "LIVE"
+        ? "선택된 대화가 live SSE에 연결되어 있지만 authoritative phase는 아직 확정되지 않았습니다."
+        : "선택된 대화의 authoritative phase를 아직 확인하지 못했습니다.",
+    source: sessionPhase.source,
+    tone: sessionPhase.value === "LIVE" ? "running" : "idle",
+    jobId: sessionPhase.jobId || jobId,
     terminal: false,
-    appendId: latestAppendId,
-    createdAt: latestCreatedAt,
+    appendId: sessionPhase.appendId,
   });
 }
 
@@ -1621,6 +1534,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const bootstrapVersion = String(appendStream.bootstrapVersion || "");
   const resumeMode = String(appendStream.resumeMode || "idle").toLowerCase();
   const resumeCursor = Math.max(Number(appendStream.resumeCursor || 0), 0);
+  const sessionPhase = selectedThreadSessionPhase(conversation, currentState);
   const lastAppendId = Number(appendStream.lastAppendId || maxConversationAppendId(conversation) || 0);
   const lastRenderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
   const lastLiveAppendId = Number(appendStream.lastLiveAppendId || 0);
@@ -1641,6 +1555,9 @@ export function renderSessionStrip(dom, currentState, conversation) {
     dom.sessionStrip.dataset.bootstrapVersion = "";
     dom.sessionStrip.dataset.resumeMode = "idle";
     dom.sessionStrip.dataset.resumeCursor = "0";
+    dom.sessionStrip.dataset.phaseValue = "UNKNOWN";
+    dom.sessionStrip.dataset.phaseAuthoritative = "false";
+    dom.sessionStrip.dataset.phaseProvenance = "none";
     dom.sessionStrip.dataset.renderSource = "snapshot";
     dom.sessionStrip.dataset.liveConversationId = "";
     dom.sessionStrip.dataset.lastAppendId = "0";
@@ -1664,6 +1581,9 @@ export function renderSessionStrip(dom, currentState, conversation) {
     dom.threadScroller.dataset.bootstrapVersion = "";
     dom.threadScroller.dataset.resumeMode = "idle";
     dom.threadScroller.dataset.resumeCursor = "0";
+    dom.threadScroller.dataset.phaseValue = "UNKNOWN";
+    dom.threadScroller.dataset.phaseAuthoritative = "false";
+    dom.threadScroller.dataset.phaseProvenance = "none";
     dom.threadScroller.dataset.renderSource = "snapshot";
     dom.threadScroller.dataset.liveConversationId = "";
     dom.threadScroller.dataset.lastAppendId = "0";
@@ -1729,6 +1649,9 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStrip.dataset.bootstrapVersion = bootstrapVersion;
   dom.sessionStrip.dataset.resumeMode = resumeMode;
   dom.sessionStrip.dataset.resumeCursor = String(resumeCursor);
+  dom.sessionStrip.dataset.phaseValue = liveRun.phase || sessionPhase.value;
+  dom.sessionStrip.dataset.phaseAuthoritative = liveRun.phase && sessionPhase.authoritative ? "true" : "false";
+  dom.sessionStrip.dataset.phaseProvenance = liveRun.source || sessionPhase.source;
   dom.sessionStrip.dataset.renderSource = lastRenderSource;
   dom.sessionStrip.dataset.liveConversationId = conversationId;
   dom.sessionStrip.dataset.lastAppendId = String(lastAppendId || 0);
@@ -1777,6 +1700,9 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.threadScroller.dataset.bootstrapVersion = bootstrapVersion;
   dom.threadScroller.dataset.resumeMode = resumeMode;
   dom.threadScroller.dataset.resumeCursor = String(resumeCursor);
+  dom.threadScroller.dataset.phaseValue = liveRun.phase || sessionPhase.value;
+  dom.threadScroller.dataset.phaseAuthoritative = liveRun.phase && sessionPhase.authoritative ? "true" : "false";
+  dom.threadScroller.dataset.phaseProvenance = liveRun.source || sessionPhase.source;
   dom.threadScroller.dataset.renderSource = lastRenderSource;
   dom.threadScroller.dataset.liveConversationId = conversationId;
   dom.threadScroller.dataset.lastAppendId = String(lastAppendId || 0);

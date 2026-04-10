@@ -977,6 +977,9 @@ def verify_conversation_append_stream(client: TestClient) -> None:
         require(bootstrap.get("version") == 2, f"session bootstrap should be versioned: {bootstrap}")
         require(bootstrap.get("attach_mode") == "sse-bootstrap", f"session bootstrap should mark sse attach mode: {bootstrap}")
         require(int(bootstrap.get("resume_from_append_id") or 0) == 0, f"initial bootstrap should not resume from append id: {bootstrap}")
+        require(isinstance(bootstrap.get("session_phase"), dict), f"session bootstrap should expose session_phase payload: {bootstrap}")
+        require("value" in (bootstrap.get("session_phase") or {}), f"session bootstrap phase payload should include value: {bootstrap}")
+        require("authoritative" in (bootstrap.get("session_phase") or {}), f"session bootstrap phase payload should include authoritative flag: {bootstrap}")
         require(bootstrap.get("conversation", {}).get("conversation_id") == conversation_id, "session bootstrap should hydrate the selected conversation")
 
     with client.stream(
@@ -998,6 +1001,7 @@ def verify_conversation_append_stream(client: TestClient) -> None:
         require(bootstrap.get("version") == 2, f"resume bootstrap should keep versioned contract: {bootstrap}")
         require(bootstrap.get("attach_mode") == "sse-resume", f"resume bootstrap should mark sse resume mode: {bootstrap}")
         require(int(bootstrap.get("resume_from_append_id") or 0) == 3, f"resume bootstrap should echo requested append cursor: {bootstrap}")
+        require(isinstance(bootstrap.get("session_phase"), dict), f"resume bootstrap should expose session_phase payload: {bootstrap}")
 
 
 def main() -> None:

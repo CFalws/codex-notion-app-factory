@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Extend the selected-thread `session.bootstrap` event so it can mark both healthy attach and healthy cursor-based resume without changing `conversation.append`.
-- [x] Reopen the selected-thread SSE stream from the last append cursor on reconnect instead of degrading immediately to polling on the healthy path.
-- [x] Expose resume mode and resume cursor in machine-readable session-strip and thread-scroller datasets next to attach mode and bootstrap version.
-- [x] Tighten browser verification so healthy reconnect requires SSE resume with no conversation snapshot fetch, no job polling takeover, and no duplicate append replay.
-- [x] Align the focused verifier and iteration artifacts with the selected-thread bootstrap-resume contract.
+- [x] Add one additive `session_phase` payload to selected-thread `session.bootstrap` and `conversation.append` envelopes.
+- [x] Limit authoritative phase values to `PROPOSAL`, `REVIEW`, `VERIFY`, `READY`, `APPLIED`, and `FAILED`.
+- [x] Move selected-thread live surfaces onto that single phase model and render `LIVE` or `UNKNOWN` when the payload is non-authoritative.
+- [x] Expose phase value, authoritative bit, and provenance consistently in the session strip, thread scroller, and inline live block.
+- [x] Align the focused verifier and iteration artifacts with the authoritative selected-thread phase contract.

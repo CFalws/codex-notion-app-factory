@@ -50,10 +50,64 @@ class RuntimeApiContext:
                         "kind": kind,
                         "append_id": append_id,
                         "payload": payload,
+                        "session_phase": self.conversation_session_phase(payload, kind=kind),
                     }
                 )
         items.sort(key=lambda item: int(item["append_id"]))
         return items
+
+    def conversation_session_phase(self, payload: dict[str, Any] | None, *, kind: str) -> dict[str, Any]:
+        item = payload if isinstance(payload, dict) else {}
+        phase = "UNKNOWN"
+        authoritative = False
+        event_type = str(item.get("type") or "")
+        status = str(item.get("status") or "").lower()
+        reason = "no-authoritative-phase"
+
+        if kind == "event":
+            if status == "failed" or event_type == "runtime.exception":
+                phase = "FAILED"
+                authoritative = True
+                reason = "event-phase"
+            elif event_type == "proposal.ready":
+                phase = "READY"
+                authoritative = True
+                reason = "event-phase"
+            elif event_type == "codex.exec.applied" or status == "applied":
+                phase = "APPLIED"
+                authoritative = True
+                reason = "event-phase"
+            elif event_type.startswith("goal.verify.phase."):
+                phase = "VERIFY"
+                authoritative = True
+                reason = "event-phase"
+            elif event_type.startswith("goal.review.phase."):
+                phase = "REVIEW"
+                authoritative = True
+                reason = "event-phase"
+            elif event_type.startswith("goal.proposal.phase."):
+                phase = "PROPOSAL"
+                authoritative = True
+                reason = "event-phase"
+            elif event_type:
+                phase = "LIVE"
+                reason = "non-authoritative-event"
+        elif kind == "message":
+            phase = "LIVE"
+            reason = "non-authoritative-message"
+
+        return {
+            "value": phase,
+            "authoritative": authoritative,
+            "reason": reason,
+            "kind": kind,
+            "event_type": event_type,
+            "status": status,
+            "job_id": str(item.get("job_id") or ""),
+            "append_id": int(item.get("append_id") or 0),
+            "created_at": str(item.get("created_at") or ""),
+            "source": "sse",
+        }
 
     def conversation_session_bootstrap(
         self,
@@ -66,14 +120,21 @@ class RuntimeApiContext:
         events = list(conversation.get("events", []))
         append_cursor = 0
         latest_event: dict[str, Any] | None = None
+        latest_item: tuple[str, dict[str, Any]] | None = None
         for item in [*messages, *events]:
             append_id = int(item.get("append_id") or 0)
             if append_id > append_cursor:
                 append_cursor = append_id
+        for kind, items in (("message", messages), ("event", events)):
+            for item in items:
+                append_id = int(item.get("append_id") or 0)
+                if latest_item is None or append_id >= int(latest_item[1].get("append_id") or 0):
+                    latest_item = (kind, item)
         if events:
             latest_event = max(events, key=lambda item: int(item.get("append_id") or 0))
         resume_cursor = max(int(requested_after_append_id or 0), 0)
         attach_mode = "sse-resume" if resume_cursor else "sse-bootstrap"
+        latest_kind, latest_payload = latest_item if latest_item else ("event", {})
         return {
             "version": 2,
             "conversation_id": conversation_id,
@@ -82,6 +143,7 @@ class RuntimeApiContext:
             "resume_from_append_id": resume_cursor,
             "conversation": conversation,
             "latest_job_id": str(conversation.get("latest_job_id") or ""),
+            "session_phase": self.conversation_session_phase(latest_payload, kind=latest_kind),
             "live_phase_summary": {
                 "event_type": str((latest_event or {}).get("type") or ""),
                 "status": str((latest_event or {}).get("status") or ""),
@@ -117,6 +179,7 @@ class RuntimeApiContext:
             "kind": kind,
             "append_id": int(payload.get("append_id") or 0),
             "payload": payload,
+            "session_phase": self.conversation_session_phase(payload, kind=kind),
         }
         stale: list[asyncio.Queue[dict[str, Any]]] = []
         for queue in subscribers:
