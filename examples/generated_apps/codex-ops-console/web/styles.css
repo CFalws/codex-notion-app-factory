@@ -294,6 +294,7 @@ body[data-secondary-panel-open="true"] .desktop-shell {
     linear-gradient(135deg, rgba(31, 120, 224, 0.1), rgba(255, 255, 255, 0) 52%),
     rgba(255, 255, 255, 0.88);
   box-shadow: 0 10px 22px rgba(31, 120, 224, 0.08);
+  isolation: isolate;
 }
 
 .active-session-chip-row {

@@ -491,6 +491,7 @@ export function createConversationController(deps) {
     pendingStage = "idle",
     jumpVisible = false,
     isFollowing = false,
+    unseenCount = 0,
     sessionTerminal = false,
     renderSource = "snapshot",
   } = {}) {
@@ -510,6 +511,11 @@ export function createConversationController(deps) {
       selectedConversationId &&
       selectedConversationId === liveConversationId &&
       renderSource === "sse";
+    const healthySelectedThreadLive =
+      selectedThreadSseOwned &&
+      presentation === "live" &&
+      liveRunPhase &&
+      liveRunPhase !== "IDLE";
 
     let visible = false;
     let conversationId = "";
@@ -519,6 +525,10 @@ export function createConversationController(deps) {
     let followLabel = "LIVE";
     let title = "";
     let meta = "";
+    let rowOwned = false;
+    let rowSource = "none";
+    let rowPhase = "IDLE";
+    let rowUnseenCount = 0;
 
     if (threadTransition.active && threadTransition.targetConversationId) {
       visible = true;
@@ -526,6 +536,8 @@ export function createConversationController(deps) {
       rowState = "switching";
       stateLabel = "SWITCHING";
       followLabel = "ATTACH";
+      rowSource = "thread-transition";
+      rowPhase = "ATTACH";
       title =
         String(threadTransition.targetTitle || "").trim() ||
         threadTitleForConversation(conversationId) ||
@@ -534,7 +546,11 @@ export function createConversationController(deps) {
     } else if (
       selectedConversationId &&
       !sessionTerminal &&
-      (pendingStage === "pending-user" || pendingStage === "pending-assistant" || selectedThreadSseOwned)
+      (
+        pendingStage === "pending-user" ||
+        pendingStage === "pending-assistant" ||
+        healthySelectedThreadLive
+      )
     ) {
       visible = true;
       conversationId = selectedConversationId;
@@ -547,16 +563,18 @@ export function createConversationController(deps) {
         isSelected: true,
       });
       followLabel = liveOwnerFollowLabel({ pendingStage, isFollowing, jumpVisible, presentation });
+      rowOwned = pendingStage === "pending-user" ? "false" : "true";
+      rowSource = pendingStage === "pending-user" ? "local-handoff" : pendingStage === "pending-assistant" ? "selected-thread-handoff" : "selected-thread-sse";
+      rowPhase = stateLabel || "LIVE";
+      rowUnseenCount = jumpVisible ? Math.max(Number(unseenCount || 0), 0) : 0;
       title =
         threadTitleForConversation(selectedConversationId) ||
         String(dom.threadTitle?.textContent || "").trim() ||
         "현재 대화";
       if (pendingStage === "pending-user" || pendingStage === "pending-assistant") {
         meta = "selected thread · handoff";
-      } else if (presentation === "reconnecting") {
-        meta = "selected thread · reconnecting";
       } else if (jumpVisible) {
-        meta = "selected thread · unseen live appends";
+        meta = `selected thread · ${rowUnseenCount} unseen live appends`;
       } else if (isFollowing) {
         meta = "selected thread · live follow";
       } else {
@@ -569,6 +587,10 @@ export function createConversationController(deps) {
     dom.activeSessionRow.dataset.activeSessionConversationId = visible ? conversationId : "";
     dom.activeSessionRow.dataset.activeSessionPresentation = visible ? presentation : "cleared";
     dom.activeSessionRow.dataset.activeSessionFollow = visible ? followLabel.toLowerCase() : "idle";
+    dom.activeSessionRow.dataset.activeSessionOwned = visible ? String(rowOwned) : "false";
+    dom.activeSessionRow.dataset.activeSessionSource = visible ? rowSource : "none";
+    dom.activeSessionRow.dataset.activeSessionPhase = visible ? rowPhase : "IDLE";
+    dom.activeSessionRow.dataset.activeSessionUnseenCount = String(visible ? rowUnseenCount : 0);
     dom.activeSessionOwner.textContent = ownerLabel;
     dom.activeSessionState.textContent = stateLabel;
     dom.activeSessionFollow.textContent = followLabel;
@@ -915,6 +937,7 @@ export function createConversationController(deps) {
       pendingStage,
       jumpVisible,
       isFollowing,
+      unseenCount: Number(liveFollow.pendingAppendCount || 0),
       sessionTerminal,
       renderSource,
     });
