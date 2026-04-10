@@ -330,6 +330,7 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   const renderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
   const transport = String(appendStream.transport || "polling").toLowerCase();
   const status = String(appendStream.status || "offline").toLowerCase();
+  const compactHeaderChromeHidden = Boolean(conversationId || threadTransition.targetConversationId);
   const sseLiveOwner =
     conversationId &&
     streamConversationId === conversationId &&
@@ -376,16 +377,20 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   dom.sessionSummaryRow.dataset.liveSessionSource = sessionIndicator.source;
   dom.sessionSummaryRow.dataset.liveSessionReason = sessionIndicator.reason;
   dom.sessionSummaryRow.dataset.liveSessionOwned = sessionIndicator.owned ? "true" : "false";
+  dom.sessionSummaryRow.hidden = compactHeaderChromeHidden;
   dom.sessionSummaryScope.textContent = compactTargetLabel(conversation?.title || threadTransition.targetTitle || "", "SELECTED");
   dom.sessionSummaryPath.textContent = pathLabel;
   dom.sessionSummaryState.textContent = stateLabel;
-  dom.sessionLiveIndicator.hidden = !sessionIndicator.visible;
+  dom.sessionLiveIndicator.hidden = compactHeaderChromeHidden || !sessionIndicator.visible;
   dom.sessionLiveIndicator.textContent = sessionIndicator.label;
   dom.sessionLiveIndicator.dataset.liveSessionTone = sessionIndicator.tone;
   dom.sessionLiveIndicator.dataset.liveSessionSource = sessionIndicator.source;
   dom.sessionLiveIndicator.dataset.liveSessionOwned = sessionIndicator.owned ? "true" : "false";
   dom.sessionLiveIndicator.dataset.liveSessionReason = sessionIndicator.reason;
   dom.sessionSummaryCopy.textContent = copy;
+  if (dom.threadPhaseChip) {
+    dom.threadPhaseChip.hidden = compactHeaderChromeHidden;
+  }
 }
 
 function isThreadNearBottom(threadScroller) {

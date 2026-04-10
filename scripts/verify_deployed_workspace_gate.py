@@ -339,11 +339,13 @@ def assert_browser_runtime_surface(
                     healthyBlock.dataset.liveBlockPhase &&
                     healthyBlock.dataset.liveBlockPhase !== "IDLE" &&
                     summary &&
+                    summary.hidden &&
                     summary.dataset.liveSessionOwned === "true" &&
                     summaryCopy &&
                     summaryCopy.textContent.trim().length > 0 &&
                     !summaryCopy.textContent.includes("SSE OWNER") &&
                     threadPhase &&
+                    threadPhase.hidden &&
                     ["PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED"].includes(threadPhase.dataset.threadPhase || "") &&
                     threadPhase.dataset.threadPhaseDetail &&
                     threadPhase.dataset.threadPhaseDetail !== "idle" &&
@@ -441,6 +443,7 @@ def assert_browser_runtime_surface(
                     document.querySelectorAll('[data-thread-transition="loading"]').length === 1 &&
                     transition.dataset.threadTransitionConversationId === targetConversationId &&
                     summary &&
+                    summary.hidden &&
                     summary.dataset.summaryPath === "switching" &&
                     summary.dataset.liveSessionOwned === "false" &&
                     liveIndicator &&
