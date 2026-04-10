@@ -35,7 +35,7 @@ export function createJobController(deps) {
       );
     }
 
-    renderJobActivity(dom, state.conversationCache, state.currentJobId, payload);
+    renderJobActivity(dom, state.conversationCache, state.currentJobId, payload, state);
 
     return payload;
   }

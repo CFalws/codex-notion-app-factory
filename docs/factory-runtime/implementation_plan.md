@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Keep the existing conversation-first shell, transcript timeline, bottom-fixed composer, composer owner row, and selected-thread inline session block unchanged as the primary workspace structure.
-2. Reuse the selected-thread SSE ownership, pending handoff, live phase, and terminal-retention selectors through one shared inline-session visibility helper.
-3. Use that helper to keep the inline session block as the only healthy selected-thread live-progress surface in the center timeline.
-4. Suppress the composer-adjacent live strip whenever the inline session block is active, while preserving selected-thread ownership datasets on the thread scroller for follow-state behavior.
-5. Align the focused verifier, deployed workspace gate, and iteration artifacts with the single-surface healthy live-progress contract.
+1. Keep the existing selected-thread inline session block, bottom-fixed composer, and degraded polling fallback paths unchanged.
+2. Reuse `deriveLiveRunState` and selected-thread SSE ownership as the single healthy realtime source for visible phase and proposal/apply readiness.
+3. Update the recent-activity panel so healthy selected-thread SSE ownership uses conversation events and live-run phase directly instead of waiting for polled job payload status.
+4. Keep the existing job payload path for degraded, non-selected, reconnecting, polling, or switched-thread states.
+5. Align the focused verifier, deployed workspace gate, and iteration artifacts with the selected-thread SSE-owned status-ownership contract.

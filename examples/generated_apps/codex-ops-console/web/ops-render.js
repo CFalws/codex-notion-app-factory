@@ -1581,15 +1581,40 @@ function phaseLabel(status, eventType = "") {
   return "IDLE";
 }
 
-export function renderJobActivity(dom, conversation, currentJobId, jobPayload = null) {
+export function renderJobActivity(dom, conversation, currentJobId, jobPayload = null, currentState = null) {
   const events = Array.isArray(conversation?.events) ? conversation.events : [];
-  const relevantEvents = currentJobId ? events.filter((event) => event.job_id === currentJobId) : events;
+  const appendStream = currentState?.appendStream || {};
+  const conversationId = String(conversation?.conversation_id || "");
+  const streamConversationId = String(appendStream.conversationId || "");
+  const selectedThreadSseOwned =
+    Boolean(currentState) &&
+    Boolean(conversationId) &&
+    String(currentState.currentConversationId || "") === conversationId &&
+    streamConversationId === conversationId &&
+    String(appendStream.transport || "polling").toLowerCase() === "sse" &&
+    String(appendStream.lastRenderSource || "snapshot").toLowerCase() === "sse" &&
+    String(appendStream.status || "offline").toLowerCase() === "live";
+  const liveRun = currentState ? deriveLiveRunState(conversation, currentState) : runStateSnapshot({ visible: false, phase: "IDLE", source: "none" });
+  const eventJobId = String(liveRun.jobId || currentJobId || conversation?.latest_job_id || "");
+  const relevantEvents = (selectedThreadSseOwned ? eventJobId : currentJobId)
+    ? events.filter((event) => !event.job_id || event.job_id === (selectedThreadSseOwned ? eventJobId : currentJobId))
+    : events;
   const recentEvents = relevantEvents.slice(-4).reverse();
 
   const latestEvent = recentEvents[0];
-  const phase = phaseLabel(jobPayload?.status || latestEvent?.status || "", latestEvent?.type || "");
+  const phase = selectedThreadSseOwned
+    ? String(liveRun.phase || "IDLE").toUpperCase()
+    : phaseLabel(jobPayload?.status || latestEvent?.status || "", latestEvent?.type || "");
   dom.jobPhase.textContent = phase;
   dom.jobPhase.className = `activity-phase ${phase.toLowerCase()}`;
+
+  if (currentState && dom.applyProposalButton && selectedThreadSseOwned) {
+    currentState.latestProposalJobId =
+      liveRun.state === "proposal-ready"
+        ? String(liveRun.jobId || conversation?.latest_job_id || "")
+        : "";
+    updateProposalButton(dom, currentState.latestProposalJobId);
+  }
 
   if (!recentEvents.length) {
     dom.jobEvents.innerHTML = '<p class="activity-empty">작업이 시작되면 최근 실행 이벤트가 여기에 표시됩니다.</p>';
@@ -1767,7 +1792,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
       { stage: "idle" },
     );
     syncComposerOwnership(dom, currentState, null);
-    renderJobActivity(dom, null, "");
+  renderJobActivity(dom, null, "", null, currentState);
     return;
   }
 
@@ -1864,7 +1889,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   }
   syncJumpToLatest(dom, currentState, conversation.conversation_id, renderSource);
 
-  renderJobActivity(dom, conversation, currentState.currentJobId || conversation.latest_job_id || "");
+  renderJobActivity(dom, conversation, currentState.currentJobId || conversation.latest_job_id || "", null, currentState);
 
   const assistantResult = [...messages].reverse().find((item) => item.role === "assistant");
   const decisionSummary = assistantResult && assistantResult.metadata ? assistantResult.metadata.decision_summary : null;
