@@ -9,6 +9,7 @@ export const dom = {
   secondaryPanelClose: document.getElementById("secondary-panel-close"),
   appSelect: document.getElementById("app-select"),
   refreshAppsButton: document.getElementById("refresh-apps"),
+  selectedAppSummary: document.getElementById("selected-app-summary"),
   threadKicker: document.getElementById("thread-kicker"),
   threadTitle: document.getElementById("thread-title"),
   threadPhaseChip: document.getElementById("thread-phase-chip"),

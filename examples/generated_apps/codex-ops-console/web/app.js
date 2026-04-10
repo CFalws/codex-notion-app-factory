@@ -120,7 +120,7 @@ function syncNavOpsSection() {
   if (!dom.navOpsSection) {
     return;
   }
-  dom.navOpsSection.open = !isPhoneViewport();
+  dom.navOpsSection.open = false;
 }
 
 function setComposerUtilityOpen(isOpen) {

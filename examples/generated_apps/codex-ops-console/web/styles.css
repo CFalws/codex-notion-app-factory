@@ -206,7 +206,7 @@ body[data-secondary-panel-open="true"] .desktop-shell {
 }
 
 .sidebar-primary-nav {
-  order: 2;
+  order: 1;
 }
 
 .sidebar-section-fill {
@@ -218,12 +218,19 @@ body[data-secondary-panel-open="true"] .desktop-shell {
 }
 
 .sidebar-ops-details {
-  order: 1;
+  order: 2;
   overflow: hidden;
 }
 
 .nav-ops-summary {
-  display: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.7rem;
+  padding: 0.72rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .nav-ops-content {
@@ -239,6 +246,22 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   border: 1px solid var(--line);
   border-radius: 1rem;
   background: rgba(255, 255, 255, 0.5);
+}
+
+.sidebar-app-summary {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.72rem 0.8rem;
+  border: 1px solid rgba(221, 210, 196, 0.92);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.sidebar-app-summary-copy {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.86rem;
+  line-height: 1.4;
 }
 
 .section-head {

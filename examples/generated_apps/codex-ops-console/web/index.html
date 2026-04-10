@@ -31,6 +31,10 @@
             <button id="nav-sheet-close" class="secondary small nav-sheet-close" type="button">닫기</button>
           </div>
           <p class="sidebar-copy">앱별 대화를 이어가며 수정 요청, 제안, 결과를 한 화면에서 다룹니다.</p>
+          <div class="sidebar-app-summary" data-sidebar-app-summary="compact">
+            <p class="label">현재 앱</p>
+            <p id="selected-app-summary" class="sidebar-app-summary-copy">앱을 고르면 현재 레인이 여기에 고정됩니다.</p>
+          </div>
           <button id="install-button" class="install-button" hidden>홈 화면에 추가</button>
         </div>
 
@@ -42,9 +46,9 @@
           <div id="conversation-list" class="conversation-list"></div>
         </section>
 
-        <details id="nav-ops-section" class="sidebar-section sidebar-ops-details" data-nav-secondary="ops" open>
+        <details id="nav-ops-section" class="sidebar-section sidebar-ops-details" data-nav-secondary="ops">
           <summary id="nav-ops-summary" class="nav-ops-summary">
-            <span>앱과 운영</span>
+            <span>앱과 운영 도구</span>
             <span class="nav-ops-summary-meta">앱 선택, 새로고침, 배포 링크</span>
           </summary>
           <div class="nav-ops-content">

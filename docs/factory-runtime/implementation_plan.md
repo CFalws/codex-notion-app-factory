@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Keep the current selected-conversation SSE path, session strip ownership, bottom follow control, thread-switch continuity, and non-selected snapshot rows unchanged.
-2. Compress apply and auto-open behind one compact footer utility affordance so the textarea and send button remain the clear primary path.
-3. Shorten the persistent composer hint to a session-aware line and keep the utility panel hidden by default on both desktop and phone widths.
-4. Preserve machine-readable footer structure and utility-open state so verification can prove the footer remains chat-first without reintroducing duplicate live-status surfaces.
-5. Extend the focused verifier and docs so future sessions can prove the compact footer structure and the on-demand utility panel remain intact.
+1. Keep the current selected-conversation SSE path, session strip ownership, bottom follow control, footer composer, and non-selected snapshot rows unchanged.
+2. Make the conversation list the first visible rail section on desktop and phone widths by restoring it to the primary rail order.
+3. Keep selected app identity visible through one compact always-visible summary card near the rail header instead of relying on the heavier operator section.
+4. Collapse the app or operator controls section by default and keep it reachable through a summary toggle so it no longer competes with thread history.
+5. Extend the focused verifier and docs so future sessions can prove the conversation-first rail order and the compact selected-app summary remain intact.

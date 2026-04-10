@@ -1242,6 +1242,9 @@ export function updateSelectedAppCard(dom, app) {
 
   if (!app) {
     dom.selectedAppUrl.textContent = "앱을 선택하면 여기에서 바로 열 수 있습니다.";
+    if (dom.selectedAppSummary) {
+      dom.selectedAppSummary.textContent = "앱을 고르면 현재 레인이 여기에 고정됩니다.";
+    }
     updateHeroState(dom, {
       threadTitle: "앱을 먼저 고르세요",
       threadKicker: "작업 공간",
@@ -1255,6 +1258,11 @@ export function updateSelectedAppCard(dom, app) {
   dom.selectedAppUrl.textContent = hasDeployment
     ? app.deploymentUrl
     : "deployment_url이 아직 등록되지 않았습니다.";
+  if (dom.selectedAppSummary) {
+    dom.selectedAppSummary.textContent = hasDeployment
+      ? `${app.title} · 배포 링크 사용 가능`
+      : `${app.title} · 배포 링크 없음`;
+  }
 }
 
 export function updateProposalButton(dom, latestProposalJobId) {

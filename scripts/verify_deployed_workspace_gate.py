@@ -137,6 +137,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     conversations_js = http_text(parse.urljoin(ops_url, "ops-conversations.js"), api_key=api_key)
 
     require(html, 'id="nav-sheet"', label="phone nav sheet")
+    require(html, 'id="selected-app-summary"', label="selected app summary")
     require(html, 'data-primary-surface="conversation"', label="primary conversation surface")
     require(html, 'id="thread-scroller"', label="thread scroller")
     require(html, 'data-session-workspace="conversation-first"', label="conversation-first session workspace")
@@ -157,6 +158,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(styles, 'grid-template-columns: 15rem minmax(0, 1fr);', label="desktop two-pane shell")
     require(styles, 'body[data-mobile-workspace="conversation"] .main-stage', label="phone conversation-first surface")
     require(styles, 'body[data-secondary-panel-open="true"] .desktop-shell', label="secondary panel overlay shell")
+    require(styles, ".sidebar-app-summary", label="compact app summary CSS")
+    require(styles, ".nav-ops-summary", label="operator summary toggle CSS")
     require(styles, "position: sticky;", label="sticky footer dock")
     require(styles, "env(safe-area-inset-bottom)", label="safe-area footer padding")
     require(styles, ".composer-utility-menu", label="composer utility menu CSS")
