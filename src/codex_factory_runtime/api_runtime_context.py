@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 import asyncio
+import json
 import os
 from pathlib import Path
 from datetime import datetime, timezone
@@ -33,6 +34,60 @@ class RuntimeApiContext:
     goals: GoalRuntime
     autonomy: AutonomyRuntime
     goal_tasks: dict[str, asyncio.Task[Any]] = field(default_factory=dict)
+    append_subscribers: dict[str, set[asyncio.Queue[dict[str, Any]]]] = field(default_factory=dict)
+
+    def conversation_append_snapshot(self, conversation_id: str, *, after_append_id: int = 0) -> list[dict[str, Any]]:
+        conversation = self.require_conversation(conversation_id)
+        items: list[dict[str, Any]] = []
+        for kind, key in (("message", "messages"), ("event", "events")):
+            for payload in conversation.get(key, []):
+                append_id = int(payload.get("append_id") or 0)
+                if append_id <= after_append_id:
+                    continue
+                items.append(
+                    {
+                        "conversation_id": conversation_id,
+                        "kind": kind,
+                        "append_id": append_id,
+                        "payload": payload,
+                    }
+                )
+        items.sort(key=lambda item: int(item["append_id"]))
+        return items
+
+    def subscribe_conversation_appends(self, conversation_id: str) -> asyncio.Queue[dict[str, Any]]:
+        queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
+        self.append_subscribers.setdefault(conversation_id, set()).add(queue)
+        return queue
+
+    def unsubscribe_conversation_appends(self, conversation_id: str, queue: asyncio.Queue[dict[str, Any]]) -> None:
+        subscribers = self.append_subscribers.get(conversation_id)
+        if not subscribers:
+            return
+        subscribers.discard(queue)
+        if not subscribers:
+            self.append_subscribers.pop(conversation_id, None)
+
+    def _publish_conversation_append(self, conversation_id: str, *, kind: str, payload: dict[str, Any]) -> None:
+        subscribers = self.append_subscribers.get(conversation_id)
+        if not subscribers:
+            return
+        envelope = {
+            "conversation_id": conversation_id,
+            "kind": kind,
+            "append_id": int(payload.get("append_id") or 0),
+            "payload": payload,
+        }
+        stale: list[asyncio.Queue[dict[str, Any]]] = []
+        for queue in subscribers:
+            try:
+                queue.put_nowait(envelope)
+            except RuntimeError:
+                stale.append(queue)
+        for queue in stale:
+            subscribers.discard(queue)
+        if not subscribers:
+            self.append_subscribers.pop(conversation_id, None)
 
     def append_event(
         self,
@@ -46,7 +101,7 @@ class RuntimeApiContext:
     ) -> None:
         if not conversation_id:
             return
-        self.state.append_conversation_event(
+        event = self.state.append_conversation_event(
             conversation_id,
             event_type=event_type,
             body=body,
@@ -54,6 +109,27 @@ class RuntimeApiContext:
             job_id=job_id,
             data=data,
         )
+        self._publish_conversation_append(conversation_id, kind="event", payload=event)
+
+    def append_user_message(
+        self,
+        conversation_id: str,
+        *,
+        title: str,
+        body: str,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        if not conversation_id:
+            return
+        message = self.state.append_conversation_message(
+            conversation_id,
+            role="user",
+            title=title,
+            body=body,
+            message_type="request",
+            metadata=metadata,
+        )
+        self._publish_conversation_append(conversation_id, kind="message", payload=message)
 
     def append_assistant_message(
         self,
@@ -66,7 +142,7 @@ class RuntimeApiContext:
     ) -> None:
         if not conversation_id:
             return
-        self.state.append_conversation_message(
+        message = self.state.append_conversation_message(
             conversation_id,
             role="assistant",
             title=title,
@@ -75,6 +151,7 @@ class RuntimeApiContext:
             message_type="result",
             metadata=metadata,
         )
+        self._publish_conversation_append(conversation_id, kind="message", payload=message)
 
     def resolve_conversation_title(self, app_id: str, explicit_title: str) -> str:
         if explicit_title.strip():

@@ -196,6 +196,7 @@ class RuntimeState:
         metadata: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         conversation = self.get_conversation(conversation_id)
+        append_id = int(conversation.get("next_append_id") or 1)
         message = build_conversation_message(
             role=role,
             body=body,
@@ -204,8 +205,10 @@ class RuntimeState:
             job_id=job_id,
             message_type=message_type,
             metadata=metadata,
+            append_id=append_id,
         )
         conversation.setdefault("messages", []).append(message)
+        conversation["next_append_id"] = append_id + 1
         if job_id:
             conversation["latest_job_id"] = job_id
         self.save_conversation(conversation)
@@ -222,6 +225,7 @@ class RuntimeState:
         data: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         conversation = self.get_conversation(conversation_id)
+        append_id = int(conversation.get("next_append_id") or 1)
         event = build_conversation_event(
             event_type=event_type,
             body=body,
@@ -229,8 +233,10 @@ class RuntimeState:
             status=status,
             job_id=job_id,
             data=data,
+            append_id=append_id,
         )
         conversation.setdefault("events", []).append(event)
+        conversation["next_append_id"] = append_id + 1
         if job_id:
             conversation["latest_job_id"] = job_id
         self.save_conversation(conversation)

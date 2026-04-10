@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import BackgroundTasks, FastAPI, HTTPException
+import asyncio
+import json
+
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Request
+from fastapi.responses import StreamingResponse
 
 from .api_models import ConversationMessageBody, CreateConversationBody, CreateGoalBody, CreateRequestBody
 from .api_runtime_context import RuntimeApiContext
@@ -53,6 +57,45 @@ def register_routes(app: FastAPI, context: RuntimeApiContext) -> None:
     async def get_conversation(conversation_id: str) -> dict[str, Any]:
         return context.require_conversation(conversation_id)
 
+    @app.get("/api/internal/conversations/{conversation_id}/append-stream")
+    async def conversation_append_stream(conversation_id: str, request: Request) -> StreamingResponse:
+        context.require_conversation(conversation_id)
+        last_event_id = request.headers.get("last-event-id", "").strip()
+        try:
+            after_append_id = int(last_event_id or "0")
+        except ValueError:
+            after_append_id = 0
+
+        async def stream() -> Any:
+            queue = context.subscribe_conversation_appends(conversation_id)
+            try:
+                for envelope in context.conversation_append_snapshot(conversation_id, after_append_id=after_append_id):
+                    append_id = int(envelope["append_id"])
+                    yield f"id: {append_id}\n".encode()
+                    yield b"event: conversation.append\n"
+                    yield f"data: {json.dumps(envelope, ensure_ascii=False)}\n\n".encode()
+
+                while True:
+                    if await request.is_disconnected():
+                        break
+                    try:
+                        envelope = await asyncio.wait_for(queue.get(), timeout=15)
+                    except asyncio.TimeoutError:
+                        yield b": keepalive\n\n"
+                        continue
+                    append_id = int(envelope["append_id"])
+                    yield f"id: {append_id}\n".encode()
+                    yield b"event: conversation.append\n"
+                    yield f"data: {json.dumps(envelope, ensure_ascii=False)}\n\n".encode()
+            finally:
+                context.unsubscribe_conversation_appends(conversation_id, queue)
+
+        return StreamingResponse(
+            stream(),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no"},
+        )
+
     @app.post("/api/goals")
     async def create_goal(body: CreateGoalBody) -> dict[str, Any]:
         context.require_app(body.app_id)
@@ -93,12 +136,10 @@ def register_routes(app: FastAPI, context: RuntimeApiContext) -> None:
             source=body.source,
             conversation_id=conversation_id,
         )
-        context.state.append_conversation_message(
+        context.append_user_message(
             conversation_id,
-            role="user",
             title=context.resolve_request_title(body.title, body.message_text),
             body=body.message_text,
-            message_type="request",
             metadata={
                 "source": body.source,
                 "intent_summary": intent_summary,

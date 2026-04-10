@@ -921,6 +921,44 @@ def verify_tailscale_provider() -> None:
     require(response.status_code == 200, f"tailscale auth should allow app listing: {response.text}")
 
 
+def verify_conversation_append_stream(client: TestClient) -> None:
+    route_paths = {route.path for route in client.app.router.routes}
+    require(
+        "/api/internal/conversations/{conversation_id}/append-stream" in route_paths,
+        "append stream route should be registered on the runtime API",
+    )
+
+    conversation_response = request(
+        client,
+        "POST",
+        "/api/conversations",
+        json={"app_id": "habit-tracker-pwa", "title": "SSE contract", "source": "contract-test"},
+    )
+    require(conversation_response.status_code == 200, f"append stream conversation failed: {conversation_response.text}")
+    conversation_id = conversation_response.json()["conversation_id"]
+
+    request(
+        client,
+        "POST",
+        f"/api/conversations/{conversation_id}/messages",
+        json={
+            "title": "SSE message",
+            "message_text": "Check append stream contract.",
+            "source": "contract-test",
+            "execute_now": False,
+        },
+    )
+    conversation = request(client, "GET", f"/api/conversations/{conversation_id}").json()
+    first_message = conversation["messages"][0]
+    first_event = conversation["events"][0]
+    require(int(first_message.get("append_id") or 0) > 0, "conversation messages should carry append_id")
+    require(int(first_event.get("append_id") or 0) > 0, "conversation events should carry append_id")
+    require(
+        int(first_message.get("append_id") or 0) != int(first_event.get("append_id") or 0),
+        "conversation append ids should advance across messages and events",
+    )
+
+
 def main() -> None:
     original_run_request = api_app.CodexAgentsRuntime.run_request
     original_apply_proposal = api_app.CodexAgentsRuntime.apply_proposal
@@ -952,6 +990,7 @@ def main() -> None:
 
             client = TestClient(api_app.create_app(settings))
             verify_tailscale_provider()
+            verify_conversation_append_stream(client)
 
             runner = CodexCliRunner(settings)
             resume_command = runner.build_command(

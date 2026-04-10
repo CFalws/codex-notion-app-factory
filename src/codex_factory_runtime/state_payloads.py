@@ -15,6 +15,7 @@ def build_conversation(*, app_id: str, title: str, source: str, now: str) -> dic
         "created_at": now,
         "updated_at": now,
         "latest_job_id": "",
+        "next_append_id": 1,
         "messages": [],
         "events": [],
     }
@@ -29,6 +30,8 @@ def build_conversation_message(
     job_id: str = "",
     message_type: str = "message",
     metadata: dict[str, Any] | None = None,
+    append_id: int = 0,
+    delivery_source: str = "snapshot",
 ) -> dict[str, Any]:
     return {
         "message_id": uuid4().hex,
@@ -37,6 +40,8 @@ def build_conversation_message(
         "title": title,
         "body": body,
         "job_id": job_id,
+        "append_id": append_id,
+        "delivery_source": delivery_source,
         "created_at": now,
         "metadata": metadata or {},
     }
@@ -50,6 +55,8 @@ def build_conversation_event(
     status: str = "info",
     job_id: str = "",
     data: dict[str, Any] | None = None,
+    append_id: int = 0,
+    delivery_source: str = "snapshot",
 ) -> dict[str, Any]:
     return {
         "event_id": uuid4().hex,
@@ -57,6 +64,8 @@ def build_conversation_event(
         "status": status,
         "body": body,
         "job_id": job_id,
+        "append_id": append_id,
+        "delivery_source": delivery_source,
         "created_at": now,
         "data": data or {},
     }
