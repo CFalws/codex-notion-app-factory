@@ -509,6 +509,7 @@ function selectedThreadInlineSessionState(conversation, currentState, liveRun, h
     renderSource,
     status,
   );
+  const sessionIndicator = selectedThreadLiveSessionIndicator(currentState, conversation, liveRun, handoffState);
   const liveVisible =
     selectedThreadSseOwned &&
     renderSource === "sse" &&
@@ -519,16 +520,24 @@ function selectedThreadInlineSessionState(conversation, currentState, liveRun, h
     liveRun.state !== "sending" &&
     liveRun.state !== "generating" &&
     (!liveRun.terminal || retainedTerminalVisible);
+  const degradedVisible =
+    !handoffVisible &&
+    !liveVisible &&
+    sessionIndicator.visible &&
+    !sessionIndicator.owned &&
+    (sessionIndicator.state === "reconnecting" || sessionIndicator.state === "polling");
   return {
     conversationId,
     selectedThreadSseOwned,
     renderSource,
     status,
     transport,
+    sessionIndicator,
     handoffVisible,
     retainedTerminalVisible,
     liveVisible,
-    visible: handoffVisible || liveVisible,
+    degradedVisible,
+    visible: handoffVisible || liveVisible || degradedVisible,
   };
 }
 
@@ -557,33 +566,58 @@ function shouldShowComposerLiveStrip(conversation, currentState, liveRun, handof
 function renderInlineSessionBlock(conversation, currentState, liveRun, handoffState) {
   const appendStream = currentState.appendStream || {};
   const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
-  const { handoffVisible, liveVisible, status } = inlineState;
+  const { handoffVisible, liveVisible, degradedVisible, status, sessionIndicator } = inlineState;
 
-  if (!handoffVisible && !liveVisible) {
+  if (!handoffVisible && !liveVisible && !degradedVisible) {
     return "";
   }
 
   const appendId = Number(appendStream.lastLiveAppendId || appendStream.lastAppendId || 0);
-  const stage = handoffVisible ? "handoff" : liveRun.terminal ? "terminal" : String(liveRun.state || "live");
-  const phaseLabel = handoffVisible ? "HANDOFF" : String(liveRun.phase || "LIVE").toUpperCase();
-  const sourceLabel = handoffVisible ? "handoff" : "sse";
-  const tone = handoffVisible ? "neutral" : transcriptLiveTone(liveRun);
-  const detail = handoffVisible
-    ? "서버 handoff가 확인되어 첫 live assistant append를 기다리는 중입니다."
-    : simplifyText(phaseDetailHint(liveRun) || liveRun.detail || "");
+  const liveStage = liveRun.terminal ? "terminal" : String(liveRun.state || "live");
+  const stage = degradedVisible
+    ? `degraded-${String(sessionIndicator.state || "polling")}`
+    : handoffVisible
+      ? "handoff"
+      : liveStage;
+  const phaseLabel = degradedVisible
+    ? String(sessionIndicator.label || "POLLING").toUpperCase()
+    : handoffVisible
+      ? "HANDOFF"
+      : String(liveRun.phase || "LIVE").toUpperCase();
+  const sourceLabel = degradedVisible ? String(sessionIndicator.source || "polling") : handoffVisible ? "handoff" : "sse";
+  const tone = degradedVisible
+    ? sessionIndicator.reason === "session-rotation"
+      ? "danger"
+      : "warning"
+    : handoffVisible
+      ? "neutral"
+      : transcriptLiveTone(liveRun);
+  const detail = degradedVisible
+    ? sessionIndicator.reason === "session-rotation"
+      ? "세션 회전이 감지되어 선택된 대화의 live SSE 소유권이 끊겼습니다. fallback 경로로 상태를 복구하는 중입니다."
+      : sessionIndicator.reason === "retrying"
+        ? "선택된 대화의 live SSE 연결이 재시도 중입니다. fallback 경로로 현재 상태를 이어받는 중입니다."
+        : sessionIndicator.state === "reconnecting"
+          ? "선택된 대화의 append stream을 다시 붙이는 중입니다. 복구가 끝나면 live SSE 소유권으로 되돌아갑니다."
+          : "선택된 대화의 live SSE 소유권이 약화되어 polling fallback으로 상태를 유지하는 중입니다."
+    : handoffVisible
+      ? "서버 handoff가 확인되어 첫 live assistant append를 기다리는 중입니다."
+      : simplifyText(phaseDetailHint(liveRun) || liveRun.detail || "");
   const autonomySummary = summarizeInlineAutonomy(currentState, inlineState);
-  const meta = handoffVisible
-    ? `selected thread · SSE · HANDOFF${liveRun.jobId ? ` · ${escapeHtml(liveRun.jobId)}` : ""}`
-    : `selected thread · SSE · ${escapeHtml(status.toUpperCase())} · append #${appendId || 0}${liveRun.jobId ? ` · ${escapeHtml(liveRun.jobId)}` : ""}`;
+  const meta = degradedVisible
+    ? `selected thread · ${escapeHtml(String(sessionIndicator.label || "POLLING").toUpperCase())} · ${escapeHtml(String(sessionIndicator.reason || "polling-fallback").toUpperCase())}${liveRun.jobId ? ` · ${escapeHtml(liveRun.jobId)}` : ""}`
+    : handoffVisible
+      ? `selected thread · SSE · HANDOFF${liveRun.jobId ? ` · ${escapeHtml(liveRun.jobId)}` : ""}`
+      : `selected thread · SSE · ${escapeHtml(status.toUpperCase())} · append #${appendId || 0}${liveRun.jobId ? ` · ${escapeHtml(liveRun.jobId)}` : ""}`;
   return `
-    <section class="session-inline-block" data-selected-thread-live-block="true" data-live-block-owner="selected-thread" data-live-owned="true" data-live-block-stage="${escapeHtml(stage)}" data-live-block-phase="${escapeHtml(phaseLabel)}" data-live-block-source="${escapeHtml(sourceLabel)}" data-live-block-terminal="${handoffVisible ? "false" : liveRun.terminal ? "true" : "false"}">
+    <section class="session-inline-block" data-selected-thread-live-block="${degradedVisible ? "false" : "true"}" data-selected-thread-degraded-block="${degradedVisible ? "true" : "false"}" data-live-block-owner="selected-thread" data-live-owned="${degradedVisible ? "false" : "true"}" data-live-block-stage="${escapeHtml(stage)}" data-live-block-phase="${escapeHtml(phaseLabel)}" data-live-block-source="${escapeHtml(sourceLabel)}" data-live-block-reason="${escapeHtml(degradedVisible ? String(sessionIndicator.reason || "polling-fallback") : "healthy")}" data-live-block-terminal="${handoffVisible || degradedVisible ? "false" : liveRun.terminal ? "true" : "false"}">
       <p class="session-inline-kicker">Selected Thread Session</p>
       <div class="session-inline-row">
-        <span class="session-inline-chip" data-tone="neutral">${handoffVisible ? "HANDOFF" : "LIVE"}</span>
+        <span class="session-inline-chip" data-tone="${degradedVisible ? "warning" : "neutral"}">${degradedVisible ? "DEGRADED" : handoffVisible ? "HANDOFF" : "LIVE"}</span>
         <span class="session-inline-chip" data-tone="${escapeHtml(tone)}">${escapeHtml(phaseLabel)}</span>
       </div>
       <p class="session-inline-body">${escapeHtml(detail || "선택된 대화의 최신 live 진행 상태를 표시하는 중입니다.")}</p>
-      ${autonomySummary}
+      ${degradedVisible ? "" : autonomySummary}
       <p class="session-inline-meta">${meta}</p>
     </section>
   `;

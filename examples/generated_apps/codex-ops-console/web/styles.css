@@ -1147,6 +1147,18 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   box-shadow: 0 12px 28px rgba(31, 120, 224, 0.08);
 }
 
+.session-inline-block[data-selected-thread-degraded-block="true"] {
+  border-color: rgba(178, 114, 24, 0.22);
+  background: linear-gradient(180deg, rgba(255, 248, 236, 0.94) 0%, rgba(255, 255, 255, 0.99) 100%);
+  box-shadow: 0 12px 28px rgba(178, 114, 24, 0.08);
+}
+
+.session-inline-block[data-selected-thread-degraded-block="true"][data-live-block-reason="session-rotation"] {
+  border-color: rgba(182, 75, 65, 0.24);
+  background: linear-gradient(180deg, rgba(255, 241, 239, 0.94) 0%, rgba(255, 255, 255, 0.99) 100%);
+  box-shadow: 0 12px 28px rgba(182, 75, 65, 0.08);
+}
+
 .session-inline-kicker,
 .session-inline-body,
 .session-inline-meta {
