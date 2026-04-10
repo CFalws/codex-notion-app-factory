@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep the selected-thread inline timeline surface, bottom-fixed composer, and degraded polling fallback paths unchanged.
-- [x] Reuse selected-thread SSE ownership and `deriveLiveRunState` as the healthy ownership source for visible phase and proposal/apply readiness.
-- [x] Update the recent-activity panel to use conversation events and live-run phase directly while healthy selected-thread SSE ownership holds.
-- [x] Preserve job payload and polling status as the fallback path for degraded, non-selected, reconnecting, or switched-thread states.
-- [x] Align the focused verifier, deployed workspace gate, and iteration artifacts with the selected-thread SSE-owned status contract.
+- [x] Keep the existing selected-thread SSE ownership source, bottom follow control location, and bottom-fixed composer layout unchanged.
+- [x] Keep `syncJumpToLatest(...)` as the single detached-tail follow control owner.
+- [x] Render `PAUSED` immediately for healthy detached selected-thread sessions even without backlog.
+- [x] Upgrade that same control in place to `NEW` with unseen-count metadata when backlog arrives.
+- [x] Align the focused verifier, deployed workspace gate, and iteration artifacts with the detached-tail indicator contract.

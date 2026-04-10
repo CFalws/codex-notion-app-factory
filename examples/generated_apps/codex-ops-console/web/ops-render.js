@@ -706,16 +706,18 @@ function syncJumpToLatest(dom, currentState, conversationId, renderSource) {
     Number(liveFollow.lastAppendId || 0) - Number(liveFollow.lastSeenAppendId || 0),
   );
   const streamState = String(dom.threadScroller?.dataset.streamState || "offline").toLowerCase();
+  const terminalIdle = String(dom.threadScroller?.dataset.sessionTerminal || "false") === "true";
   const liveOwned =
     Boolean(conversationId) &&
     String(dom.threadScroller?.dataset.sessionOwner || "none") === "selected-thread" &&
     renderSource === "sse" &&
-    streamState === "live";
+    streamState === "live" &&
+    !terminalIdle;
   const detached = !Boolean(liveFollow.isFollowing);
   const hasBacklog = unseenCount > 0;
   const pausedVisible = liveOwned && detached && !hasBacklog;
   const followState = hasBacklog ? "new" : "paused";
-  const isVisible = Boolean(liveOwned && detached && Boolean(liveFollow.jumpVisible) && hasBacklog);
+  const isVisible = Boolean(liveOwned && detached);
   const stateLabel = followState === "new" ? "NEW" : "PAUSED";
   const detailLabel =
     followState === "new"
