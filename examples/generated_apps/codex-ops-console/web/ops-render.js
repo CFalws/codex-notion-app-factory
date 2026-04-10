@@ -631,9 +631,9 @@ function shouldShowComposerLiveStrip(conversation, currentState, liveRun, handof
 function renderInlineSessionBlock(conversation, currentState, liveRun, handoffState) {
   const appendStream = currentState.appendStream || {};
   const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
-  const { handoffVisible, liveVisible, degradedVisible, status, sessionIndicator } = inlineState;
+  const { handoffVisible, degradedVisible, status, sessionIndicator } = inlineState;
 
-  if (!handoffVisible && !liveVisible && !degradedVisible) {
+  if (!handoffVisible && !degradedVisible) {
     return "";
   }
 
@@ -753,40 +753,38 @@ function summarizeInlineAutonomy(currentState, inlineState) {
 }
 
 function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
-  const appendStream = currentState.appendStream || {};
-  const conversationId = String(conversation?.conversation_id || "");
-  const streamConversationId = String(appendStream.conversationId || "");
-  const renderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
-  const transport = String(appendStream.transport || "polling").toLowerCase();
-  const status = String(appendStream.status || "offline").toLowerCase();
-  const showComposerLiveStrip = shouldShowComposerLiveStrip(conversation, currentState, liveRun);
-  if (showComposerLiveStrip || (liveRun?.visible && !liveRun?.terminal)) {
-    return "";
-  }
-  if (!conversationId || streamConversationId !== conversationId) {
-    return "";
-  }
-  if (transport !== "sse" || renderSource !== "sse") {
-    return "";
-  }
-  if (!liveRun?.visible || !liveRun.phase || liveRun.phase === "IDLE") {
-    return "";
-  }
-  if (liveRun.state === "sending" || liveRun.state === "generating") {
+  const handoffState = pendingHandoffState(conversation, currentState);
+  const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
+  if (
+    !inlineState.selectedThreadSseOwned ||
+    inlineState.renderSource !== "sse" ||
+    inlineState.status !== "live" ||
+    !liveRun?.visible ||
+    !liveRun.phase ||
+    liveRun.phase === "IDLE" ||
+    liveRun.terminal ||
+    liveRun.state === "sending" ||
+    liveRun.state === "generating" ||
+    inlineState.handoffVisible ||
+    inlineState.degradedVisible
+  ) {
     return "";
   }
   const tone = transcriptLiveTone(liveRun);
   const detail = simplifyText(phaseDetailHint(liveRun) || liveRun.detail || "");
+  const appendStream = currentState.appendStream || {};
   const appendId = Number(appendStream.lastLiveAppendId || appendStream.lastAppendId || 0);
+  const autonomySummary = summarizeInlineAutonomy(currentState, inlineState);
   return `
-    <article class="timeline-item live-activity" data-live-activity-turn="true" data-live-run-state="${escapeHtml(liveRun.state)}" data-live-run-phase="${escapeHtml(liveRun.phase)}" data-live-run-source="${escapeHtml(liveRun.source)}" data-append-id="${appendId}" data-append-source="sse-live-activity">
+    <article class="timeline-item live-activity" data-live-activity-turn="true" data-live-run-state="${escapeHtml(liveRun.state)}" data-live-run-phase="${escapeHtml(liveRun.phase)}" data-live-run-source="${escapeHtml(liveRun.source)}" data-live-owned="true" data-append-id="${appendId}" data-append-source="sse-live-activity">
       <p class="timeline-kind">실시간 진행</p>
       <div class="timeline-live-row">
         <span class="timeline-live-chip" data-tone="neutral">LIVE</span>
         <span class="timeline-live-chip" data-tone="${escapeHtml(tone)}">${escapeHtml(String(liveRun.phase || "LIVE").toUpperCase())}</span>
       </div>
       <p class="timeline-body">${escapeHtml(detail || "선택된 대화의 최신 live 진행 상태를 반영하는 중입니다.")}</p>
-      <p class="timeline-meta">selected thread · ${escapeHtml(status.toUpperCase())}${liveRun.jobId ? ` · ${escapeHtml(liveRun.jobId)}` : ""} · <span class="timeline-provenance">SSE LIVE</span></p>
+      ${autonomySummary}
+      <p class="timeline-meta">selected thread · LIVE${liveRun.jobId ? ` · ${escapeHtml(liveRun.jobId)}` : ""} · <span class="timeline-provenance">SSE LIVE</span></p>
     </article>
   `;
 }
@@ -2049,6 +2047,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
 
   const liveRun = deriveLiveRunState(conversation, currentState);
   const inlineSessionBlock = renderInlineSessionBlock(conversation, currentState, liveRun, handoffState);
+  const transcriptLiveActivity = renderTranscriptLiveActivity(conversation, currentState, liveRun);
   if (dom.threadScroller) {
     dom.threadScroller.dataset.pendingConversationId = "";
     dom.threadScroller.dataset.pendingHandoffStage = handoffState.stage;
@@ -2092,7 +2091,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
     ].join(" · "),
   );
 
-  if (!items.length && !inlineSessionBlock) {
+  if (!items.length && !inlineSessionBlock && !transcriptLiveActivity) {
     dom.conversationTimeline.innerHTML = '<p class="timeline-empty">아직 메시지가 없습니다.</p>';
     return;
   }
@@ -2122,7 +2121,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
       `;
     })
     .join("");
-  dom.conversationTimeline.innerHTML = renderedItems + inlineSessionBlock;
+  dom.conversationTimeline.innerHTML = renderedItems + transcriptLiveActivity + inlineSessionBlock;
   if (dom.threadScroller && currentState.liveFollow.isFollowing) {
     dom.threadScroller.scrollTop = dom.threadScroller.scrollHeight;
   }

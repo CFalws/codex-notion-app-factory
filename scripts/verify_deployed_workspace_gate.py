@@ -137,6 +137,7 @@ def browser_snapshot_script() -> str:
   const summary = document.querySelector("#session-summary-row");
   const healthyBlock = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-block-owner="selected-thread"]');
   const degradedBlock = document.querySelector('.session-inline-block[data-selected-thread-degraded-block="true"][data-live-block-owner="selected-thread"]');
+  const liveActivity = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
   const follow = document.querySelector("#jump-to-latest");
   const activeSessionRow = document.querySelector("#active-session-row");
   const sessionStrip = document.querySelector("#session-strip");
@@ -159,6 +160,10 @@ def browser_snapshot_script() -> str:
     degradedBlock: degradedBlock ? {
       dataset: { ...degradedBlock.dataset },
       text: (degradedBlock.textContent || "").trim(),
+    } : null,
+    liveActivity: liveActivity ? {
+      dataset: { ...liveActivity.dataset },
+      text: (liveActivity.textContent || "").trim(),
     } : null,
     follow: follow ? {
       hidden: !!follow.hidden,
@@ -300,7 +305,7 @@ def assert_browser_runtime_surface(
 
             page.wait_for_function(
                 """conversationId => {
-                  const block = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-owned="true"]');
+                  const liveActivity = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
                   const summary = document.querySelector("#session-summary-row");
                   const activeSessionRow = document.querySelector("#active-session-row");
                   const sessionStrip = document.querySelector("#session-strip");
@@ -308,11 +313,10 @@ def assert_browser_runtime_surface(
                   const sendRequest = document.querySelector("#send-request");
                   const follow = document.querySelector("#jump-to-latest");
                   return Boolean(
-                    block &&
-                    block.dataset.liveBlockOwner === "selected-thread" &&
-                    block.dataset.liveBlockSource === "sse" &&
-                    block.dataset.liveBlockPhase &&
-                    block.dataset.liveBlockPhase !== "IDLE" &&
+                    liveActivity &&
+                    liveActivity.dataset.liveRunSource === "sse-event" &&
+                    liveActivity.dataset.liveRunPhase &&
+                    liveActivity.dataset.liveRunPhase !== "IDLE" &&
                     summary &&
                     summary.dataset.liveSessionOwned === "true" &&
                     activeSessionRow &&
@@ -344,7 +348,7 @@ def assert_browser_runtime_surface(
             page.wait_for_function(
                 """() => {
                   const degraded = document.querySelector('.session-inline-block[data-selected-thread-degraded-block="true"][data-live-owned="false"]');
-                  const healthy = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-owned="true"]');
+                  const healthy = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
                   const summary = document.querySelector("#session-summary-row");
                   const activeSessionRow = document.querySelector("#active-session-row");
                   const sessionStrip = document.querySelector("#session-strip");
@@ -381,7 +385,7 @@ def assert_browser_runtime_surface(
                   const composerDock = document.querySelector("#conversation-footer-dock");
                   const sendRequest = document.querySelector("#send-request");
                   const threadScroller = document.querySelector("#thread-scroller");
-                  const healthy = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-owned="true"]');
+                  const healthy = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
                   const degraded = document.querySelector('.session-inline-block[data-selected-thread-degraded-block="true"]');
                   const empty = document.querySelector(".timeline-empty");
                   return Boolean(
@@ -539,6 +543,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "dataset.threadTransitionState", label="thread transition state dataset")
     require(render_js, 'renderSessionStrip(dom, currentState, null);', label="thread transition composer shell render path")
     require(render_js, 'syncComposerOwnership(dom, currentState, null);', label="thread transition composer owner switching path")
+    require(render_js, 'if (!handoffVisible && !degradedVisible) {', label="inline session degraded or handoff-only visibility")
+    require_absent(render_js, 'if (!handoffVisible && !liveVisible && !degradedVisible) {', label="legacy healthy inline block visibility guard")
     require(render_js, 'data-selected-thread-live-block="${degradedVisible ? "false" : "true"}"', label="inline session block DOM")
     require(render_js, 'data-selected-thread-degraded-block="${degradedVisible ? "true" : "false"}"', label="inline degraded session block DOM")
     require(render_js, 'data-live-block-owner="selected-thread"', label="inline session block owner DOM")
@@ -617,6 +623,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'const sourceLabel = degradedVisible ? String(sessionIndicator.source || "polling") : handoffVisible ? "handoff" : "sse";', label="inline degraded source mapping")
     require(render_js, "sessionTimelineEventModel", label="session timeline event model helper")
     require(render_js, "renderSessionTimelineEvent", label="session timeline event render helper")
+    require(render_js, "const transcriptLiveActivity = renderTranscriptLiveActivity(conversation, currentState, liveRun);", label="transcript live activity wiring")
     require(render_js, 'data-session-event="true"', label="session timeline event DOM")
     require(render_js, 'data-session-phase="${escapeHtml(model.phase)}"', label="session timeline event phase dataset")
     require(render_js, 'data-session-milestone="${escapeHtml(model.milestone)}"', label="session timeline event milestone dataset")
@@ -624,7 +631,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'const sessionEvent = renderSessionTimelineEvent(item);', label="session timeline event projection wiring")
     require(render_js, "if (sessionEvent) {", label="session timeline event branch")
     require(render_js, "const renderedItems = items", label="transcript render item join")
-    require(render_js, 'dom.conversationTimeline.innerHTML = renderedItems + inlineSessionBlock;', label="transcript tail inline block render")
+    require(render_js, 'if (!items.length && !inlineSessionBlock && !transcriptLiveActivity) {', label="transcript empty-state live activity guard")
+    require(render_js, 'dom.conversationTimeline.innerHTML = renderedItems + transcriptLiveActivity + inlineSessionBlock;', label="transcript tail live activity render")
     require_absent(render_js, 'dom.conversationTimeline.innerHTML = inlineSessionBlock + items', label="legacy inline block prepended render")
     require_absent(render_js, "In Flight Assistant", label="duplicate accepted status block copy")
     require(render_js, "pendingAppendCount", label="follow control unseen append state")
