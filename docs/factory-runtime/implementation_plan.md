@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Keep the existing selected-thread SSE ownership source, bottom follow control location, and bottom-fixed composer layout unchanged.
-2. Continue using `syncJumpToLatest(...)` as the single render owner for detached-tail visibility and machine-readable follow-state datasets.
-3. Change the follow control contract so healthy detached selected-thread sessions render `PAUSED` even before backlog exists, then upgrade in place to `NEW` when unseen append count becomes positive.
-4. Preserve immediate clear behavior on jump-to-latest, reconnect downgrade, polling fallback, thread switch, terminal idle, or ownership loss.
-5. Align the focused verifier, deployed workspace gate, and iteration artifacts with the explicit detached-tail indicator contract.
+1. Keep the existing selected-thread switch render path, bottom-fixed composer dock, and degraded polling fallback behavior unchanged.
+2. Reuse the existing `threadTransition` state as the single switch-handoff owner for the center pane.
+3. Preserve the current attach placeholder path so the center workspace stays mounted, the composer owner and session summary switch to the incoming target, and the generic empty view remains limited to the true no-conversation path.
+4. Clear old-thread live ownership before the new snapshot attaches and reset selected-thread follow ownership to the target thread during the handoff.
+5. Align the focused verifier, deployed workspace gate, and iteration artifacts with the explicit switch-continuity contract.

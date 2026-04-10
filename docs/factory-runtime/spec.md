@@ -8,7 +8,7 @@
 
 ## Problem
 
-The healthy selected-thread workspace now updates phase and proposal/apply state from SSE-owned events, but the detached-tail state still requires inference because the bottom follow control only appears after backlog arrives. The operator should see immediately when the active live session is paused from the tail, then watch that same control upgrade in place to `NEW` when unseen appends accumulate.
+Healthy selected-thread SSE ownership and polling suppression are now in place, but the workspace still depends on explicit proof that thread switches preserve one continuous session shell instead of flashing a reset-like empty state. The remaining UX risk is any attach handoff that makes the center pane feel like it lost session continuity.
 
 ## Target User
 
@@ -18,10 +18,10 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the existing selected-thread SSE ownership source, bottom follow control location, and live-follow datasets.
-- Keep the change bounded to the detached-tail follow control render contract.
-- Clear immediately on jump-to-latest, reconnect downgrade, polling fallback, terminal idle, thread switch, or ownership loss.
+- Reuse the existing `threadTransition`, selected-thread ownership, composer owner, and session-summary state instead of introducing a new state source.
+- Keep the change bounded to the selected-thread switch handoff surface in the center workspace.
+- Preserve snapshot-only behavior for non-selected threads and degraded fallback behavior for failed attaches.
 
 ## Deliverable
 
-Expose the bottom follow control as the single explicit detached-tail session indicator so healthy selected-thread SSE ownership shows `PAUSED` immediately when detached, upgrades to `NEW` with unseen-count metadata when backlog arrives, and clears deterministically on any ownership or session loss.
+Define and verify the selected-thread switch path as one continuous session shell: clear old-thread live ownership immediately, keep the center workspace and bottom-fixed composer dock mounted, show exactly one compact attach placeholder, and replace it directly with the new snapshot when ownership transfers.

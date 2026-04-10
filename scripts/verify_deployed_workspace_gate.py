@@ -327,6 +327,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, "최근 작업이 현재 진행 중입니다.", label="running event preview copy")
     require(conversations_js, "startThreadTransition", label="thread transition start helper")
     require(conversations_js, "clearThreadTransition", label="thread transition clear helper")
+    require(conversations_js, 'state.currentConversationId = "";', label="thread switch clears current conversation before attach")
     require(conversations_js, 'const selectedThreadSseOwned = selectedConversationId && selectedConversationId === liveConversationId && renderSource === "sse";', label="selected card sse ownership guard")
     require(conversations_js, 'card.dataset.liveOwner = isSelected && showLiveMirror ? "true" : "false";', label="selected live owner dataset")
     require(conversations_js, 'card.dataset.liveOwnerState = isSelected && showLiveMirror ? liveOwnerStateLabel : "idle";', label="selected live owner state dataset")
