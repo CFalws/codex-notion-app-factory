@@ -8,7 +8,7 @@
 
 ## Problem
 
-The left rail still gives too much visual weight to app and operator controls compared with thread history. Even after the center pane and footer became more session-like, the workspace still does not feel conversation-first because the rail does not lead with conversations strongly enough.
+The selected-thread workspace is already conversation-first in the center pane, but navigation still needs to communicate active session ownership at a glance. Users should be able to identify the active or in-flight selected thread directly from the left rail without scanning the center strip or opening the secondary panel.
 
 ## Target User
 
@@ -19,10 +19,10 @@ The primary user is the operator or developer using the phone-friendly workspace
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
 - Reuse the existing selected-conversation SSE route instead of widening transport scope.
-- Constrain this iteration to the left sidebar structure and app or operator control ranking.
+- Constrain this iteration to selected-row navigation rendering and selected-thread live-owner state mapping.
 - Keep the selected-thread SSE path, session strip ownership, bottom follow control, composer behavior, and side-panel behavior unchanged.
 - Leave transport scope, selected-row live ownership, deployed verification gate, and polling fallback rules unchanged in this iteration.
 
 ## Deliverable
 
-Keep the existing selected-conversation SSE path and conversation-first shell ownership, but make the left rail strictly conversation-first: thread history appears as the primary visible rail surface, the selected app remains identifiable through a compact always-visible summary near the rail header, and heavier app or operator controls move into a collapsed secondary section that stays reachable without competing with conversation history.
+Keep the existing selected-conversation SSE path and conversation-first shell ownership, but make the selected conversation row alone mirror the current selected-thread session owner state with one compact `HANDOFF`, `LIVE`, `NEW`, or `PAUSED` marker plus the existing follow or unread cue. Non-selected rows remain snapshot-only and clear any live-owned treatment immediately on thread switch, reconnect downgrade, polling fallback, or terminal resolution.
