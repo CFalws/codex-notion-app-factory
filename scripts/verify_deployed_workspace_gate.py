@@ -320,6 +320,7 @@ def assert_browser_runtime_surface(
                   return Boolean(
                     liveActivity &&
                     liveActivity.dataset.liveRunSource === "sse-event" &&
+                    liveActivity.dataset.appendSource === "sse-live-activity" &&
                     liveActivity.dataset.liveRunPhase &&
                     liveActivity.dataset.liveRunPhase !== "IDLE" &&
                     summary &&
@@ -343,6 +344,7 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.composerTransport === "sse-owner" &&
                     sessionStrip.dataset.composerTransportSource === "sse" &&
                     sessionStrip.dataset.composerTransportOwned === "true" &&
+                    sessionStrip.dataset.liveRunSource === "sse-event" &&
                     sessionStripState &&
                     ["PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED"].some(label => sessionStripState.textContent.includes(label)) &&
                     sessionStripDetail &&
@@ -616,9 +618,16 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'label: "POLLING"', label="composer strip polling label")
     require(render_js, 'label: "RECONNECT"', label="composer strip reconnect label")
     require(render_js, "dataset.followState", label="follow-state dataset")
+    require(render_js, "function isSessionAuthorityEvent(event)", label="selected-thread session authority event helper")
+    require(render_js, "function selectedThreadSseAuthorityEvent(conversation, currentState)", label="selected-thread SSE authority event selector")
+    require(render_js, "function sessionAuthorityJobId(conversation, currentState)", label="selected-thread authority job id helper")
+    require(render_js, "function sessionAuthorityEvents(conversation, currentState)", label="selected-thread authority event filter helper")
     require(render_js, "export function renderJobActivity(dom, conversation, currentJobId, jobPayload = null, currentState = null)", label="job activity current-state signature")
     require(render_js, "const selectedThreadSseOwned =", label="job activity selected-thread SSE ownership guard")
     require(render_js, "const liveRun = currentState ? deriveLiveRunState(conversation, currentState)", label="job activity live-run ownership source")
+    require(render_js, "const liveAuthorityEvent = selectedThreadSseAuthorityEvent(conversation, currentState);", label="selected-thread authority event lookup")
+    require(render_js, "const jobId = sessionAuthorityJobId(conversation, currentState);", label="live run session authority job id")
+    require(render_js, "const relevantEvents = sessionAuthorityEvents(conversation, currentState);", label="live run session authority event filter")
     require(render_js, "const phase = selectedThreadSseOwned", label="job activity phase ownership switch")
     require(render_js, 'String(liveRun.phase || "IDLE").toUpperCase()', label="job activity SSE phase label")
     require(render_js, 'phaseLabel(jobPayload?.status || latestEvent?.status || "", latestEvent?.type || "")', label="job activity polling fallback phase label")
@@ -756,6 +765,9 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require_absent(conversations_js, 'rowSource = "thread-transition";', label="legacy active session switching source")
     require_absent(conversations_js, 'selected-thread-handoff', label="legacy active session handoff source")
     require(conversations_js, "syncSelectedSessionFromLiveAppend", label="selected-thread live append sync helper")
+    require(conversations_js, "const liveJobId = String(livePayload.job_id || \"\").trim();", label="live append job id extraction")
+    require(conversations_js, "state.currentJobId = liveJobId;", label="live append selected-thread job id authority")
+    require(conversations_js, "conversation.latest_job_id = liveJobId;", label="live append conversation job id authority")
     require(conversations_js, "shouldProjectAutonomySummaryFromLiveAppend", label="autonomy summary append projection helper")
     require(conversations_js, "projectAutonomySummaryFromLiveAppend", label="autonomy summary live projection helper")
     require(conversations_js, "liveJobMetaLabel", label="live append job meta helper")

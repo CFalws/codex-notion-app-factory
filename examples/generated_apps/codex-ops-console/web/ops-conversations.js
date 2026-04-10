@@ -176,6 +176,7 @@ export function createConversationController(deps) {
       return false;
     }
     const livePayload = { ...payload, delivery_source: "sse" };
+    const liveJobId = String(livePayload.job_id || "").trim();
 
     const conversation = {
       ...state.conversationCache,
@@ -196,6 +197,10 @@ export function createConversationController(deps) {
       conversation.events.push(livePayload);
     } else {
       return false;
+    }
+    if (liveJobId) {
+      state.currentJobId = liveJobId;
+      conversation.latest_job_id = liveJobId;
     }
 
     if (appendEnvelope.kind === "message" && livePayload.role === "assistant") {
@@ -354,7 +359,6 @@ export function createConversationController(deps) {
     if (
       !state.currentConversationId ||
       !state.conversationCache ||
-      !state.currentJobId ||
       !state.appendStream ||
       state.appendStream.conversationId !== state.currentConversationId ||
       state.appendStream.transport !== "sse" ||
@@ -362,6 +366,11 @@ export function createConversationController(deps) {
       state.appendStream.status !== "live"
     ) {
       return;
+    }
+    const liveJobId = String(payload?.job_id || "").trim();
+    if (liveJobId) {
+      state.currentJobId = liveJobId;
+      state.conversationCache.latest_job_id = liveJobId;
     }
     const immediateMeta = liveJobMetaLabel(kind, payload);
     if (immediateMeta) {

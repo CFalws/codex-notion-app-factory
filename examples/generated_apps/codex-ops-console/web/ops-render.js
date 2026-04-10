@@ -397,31 +397,87 @@ function phaseDetail(prefix, latestEvent, fallback) {
   return body ? `${prefix} ${body}` : fallback;
 }
 
-function latestSessionIndicatorEvent(conversation, currentState) {
-  const jobId = String(currentState.currentJobId || conversation?.latest_job_id || "");
+function isSessionAuthorityEvent(event) {
+  const type = String(event?.type || "");
+  const status = String(event?.status || "").toLowerCase();
+  return (
+    type === "codex.exec.retrying" ||
+    type === "runtime.exception" ||
+    type === "job.completed" ||
+    type === "proposal.ready" ||
+    type === "codex.exec.applied" ||
+    type.startsWith("goal.proposal.phase.") ||
+    type.startsWith("goal.review.phase.") ||
+    type.startsWith("goal.verify.phase.") ||
+    type === "goal.proposal.auto_apply.started" ||
+    type === "job.running" ||
+    type === "job.queued" ||
+    type === "message.accepted" ||
+    type === "codex.exec.started" ||
+    type === "codex.exec.finished" ||
+    status === "failed" ||
+    status === "completed" ||
+    status === "applied"
+  );
+}
+
+function selectedThreadSseAuthorityEvent(conversation, currentState) {
+  const appendStream = currentState?.appendStream || {};
+  const conversationId = String(conversation?.conversation_id || "");
+  const currentConversationId = String(currentState?.currentConversationId || "");
+  const streamConversationId = String(appendStream.conversationId || "");
+  const status = String(appendStream.status || "offline").toLowerCase();
+  const transport = String(appendStream.transport || "polling").toLowerCase();
+  const renderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
+  const selectedThreadSseOwned =
+    Boolean(conversationId) &&
+    currentConversationId === conversationId &&
+    streamConversationId === conversationId &&
+    transport === "sse" &&
+    renderSource === "sse" &&
+    status === "live";
+  if (!selectedThreadSseOwned) {
+    return null;
+  }
   const events = Array.isArray(conversation?.events) ? conversation.events : [];
-  const relevantEvents = jobId ? events.filter((event) => !event.job_id || event.job_id === jobId) : events;
+  for (let index = events.length - 1; index >= 0; index -= 1) {
+    const event = events[index];
+    if (String(event?.delivery_source || "").toLowerCase() !== "sse") {
+      continue;
+    }
+    if (isSessionAuthorityEvent(event)) {
+      return event;
+    }
+  }
+  return null;
+}
+
+function sessionAuthorityJobId(conversation, currentState) {
+  const liveAuthorityEvent = selectedThreadSseAuthorityEvent(conversation, currentState);
+  const liveAuthorityJobId = String(liveAuthorityEvent?.job_id || "").trim();
+  if (liveAuthorityJobId) {
+    return liveAuthorityJobId;
+  }
+  return String(currentState.currentJobId || conversation?.latest_job_id || "");
+}
+
+function sessionAuthorityEvents(conversation, currentState) {
+  const events = Array.isArray(conversation?.events) ? conversation.events : [];
+  const liveAuthorityEvent = selectedThreadSseAuthorityEvent(conversation, currentState);
+  const authoritativeJobId = String(liveAuthorityEvent?.job_id || "").trim();
+  const jobId = authoritativeJobId || String(currentState.currentJobId || conversation?.latest_job_id || "");
+  return jobId ? events.filter((event) => !event.job_id || event.job_id === jobId) : events;
+}
+
+function latestSessionIndicatorEvent(conversation, currentState) {
+  const liveAuthorityEvent = selectedThreadSseAuthorityEvent(conversation, currentState);
+  if (liveAuthorityEvent) {
+    return liveAuthorityEvent;
+  }
+  const relevantEvents = sessionAuthorityEvents(conversation, currentState);
   for (let index = relevantEvents.length - 1; index >= 0; index -= 1) {
     const event = relevantEvents[index];
-    const type = String(event?.type || "");
-    const status = String(event?.status || "").toLowerCase();
-    if (
-      type === "codex.exec.retrying" ||
-      type === "runtime.exception" ||
-      type === "job.completed" ||
-      type === "proposal.ready" ||
-      type === "codex.exec.applied" ||
-      type.startsWith("goal.proposal.phase.") ||
-      type.startsWith("goal.review.phase.") ||
-      type.startsWith("goal.verify.phase.") ||
-      type === "goal.proposal.auto_apply.started" ||
-      type === "job.running" ||
-      type === "job.queued" ||
-      type === "message.accepted" ||
-      status === "failed" ||
-      status === "completed" ||
-      status === "applied"
-    ) {
+    if (isSessionAuthorityEvent(event)) {
       return event;
     }
   }
@@ -1009,9 +1065,8 @@ export function jumpToLatest(dom, currentState) {
 }
 
 function deriveLiveRunState(conversation, currentState) {
-  const jobId = String(currentState.currentJobId || conversation?.latest_job_id || "");
-  const events = Array.isArray(conversation?.events) ? conversation.events : [];
-  const relevantEvents = jobId ? events.filter((event) => !event.job_id || event.job_id === jobId) : events;
+  const jobId = sessionAuthorityJobId(conversation, currentState);
+  const relevantEvents = sessionAuthorityEvents(conversation, currentState);
   const latestEvent = relevantEvents.length ? relevantEvents[relevantEvents.length - 1] : null;
   const latestType = String(latestEvent?.type || "");
   const latestStatus = String(latestEvent?.status || "").toLowerCase();
@@ -1281,32 +1336,14 @@ function deriveLiveRunState(conversation, currentState) {
 }
 
 function latestMeaningfulConversationEvent(conversation, currentState) {
-  const jobId = String(currentState.currentJobId || conversation?.latest_job_id || "");
-  const events = Array.isArray(conversation?.events) ? conversation.events : [];
-  const relevantEvents = jobId ? events.filter((event) => !event.job_id || event.job_id === jobId) : events;
+  const liveAuthorityEvent = selectedThreadSseAuthorityEvent(conversation, currentState);
+  if (liveAuthorityEvent) {
+    return liveAuthorityEvent;
+  }
+  const relevantEvents = sessionAuthorityEvents(conversation, currentState);
   for (let index = relevantEvents.length - 1; index >= 0; index -= 1) {
     const event = relevantEvents[index];
-    const type = String(event?.type || "");
-    const status = String(event?.status || "").toLowerCase();
-    if (
-      type.startsWith("goal.proposal.phase.") ||
-      type.startsWith("goal.review.phase.") ||
-      type.startsWith("goal.verify.phase.") ||
-      type === "goal.proposal.auto_apply.started" ||
-      type === "proposal.ready" ||
-      type === "codex.exec.applied" ||
-      type === "job.completed" ||
-      type === "job.running" ||
-      type === "job.queued" ||
-      type === "message.accepted" ||
-      type === "codex.exec.retrying" ||
-      type === "runtime.exception" ||
-      type === "codex.exec.started" ||
-      type === "codex.exec.finished" ||
-      status === "failed" ||
-      status === "completed" ||
-      status === "applied"
-    ) {
+    if (isSessionAuthorityEvent(event)) {
       return event;
     }
   }
@@ -1845,7 +1882,9 @@ export function renderJobActivity(dom, conversation, currentJobId, jobPayload = 
     String(appendStream.lastRenderSource || "snapshot").toLowerCase() === "sse" &&
     String(appendStream.status || "offline").toLowerCase() === "live";
   const liveRun = currentState ? deriveLiveRunState(conversation, currentState) : runStateSnapshot({ visible: false, phase: "IDLE", source: "none" });
-  const eventJobId = String(liveRun.jobId || currentJobId || conversation?.latest_job_id || "");
+  const eventJobId = currentState
+    ? String(sessionAuthorityJobId(conversation, currentState) || currentJobId || conversation?.latest_job_id || "")
+    : String(liveRun.jobId || currentJobId || conversation?.latest_job_id || "");
   const relevantEvents = (selectedThreadSseOwned ? eventJobId : currentJobId)
     ? events.filter((event) => !event.job_id || event.job_id === (selectedThreadSseOwned ? eventJobId : currentJobId))
     : events;
