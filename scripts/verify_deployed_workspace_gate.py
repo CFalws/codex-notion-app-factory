@@ -211,7 +211,11 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
         ": '<p class=\"timeline-empty\">새 대화를 만들면 요청과 이벤트가 여기 쌓입니다.</p>';",
         label="generic empty state fallback path",
     )
+    require(render_js, 'conversationState: isThreadTransition ? "새 대화 스냅샷을 연결하는 중입니다." : "아직 대화 세션이 없습니다.",', label="thread transition conversation state copy")
+    require(render_js, 'threadTitle: isThreadTransition ? String(threadTransition.targetTitle || "대화 전환 중") : "새 대화를 시작하세요",', label="thread transition title copy")
     require(render_js, "dataset.threadTransitionState", label="thread transition state dataset")
+    require(render_js, 'renderSessionStrip(dom, currentState, null);', label="thread transition composer shell render path")
+    require(render_js, 'syncComposerOwnership(dom, currentState, null);', label="thread transition composer owner switching path")
     require(render_js, 'data-selected-thread-live-block="true"', label="inline session block DOM")
     require(render_js, 'data-live-block-owner="selected-thread"', label="inline session block owner DOM")
     require(render_js, 'data-live-owned="true"', label="inline session block ownership DOM")
