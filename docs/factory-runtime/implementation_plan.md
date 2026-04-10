@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Keep the current selected-conversation SSE path, transcript shell, footer composer, and non-selected snapshot rows unchanged.
-2. Reuse the existing selected-thread handoff, SSE-live, and live-follow datasets instead of introducing another rail ownership source.
-3. Replace the selected-row live-owner prose detail with finite compact chips that only expose current owner state and follow state.
-4. Keep non-selected rows snapshot-only with one stable state label and one bounded preview line.
-5. Keep the focused verifier and durable docs aligned with the finite selected-row chip contract.
+1. Keep the current selected-conversation SSE path, transcript shell, footer composer dock, and rail ownership model unchanged.
+2. Reuse the existing `threadTransition` state and selected-thread ownership clearing instead of introducing another switch-state source.
+3. Keep the center workspace mounted during intentional thread switches and render at most one compact `SWITCHING` placeholder until the new snapshot attaches.
+4. Limit the generic empty-state branch to true no-conversation idle so thread switches never flash a reset view.
+5. Keep the focused verifier and durable docs aligned with the selected-thread switch continuity contract.

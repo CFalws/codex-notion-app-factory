@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep the current selected-conversation SSE path, transcript shell, footer composer, and non-selected snapshot rows unchanged.
-- [x] Reuse the existing selected-thread handoff, SSE-live, and live-follow datasets instead of introducing another rail ownership source.
-- [x] Replace the selected-row live-owner prose detail with finite compact chips.
-- [x] Keep non-selected rows snapshot-only with one stable state label and one bounded preview line.
-- [x] Keep the focused verifier and iteration artifacts aligned with the finite selected-row chip contract.
+- [x] Keep the current selected-conversation SSE path, transcript shell, footer composer dock, and rail ownership model unchanged.
+- [x] Reuse the existing `threadTransition` state and selected-thread ownership clearing instead of introducing another switch-state source.
+- [x] Keep the center workspace mounted during intentional thread switches and render at most one compact `SWITCHING` placeholder until the new snapshot attaches.
+- [x] Limit the generic empty-state branch to true no-conversation idle so thread switches never flash a reset view.
+- [x] Keep the focused verifier and iteration artifacts aligned with the selected-thread switch continuity contract.
