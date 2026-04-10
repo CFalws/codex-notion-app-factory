@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Confirm the inline session block already owns handoff and degraded selected-thread rendering while healthy live still uses a separate transcript-tail activity.
-- [x] Route healthy selected-thread live progress through the existing inline session block instead of a separate transcript-tail live item.
-- [x] Suppress the duplicate transcript-tail live activity whenever the unified inline block is active.
-- [x] Preserve degraded and switched states as explicitly non-owned or cleared session states.
-- [x] Align the focused verifier, deployed workspace gate, and iteration artifacts with the single-inline-session-block contract.
+- [x] Confirm the composer-adjacent footer still splits selected-thread live status across the `session-strip` and `composer-owner-row`.
+- [x] Promote the `session-strip` into the single chip-first composer-adjacent activity bar using the existing owner, transport, phase, and proposal helpers.
+- [x] Hide the separate owner row whenever the merged activity bar is active.
+- [x] Preserve degraded and switched states as explicitly non-owned or cleared footer states.
+- [x] Align the focused verifier, deployed workspace gate, and iteration artifacts with the single composer-adjacent activity-bar contract.

@@ -227,8 +227,11 @@ function syncComposerOwnership(dom, currentState, conversation) {
     return;
   }
   const owner = composerOwnerState(currentState, conversation);
+  const mergedStripVisible = Boolean(dom.sessionStrip && !dom.sessionStrip.hidden);
   dom.composerOwnerRow.dataset.composerOwner = owner.state;
   dom.composerOwnerRow.dataset.composerOwnerConversationId = owner.conversationId;
+  dom.composerOwnerRow.dataset.composerOwnerMerged = mergedStripVisible ? "true" : "false";
+  dom.composerOwnerRow.hidden = mergedStripVisible;
   dom.composerOwnerState.textContent = owner.label;
   dom.composerOwnerState.dataset.ownerTone = owner.tone;
   dom.composerOwnerTarget.textContent = owner.target;
@@ -1617,6 +1620,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
   const ownerState = composerOwnerState(currentState, conversation);
   const transportState = composerTransportState(currentState, conversation, liveRun, handoffState);
+  const proposalState = proposalChip(liveRun);
   currentState.sessionRail ||= { conversationId: "", expanded: false };
 
   if (!conversationId && !(threadTransition.active && threadTransition.targetConversationId)) {
@@ -1726,6 +1730,9 @@ export function renderSessionStrip(dom, currentState, conversation) {
     `<span class="session-chip" data-tone="${escapeHtml(transportState.tone)}">${escapeHtml(transportState.label)}</span>`,
     ...(liveOwned && liveRun.phase && liveRun.phase !== "IDLE"
       ? [`<span class="session-chip" data-tone="${escapeHtml(phaseChip(liveRun).tone)}">${escapeHtml(phaseChip(liveRun).label)}</span>`]
+      : []),
+    ...(liveOwned && proposalState.label !== "NONE"
+      ? [`<span class="session-chip" data-tone="${escapeHtml(proposalState.tone)}">${escapeHtml(proposalState.label)}</span>`]
       : []),
   ].join("");
   dom.sessionStripMeta.textContent = ownerState.target;

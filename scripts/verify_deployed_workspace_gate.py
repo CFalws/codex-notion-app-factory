@@ -325,7 +325,7 @@ def assert_browser_runtime_surface(
                   const sessionStrip = document.querySelector("#session-strip");
                   const sessionStripState = document.querySelector("#session-strip-state");
                   const sessionStripDetail = document.querySelector("#session-strip-detail");
-                  const composerOwnerCopy = document.querySelector("#composer-owner-copy");
+                  const composerOwnerRow = document.querySelector("#composer-owner-row");
                   const composerDock = document.querySelector("#conversation-footer-dock");
                   const sendRequest = document.querySelector("#send-request");
                   const autonomyDetailCard = document.querySelector(".autonomy-detail-card");
@@ -363,11 +363,13 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.composerTransportOwned === "true" &&
                     sessionStrip.dataset.liveRunSource === "sse-event" &&
                     sessionStripState &&
+                    sessionStripState.textContent.includes("READY") &&
                     ["PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED"].some(label => sessionStripState.textContent.includes(label)) &&
                     sessionStripDetail &&
                     sessionStripDetail.textContent.trim().length > 0 &&
-                    composerOwnerCopy &&
-                    ["LOCKED", "SEND", "ACCEPTED", "ATTACH", "SELECT"].includes(composerOwnerCopy.textContent.trim()) &&
+                    composerOwnerRow &&
+                    composerOwnerRow.hidden &&
+                    composerOwnerRow.dataset.composerOwnerMerged === "true" &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     sendRequest &&
@@ -429,8 +431,7 @@ def assert_browser_runtime_surface(
                   const sessionStrip = document.querySelector("#session-strip");
                   const composerDock = document.querySelector("#conversation-footer-dock");
                   const sendRequest = document.querySelector("#send-request");
-                  const composerOwnerState = document.querySelector("#composer-owner-state");
-                  const composerOwnerTarget = document.querySelector("#composer-owner-target");
+                  const composerOwnerRow = document.querySelector("#composer-owner-row");
                   const threadScroller = document.querySelector("#thread-scroller");
                   const healthy = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
                   const degraded = document.querySelector('.session-inline-block[data-selected-thread-degraded-block="true"]');
@@ -456,14 +457,13 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.composerState === "switching" &&
                     sessionStrip.dataset.composerTransport === "attach" &&
                     sessionStrip.dataset.composerTargetConversationId === targetConversationId &&
+                    composerOwnerRow &&
+                    composerOwnerRow.hidden &&
+                    composerOwnerRow.dataset.composerOwnerMerged === "true" &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     sendRequest &&
                     sendRequest.dataset.composerOwnerState === "switching" &&
-                    composerOwnerState &&
-                    composerOwnerState.textContent.trim() === "SWITCHING" &&
-                    composerOwnerTarget &&
-                    composerOwnerTarget.textContent.trim().length > 0 &&
                     threadScroller &&
                     threadScroller.dataset.threadTransitionState === "loading" &&
                     threadScroller.dataset.threadTransitionConversationId === targetConversationId &&
@@ -689,15 +689,20 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'if (!conversationId && !(threadTransition.active && threadTransition.targetConversationId)) {', label="composer strip idle clear branch")
     require(render_js, 'const ownerState = composerOwnerState(currentState, conversation);', label="composer strip owner helper wiring")
     require(render_js, 'const transportState = composerTransportState(currentState, conversation, liveRun, handoffState);', label="composer strip transport helper wiring")
+    require(render_js, "const proposalState = proposalChip(liveRun);", label="composer strip proposal chip helper wiring")
     require(render_js, "const liveOwned =", label="composer strip ownership decoupled from strip visibility")
     require(render_js, 'dom.sessionStrip.hidden = !sessionConversationId;', label="composer strip selected-target visibility")
     require(render_js, 'dom.sessionStrip.dataset.sessionOwner = liveOwned ? "selected-thread" : "none";', label="composer strip selected-thread owner dataset")
     require(render_js, 'dom.sessionStrip.dataset.followState = transportState.owned ? "owned" : "idle";', label="composer strip follow-state dataset")
     require(render_js, 'dom.sessionStripMeta.textContent = ownerState.target;', label="composer strip target copy")
     require(render_js, 'liveOwned && liveRun.phase && liveRun.phase !== "IDLE"', label="composer strip live phase chip guard")
+    require(render_js, 'proposalState.label !== "NONE"', label="composer strip proposal chip visibility")
     require(render_js, 'phaseChip(liveRun).tone', label="composer strip live phase chip tone")
     require(render_js, 'phaseChip(liveRun).label', label="composer strip live phase chip label")
     require(render_js, 'dom.sessionStripDetail.textContent = liveOwned ? compactPhaseDetailCopy(liveRun, ownerState.copy) : ownerState.copy;', label="composer strip live phase detail copy")
+    require(render_js, 'const mergedStripVisible = Boolean(dom.sessionStrip && !dom.sessionStrip.hidden);', label="composer owner row merged strip visibility")
+    require(render_js, 'dom.composerOwnerRow.dataset.composerOwnerMerged = mergedStripVisible ? "true" : "false";', label="composer owner merged dataset")
+    require(render_js, 'dom.composerOwnerRow.hidden = mergedStripVisible;', label="composer owner row hidden when strip active")
     require(render_js, 'return { label: "ACCEPTED", tone: "neutral" };', label="accepted handoff chip")
     require(render_js, '"RECONNECT"', label="reconnecting provenance label")
     require(render_js, '"OPEN"', label="connecting provenance label")

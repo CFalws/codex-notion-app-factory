@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Confirm the current selected-thread inline session block already owns handoff and degraded rendering while healthy live still uses the transcript-tail activity.
-2. Extend the inline block to render healthy selected-thread live progress from the same `liveRun` and selected-thread SSE authority path.
-3. Suppress the separate transcript-tail live activity whenever the unified inline block is active.
-4. Preserve degraded reconnect, polling fallback, ownership loss, terminal idle, and thread-switch states as explicitly non-owned or cleared.
-5. Align the focused verifier, deployed workspace gate, and iteration artifacts with the single-inline-session-block contract.
+1. Confirm the current composer-adjacent footer still splits live status between `session-strip` and `composer-owner-row`.
+2. Promote the `session-strip` into the single chip-first composer-adjacent activity bar by reusing owner, transport, phase, and proposal helpers there.
+3. Hide the separate owner row whenever that merged activity bar is active, while preserving its data wiring for send-button ownership state.
+4. Preserve degraded reconnect, polling fallback, ownership loss, terminal idle, and switch states as explicitly non-owned or cleared.
+5. Align the focused verifier, deployed workspace gate, and iteration artifacts with the single composer-adjacent activity-bar contract.
