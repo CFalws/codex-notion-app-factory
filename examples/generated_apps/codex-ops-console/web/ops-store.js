@@ -45,6 +45,7 @@ export const state = {
     lastSeenAppendId: 0,
     pendingAppendCount: 0,
   },
+  autonomySummary: null,
   threadTransition: {
     active: false,
     targetConversationId: "",

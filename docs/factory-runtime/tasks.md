@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep the existing selected-thread switch render path, bottom-fixed composer dock, and degraded fallback behavior unchanged.
-- [x] Reuse `threadTransition` as the single selected-thread switch handoff owner.
-- [x] Preserve the compact attach placeholder path and keep the generic empty view limited to the true no-conversation path.
-- [x] Clear old-thread live ownership and retarget follow ownership before the new snapshot attaches.
-- [x] Align the focused verifier, deployed workspace gate, and iteration artifacts with the switch-continuity contract.
+- [x] Keep the existing selected-thread SSE ownership, inline live block, and degraded fallback behavior unchanged.
+- [x] Cache the already-fetched relevant goal summary as one client-side autonomy snapshot.
+- [x] Project iteration, intended-path verdict, verifier acceptability, and blocker reason into the selected-thread inline live session block.
+- [x] Suppress the inline autonomy row on thread switch, degraded fallback, ownership loss, or no-goal states.
+- [x] Align the focused verifier, deployed workspace gate, and iteration artifacts with the inline autonomy projection contract.

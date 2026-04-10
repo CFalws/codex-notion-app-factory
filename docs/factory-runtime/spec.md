@@ -8,7 +8,7 @@
 
 ## Problem
 
-Healthy selected-thread SSE ownership and polling suppression are now in place, but the workspace still depends on explicit proof that thread switches preserve one continuous session shell instead of flashing a reset-like empty state. The remaining UX risk is any attach handoff that makes the center pane feel like it lost session continuity.
+Healthy selected-thread SSE ownership, polling suppression, and switch continuity are now in place, but the main workspace still splits live conversation from autonomy verdicts. Operators still need the secondary panel to understand the latest iteration path verdict, verifier acceptability, and blocker state, which breaks the single-session feel.
 
 ## Target User
 
@@ -18,10 +18,10 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the existing `threadTransition`, selected-thread ownership, composer owner, and session-summary state instead of introducing a new state source.
-- Keep the change bounded to the selected-thread switch handoff surface in the center workspace.
-- Preserve snapshot-only behavior for non-selected threads and degraded fallback behavior for failed attaches.
+- Reuse the already-fetched relevant goal summary and the existing selected-thread live-session ownership path instead of introducing new transport or proposal semantics.
+- Keep the change bounded to the selected-thread inline session surface in the center workspace.
+- Preserve snapshot-only behavior for non-selected threads and suppress the autonomy projection on degraded fallback, no-goal, or switch paths.
 
 ## Deliverable
 
-Define and verify the selected-thread switch path as one continuous session shell: clear old-thread live ownership immediately, keep the center workspace and bottom-fixed composer dock mounted, show exactly one compact attach placeholder, and replace it directly with the new snapshot when ownership transfers.
+Define and verify one compact autonomy row inside the selected-thread live session block so iteration number, intended-path verdict, verifier acceptability, and blocker reason are visible in the conversation workspace whenever the selected thread currently owns the live run.

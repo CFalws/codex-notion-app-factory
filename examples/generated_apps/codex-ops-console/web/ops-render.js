@@ -571,6 +571,7 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
   const detail = handoffVisible
     ? "서버 handoff가 확인되어 첫 live assistant append를 기다리는 중입니다."
     : simplifyText(phaseDetailHint(liveRun) || liveRun.detail || "");
+  const autonomySummary = summarizeInlineAutonomy(currentState, inlineState);
   const meta = handoffVisible
     ? `selected thread · SSE · HANDOFF${liveRun.jobId ? ` · ${escapeHtml(liveRun.jobId)}` : ""}`
     : `selected thread · SSE · ${escapeHtml(status.toUpperCase())} · append #${appendId || 0}${liveRun.jobId ? ` · ${escapeHtml(liveRun.jobId)}` : ""}`;
@@ -582,8 +583,73 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
         <span class="session-inline-chip" data-tone="${escapeHtml(tone)}">${escapeHtml(phaseLabel)}</span>
       </div>
       <p class="session-inline-body">${escapeHtml(detail || "선택된 대화의 최신 live 진행 상태를 표시하는 중입니다.")}</p>
+      ${autonomySummary}
       <p class="session-inline-meta">${meta}</p>
     </section>
+  `;
+}
+
+function autonomyChipTone(value) {
+  if (value === "EXPECTED" || value === "ACCEPTABLE" || value === "none") {
+    return "healthy";
+  }
+  if (value === "DEGRADED" || value === "DISQUALIFYING") {
+    return "blocked";
+  }
+  return "neutral";
+}
+
+export function buildAutonomySummary(goal) {
+  const iteration = latestIteration(goal);
+  if (!goal || !iteration) {
+    return null;
+  }
+
+  const intendedPath = iteration.intended_path || {};
+  const pathVerdict = String(intendedPath.verdict || "").toLowerCase() === "expected" ? "EXPECTED" : "DEGRADED";
+  const verifierAcceptability = summarizeVerifierAcceptability(iteration);
+  const blockerReason = String(iteration.continuation_blocker_reason || goal.stop_reason || "none");
+  const degradedSignals = Array.isArray(intendedPath.degraded_signals) ? intendedPath.degraded_signals : [];
+  const expectedPath = String(intendedPath.expected_path || "").trim() || "unknown";
+  return {
+    goalTitle: goal.title || "Autonomy Goal",
+    goalStatus: goal.status || "unknown",
+    iteration: String(iteration.iteration ?? ""),
+    pathVerdict,
+    verifierAcceptability,
+    blockerReason,
+    expectedPath,
+    degradedSignals,
+    heading: `${goal.title || "Autonomy Goal"} · ${goal.status || "unknown"} · iteration ${iteration.iteration}`,
+  };
+}
+
+function summarizeInlineAutonomy(currentState, inlineState) {
+  const autonomySummary = currentState.autonomySummary;
+  if (
+    !inlineState.visible ||
+    !inlineState.selectedThreadSseOwned ||
+    inlineState.renderSource !== "sse" ||
+    inlineState.status !== "live" ||
+    !autonomySummary
+  ) {
+    return "";
+  }
+  const blockerReason = String(autonomySummary.blockerReason || "none");
+  const degradedSignals = Array.isArray(autonomySummary.degradedSignals) ? autonomySummary.degradedSignals : [];
+  return `
+    <div class="session-inline-autonomy" data-live-autonomy="true" data-autonomy-path-verdict="${escapeHtml(String(autonomySummary.pathVerdict || "unknown").toLowerCase())}" data-autonomy-verifier-acceptability="${escapeHtml(String(autonomySummary.verifierAcceptability || "pending").toLowerCase())}" data-autonomy-blocker-reason="${escapeHtml(blockerReason)}" data-autonomy-iteration="${escapeHtml(String(autonomySummary.iteration || ""))}">
+      <div class="autonomy-chip-row autonomy-chip-row-compact">
+        <span class="autonomy-chip ${autonomyChipTone(autonomySummary.pathVerdict)}">${escapeHtml(String(autonomySummary.pathVerdict || "UNKNOWN"))}</span>
+        <span class="autonomy-chip ${autonomyChipTone(autonomySummary.verifierAcceptability)}">${escapeHtml(String(autonomySummary.verifierAcceptability || "PENDING"))}</span>
+        <span class="autonomy-chip ${blockerTone(blockerReason)}">BLOCKER ${escapeHtml(blockerReason.toUpperCase())}</span>
+      </div>
+      <div class="session-inline-autonomy-meta">
+        <p class="session-inline-autonomy-item"><span>Iteration</span>${escapeHtml(String(autonomySummary.iteration || ""))}</p>
+        <p class="session-inline-autonomy-item"><span>Path</span>${escapeHtml(String(autonomySummary.expectedPath || "unknown"))}</p>
+        <p class="session-inline-autonomy-item"><span>Signals</span>${escapeHtml(degradedSignals.length ? degradedSignals.join(", ") : "none")}</p>
+      </div>
+    </div>
   `;
 }
 
@@ -1525,36 +1591,32 @@ function setAutonomyDataset(target, { blockerReason, pathVerdict, verifierAccept
 }
 
 export function renderAutonomySummary(dom, goal) {
-  const iteration = latestIteration(goal);
-  if (!goal || !iteration) {
+  const summary = buildAutonomySummary(goal);
+  if (!summary) {
     clearAutonomySummary(dom);
     return;
   }
-
-  const intendedPath = iteration.intended_path || {};
-  const pathVerdict = String(intendedPath.verdict || "").toLowerCase() === "expected" ? "EXPECTED" : "DEGRADED";
-  const verifierAcceptability = summarizeVerifierAcceptability(iteration);
-  const blockerReason = String(iteration.continuation_blocker_reason || goal.stop_reason || "none");
-  const degradedSignals = Array.isArray(intendedPath.degraded_signals) ? intendedPath.degraded_signals : [];
-  const expectedPath = String(intendedPath.expected_path || "").trim() || "unknown";
-  const blockerClass = blockerTone(blockerReason);
-  const heading = `${goal.title || "Autonomy Goal"} · ${goal.status || "unknown"} · iteration ${iteration.iteration}`;
+  const blockerClass = blockerTone(summary.blockerReason);
 
   if (dom.autonomyDetailMeta) {
-    dom.autonomyDetailMeta.textContent = heading;
+    dom.autonomyDetailMeta.textContent = summary.heading;
   }
   if (dom.autonomyDetail) {
-    setAutonomyDataset(dom.autonomyDetail, { blockerReason, pathVerdict, verifierAcceptability });
+    setAutonomyDataset(dom.autonomyDetail, {
+      blockerReason: summary.blockerReason,
+      pathVerdict: summary.pathVerdict,
+      verifierAcceptability: summary.verifierAcceptability,
+    });
     dom.autonomyDetail.innerHTML = `
       <div class="autonomy-chip-row autonomy-chip-row-compact">
-        <span class="autonomy-chip ${pathVerdict === "EXPECTED" ? "healthy" : "blocked"}">${pathVerdict}</span>
-        <span class="autonomy-chip ${verifierAcceptability === "DISQUALIFYING" ? "blocked" : verifierAcceptability === "ACCEPTABLE" ? "healthy" : "neutral"}">${verifierAcceptability}</span>
-        <span class="autonomy-chip ${blockerClass}">BLOCKER ${escapeHtml(blockerReason.toUpperCase())}</span>
+        <span class="autonomy-chip ${autonomyChipTone(summary.pathVerdict)}">${summary.pathVerdict}</span>
+        <span class="autonomy-chip ${autonomyChipTone(summary.verifierAcceptability)}">${summary.verifierAcceptability}</span>
+        <span class="autonomy-chip ${blockerClass}">BLOCKER ${escapeHtml(summary.blockerReason.toUpperCase())}</span>
       </div>
       <div class="autonomy-inline-meta">
-        <p class="autonomy-inline-item"><span>Iteration</span>${escapeHtml(String(iteration.iteration))}</p>
-        <p class="autonomy-inline-item"><span>Path</span>${escapeHtml(expectedPath)}</p>
-        <p class="autonomy-inline-item"><span>Signals</span>${escapeHtml(degradedSignals.length ? degradedSignals.join(", ") : "none")}</p>
+        <p class="autonomy-inline-item"><span>Iteration</span>${escapeHtml(String(summary.iteration))}</p>
+        <p class="autonomy-inline-item"><span>Path</span>${escapeHtml(summary.expectedPath)}</p>
+        <p class="autonomy-inline-item"><span>Signals</span>${escapeHtml(summary.degradedSignals.length ? summary.degradedSignals.join(", ") : "none")}</p>
       </div>
     `;
   }

@@ -16,6 +16,7 @@ import { createJobController } from "./ops-jobs.js";
 import {
   clearLearningSummary,
   clearAutonomySummary,
+  buildAutonomySummary,
   describeJob,
   renderComposerMeta,
   renderDraftStatus,
@@ -441,6 +442,7 @@ function initControllers() {
     appConversationsUrl,
     appGoalsUrl,
     appsUrl,
+    buildAutonomySummary,
     clearAutonomySummary,
     clearLearningSummary,
     dom,

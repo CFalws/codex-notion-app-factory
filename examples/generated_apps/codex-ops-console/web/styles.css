@@ -1204,6 +1204,32 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   color: var(--ink);
 }
 
+.session-inline-autonomy {
+  display: grid;
+  gap: 0.42rem;
+  padding-top: 0.12rem;
+  border-top: 1px solid rgba(31, 120, 224, 0.12);
+}
+
+.session-inline-autonomy-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.8rem;
+}
+
+.session-inline-autonomy-item {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.session-inline-autonomy-item span {
+  margin-right: 0.35rem;
+  color: var(--ink);
+  font-weight: 700;
+}
+
 .session-inline-meta {
   color: var(--muted);
   font-size: 0.76rem;

@@ -10,6 +10,7 @@ export function createConversationController(deps) {
     setStatus,
     setJobMeta,
     renderConversation,
+    buildAutonomySummary,
     renderAutonomySummary,
     clearAutonomySummary,
     clearLearningSummary,
@@ -922,19 +923,35 @@ export function createConversationController(deps) {
   async function refreshGoalSummary() {
     const app = selectedAppData(dom);
     if (!app) {
+      state.autonomySummary = null;
       clearAutonomySummary(dom, "앱을 선택하면 최근 autonomous iteration blocker가 여기에 표시됩니다.");
+      if (state.conversationCache) {
+        renderConversation(dom, state, state.conversationCache, persistSettings);
+      }
       return;
     }
     try {
       const goals = await fetchJson(dom, appGoalsUrl(app.appId));
       const goal = pickRelevantGoal(goals);
       if (!goal) {
+        state.autonomySummary = null;
         clearAutonomySummary(dom, "이 앱에는 아직 autonomous goal 기록이 없습니다.");
+        if (state.conversationCache) {
+          renderConversation(dom, state, state.conversationCache, persistSettings);
+        }
         return;
       }
+      state.autonomySummary = buildAutonomySummary(goal);
       renderAutonomySummary(dom, goal);
+      if (state.conversationCache) {
+        renderConversation(dom, state, state.conversationCache, persistSettings);
+      }
     } catch (error) {
+      state.autonomySummary = null;
       clearAutonomySummary(dom, `Autonomy summary를 불러오지 못했습니다: ${error.message}`);
+      if (state.conversationCache) {
+        renderConversation(dom, state, state.conversationCache, persistSettings);
+      }
     }
   }
 
