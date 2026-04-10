@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Reuse the existing selected-thread append-stream state to define an authoritative startup boundary for `connecting` and `live` SSE ownership.
-2. Remove the eager `pollCurrentState()` submit follow-up on the healthy selected-thread path so local pending turns, handoff, and the transcript-tail live item carry startup instead.
-3. Keep polling available only for degraded paths: unavailable EventSource, reconnect, ownership loss, or downgraded append-stream transport.
-4. Ensure the job controller respects the same authoritative boundary so it does not restart polling while selected-thread SSE is already connecting or live.
-5. Align the focused verifier, deployed workspace gate, and iteration artifacts with the degraded-only polling boundary contract.
+1. Reuse the existing thread-transition and selected-thread ownership state as the authoritative switch path for the center workspace.
+2. Prove the transition placeholder is the only transient center-pane surface during switch and that `.timeline-empty` remains reserved for true no-selection idle.
+3. Prove the header live indicator clears immediately on switch instead of leaking prior healthy ownership.
+4. Prove the composer remains bottom-fixed and targeted to the new thread through an explicit `SWITCHING` owner state and non-empty target label.
+5. Align the focused verifier, deployed workspace gate, and iteration artifacts with the switch-continuity contract.

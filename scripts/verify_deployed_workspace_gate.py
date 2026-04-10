@@ -380,10 +380,14 @@ def assert_browser_runtime_surface(
                 """targetConversationId => {
                   const transition = document.querySelector('[data-thread-transition="loading"]');
                   const summary = document.querySelector("#session-summary-row");
+                  const liveIndicator = document.querySelector("#session-live-indicator");
+                  const threadTitle = document.querySelector("#thread-title");
                   const activeSessionRow = document.querySelector("#active-session-row");
                   const sessionStrip = document.querySelector("#session-strip");
                   const composerDock = document.querySelector("#conversation-footer-dock");
                   const sendRequest = document.querySelector("#send-request");
+                  const composerOwnerState = document.querySelector("#composer-owner-state");
+                  const composerOwnerTarget = document.querySelector("#composer-owner-target");
                   const threadScroller = document.querySelector("#thread-scroller");
                   const healthy = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
                   const degraded = document.querySelector('.session-inline-block[data-selected-thread-degraded-block="true"]');
@@ -394,6 +398,13 @@ def assert_browser_runtime_surface(
                     transition.dataset.threadTransitionConversationId === targetConversationId &&
                     summary &&
                     summary.dataset.summaryPath === "switching" &&
+                    summary.dataset.liveSessionOwned === "false" &&
+                    liveIndicator &&
+                    liveIndicator.hidden &&
+                    liveIndicator.dataset.liveSessionOwned === "false" &&
+                    threadTitle &&
+                    threadTitle.textContent.trim().length > 0 &&
+                    threadTitle.textContent.trim() !== "새 대화를 시작하세요" &&
                     activeSessionRow &&
                     activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
@@ -406,6 +417,10 @@ def assert_browser_runtime_surface(
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     sendRequest &&
                     sendRequest.dataset.composerOwnerState === "switching" &&
+                    composerOwnerState &&
+                    composerOwnerState.textContent.trim() === "SWITCHING" &&
+                    composerOwnerTarget &&
+                    composerOwnerTarget.textContent.trim().length > 0 &&
                     threadScroller &&
                     threadScroller.dataset.threadTransitionState === "loading" &&
                     threadScroller.dataset.threadTransitionConversationId === targetConversationId &&
