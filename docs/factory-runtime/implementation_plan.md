@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Keep the current selected-conversation SSE path, selected-row live-owner contract, dock behavior, transcript-tail live item, and non-selected snapshot rows unchanged.
-2. Add one compact selected-thread session summary row inside the center header so selected-thread scope, path, and attach state stay visible without relying on side-panel prose.
-3. Keep the secondary panel collapsed by default and reduce the always-present workspace-summary copy so deeper autonomy and operator context stays optional.
-4. Preserve phone and desktop continuity by keeping the transcript, live strip, and composer dock dominant while avoiding any second detailed live-status surface in the center pane.
-5. Extend the focused verifier and docs so future sessions can prove the compact summary row, the collapsed-by-default secondary panel contract, and center-owned session context remain intact.
+1. Keep the current selected-conversation SSE path, selected-row live-owner contract, composer dock, thread-switch continuity, and non-selected snapshot rows unchanged.
+2. Use the existing `liveFollow` state to expose one compact bottom follow control only when the selected transcript is detached from the tail and new selected-thread appends arrive off-screen.
+3. Make the control expose explicit `NEW` vs `PAUSED` state plus unseen-count metadata derived from selected-thread append provenance and current scroll position instead of prose-only cues.
+4. Clear the control immediately on jump-to-latest, composer re-engagement near the bottom, thread switch, terminal idle, reconnect downgrade, or polling-only fallback so only the healthy selected-thread path reads as actively live.
+5. Extend the focused verifier and docs so future sessions can prove the follow control remains selected-thread-only, machine-readable, and clearly distinguishes healthy off-screen appends from degraded or snapshot behavior.
