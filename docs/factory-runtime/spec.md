@@ -8,7 +8,7 @@
 
 ## Problem
 
-The selected-thread live path is present, but the main conversation header still does not make intended-path transport ownership explicit enough. An operator should be able to see that the active workspace is healthy SSE-owned without inferring it from left-rail cues or follow-state wording.
+The selected-thread inline phase item has healthy-path transport and phase data, but terminal `READY` and `APPLIED` visibility is not explicit enough. Without a deterministic retention rule, the timeline can either clear too quickly to verify or linger long enough to imply stale healthy ownership.
 
 ## Target User
 
@@ -18,11 +18,11 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the existing selected-thread session summary, append-stream, live-follow, and degradation selectors instead of introducing a new runtime state source.
-- Keep the change bounded to the selected-thread center workspace header and its machine-readable datasets.
-- Do not add a prose-heavy status panel or broaden polling-driven state.
-- Clear ownership immediately on thread switch, terminal resolution, reconnect downgrade, or polling fallback.
+- Reuse the existing selected-thread SSE ownership, append-stream append ids, and live-run event metadata instead of introducing a new runtime state source.
+- Keep the change bounded to the selected-thread inline live phase item in the conversation timeline.
+- Do not add a second status surface or broaden polling-driven state.
+- Clear retained terminal visibility immediately on next append, thread switch, reconnect downgrade, polling fallback, or ownership loss.
 
 ## Deliverable
 
-Expose one compact selected-thread header ownership chip adjacent to the session summary that shows `SSE OWNER` on the healthy intended path, downgrades to `RECONNECT` or `POLLING` on degraded paths, publishes machine-readable ownership/source/reason datasets, and remains absent when the session is idle or no longer selected.
+Define and implement explicit inline terminal retention semantics so exactly one selected-thread inline live phase item can retain `READY` or `APPLIED` briefly while the same healthy SSE-owned session still owns the thread, then clear deterministically on the next append or ownership loss.

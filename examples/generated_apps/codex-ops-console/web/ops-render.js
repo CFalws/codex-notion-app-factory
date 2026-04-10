@@ -449,8 +449,35 @@ function runStateSnapshot({
   tone = "idle",
   jobId = "",
   terminal = false,
+  appendId = 0,
+  createdAt = "",
 }) {
-  return { visible, state, phase, detail, source, tone, jobId, terminal };
+  return { visible, state, phase, detail, source, tone, jobId, terminal, appendId, createdAt };
+}
+
+const INLINE_TERMINAL_RETENTION_MS = 12000;
+
+function shouldRetainInlineTerminalPhase(appendStream, liveRun, selectedThreadSseOwned, renderSource, status) {
+  if (
+    !selectedThreadSseOwned ||
+    renderSource !== "sse" ||
+    status !== "live" ||
+    !liveRun?.visible ||
+    !liveRun?.terminal ||
+    (liveRun.phase !== "READY" && liveRun.phase !== "APPLIED")
+  ) {
+    return false;
+  }
+  const latestAppendId = Number(appendStream.lastLiveAppendId || appendStream.lastAppendId || 0);
+  const terminalAppendId = Number(liveRun.appendId || 0);
+  if (terminalAppendId && latestAppendId > terminalAppendId) {
+    return false;
+  }
+  const createdAtMs = Date.parse(String(liveRun.createdAt || ""));
+  if (!Number.isFinite(createdAtMs)) {
+    return false;
+  }
+  return Date.now() - createdAtMs <= INLINE_TERMINAL_RETENTION_MS;
 }
 
 function transcriptLiveTone(liveRun) {
@@ -498,23 +525,30 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
   const status = String(appendStream.status || "offline").toLowerCase();
   const selectedThreadSseOwned = conversationId && streamConversationId === conversationId && transport === "sse";
   const handoffVisible = handoffState.stage === "pending-assistant" && selectedThreadSseOwned;
+  const retainedTerminalVisible = shouldRetainInlineTerminalPhase(
+    appendStream,
+    liveRun,
+    selectedThreadSseOwned,
+    renderSource,
+    status,
+  );
   const liveVisible =
     selectedThreadSseOwned &&
     renderSource === "sse" &&
     status === "live" &&
     liveRun?.visible &&
-    !liveRun.terminal &&
     liveRun.phase &&
     liveRun.phase !== "IDLE" &&
     liveRun.state !== "sending" &&
-    liveRun.state !== "generating";
+    liveRun.state !== "generating" &&
+    (!liveRun.terminal || retainedTerminalVisible);
 
   if (!handoffVisible && !liveVisible) {
     return "";
   }
 
   const appendId = Number(appendStream.lastLiveAppendId || appendStream.lastAppendId || 0);
-  const stage = handoffVisible ? "handoff" : String(liveRun.state || "live");
+  const stage = handoffVisible ? "handoff" : liveRun.terminal ? "terminal" : String(liveRun.state || "live");
   const phaseLabel = handoffVisible ? "HANDOFF" : String(liveRun.phase || "LIVE").toUpperCase();
   const sourceLabel = handoffVisible ? "handoff" : "sse";
   const tone = handoffVisible ? "neutral" : transcriptLiveTone(liveRun);
@@ -525,7 +559,7 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
     ? `selected thread · SSE · HANDOFF${liveRun.jobId ? ` · ${escapeHtml(liveRun.jobId)}` : ""}`
     : `selected thread · SSE · ${escapeHtml(status.toUpperCase())} · append #${appendId || 0}${liveRun.jobId ? ` · ${escapeHtml(liveRun.jobId)}` : ""}`;
   return `
-    <section class="session-inline-block" data-selected-thread-live-block="true" data-live-block-owner="selected-thread" data-live-owned="true" data-live-block-stage="${escapeHtml(stage)}" data-live-block-phase="${escapeHtml(phaseLabel)}" data-live-block-source="${escapeHtml(sourceLabel)}">
+    <section class="session-inline-block" data-selected-thread-live-block="true" data-live-block-owner="selected-thread" data-live-owned="true" data-live-block-stage="${escapeHtml(stage)}" data-live-block-phase="${escapeHtml(phaseLabel)}" data-live-block-source="${escapeHtml(sourceLabel)}" data-live-block-terminal="${handoffVisible ? "false" : liveRun.terminal ? "true" : "false"}">
       <p class="session-inline-kicker">Selected Thread Session</p>
       <div class="session-inline-row">
         <span class="session-inline-chip" data-tone="neutral">${handoffVisible ? "HANDOFF" : "LIVE"}</span>
@@ -727,6 +761,8 @@ function deriveLiveRunState(conversation, currentState) {
   const latestType = String(latestEvent?.type || "");
   const latestStatus = String(latestEvent?.status || "").toLowerCase();
   const eventSource = String(latestEvent?.delivery_source || "snapshot").toLowerCase();
+  const latestAppendId = Number(latestEvent?.append_id || 0);
+  const latestCreatedAt = String(latestEvent?.created_at || "");
   const pendingOutgoing = currentState.pendingOutgoing || {};
 
   if (!conversation?.conversation_id) {
@@ -796,6 +832,8 @@ function deriveLiveRunState(conversation, currentState) {
       tone: "done",
       jobId,
       terminal: true,
+      appendId: latestAppendId,
+      createdAt: latestCreatedAt,
     });
   }
 
@@ -809,6 +847,8 @@ function deriveLiveRunState(conversation, currentState) {
       tone: "running",
       jobId,
       terminal: false,
+      appendId: latestAppendId,
+      createdAt: latestCreatedAt,
     });
   }
 
@@ -825,6 +865,8 @@ function deriveLiveRunState(conversation, currentState) {
       tone: "running",
       jobId,
       terminal: false,
+      appendId: latestAppendId,
+      createdAt: latestCreatedAt,
     });
   }
 
@@ -841,6 +883,8 @@ function deriveLiveRunState(conversation, currentState) {
       tone: "thinking",
       jobId,
       terminal: false,
+      appendId: latestAppendId,
+      createdAt: latestCreatedAt,
     });
   }
 
@@ -857,6 +901,8 @@ function deriveLiveRunState(conversation, currentState) {
       tone: "thinking",
       jobId,
       terminal: false,
+      appendId: latestAppendId,
+      createdAt: latestCreatedAt,
     });
   }
 
@@ -870,6 +916,8 @@ function deriveLiveRunState(conversation, currentState) {
       tone: "waiting",
       jobId,
       terminal: true,
+      appendId: latestAppendId,
+      createdAt: latestCreatedAt,
     });
   }
 
@@ -883,6 +931,8 @@ function deriveLiveRunState(conversation, currentState) {
       tone: "done",
       jobId,
       terminal: true,
+      appendId: latestAppendId,
+      createdAt: latestCreatedAt,
     });
   }
 
@@ -896,6 +946,8 @@ function deriveLiveRunState(conversation, currentState) {
       tone: "running",
       jobId,
       terminal: false,
+      appendId: latestAppendId,
+      createdAt: latestCreatedAt,
     });
   }
 
@@ -916,6 +968,8 @@ function deriveLiveRunState(conversation, currentState) {
       tone: "waiting",
       jobId,
       terminal: false,
+      appendId: latestAppendId,
+      createdAt: latestCreatedAt,
     });
   }
 
@@ -937,6 +991,8 @@ function deriveLiveRunState(conversation, currentState) {
       tone: latestType === "job.running" ? "running" : "thinking",
       jobId,
       terminal: false,
+      appendId: latestAppendId,
+      createdAt: latestCreatedAt,
     });
   }
 
@@ -950,6 +1006,8 @@ function deriveLiveRunState(conversation, currentState) {
       tone: "done",
       jobId,
       terminal: true,
+      appendId: latestAppendId,
+      createdAt: latestCreatedAt,
     });
   }
 
@@ -962,6 +1020,8 @@ function deriveLiveRunState(conversation, currentState) {
     tone: "thinking",
     jobId,
     terminal: false,
+    appendId: latestAppendId,
+    createdAt: latestCreatedAt,
   });
 }
 
