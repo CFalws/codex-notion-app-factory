@@ -118,6 +118,91 @@ export function renderDraftStatus(dom, message) {
   dom.draftStatus.textContent = message;
 }
 
+function composerOwnerState(currentState, conversation) {
+  const threadTransition = currentState.threadTransition || {};
+  const pendingOutgoing = currentState.pendingOutgoing || {};
+  const conversationId = String(conversation?.conversation_id || "");
+  const conversationTitle = String(conversation?.title || "현재 대화").trim() || "현재 대화";
+
+  if (threadTransition.active && threadTransition.targetConversationId) {
+    return {
+      state: "switching",
+      label: "SWITCHING",
+      tone: "warning",
+      conversationId: String(threadTransition.targetConversationId || ""),
+      target: String(threadTransition.targetTitle || "선택한 대화").trim() || "선택한 대화",
+      copy: "새 selected-thread snapshot을 붙이는 중이라 이전 thread로는 보낼 수 없습니다.",
+      blocked: true,
+      blockedReason: "selected-thread attach가 끝날 때까지 잠시 기다려 주세요.",
+    };
+  }
+
+  if (
+    conversationId &&
+    pendingOutgoing.conversationId === conversationId &&
+    (pendingOutgoing.status === "sending-user" || pendingOutgoing.status === "awaiting-assistant")
+  ) {
+    return {
+      state: "handoff",
+      label: "HANDOFF",
+      tone: "neutral",
+      conversationId,
+      target: conversationTitle,
+      copy:
+        pendingOutgoing.status === "sending-user"
+          ? "현재 메시지를 selected thread에 handoff하는 중입니다."
+          : "handoff는 확인되었고 첫 assistant append를 기다리는 중입니다.",
+      blocked: false,
+      blockedReason: "",
+    };
+  }
+
+  if (conversationId) {
+    return {
+      state: "ready",
+      label: "READY",
+      tone: "healthy",
+      conversationId,
+      target: conversationTitle,
+      copy: "이 입력창은 현재 선택된 thread에 바로 연결됩니다.",
+      blocked: false,
+      blockedReason: "",
+    };
+  }
+
+  return {
+    state: "idle",
+    label: "IDLE",
+    tone: "muted",
+    conversationId: "",
+    target: "대상을 선택하면 이 입력창의 연결 상태가 여기에 표시됩니다.",
+    copy: "선택된 대화의 target ownership을 이 줄에서 바로 확인합니다.",
+    blocked: false,
+    blockedReason: "",
+  };
+}
+
+function syncComposerOwnership(dom, currentState, conversation) {
+  if (!dom.composerOwnerRow || !dom.composerOwnerState || !dom.composerOwnerTarget || !dom.composerOwnerCopy) {
+    return;
+  }
+  const owner = composerOwnerState(currentState, conversation);
+  dom.composerOwnerRow.dataset.composerOwner = owner.state;
+  dom.composerOwnerRow.dataset.composerOwnerConversationId = owner.conversationId;
+  dom.composerOwnerState.textContent = owner.label;
+  dom.composerOwnerState.dataset.ownerTone = owner.tone;
+  dom.composerOwnerTarget.textContent = owner.target;
+  dom.composerOwnerCopy.textContent = owner.copy;
+  if (dom.sendRequestButton) {
+    const sendBusy = dom.sendRequestButton.dataset.sendBusy === "true";
+    dom.sendRequestButton.dataset.composerBlocked = owner.blocked ? "true" : "false";
+    dom.sendRequestButton.dataset.composerOwnerState = owner.state;
+    dom.sendRequestButton.dataset.composerOwnerConversationId = owner.conversationId;
+    dom.sendRequestButton.dataset.composerBlockedReason = owner.blockedReason;
+    dom.sendRequestButton.disabled = owner.blocked || sendBusy;
+  }
+}
+
 function renderSessionSummary(dom, currentState, conversation, liveRun, handoffState = { stage: "idle" }) {
   if (
     !dom.sessionSummaryRow ||
@@ -1393,6 +1478,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
       }),
       { stage: "idle" },
     );
+    syncComposerOwnership(dom, currentState, null);
     renderJobActivity(dom, null, "");
     return;
   }
@@ -1448,6 +1534,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
     liveRun,
   });
   renderSessionSummary(dom, currentState, conversation, liveRun, handoffState);
+  syncComposerOwnership(dom, currentState, conversation);
   renderWorkspaceSummary(
     dom,
     [

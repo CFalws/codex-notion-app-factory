@@ -135,6 +135,15 @@ function setComposerUtilityOpen(isOpen) {
   }
 }
 
+function syncSendButtonState() {
+  if (!dom.sendRequestButton) {
+    return;
+  }
+  const blocked = dom.sendRequestButton.dataset.composerBlocked === "true";
+  const busy = dom.sendRequestButton.dataset.sendBusy === "true";
+  dom.sendRequestButton.disabled = blocked || busy;
+}
+
 function syncComposerMeta() {
   const app = selectedAppData(dom);
   const text = dom.requestTextInput.value;
@@ -204,9 +213,14 @@ async function sendMessage() {
     setStatus(dom, "메시지를 입력하세요.");
     return;
   }
+  if (dom.sendRequestButton?.dataset.composerBlocked === "true") {
+    setStatus(dom, dom.sendRequestButton.dataset.composerBlockedReason || "선택된 thread 연결이 끝날 때까지 잠시 기다려 주세요.");
+    return;
+  }
 
   persistSettings();
-  dom.sendRequestButton.disabled = true;
+  dom.sendRequestButton.dataset.sendBusy = "true";
+  syncSendButtonState();
   state.latestProposalJobId = "";
   updateProposalButton(dom, state.latestProposalJobId);
   clearLearningSummary(dom, "작업이 끝나면 이번 수정의 판단 근거와 검증 결과가 여기에 정리됩니다.");
@@ -257,7 +271,8 @@ async function sendMessage() {
     clearLearningSummary(dom, "메시지 전송이 실패해서 학습 로그가 생성되지 않았습니다.");
     syncDraftStatus();
   } finally {
-    dom.sendRequestButton.disabled = false;
+    dom.sendRequestButton.dataset.sendBusy = "false";
+    syncSendButtonState();
   }
 }
 
@@ -450,6 +465,10 @@ function init() {
   setNavigationOpen(false);
   setSecondaryPanelOpen(false);
   setComposerUtilityOpen(false);
+  if (dom.sendRequestButton) {
+    dom.sendRequestButton.dataset.sendBusy = "false";
+  }
+  syncSendButtonState();
   loadSettings(dom, state);
   updateSelectedAppCard(dom, selectedAppData(dom));
   updateProposalButton(dom, state.latestProposalJobId);

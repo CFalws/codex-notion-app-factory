@@ -1282,6 +1282,64 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   font-size: 0.8rem;
 }
 
+.composer-owner-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.25rem 0.65rem;
+  align-items: center;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(177, 120, 62, 0.22);
+  border-radius: 0.9rem;
+  background: rgba(250, 246, 239, 0.95);
+}
+
+.composer-owner-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 5.8rem;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.composer-owner-chip[data-owner-tone="healthy"] {
+  color: var(--ok-strong);
+  border-color: rgba(95, 119, 75, 0.35);
+}
+
+.composer-owner-chip[data-owner-tone="warning"] {
+  color: var(--warn-strong);
+  border-color: rgba(190, 138, 52, 0.35);
+}
+
+.composer-owner-chip[data-owner-tone="neutral"] {
+  color: var(--accent-strong);
+  border-color: rgba(177, 120, 62, 0.35);
+}
+
+.composer-owner-target,
+.composer-owner-copy {
+  margin: 0;
+}
+
+.composer-owner-target {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.composer-owner-copy {
+  grid-column: 2;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
 .composer-toolbar,
 .composer-footer {
   display: flex;
@@ -1349,6 +1407,10 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   padding-inline: 1.15rem;
   flex: 1 1 auto;
   flex-shrink: 0;
+}
+
+.composer-send-primary[data-composer-blocked="true"] {
+  opacity: 0.72;
 }
 
 .composer-secondary-action {
@@ -1769,6 +1831,19 @@ body[data-secondary-panel-open="true"] .secondary-panel {
   .session-strip {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .composer-owner-row {
+    grid-template-columns: 1fr;
+  }
+
+  .composer-owner-chip {
+    min-width: 0;
+    justify-self: start;
+  }
+
+  .composer-owner-copy {
+    grid-column: 1;
   }
 
   .jump-to-latest {

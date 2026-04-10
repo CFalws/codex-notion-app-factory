@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
 1. Keep the current selected-conversation SSE path, session strip ownership, bottom follow control, footer composer, and non-selected snapshot rows unchanged.
-2. Reuse the existing `threadTransition` state so the center conversation shell remains attached during intentional thread switches.
-3. Clear old-thread live ownership and follow state immediately when a different selected thread is chosen.
-4. Render exactly one compact selected-thread transition placeholder until the incoming snapshot attaches.
-5. Keep the focused verifier and durable docs aligned with the center-workspace thread-switch continuity contract.
+2. Add one compact composer target row that names the currently selected thread and shows `READY`, `SWITCHING`, or `HANDOFF`.
+3. Reuse the existing selected-thread owner state and `threadTransition` contract instead of introducing a second ownership source.
+4. Disable send only while selected-thread attach is unresolved, and prevent stale old-thread target state from surviving a switch.
+5. Keep the focused verifier and durable docs aligned with the composer target ownership contract.
