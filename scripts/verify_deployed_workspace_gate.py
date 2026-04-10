@@ -182,6 +182,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "renderInlineSessionBlock", label="inline session block helper")
     require(render_js, "renderThreadTransition", label="thread transition helper")
     require(render_js, 'data-thread-transition="loading"', label="thread transition DOM")
+    require(render_js, 'dom.conversationTimeline.innerHTML = isThreadTransition', label="thread transition placeholder render branch")
+    require(render_js, '? renderThreadTransition(currentState)', label="thread transition placeholder render path")
     require(render_js, "dataset.threadTransitionState", label="thread transition state dataset")
     require(render_js, 'data-selected-thread-live-block="true"', label="inline session block DOM")
     require(render_js, "dataset.liveRunPhase", label="phase dataset")

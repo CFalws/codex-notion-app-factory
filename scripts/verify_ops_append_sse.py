@@ -83,6 +83,7 @@ def main() -> int:
     require(conversations_js, "threadTitleForConversation", label="thread switch title helper")
     require(conversations_js, "startThreadTransition", label="thread transition start helper")
     require(conversations_js, "clearThreadTransition", label="thread transition clear helper")
+    require(conversations_js, 'state.currentConversationId = "";', label="thread switch clears current conversation before attach")
     require(conversations_js, "data-conversation-session", label="conversation session marker DOM")
     require(conversations_js, "data-conversation-live-owner-row", label="selected conversation live owner row DOM")
     require(conversations_js, "data-conversation-live-detail", label="selected conversation live detail DOM")
@@ -150,6 +151,10 @@ def main() -> int:
     require(render_js, "renderSessionStrip", label="unified session strip renderer")
     require(render_js, "renderThreadTransition", label="thread transition render helper")
     require(render_js, 'data-thread-transition="loading"', label="thread transition DOM")
+    require(render_js, 'dom.conversationTimeline.innerHTML = isThreadTransition', label="thread transition placeholder render branch")
+    require(render_js, '? renderThreadTransition(currentState)', label="thread transition placeholder render path")
+    require(render_js, ": '<p class=\"timeline-empty\">새 대화를 만들면 요청과 이벤트가 여기 쌓입니다.</p>';",
+            label="empty state limited to non-transition path")
     require(render_js, 'dom.threadScroller.dataset.threadTransitionState = isThreadTransition ? "loading" : "idle";', label="thread transition state dataset")
     require(render_js, 'dom.threadScroller.dataset.threadTransitionConversationId = isThreadTransition', label="thread transition conversation dataset")
     require(render_js, 'presentation === "sending"', label="sending presentation state")
