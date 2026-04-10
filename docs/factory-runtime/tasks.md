@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Reuse the existing selected-thread append SSE transport, transcript live item, and autonomySummary data as the only healthy autonomy authority source.
-- [x] Keep autonomy blocker, path, and verifier state rendered only inside the healthy selected-thread center live item.
-- [x] Hide the side-panel autonomy detail card while that healthy selected-thread center authority is active, and restore it outside that state.
-- [x] Preserve degraded and switched states as non-owned transport states instead of healthy live progression.
-- [x] Align the focused verifier, deployed workspace gate, and iteration artifacts with the single-center-authority contract.
+- [x] Confirm the inline session block already owns handoff and degraded selected-thread rendering while healthy live still uses a separate transcript-tail activity.
+- [x] Route healthy selected-thread live progress through the existing inline session block instead of a separate transcript-tail live item.
+- [x] Suppress the duplicate transcript-tail live activity whenever the unified inline block is active.
+- [x] Preserve degraded and switched states as explicitly non-owned or cleared session states.
+- [x] Align the focused verifier, deployed workspace gate, and iteration artifacts with the single-inline-session-block contract.

@@ -701,9 +701,9 @@ function shouldShowComposerLiveStrip(conversation, currentState, liveRun, handof
 function renderInlineSessionBlock(conversation, currentState, liveRun, handoffState) {
   const appendStream = currentState.appendStream || {};
   const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
-  const { handoffVisible, degradedVisible, status, sessionIndicator } = inlineState;
+  const { handoffVisible, degradedVisible, liveVisible, status, sessionIndicator } = inlineState;
 
-  if (!handoffVisible && !degradedVisible) {
+  if (!inlineState.visible) {
     return "";
   }
 
@@ -726,7 +726,9 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
       : "warning"
     : handoffVisible
       ? "neutral"
-      : transcriptLiveTone(liveRun);
+      : liveVisible
+        ? transcriptLiveTone(liveRun)
+        : transcriptLiveTone(liveRun);
   const detail = degradedVisible
     ? sessionIndicator.reason === "session-rotation"
       ? "세션 회전이 감지되어 선택된 대화의 live SSE 소유권이 끊겼습니다. fallback 경로로 상태를 복구하는 중입니다."
@@ -825,6 +827,9 @@ function summarizeInlineAutonomy(currentState, inlineState) {
 function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
   const handoffState = pendingHandoffState(conversation, currentState);
   const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
+  if (inlineState.visible) {
+    return "";
+  }
   if (
     !inlineState.selectedThreadSseOwned ||
     inlineState.renderSource !== "sse" ||
