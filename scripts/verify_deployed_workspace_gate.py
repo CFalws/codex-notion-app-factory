@@ -138,6 +138,7 @@ def browser_snapshot_script() -> str:
   const healthyBlock = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-block-owner="selected-thread"]');
   const degradedBlock = document.querySelector('.session-inline-block[data-selected-thread-degraded-block="true"][data-live-block-owner="selected-thread"]');
   const follow = document.querySelector("#jump-to-latest");
+  const activeSessionRow = document.querySelector("#active-session-row");
   const composerDock = document.querySelector("#conversation-footer-dock");
   const composerOwnerRow = document.querySelector("#composer-owner-row");
   const sendRequest = document.querySelector("#send-request");
@@ -162,6 +163,11 @@ def browser_snapshot_script() -> str:
       hidden: !!follow.hidden,
       dataset: { ...follow.dataset },
       text: (follow.textContent || "").trim(),
+    } : null,
+    activeSessionRow: activeSessionRow ? {
+      hidden: !!activeSessionRow.hidden,
+      dataset: { ...activeSessionRow.dataset },
+      text: (activeSessionRow.textContent || "").trim(),
     } : null,
     composerDock: composerDock ? {
       dataset: { ...composerDock.dataset },
@@ -290,6 +296,7 @@ def assert_browser_runtime_surface(
                 """conversationId => {
                   const block = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-owned="true"]');
                   const summary = document.querySelector("#session-summary-row");
+                  const activeSessionRow = document.querySelector("#active-session-row");
                   const composerDock = document.querySelector("#conversation-footer-dock");
                   const sendRequest = document.querySelector("#send-request");
                   const follow = document.querySelector("#jump-to-latest");
@@ -301,6 +308,12 @@ def assert_browser_runtime_surface(
                     block.dataset.liveBlockPhase !== "IDLE" &&
                     summary &&
                     summary.dataset.liveSessionOwned === "true" &&
+                    activeSessionRow &&
+                    !activeSessionRow.hidden &&
+                    activeSessionRow.dataset.activeSessionOwned === "true" &&
+                    activeSessionRow.dataset.activeSessionSource === "sse" &&
+                    activeSessionRow.dataset.activeSessionState === "live" &&
+                    activeSessionRow.dataset.activeSessionPhase === "SSE OWNER" &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     sendRequest &&
@@ -320,8 +333,9 @@ def assert_browser_runtime_surface(
                   const degraded = document.querySelector('.session-inline-block[data-selected-thread-degraded-block="true"][data-live-owned="false"]');
                   const healthy = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-owned="true"]');
                   const summary = document.querySelector("#session-summary-row");
+                  const activeSessionRow = document.querySelector("#active-session-row");
                   const follow = document.querySelector("#jump-to-latest");
-                  if (!degraded || healthy || !summary || !follow) {
+                  if (!degraded || healthy || !summary || !follow || !activeSessionRow) {
                     return false;
                   }
                   const reason = degraded.dataset.liveBlockReason || "";
@@ -330,6 +344,9 @@ def assert_browser_runtime_surface(
                     ["retrying", "reconnecting", "polling-fallback", "session-rotation"].includes(reason) &&
                     ["RECONNECT", "POLLING"].includes(phase) &&
                     summary.dataset.liveSessionOwned === "false" &&
+                    activeSessionRow.hidden &&
+                    activeSessionRow.dataset.activeSessionOwned === "false" &&
+                    activeSessionRow.dataset.activeSessionSource === "none" &&
                     follow.dataset.followOwned !== "selected-thread"
                   );
                 }""",
@@ -342,6 +359,7 @@ def assert_browser_runtime_surface(
                 """targetConversationId => {
                   const transition = document.querySelector('[data-thread-transition="loading"]');
                   const summary = document.querySelector("#session-summary-row");
+                  const activeSessionRow = document.querySelector("#active-session-row");
                   const composerDock = document.querySelector("#conversation-footer-dock");
                   const sendRequest = document.querySelector("#send-request");
                   const threadScroller = document.querySelector("#thread-scroller");
@@ -354,6 +372,9 @@ def assert_browser_runtime_surface(
                     transition.dataset.threadTransitionConversationId === targetConversationId &&
                     summary &&
                     summary.dataset.summaryPath === "switching" &&
+                    activeSessionRow &&
+                    activeSessionRow.hidden &&
+                    activeSessionRow.dataset.activeSessionOwned === "false" &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     sendRequest &&
@@ -627,10 +648,21 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionSource = visible ? rowSource : "none";', label="active session row source dataset")
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionPhase = visible ? rowPhase : "IDLE";', label="active session row phase dataset")
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionUnseenCount = String(visible ? rowUnseenCount : 0);', label="active session row unseen dataset")
-    require(conversations_js, 'rowSource = "thread-transition";', label="active session switching source")
-    require(conversations_js, 'rowSource = pendingStage === "pending-user" ? "local-handoff" : pendingStage === "pending-assistant" ? "selected-thread-handoff" : "selected-thread-sse";', label="active session selected-thread source")
-    require(conversations_js, 'presentation === "live"', label="active session healthy live gate")
-    require_absent(conversations_js, 'meta = "selected thread · reconnecting";', label="active session reconnecting copy")
+    require(conversations_js, 'const summaryLiveOwned = String(dom.sessionSummaryRow?.dataset.liveSessionOwned || "false") === "true";', label="active session canonical ownership source")
+    require(conversations_js, 'const summaryLiveSource = String(dom.sessionSummaryRow?.dataset.liveSessionSource || "none");', label="active session canonical source dataset")
+    require(conversations_js, 'const summaryLiveState = String(dom.sessionSummaryRow?.dataset.liveSessionState || "idle");', label="active session canonical state dataset")
+    require(conversations_js, 'const sessionIndicatorLabel = String(dom.sessionLiveIndicator?.textContent || "").trim().toUpperCase();', label="active session canonical label source")
+    require(conversations_js, 'const healthySelectedSessionMirror =', label="active session healthy mirror gate")
+    require(conversations_js, 'summaryLiveSource === "sse"', label="active session healthy sse source gate")
+    require(conversations_js, 'sessionIndicatorLabel === "SSE OWNER"', label="active session healthy label gate")
+    require(conversations_js, 'rowState = summaryLiveState === "paused" ? "paused" : "live";', label="active session mirrored state mapping")
+    require(conversations_js, 'followLabel = summaryLiveState === "paused" ? "PAUSED" : "LIVE";', label="active session mirrored follow mapping")
+    require(conversations_js, 'rowSource = summaryLiveSource;', label="active session mirrored source")
+    require(conversations_js, 'rowPhase = stateLabel;', label="active session mirrored phase")
+    require(conversations_js, '"selected thread · sse owner"', label="active session healthy meta copy")
+    require(conversations_js, '"selected thread · follow paused"', label="active session paused meta copy")
+    require_absent(conversations_js, 'rowSource = "thread-transition";', label="legacy active session switching source")
+    require_absent(conversations_js, 'selected-thread-handoff', label="legacy active session handoff source")
     require(conversations_js, "syncSelectedSessionFromLiveAppend", label="selected-thread live append sync helper")
     require(conversations_js, "shouldProjectAutonomySummaryFromLiveAppend", label="autonomy summary append projection helper")
     require(conversations_js, "projectAutonomySummaryFromLiveAppend", label="autonomy summary live projection helper")
@@ -644,8 +676,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(styles, ".conversation-card-live-owner-row", label="selected card live owner row CSS")
     require(styles, ".active-session-row", label="active session row CSS")
     require(styles, ".active-session-chip", label="active session chip CSS")
-    require(styles, '.active-session-row[data-active-session-state="switching"] .active-session-chip[data-active-chip="state"]', label="active session switching chip CSS")
-    require(styles, '.active-session-row[data-active-session-follow="new"] .active-session-chip[data-active-chip="follow"]', label="active session new chip CSS")
+    require(styles, '.active-session-row[data-active-session-state="paused"] .active-session-chip[data-active-chip="state"]', label="active session paused chip CSS")
+    require(styles, '.active-session-row[data-active-session-follow="live"] .active-session-chip[data-active-chip="follow"]', label="active session live chip CSS")
     require(styles, '.conversation-card[data-live-owner-state="handoff"] .conversation-card-marker', label="selected handoff owner marker CSS")
     require(styles, '.conversation-card[data-live-owner-state="new"] .conversation-card-marker', label="selected new owner marker CSS")
     require(styles, '.conversation-card[data-live-owner-state="paused"] .conversation-card-marker', label="selected paused owner marker CSS")

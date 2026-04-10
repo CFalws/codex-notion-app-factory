@@ -658,21 +658,24 @@ export function createConversationController(deps) {
     }
 
     const threadTransition = state.threadTransition || {};
-    const selectedThreadSseOwned =
-      selectedConversationId &&
-      selectedConversationId === liveConversationId &&
-      renderSource === "sse";
-    const healthySelectedThreadLive =
-      selectedThreadSseOwned &&
-      presentation === "live" &&
-      liveRunPhase &&
-      liveRunPhase !== "IDLE";
+    const summaryLiveOwned = String(dom.sessionSummaryRow?.dataset.liveSessionOwned || "false") === "true";
+    const summaryLiveSource = String(dom.sessionSummaryRow?.dataset.liveSessionSource || "none");
+    const summaryLiveState = String(dom.sessionSummaryRow?.dataset.liveSessionState || "idle");
+    const summaryLiveReason = String(dom.sessionSummaryRow?.dataset.liveSessionReason || "idle");
+    const sessionIndicatorLabel = String(dom.sessionLiveIndicator?.textContent || "").trim().toUpperCase();
+    const healthySelectedSessionMirror =
+      Boolean(selectedConversationId) &&
+      !sessionTerminal &&
+      !threadTransition.active &&
+      summaryLiveOwned &&
+      summaryLiveSource === "sse" &&
+      sessionIndicatorLabel === "SSE OWNER";
 
     let visible = false;
     let conversationId = "";
     let rowState = "idle";
     let ownerLabel = "OWNER";
-    let stateLabel = "LIVE";
+    let stateLabel = "SSE OWNER";
     let followLabel = "LIVE";
     let title = "";
     let meta = "";
@@ -681,56 +684,22 @@ export function createConversationController(deps) {
     let rowPhase = "IDLE";
     let rowUnseenCount = 0;
 
-    if (threadTransition.active && threadTransition.targetConversationId) {
-      visible = true;
-      conversationId = String(threadTransition.targetConversationId || "");
-      rowState = "switching";
-      stateLabel = "SWITCHING";
-      followLabel = "ATTACH";
-      rowSource = "thread-transition";
-      rowPhase = "ATTACH";
-      title =
-        String(threadTransition.targetTitle || "").trim() ||
-        threadTitleForConversation(conversationId) ||
-        "선택한 대화";
-      meta = "selected thread · attach pending";
-    } else if (
-      selectedConversationId &&
-      !sessionTerminal &&
-      (
-        pendingStage === "pending-user" ||
-        pendingStage === "pending-assistant" ||
-        healthySelectedThreadLive
-      )
-    ) {
+    if (healthySelectedSessionMirror) {
       visible = true;
       conversationId = selectedConversationId;
-      rowState = liveOwnerState({ pendingStage, presentation, isFollowing, jumpVisible });
-      stateLabel = compactConversationLabel({
-        presentation,
-        liveRunState,
-        liveRunPhase,
-        pendingStage,
-        isSelected: true,
-      });
-      followLabel = liveOwnerFollowLabel({ pendingStage, isFollowing, jumpVisible, presentation });
-      rowOwned = pendingStage === "pending-user" ? "false" : "true";
-      rowSource = pendingStage === "pending-user" ? "local-handoff" : pendingStage === "pending-assistant" ? "selected-thread-handoff" : "selected-thread-sse";
-      rowPhase = stateLabel || "LIVE";
-      rowUnseenCount = jumpVisible ? Math.max(Number(unseenCount || 0), 0) : 0;
+      rowState = summaryLiveState === "paused" ? "paused" : "live";
+      followLabel = summaryLiveState === "paused" ? "PAUSED" : "LIVE";
+      rowOwned = true;
+      rowSource = summaryLiveSource;
+      rowPhase = stateLabel;
       title =
         threadTitleForConversation(selectedConversationId) ||
         String(dom.threadTitle?.textContent || "").trim() ||
         "현재 대화";
-      if (pendingStage === "pending-user" || pendingStage === "pending-assistant") {
-        meta = "selected thread · handoff";
-      } else if (jumpVisible) {
-        meta = `selected thread · ${rowUnseenCount} unseen live appends`;
-      } else if (isFollowing) {
-        meta = "selected thread · live follow";
-      } else {
-        meta = "selected thread · paused";
-      }
+      meta =
+        summaryLiveReason === "selected-thread-follow-paused"
+          ? "selected thread · follow paused"
+          : "selected thread · sse owner";
     }
 
     dom.activeSessionRow.hidden = !visible;
