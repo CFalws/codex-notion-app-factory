@@ -469,15 +469,11 @@ function shouldShowComposerLiveStrip(appendStream, conversationId, lastRenderSou
     return false;
   }
 
-  if (status === "live") {
-    return lastRenderSource === "sse";
+  if (status !== "live") {
+    return false;
   }
 
-  if (status === "reconnecting" || status === "connecting" || status === "offline") {
-    return true;
-  }
-
-  return false;
+  return lastRenderSource === "sse";
 }
 
 function renderInlineSessionBlock(conversation, currentState, liveRun, handoffState) {
@@ -1250,12 +1246,14 @@ export function renderSessionStrip(dom, currentState, conversation) {
     dom.sessionStrip.dataset.liveRunSource = "none";
     dom.sessionStrip.dataset.liveRunJob = "";
     dom.sessionStrip.dataset.liveRunTone = "idle";
+    dom.sessionStrip.dataset.sessionOwner = "none";
     dom.sessionStrip.dataset.sessionCollapsed = "false";
     dom.threadScroller.dataset.streamState = "offline";
     dom.threadScroller.dataset.renderSource = "snapshot";
     dom.threadScroller.dataset.liveConversationId = "";
     dom.threadScroller.dataset.lastAppendId = "0";
     dom.threadScroller.dataset.lastLiveAppendId = "0";
+    dom.threadScroller.dataset.sessionOwner = "none";
     dom.threadScroller.dataset.sessionPresentation = "cleared";
     dom.threadScroller.dataset.sessionTerminal = "false";
     dom.threadScroller.dataset.liveRunState = "done";
@@ -1302,8 +1300,10 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const proposalState = proposalChip(liveRun);
   const showComposerLiveStrip = shouldShowComposerLiveStrip(appendStream, conversationId, lastRenderSource, liveRun);
   const liveOwned = showComposerLiveStrip && status === "live" && lastRenderSource === "sse";
+  const sessionOwnerState = selectedThreadLiveSessionIndicator(currentState, conversation, liveRun);
   dom.sessionStrip.hidden = !showComposerLiveStrip;
   dom.sessionStrip.dataset.liveOwned = liveOwned ? "true" : "false";
+  dom.sessionStrip.dataset.sessionOwner = liveOwned ? "selected-thread" : "none";
   dom.sessionStrip.dataset.sessionPresentation = presentation;
   dom.sessionStrip.dataset.sessionTerminal = liveRun.terminal ? "true" : "false";
   dom.sessionStrip.dataset.sessionCollapsed = shouldCollapse ? "true" : "false";
@@ -1318,13 +1318,17 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStrip.dataset.liveRunJob = liveRun.jobId || "";
   dom.sessionStrip.dataset.liveRunTone = liveRun.tone;
 
-  dom.sessionStripState.innerHTML = [
+  const railChips = [
+    `<span class="session-chip" data-tone="${escapeHtml(sessionOwnerState.tone)}">${escapeHtml(sessionOwnerState.label)}</span>`,
     `<span class="session-chip" data-tone="${escapeHtml(transportState.tone)}">${escapeHtml(transportState.label)}</span>`,
     `<span class="session-chip" data-tone="${escapeHtml(phaseState.tone)}">${escapeHtml(phaseState.label)}</span>`,
-    `<span class="session-chip" data-tone="${escapeHtml(proposalState.tone)}">${escapeHtml(proposalState.label)}</span>`,
-  ].join("");
-  dom.sessionStripMeta.textContent = sessionProvenance(status, lastAppendId, lastLiveAppendId, liveRun);
-  dom.sessionStripDetail.textContent = phaseDetailHint(liveRun);
+  ];
+  if (proposalState.label !== "NONE") {
+    railChips.push(`<span class="session-chip" data-tone="${escapeHtml(proposalState.tone)}">${escapeHtml(proposalState.label)}</span>`);
+  }
+  dom.sessionStripState.innerHTML = railChips.join("");
+  dom.sessionStripMeta.textContent = `selected thread · #${lastLiveAppendId || lastAppendId || 0}${liveRun.jobId ? ` · ${liveRun.jobId}` : ""}`;
+  dom.sessionStripDetail.textContent = composerActionHint(status, presentation, liveRun);
   if (dom.sessionStripToggle) {
     dom.sessionStripToggle.hidden = true;
     dom.sessionStripToggle.textContent = "세부 보기";
@@ -1344,6 +1348,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.threadScroller.dataset.liveConversationId = conversationId;
   dom.threadScroller.dataset.lastAppendId = String(lastAppendId || 0);
   dom.threadScroller.dataset.lastLiveAppendId = String(lastLiveAppendId || 0);
+  dom.threadScroller.dataset.sessionOwner = liveOwned ? "selected-thread" : "none";
   dom.threadScroller.dataset.sessionPresentation = presentation;
   dom.threadScroller.dataset.sessionTerminal = liveRun.terminal ? "true" : "false";
   dom.threadScroller.dataset.liveRunState = liveRun.state;
