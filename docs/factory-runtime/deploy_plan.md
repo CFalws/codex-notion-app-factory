@@ -2,15 +2,15 @@
 
 ## Deployment Impact
 
-This iteration stays inside the GitHub Pages operator workspace presentation and verification layers. The bounded expectation is that the left thread rail now exposes a single sticky active-session row for the intended selected-thread live path, without letting degraded or switched-away paths linger as if they were still live-owned.
+This iteration stays inside the GitHub Pages operator workspace presentation, client synchronization, and verification layers. The bounded expectation is that the healthy selected-thread append stream now refreshes adjacent session state immediately, while polling remains only as an explicit degraded fallback.
 
 ## Rollout Notes
 
 1. Apply the proposal commit onto `main`.
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
 3. Open the operator console on desktop and phone widths with an app that has a healthy selected-thread live session.
-4. Confirm the left rail shows exactly one sticky active-session row above the conversation list when the selected thread is handoff, live-following, paused, has unseen appends, or is intentionally switching.
-5. Confirm the row publishes the expected owner, phase, follow, source, and unseen-count cues and still leaves non-selected rows snapshot-only.
-6. Confirm idle, terminal, reconnect downgrade, polling fallback, ownership loss, or switched-away paths clear the sticky row immediately.
-7. Confirm intentional attach keeps the sticky row visible only as `SWITCHING` or `ATTACH` until the new selected snapshot takes ownership.
-8. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the left-rail active-session contract passes through the intended selected-thread surface.
+4. Trigger `job.running`, `goal.review.phase`, `goal.verify.phase`, and `proposal.ready` on the selected thread and confirm the central job activity, apply readiness, and autonomy summary update immediately after the append arrives.
+5. Confirm no recurring selected-job poller remains active while the selected thread is healthy and SSE-owned.
+6. Confirm reconnect, polling fallback, ownership loss, or switched-away paths immediately restore the fallback polling path and clear live-only projections.
+7. Confirm non-selected threads remain snapshot-only and do not gain append-driven live semantics.
+8. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the append-driven synchronization contract passes through the intended selected-thread surface.

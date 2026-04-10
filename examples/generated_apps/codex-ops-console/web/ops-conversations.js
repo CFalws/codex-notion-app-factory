@@ -221,11 +221,94 @@ export function createConversationController(deps) {
     state.appendStream.transport = "sse";
     state.appendStream.status = "live";
     state.appendStream.lastRenderSource = "sse";
+    stopPolling();
     renderConversation(dom, state, conversation, persistSettings);
     syncConversationCardState();
     restoreDraft();
     syncDraftStatus();
+    syncSelectedSessionFromLiveAppend(appendEnvelope.kind, livePayload);
     return true;
+  }
+
+  function shouldRefreshGoalSummaryFromLiveAppend(kind, payload) {
+    if (kind !== "event" || !payload) {
+      return false;
+    }
+    const type = String(payload.type || "");
+    const status = String(payload.status || "").toLowerCase();
+    return (
+      type === "job.running" ||
+      type === "proposal.ready" ||
+      type.startsWith("goal.proposal.phase.") ||
+      type.startsWith("goal.review.phase.") ||
+      type.startsWith("goal.verify.phase.") ||
+      type === "goal.proposal.auto_apply.started" ||
+      type === "runtime.exception" ||
+      type === "codex.exec.applied" ||
+      status === "failed" ||
+      status === "completed" ||
+      status === "applied"
+    );
+  }
+
+  function liveJobMetaLabel(kind, payload) {
+    if (!payload || kind !== "event") {
+      return "";
+    }
+    const type = String(payload.type || "");
+    const status = String(payload.status || "").toLowerCase();
+    const jobId = String(payload.job_id || state.currentJobId || "").trim();
+    const suffix = jobId ? ` · ${jobId}` : "";
+    if (type === "job.running") {
+      return `RUNNING${suffix}`;
+    }
+    if (type.startsWith("goal.proposal.phase.")) {
+      return `PROPOSAL${suffix}`;
+    }
+    if (type.startsWith("goal.review.phase.")) {
+      return `REVIEW${suffix}`;
+    }
+    if (type.startsWith("goal.verify.phase.")) {
+      return `VERIFY${suffix}`;
+    }
+    if (type === "goal.proposal.auto_apply.started") {
+      return `AUTO APPLY${suffix}`;
+    }
+    if (type === "proposal.ready") {
+      return `READY${suffix}`;
+    }
+    if (type === "codex.exec.applied" || status === "applied") {
+      return `APPLIED${suffix}`;
+    }
+    if (type === "runtime.exception" || status === "failed") {
+      return `FAILED${suffix}`;
+    }
+    if (status === "completed") {
+      return `DONE${suffix}`;
+    }
+    return "";
+  }
+
+  function syncSelectedSessionFromLiveAppend(kind, payload) {
+    if (
+      !state.currentConversationId ||
+      !state.conversationCache ||
+      !state.currentJobId ||
+      !state.appendStream ||
+      state.appendStream.conversationId !== state.currentConversationId ||
+      state.appendStream.transport !== "sse" ||
+      state.appendStream.lastRenderSource !== "sse" ||
+      state.appendStream.status !== "live"
+    ) {
+      return;
+    }
+    const immediateMeta = liveJobMetaLabel(kind, payload);
+    if (immediateMeta) {
+      setJobMeta(dom, immediateMeta);
+    }
+    if (shouldRefreshGoalSummaryFromLiveAppend(kind, payload)) {
+      refreshGoalSummary().catch(() => {});
+    }
   }
 
   function connectAppendStream(conversationId) {
@@ -249,6 +332,7 @@ export function createConversationController(deps) {
       }
       openedOnce = true;
       state.appendStream.status = "live";
+      stopPolling();
       renderSessionStrip(dom, state, state.conversationCache);
       syncConversationCardState();
     });
@@ -271,9 +355,11 @@ export function createConversationController(deps) {
       }
       if (!openedOnce) {
         closeAppendStream();
+        ensurePollingForJob();
         return;
       }
       state.appendStream.status = "reconnecting";
+      ensurePollingForJob();
       renderSessionStrip(dom, state, state.conversationCache);
       syncConversationCardState();
     });

@@ -41,7 +41,11 @@ export function createJobController(deps) {
   }
 
   function ensurePollingForJob() {
-    if (!state.currentJobId || state.pollingTimer) {
+    if (
+      !state.currentJobId ||
+      state.pollingTimer ||
+      (state.currentConversationId && isAppendStreamConnected(state, state.currentConversationId))
+    ) {
       return;
     }
     state.pollingTimer = setInterval(() => {

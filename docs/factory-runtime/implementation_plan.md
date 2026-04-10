@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
 1. Keep the existing selected-thread SSE ownership, inline live block, and degraded fallback behavior unchanged.
-2. Reuse the selected-thread session summary, follow, and transition state as the only left-rail live-session source.
-3. Tighten the sticky row so it only appears for healthy selected-thread ownership or the explicit attach transition.
-4. Publish machine-readable row ownership, source, phase, and unseen-count datasets for verifier attribution.
-5. Align the focused verifier, deployed workspace gate, and iteration artifacts with the left-rail active-session contract.
+2. Reuse selected-thread `conversation.append` events to trigger immediate job-meta and autonomy-summary refresh.
+3. Suppress recurring polling while the selected thread is healthy and SSE-owned, and resume it immediately on reconnect or ownership loss.
+4. Keep proposal readiness and central live phase synchronized through the same selected-thread append path.
+5. Align the focused verifier, deployed workspace gate, and iteration artifacts with the append-driven synchronization contract.
