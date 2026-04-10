@@ -8,7 +8,7 @@
 
 ## Problem
 
-The selected-thread workspace already preserves shell continuity across thread switches, but the composer-adjacent session rail still under-explains the intended realtime path. Operators should be able to tell at a glance whether the selected thread is on a healthy `LIVE` SSE path, reconnecting, or offline without scanning secondary panels or mistaking polling fallback for live ownership.
+The selected-thread workspace already exposes ownership and transport clearly, but the submit-to-first-append handoff is still too noisy. After submit, the active thread can imply acceptance in more than one place instead of resolving to exactly one pending outbound user turn, then exactly one temporary assistant placeholder, until the first real assistant append or a clear condition takes over.
 
 ## Target User
 
@@ -19,10 +19,10 @@ The primary user is the operator or developer using the phone-friendly workspace
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
 - Reuse the existing selected-conversation SSE route instead of widening transport scope.
-- Constrain this iteration to the selected-thread composer-adjacent live rail in the existing center workspace.
-- Keep the selected-thread SSE path, transcript shell, composer ownership row, bottom follow control, and side-panel behavior unchanged.
-- Leave transport scope, runtime APIs, selected-row live ownership, and polling fallback semantics unchanged while making the selected-thread transport-health rail clearer.
+- Constrain this iteration to the selected-thread submit-to-first-append handoff in the existing center workspace and composer-adjacent activity bar.
+- Keep the selected-thread SSE path, footer composer, side-panel behavior, and rail ownership model unchanged.
+- Leave transport scope, runtime APIs, thread-switch behavior, and selected-row live ownership unchanged while making the handoff state singular and easier to read.
 
 ## Deliverable
 
-Keep the existing selected-conversation SSE path and conversation-first shell ownership, but make the composer-adjacent session rail expose one compact chip-first source of truth for selected-thread transport health and phase: show explicit `LIVE`, `RECONNECT`, `OPEN`, or `OFFLINE` transport state beside the current phase and compact provenance, keep degraded transport visibly distinct without pretending live ownership, and clear the rail on polling-only fallback, terminal idle, or thread switch.
+Keep the existing selected-conversation SSE path and conversation-first shell ownership, but make the selected-thread handoff resolve to one bounded state at a time: one pending outbound user turn before acceptance, one temporary assistant placeholder after acceptance, one composer-adjacent handoff bar that matches that stage, and immediate clearing on first assistant append, terminal failure, idle reset, polling-only fallback, or thread switch.

@@ -121,8 +121,13 @@ export function renderDraftStatus(dom, message) {
 function composerOwnerState(currentState, conversation) {
   const threadTransition = currentState.threadTransition || {};
   const pendingOutgoing = currentState.pendingOutgoing || {};
+  const appendStream = currentState.appendStream || {};
   const conversationId = String(conversation?.conversation_id || "");
   const conversationTitle = String(conversation?.title || "현재 대화").trim() || "현재 대화";
+  const selectedThreadSseOwned =
+    conversationId &&
+    String(appendStream.conversationId || "") === conversationId &&
+    String(appendStream.transport || "polling").toLowerCase() === "sse";
 
   if (threadTransition.active && threadTransition.targetConversationId) {
     return {
@@ -140,7 +145,10 @@ function composerOwnerState(currentState, conversation) {
   if (
     conversationId &&
     pendingOutgoing.conversationId === conversationId &&
-    (pendingOutgoing.status === "sending-user" || pendingOutgoing.status === "awaiting-assistant")
+    (
+      pendingOutgoing.status === "sending-user" ||
+      (pendingOutgoing.status === "awaiting-assistant" && selectedThreadSseOwned)
+    )
   ) {
     return {
       state: "handoff",
@@ -348,20 +356,6 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
     return "";
   }
 
-  if (handoffState?.stage === "pending-assistant") {
-    return `
-      <section class="session-inline-block" data-selected-thread-live-block="true" data-live-block-stage="pending-assistant" data-live-block-source="accepted-event">
-        <p class="session-inline-kicker">In Flight Assistant</p>
-        <div class="session-inline-row">
-          <span class="session-inline-chip" data-tone="neutral">ASSISTANT</span>
-          <span class="session-inline-chip" data-tone="neutral">ACCEPTED</span>
-        </div>
-        <p class="session-inline-body">첫 응답을 준비 중입니다. 선택된 대화의 handoff가 이미 확인되었고, 실제 assistant append를 기다리고 있습니다.</p>
-        <p class="session-inline-meta">selected thread · ACCEPTED · ${escapeHtml(status.toUpperCase())}</p>
-      </section>
-    `;
-  }
-
   if (
     !sseLiveOwner ||
     !liveRun?.visible ||
@@ -432,6 +426,11 @@ function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
 function pendingHandoffState(conversation, currentState) {
   const conversationId = String(conversation?.conversation_id || "");
   const pendingOutgoing = currentState.pendingOutgoing || {};
+  const appendStream = currentState.appendStream || {};
+  const selectedThreadSseOwned =
+    conversationId &&
+    String(appendStream.conversationId || "") === conversationId &&
+    String(appendStream.transport || "polling").toLowerCase() === "sse";
   if (!conversationId || pendingOutgoing.conversationId !== conversationId) {
     return {
       stage: "idle",
@@ -460,6 +459,14 @@ function pendingHandoffState(conversation, currentState) {
     };
   }
   if (pendingOutgoing.status === "awaiting-assistant") {
+    if (!selectedThreadSseOwned) {
+      return {
+        stage: "idle",
+        pendingUserCount: 0,
+        pendingAssistantCount: 0,
+        items: [],
+      };
+    }
     return {
       stage: "pending-assistant",
       pendingUserCount: 0,
@@ -585,7 +592,12 @@ function deriveLiveRunState(conversation, currentState) {
     });
   }
 
-  if (pendingOutgoing.status === "awaiting-assistant" && pendingOutgoing.conversationId === conversation.conversation_id) {
+  if (
+    pendingOutgoing.status === "awaiting-assistant" &&
+    pendingOutgoing.conversationId === conversation.conversation_id &&
+    String(currentState.appendStream?.conversationId || "") === conversation.conversation_id &&
+    String(currentState.appendStream?.transport || "polling").toLowerCase() === "sse"
+  ) {
     return runStateSnapshot({
       visible: true,
       state: "generating",
@@ -878,7 +890,7 @@ function phaseChip(liveRun, presentation) {
     return { label: "SENDING", tone: "neutral" };
   }
   if (presentation === "sending" && liveRun.state === "generating") {
-    return { label: "GENERATING", tone: "neutral" };
+    return { label: "ACCEPTED", tone: "neutral" };
   }
   if (liveRun.state === "proposal-ready") {
     return { label: "READY", tone: "healthy" };
