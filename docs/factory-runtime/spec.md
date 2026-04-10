@@ -8,7 +8,7 @@
 
 ## Problem
 
-The left rail now has stronger selected-thread session mirroring, but non-selected rows can still collapse too many snapshot states into `IDLE` and can fall back to noisier event prose when no recent message exists. Thread scanning should stay compact and snapshot-only while making waiting, active, ready, done, failed, and idle states easier to distinguish at a glance.
+The main workspace still risks feeling discontinuous during intentional thread switches if the center pane briefly reads like an empty request viewer instead of one continuous session. The switch path should keep the conversation shell and composer dock mounted, clear stale old-thread ownership immediately, and show one compact transition placeholder until the new snapshot attaches.
 
 ## Target User
 
@@ -18,11 +18,11 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the existing conversation messages, event history, and selected-thread live owner datasets instead of widening transport scope.
-- Constrain this iteration to the conversation-list snapshot labeling and preview helpers.
-- Keep the selected-thread SSE path, footer composer structure, side-panel behavior, and center-pane session chrome unchanged.
-- Leave transport scope, runtime APIs, polling fallback rules, and proposal flow unchanged while tightening rail scan clarity.
+- Reuse the existing selected-thread SSE ownership, thread transition, and composer target datasets instead of widening transport scope.
+- Constrain this iteration to the intentional selected-thread switch path in the center workspace and footer composer.
+- Keep the selected-thread SSE path, footer composer structure, side-panel behavior, and rail snapshot behavior unchanged.
+- Leave transport scope, runtime APIs, polling fallback rules, and proposal flow unchanged while tightening switch continuity.
 
 ## Deliverable
 
-Keep the existing selected-conversation SSE path and conversation-first shell ownership, but refine non-selected conversation cards so each row resolves to one fixed-priority snapshot label and one bounded preview line that prefers recent assistant or user content over noisier event prose, while selected-row live mirroring remains the stronger surface.
+Keep the existing selected-conversation SSE path and conversation-first shell ownership, but preserve one continuous selected-thread workspace during intentional thread switches: clear old-thread live and follow ownership immediately, keep the transcript and composer dock mounted, and render exactly one compact `SWITCHING` placeholder until the new selected-thread snapshot attaches, with the generic empty state limited to true no-conversation idle.

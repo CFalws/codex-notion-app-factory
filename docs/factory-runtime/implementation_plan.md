@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
 1. Keep the current selected-conversation SSE path, transcript shell, footer composer dock, sticky active-session row, and side-panel behavior unchanged.
-2. Reuse the existing conversation message and event history instead of introducing another preview or state source.
-3. Expand the non-selected snapshot label vocabulary so waiting, active, ready, done, failed, and idle states remain distinguishable without making any non-selected row live-owned.
-4. Keep one bounded preview line per row and prefer recent assistant or user message text over event prose whenever message content exists.
-5. Keep the focused verifier and durable docs aligned with the compact snapshot-label and preview contract.
+2. Reuse the existing `threadTransition`, selected-thread ownership clearing, and composer target state instead of introducing another switch-state source.
+3. Preserve the center workspace during intentional thread switches and render exactly one compact `SWITCHING` placeholder until the new snapshot attaches.
+4. Limit the generic empty-state branch to true no-conversation idle and clear stale old-thread live or follow ownership as soon as switching begins.
+5. Keep the focused verifier and durable docs aligned with the selected-thread switch continuity contract.
