@@ -13,6 +13,7 @@ export function createJobController(deps) {
     refreshGoalSummary,
     describeJob,
     isAppendStreamConnected,
+    isAppendStreamAuthoritative,
   } = deps;
 
   async function syncLatestJob() {
@@ -44,7 +45,7 @@ export function createJobController(deps) {
     if (
       !state.currentJobId ||
       state.pollingTimer ||
-      (state.currentConversationId && isAppendStreamConnected(state, state.currentConversationId))
+      (state.currentConversationId && isAppendStreamAuthoritative(state, state.currentConversationId))
     ) {
       return;
     }
@@ -65,7 +66,7 @@ export function createJobController(deps) {
     try {
       const payload = await syncLatestJob();
 
-      if (state.currentConversationId && !isAppendStreamConnected(state, state.currentConversationId)) {
+      if (state.currentConversationId && !isAppendStreamAuthoritative(state, state.currentConversationId)) {
         try {
           await fetchConversation(state.currentConversationId, { syncJob: false });
         } catch (_) {
@@ -84,7 +85,7 @@ export function createJobController(deps) {
         }
         state.currentJobId = "";
         stopPolling();
-        if (state.currentConversationId && !isAppendStreamConnected(state, state.currentConversationId)) {
+        if (state.currentConversationId && !isAppendStreamAuthoritative(state, state.currentConversationId)) {
           await fetchConversation(state.currentConversationId, { syncJob: false });
         }
         await refreshGoalSummary();

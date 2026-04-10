@@ -8,7 +8,7 @@
 
 ## Problem
 
-The selected-thread ownership contract is already consistent across header, rail, and composer footer, but healthy live autonomy progress still sits in a separate inline session block instead of the conversation timeline itself. That keeps the center workspace less session-like than the other surfaces because the operator still has to look outside the transcript tail to understand the current live phase.
+The selected-thread workspace now presents one consistent live session across transcript, header, rail, and footer, but the submit handoff still triggers an eager healthy-path state poll before the append stream takes over. That snapshot refresh weakens the Codex-like realtime feel because startup can still depend on polling even when the intended selected-thread SSE path is healthy and already connecting.
 
 ## Target User
 
@@ -18,11 +18,11 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the existing selected-thread ownership, append-stream, live-run, and autonomy-summary contracts instead of adding a new backend or polling path.
-- Keep the change bounded to the transcript-tail live activity item and its verification contract.
-- Keep the healthy path conversation-first: one current live activity item in the transcript tail, not a new parallel status surface.
-- Clear the transcript-tail live item immediately on reconnect downgrade, polling fallback, terminal idle, or thread switch so stale ownership cannot survive.
+- Reuse the existing selected-thread ownership, append-stream, handoff, live-run, and composer-owner contracts instead of adding a new backend or transport path.
+- Keep the change bounded to the submit handoff and degraded-only polling boundary.
+- Keep the healthy path conversation-first: local pending user turn, pending assistant placeholder, composer owner row, and transcript-tail live activity should be enough to carry startup without a snapshot refresh.
+- Only start or resume polling when EventSource is unavailable, reconnect begins, ownership is lost, or the append stream downgrades away from selected-thread SSE authority.
 
 ## Deliverable
 
-Define and verify one compact transcript-tail live activity item that carries the healthy selected-thread autonomy and phase progression inside the conversation timeline, updates in place from the existing SSE-owned session path, and leaves the separate inline session block for degraded or handoff-only states.
+Define and verify one healthy submit path where the selected-thread session stays on handoff plus append-SSE startup without an eager poll, while degraded reconnect, unavailable EventSource, ownership loss, and polling fallback still activate the existing recovery path explicitly.

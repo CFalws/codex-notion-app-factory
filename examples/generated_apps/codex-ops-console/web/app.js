@@ -35,7 +35,7 @@ import {
   updateProposalButton,
   updateSelectedAppCard,
 } from "./ops-render.js";
-import { getDraft, isAppendStreamConnected, loadSettings, normalizeBaseUrl, saveSettings, setDraft, state } from "./ops-store.js";
+import { getDraft, isAppendStreamAuthoritative, isAppendStreamConnected, loadSettings, normalizeBaseUrl, saveSettings, setDraft, state } from "./ops-store.js";
 
 function persistSettings() {
   saveSettings(dom, state);
@@ -262,9 +262,11 @@ async function sendMessage() {
     );
     setJobMeta(dom, `QUEUED · ${payload.job.job_id}`);
 
-    jobController.stopPolling();
-    await jobController.pollCurrentState();
-    jobController.ensurePollingForJob();
+    if (!isAppendStreamAuthoritative(state, conversationId)) {
+      jobController.stopPolling();
+      await jobController.pollCurrentState();
+      jobController.ensurePollingForJob();
+    }
   } catch (error) {
     conversationController.clearPendingOutgoing();
     setStatus(dom, `메시지 전송에 실패했습니다.\n\n${error.message}`);
@@ -434,6 +436,7 @@ function initControllers() {
     setJobMeta,
     setStatus,
     state,
+    isAppendStreamAuthoritative,
     isAppendStreamConnected,
     updateProposalButton,
   });

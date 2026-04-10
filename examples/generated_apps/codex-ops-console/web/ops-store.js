@@ -81,6 +81,16 @@ export function isAppendStreamConnected(currentState, conversationId = "") {
   );
 }
 
+export function isAppendStreamAuthoritative(currentState, conversationId = "") {
+  const appendStream = currentState.appendStream || {};
+  return (
+    appendStream.transport === "sse" &&
+    (appendStream.status === "connecting" || appendStream.status === "live") &&
+    appendStream.conversationId &&
+    (!conversationId || appendStream.conversationId === conversationId)
+  );
+}
+
 export function draftKey(appId, conversationId = "") {
   return `${appId || "no-app"}::${conversationId || "new-conversation"}`;
 }

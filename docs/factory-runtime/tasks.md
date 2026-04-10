@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Reuse the existing selected-thread inline session state and autonomy summary as the sole authority for the healthy transcript-tail live item.
-- [x] Render at most one healthy selected-thread live activity item at the transcript tail.
-- [x] Keep degraded and handoff states in the separate inline session block so healthy live ownership is not duplicated outside the transcript tail.
-- [x] Clear the transcript-tail live item immediately on reconnect downgrade, polling fallback, terminal idle, and thread switch.
-- [x] Align the focused verifier, deployed workspace gate, and iteration artifacts with the transcript-tail live activity contract.
+- [x] Define an authoritative selected-thread append-stream boundary that treats healthy SSE `connecting` and `live` startup as realtime-owned.
+- [x] Remove the eager healthy-path submit poll so session startup stays on local handoff plus append SSE.
+- [x] Keep polling activation available only for degraded paths such as unavailable EventSource, reconnect, ownership loss, or downgraded transport.
+- [x] Align the job controller with the same authoritative boundary so polling does not restart during healthy selected-thread SSE startup.
+- [x] Align the focused verifier, deployed workspace gate, and iteration artifacts with the degraded-only polling boundary contract.
