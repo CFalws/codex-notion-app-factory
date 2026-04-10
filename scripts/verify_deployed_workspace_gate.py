@@ -144,6 +144,8 @@ def browser_snapshot_script() -> str:
   const composerDock = document.querySelector("#conversation-footer-dock");
   const composerOwnerRow = document.querySelector("#composer-owner-row");
   const sendRequest = document.querySelector("#send-request");
+  const autonomyDetailCard = document.querySelector(".autonomy-detail-card");
+  const autonomyDetail = document.querySelector("#autonomy-detail");
   const transition = document.querySelector('[data-thread-transition="loading"]');
   const emptyState = document.querySelector(".timeline-empty");
   const threadScroller = document.querySelector("#thread-scroller");
@@ -192,6 +194,15 @@ def browser_snapshot_script() -> str:
       dataset: { ...sendRequest.dataset },
       text: (sendRequest.textContent || "").trim(),
       disabled: !!sendRequest.disabled,
+    } : null,
+    autonomyDetailCard: autonomyDetailCard ? {
+      hidden: !!autonomyDetailCard.hidden,
+      dataset: { ...autonomyDetailCard.dataset },
+      text: (autonomyDetailCard.textContent || "").trim(),
+    } : null,
+    autonomyDetail: autonomyDetail ? {
+      dataset: { ...autonomyDetail.dataset },
+      text: (autonomyDetail.textContent || "").trim(),
     } : null,
     transition: transition ? {
       dataset: { ...transition.dataset },
@@ -316,6 +327,8 @@ def assert_browser_runtime_surface(
                   const composerOwnerCopy = document.querySelector("#composer-owner-copy");
                   const composerDock = document.querySelector("#conversation-footer-dock");
                   const sendRequest = document.querySelector("#send-request");
+                  const autonomyDetailCard = document.querySelector(".autonomy-detail-card");
+                  const autonomyDetail = document.querySelector("#autonomy-detail");
                   const follow = document.querySelector("#jump-to-latest");
                   return Boolean(
                     liveActivity &&
@@ -357,6 +370,11 @@ def assert_browser_runtime_surface(
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     sendRequest &&
                     sendRequest.dataset.composerOwnerState &&
+                    autonomyDetailCard &&
+                    autonomyDetailCard.hidden &&
+                    autonomyDetailCard.dataset.autonomySurface === "center-lane" &&
+                    autonomyDetail &&
+                    autonomyDetail.dataset.surface === "center-lane" &&
                     follow &&
                     follow.dataset.followOwned !== undefined
                   );
@@ -536,6 +554,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(styles, '.session-live-indicator[data-live-session-tone="danger"]', label="session live indicator danger CSS")
     require(styles, ".composer-owner-row", label="composer owner row CSS")
     require(styles, ".composer-owner-chip", label="composer owner chip CSS")
+    require(styles, ".autonomy-detail-card", label="secondary panel autonomy detail card CSS")
     require(styles, ".session-inline-block", label="inline session block CSS")
     require(styles, ".session-inline-autonomy", label="inline autonomy row CSS")
     require(styles, ".timeline-item.session-event", label="session timeline event CSS")
@@ -639,6 +658,10 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "dataset.liveSessionSource", label="live-session source dataset")
     require(render_js, "dataset.liveSessionReason", label="live-session reason dataset")
     require(render_js, "dataset.liveSessionOwned", label="live-session owned dataset")
+    require(render_js, "syncAutonomyDetailSurface", label="secondary autonomy surface sync helper")
+    require(render_js, 'autonomyCard.hidden = hideForHealthySelectedThread;', label="healthy selected-thread autonomy card suppression")
+    require(render_js, 'autonomyCard.dataset.autonomySurface = hideForHealthySelectedThread ? "center-lane" : "secondary-detail";', label="autonomy card surface dataset")
+    require(render_js, 'dom.autonomyDetail.dataset.surface = hideForHealthySelectedThread ? "center-lane" : "secondary-detail";', label="autonomy detail surface dataset")
     require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionSource = sessionIndicator.source;', label="header indicator source dataset")
     require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionOwned = sessionIndicator.owned ? "true" : "false";', label="header indicator ownership dataset")
     require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionReason = sessionIndicator.reason;', label="header indicator reason dataset")

@@ -1791,10 +1791,16 @@ function blockerTone(blockerReason = "") {
 }
 
 export function clearAutonomySummary(dom, message = "자율 goal이 생기면 continuation blocker와 verifier 판단이 여기에 요약됩니다.") {
+  const autonomyCard = dom.autonomyDetail?.closest(".autonomy-detail-card");
+  if (autonomyCard) {
+    autonomyCard.hidden = false;
+    autonomyCard.dataset.autonomySurface = "secondary-detail";
+  }
   if (dom.autonomyDetailMeta) {
     dom.autonomyDetailMeta.textContent = "표시할 자율 goal이 없습니다.";
   }
   if (dom.autonomyDetail) {
+    dom.autonomyDetail.dataset.surface = "secondary-detail";
     dom.autonomyDetail.dataset.empty = "true";
     dom.autonomyDetail.dataset.blockerReason = "none";
     dom.autonomyDetail.dataset.pathVerdict = "unknown";
@@ -1820,11 +1826,17 @@ export function renderAutonomySummary(dom, goal) {
     return;
   }
   const blockerClass = blockerTone(summary.blockerReason);
+  const autonomyCard = dom.autonomyDetail?.closest(".autonomy-detail-card");
+  if (autonomyCard) {
+    autonomyCard.hidden = false;
+    autonomyCard.dataset.autonomySurface = "secondary-detail";
+  }
 
   if (dom.autonomyDetailMeta) {
     dom.autonomyDetailMeta.textContent = summary.heading;
   }
   if (dom.autonomyDetail) {
+    dom.autonomyDetail.dataset.surface = "secondary-detail";
     setAutonomyDataset(dom.autonomyDetail, {
       blockerReason: summary.blockerReason,
       pathVerdict: summary.pathVerdict,
@@ -1843,6 +1855,36 @@ export function renderAutonomySummary(dom, goal) {
       </div>
     `;
   }
+}
+
+function syncAutonomyDetailSurface(dom, currentState, conversation, liveRun, handoffState = { stage: "idle" }) {
+  const autonomyCard = dom.autonomyDetail?.closest(".autonomy-detail-card");
+  if (!autonomyCard || !dom.autonomyDetail) {
+    return;
+  }
+  const inlineState = conversation
+    ? selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState)
+    : {
+        selectedThreadSseOwned: false,
+        renderSource: "snapshot",
+        status: "offline",
+        degradedVisible: false,
+        handoffVisible: false,
+      };
+  const hideForHealthySelectedThread =
+    Boolean(currentState.autonomySummary) &&
+    inlineState.selectedThreadSseOwned &&
+    inlineState.renderSource === "sse" &&
+    inlineState.status === "live" &&
+    !inlineState.degradedVisible &&
+    !inlineState.handoffVisible &&
+    liveRun?.visible &&
+    !liveRun?.terminal &&
+    Boolean(liveRun?.phase) &&
+    liveRun.phase !== "IDLE";
+  autonomyCard.hidden = hideForHealthySelectedThread;
+  autonomyCard.dataset.autonomySurface = hideForHealthySelectedThread ? "center-lane" : "secondary-detail";
+  dom.autonomyDetail.dataset.surface = hideForHealthySelectedThread ? "center-lane" : "secondary-detail";
 }
 
 function phaseLabel(status, eventType = "") {
@@ -2080,6 +2122,18 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
       }),
       { stage: "idle" },
     );
+    syncAutonomyDetailSurface(
+      dom,
+      currentState,
+      null,
+      runStateSnapshot({
+        visible: false,
+        phase: "IDLE",
+        source: "none",
+        tone: "idle",
+      }),
+      { stage: "idle" },
+    );
     syncComposerOwnership(dom, currentState, null);
   renderJobActivity(dom, null, "", null, currentState);
     return;
@@ -2137,6 +2191,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
     liveRun,
   });
   renderSessionSummary(dom, currentState, conversation, liveRun, handoffState);
+  syncAutonomyDetailSurface(dom, currentState, conversation, liveRun, handoffState);
   syncComposerOwnership(dom, currentState, conversation);
   renderWorkspaceSummary(
     dom,
