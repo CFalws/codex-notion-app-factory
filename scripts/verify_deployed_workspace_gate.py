@@ -161,6 +161,12 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "dataset.liveRunPhase", label="phase dataset")
     require(render_js, "dataset.liveRunSource", label="live run source dataset")
     require(render_js, "dataset.streamState", label="stream state dataset")
+    require(render_js, "pendingAppendCount", label="follow control unseen append state")
+    require(render_js, 'const followState = renderSource === "sse" ? "new" : "paused";', label="follow control state mapping")
+    require(render_js, 'dom.jumpToLatestButton.dataset.followState = isVisible ? followState : "hidden";', label="follow control state dataset")
+    require(render_js, 'dom.jumpToLatestButton.dataset.followCount = String(isVisible ? unseenCount : 0);', label="follow control count dataset")
+    require(render_js, "새 live append", label="follow control new copy")
+    require(render_js, "live follow paused", label="follow control paused copy")
     require(render_js, 'phase: "PROPOSAL"', label="proposal phase mapping")
     require(render_js, 'phase: "REVIEW"', label="review phase mapping")
     require(render_js, 'phase: "VERIFY"', label="verify phase mapping")
@@ -176,6 +182,10 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, 'card.dataset.liveOwner = isSelected && showLiveMirror ? "true" : "false";', label="selected live owner dataset")
     require(conversations_js, 'state.appendStream.transport = "sse"', label="selected-thread sse transport")
     require(styles, ".conversation-card-live-owner-row", label="selected card live owner row CSS")
+    require(index_html, 'class="jump-to-latest-chip"', label="follow control chip DOM")
+    require(index_html, 'class="jump-to-latest-copy"', label="follow control copy DOM")
+    require(styles, '.jump-to-latest[data-follow-state="new"] .jump-to-latest-chip', label="follow control new state CSS")
+    require(styles, '.jump-to-latest[data-follow-state="paused"] .jump-to-latest-chip', label="follow control paused state CSS")
 
 
 def assert_conversation_events(

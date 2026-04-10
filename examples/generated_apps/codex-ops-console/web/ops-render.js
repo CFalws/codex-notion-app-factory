@@ -311,11 +311,32 @@ function syncJumpToLatest(dom, currentState, conversationId, renderSource) {
     return;
   }
   const liveFollow = currentState.liveFollow || {};
-  const isVisible = Boolean(conversationId && liveFollow.jumpVisible);
+  const unseenCount = Math.max(
+    Number(liveFollow.pendingAppendCount || 0),
+    Number(liveFollow.lastAppendId || 0) - Number(liveFollow.lastSeenAppendId || 0),
+  );
+  const followState = renderSource === "sse" ? "new" : "paused";
+  const isVisible = Boolean(conversationId && liveFollow.jumpVisible && unseenCount > 0);
+  const stateLabel = followState === "new" ? "NEW" : "PAUSED";
+  const detailLabel =
+    followState === "new"
+      ? unseenCount > 1
+        ? `새 live append ${unseenCount}개`
+        : "새 live append"
+      : "live follow paused";
   dom.jumpToLatestButton.hidden = !isVisible;
   dom.jumpToLatestButton.dataset.followConversationId = conversationId || "";
   dom.jumpToLatestButton.dataset.followMode = liveFollow.isFollowing ? "following" : "paused";
+  dom.jumpToLatestButton.dataset.followState = isVisible ? followState : "hidden";
+  dom.jumpToLatestButton.dataset.followCount = String(isVisible ? unseenCount : 0);
   dom.jumpToLatestButton.dataset.followRenderSource = renderSource || "snapshot";
+  dom.jumpToLatestButton.setAttribute(
+    "aria-label",
+    isVisible ? `${stateLabel}. ${detailLabel}. 최신 응답으로 이동` : "최신 응답으로 이동",
+  );
+  dom.jumpToLatestButton.innerHTML = isVisible
+    ? `<span class="jump-to-latest-chip">${stateLabel}</span><span class="jump-to-latest-copy">${detailLabel}</span>`
+    : '<span class="jump-to-latest-chip">NEW</span><span class="jump-to-latest-copy">최신 응답으로 이동</span>';
 }
 
 export function updateLiveFollowFromScroll(dom, currentState) {
@@ -327,6 +348,7 @@ export function updateLiveFollowFromScroll(dom, currentState) {
     isFollowing: isNearBottom,
     jumpVisible: isNearBottom ? false : Boolean(liveFollow.jumpVisible),
     lastSeenAppendId: isNearBottom ? latestAppendId : Number(liveFollow.lastSeenAppendId || 0),
+    pendingAppendCount: isNearBottom ? 0 : Number(liveFollow.pendingAppendCount || 0),
   };
   syncJumpToLatest(dom, currentState, liveFollow.conversationId || "", dom.threadScroller?.dataset.renderSource || "snapshot");
 }
@@ -342,6 +364,7 @@ export function jumpToLatest(dom, currentState) {
     isFollowing: true,
     jumpVisible: false,
     lastSeenAppendId: Number(dom.threadScroller.dataset.lastAppendId || 0),
+    pendingAppendCount: 0,
   };
   syncJumpToLatest(dom, currentState, liveFollow.conversationId || "", dom.threadScroller.dataset.renderSource || "snapshot");
 }
@@ -1242,6 +1265,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
       jumpVisible: false,
       lastAppendId: 0,
       lastSeenAppendId: 0,
+      pendingAppendCount: 0,
     };
     syncJumpToLatest(dom, currentState, "", "snapshot");
     updateHeroState(dom, {
@@ -1300,6 +1324,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
     jumpVisible: shouldShowJump,
     lastAppendId: latestAppendId,
     lastSeenAppendId: shouldKeepFollowing ? latestAppendId : previousSeenAppendId,
+    pendingAppendCount: shouldShowJump ? Math.max(latestAppendId - previousSeenAppendId, 0) : 0,
   };
   updateHeroState(dom, {
     threadTitle: conversation.title || "제목 없는 대화",

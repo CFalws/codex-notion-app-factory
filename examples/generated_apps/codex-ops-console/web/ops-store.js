@@ -35,6 +35,7 @@ export const state = {
     jumpVisible: false,
     lastAppendId: 0,
     lastSeenAppendId: 0,
+    pendingAppendCount: 0,
   },
   sessionRail: {
     conversationId: "",

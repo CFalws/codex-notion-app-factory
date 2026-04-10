@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Keep the current selected-conversation SSE path, center-pane inline session block, and live-follow behavior unchanged.
-2. Mirror the selected-thread handoff and live session state into the left conversation card only, keeping non-selected rows snapshot-only.
-3. Render compact selected-card detail and follow chips that cover pending handoff, active live progress, and fresh assistant-append completion, then clear on terminal resolution or thread switch.
-4. Preserve transcript plus composer primacy on desktop and phone widths while making the selected rail row more informative without adding a new panel.
-5. Extend the focused verifier and docs so future sessions can prove the selected card alone mirrors the selected-thread live path.
+1. Keep the current selected-conversation SSE path, rail behavior, and center-pane live surface unchanged.
+2. Reuse the existing jump-to-latest control as one explicit bottom-anchored transcript follow indicator for the selected conversation only.
+3. Show `NEW` when healthy off-screen selected-thread SSE appends arrive, and show `PAUSED` when detached follow state is visible through a degraded render source.
+4. Clear the follow indicator immediately when the operator jumps back to latest or re-engages the composer, while leaving it hidden when already following.
+5. Extend the focused verifier and docs so future sessions can prove selected-thread-only visibility, explicit `NEW` or `PAUSED` state, unseen-count metadata, and absence during healthy tail-following.
