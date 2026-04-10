@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Confirm the current selected-thread header still shows a live phase chip and compact session summary row above the transcript.
-2. Keep their datasets updated but hide that header chrome whenever a selected or transitioning thread is active.
-3. Preserve the title, conversation meta, inline session block, rail row, and composer-adjacent strip as the remaining visible session surfaces.
+1. Confirm the current selected-thread switch path already keeps the conversation shell mounted and routes through the dedicated transition placeholder instead of a generic empty reset.
+2. Confirm old-thread selected-session ownership is cleared during switch, including inline healthy-block and follow ownership cues.
+3. Tighten the deployed workspace gate so browser verification explicitly rejects stale healthy inline-block or follow ownership during an intentional switch.
 4. Preserve degraded reconnect, polling fallback, ownership loss, terminal idle, and switch states as explicitly non-owned or cleared.
-5. Align the focused verifier, deployed workspace gate, and iteration artifacts with the compacted header contract.
+5. Align the focused verifier and iteration artifacts with the tightened switch-continuity proof contract.

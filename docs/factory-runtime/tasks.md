@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Confirm the selected-thread header still exposes a separate phase chip and compact session summary row above the transcript.
-- [x] Hide that live-status header chrome while keeping its datasets updated for selected and switching threads.
-- [x] Leave the inline session block, left-rail row, and composer-adjacent strip as the remaining visible session surfaces.
-- [x] Preserve degraded and switched states as explicitly non-owned or cleared header states.
-- [x] Align the focused verifier, deployed workspace gate, and iteration artifacts with the compacted header contract.
+- [x] Confirm the selected-thread switch path already keeps the conversation shell mounted and uses the dedicated transition placeholder instead of a generic empty reset.
+- [x] Confirm old-thread healthy inline-block ownership and follow ownership are expected to clear during switch.
+- [x] Tighten the deployed workspace gate so intentional switch verification rejects stale healthy inline-block and follow ownership cues.
+- [x] Preserve degraded, switched, and non-owned states as explicitly cleared selected-thread ownership states.
+- [x] Align the focused verifier and iteration artifacts with the tightened switch-continuity proof contract.

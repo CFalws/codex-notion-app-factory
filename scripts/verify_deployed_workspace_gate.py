@@ -435,9 +435,11 @@ def assert_browser_runtime_surface(
                   const sendRequest = document.querySelector("#send-request");
                   const composerOwnerRow = document.querySelector("#composer-owner-row");
                   const threadScroller = document.querySelector("#thread-scroller");
+                  const healthyBlock = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-owned="true"]');
                   const healthy = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
                   const degraded = document.querySelector('.session-inline-block[data-selected-thread-degraded-block="true"]');
                   const empty = document.querySelector(".timeline-empty");
+                  const follow = document.querySelector("#jump-to-latest");
                   return Boolean(
                     transition &&
                     document.querySelectorAll('[data-thread-transition="loading"]').length === 1 &&
@@ -471,6 +473,9 @@ def assert_browser_runtime_surface(
                     threadScroller.dataset.threadTransitionState === "loading" &&
                     threadScroller.dataset.threadTransitionConversationId === targetConversationId &&
                     threadScroller.dataset.sessionOwner !== "selected-thread" &&
+                    follow &&
+                    follow.dataset.followOwned !== "selected-thread" &&
+                    !healthyBlock &&
                     !healthy &&
                     !degraded &&
                     !empty
