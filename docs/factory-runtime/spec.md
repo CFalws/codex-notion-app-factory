@@ -8,7 +8,7 @@
 
 ## Problem
 
-The workspace already has a healthy selected-thread ownership signal in the header, but the left rail still carries its own live-session taxonomy. That duplication makes ownership ambiguous because the rail can out-signal the canonical selected-thread SSE owner state instead of mirroring it.
+The selected-thread ownership contract is already consistent across header, transcript, and left rail, but the fixed composer still relies on a generic activity bar and a separate target row. That makes the action surface weaker than the conversation surface because the user still has to infer whether the current thread is ready, switching, handoff-bound, or degraded from nearby fragments.
 
 ## Target User
 
@@ -18,11 +18,11 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the existing `selectedThreadLiveSessionIndicator` ownership contract instead of adding a new rail-only state machine.
-- Keep the change bounded to left-rail ownership presentation and its verification contract.
-- Do not add new polling behavior, phase vocabulary, or a secondary rail-only status taxonomy.
-- Clear the rail mirror immediately on switch, reconnect, polling fallback, or terminal idle so stale ownership cannot survive.
+- Reuse the existing selected-thread ownership, append-stream, and composer-owner contracts instead of adding a new backend or polling path.
+- Keep the change bounded to the composer-adjacent session strip and its verification contract.
+- Keep the footer chat-first: one compact target-and-transport strip, not a new status panel.
+- Clear or downgrade the composer strip immediately on switch, reconnect, polling fallback, or terminal idle so stale ownership cannot survive.
 
 ## Deliverable
 
-Define and verify one compact healthy-only left-rail mirror that appears only when the selected thread is the active SSE-owned live session, derives its state from the same canonical ownership source as the header, and clears immediately on any ownership loss or degraded path.
+Define and verify one compact composer-adjacent session strip that names the current selected thread, exposes `READY`, `SWITCHING`, or `HANDOFF` from existing composer ownership state, mirrors healthy or degraded transport from the canonical selected-thread ownership source, and clears or downgrades immediately on ownership loss.

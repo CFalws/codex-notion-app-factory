@@ -225,6 +225,71 @@ function syncComposerOwnership(dom, currentState, conversation) {
   }
 }
 
+function composerTransportState(currentState, conversation, liveRun, handoffState = { stage: "idle" }) {
+  const threadTransition = currentState.threadTransition || {};
+  const appendStream = currentState.appendStream || {};
+  const conversationId = String(conversation?.conversation_id || "");
+  const streamConversationId = String(appendStream.conversationId || "");
+  const transport = String(appendStream.transport || "polling").toLowerCase();
+  const renderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
+  const status = String(appendStream.status || "offline").toLowerCase();
+  const sessionIndicator = selectedThreadLiveSessionIndicator(currentState, conversation, liveRun, handoffState);
+  const selectedThreadStream = Boolean(conversationId) && streamConversationId === conversationId;
+
+  if (!conversationId && threadTransition.active && threadTransition.targetConversationId) {
+    return {
+      label: "ATTACH",
+      key: "attach",
+      tone: "warning",
+      source: "thread-transition",
+      owned: false,
+      reason: "thread-switch",
+    };
+  }
+
+  if (sessionIndicator.visible) {
+    return {
+      label: sessionIndicator.label,
+      key: String(sessionIndicator.label || "session").toLowerCase().replace(/\s+/g, "-"),
+      tone: sessionIndicator.tone,
+      source: sessionIndicator.source,
+      owned: sessionIndicator.owned,
+      reason: sessionIndicator.reason,
+    };
+  }
+
+  if (selectedThreadStream && status === "reconnecting") {
+    return {
+      label: "RECONNECT",
+      key: "reconnect",
+      tone: "warning",
+      source: "sse",
+      owned: false,
+      reason: "reconnecting",
+    };
+  }
+
+  if (selectedThreadStream && (transport !== "sse" || renderSource !== "sse")) {
+    return {
+      label: "POLLING",
+      key: "polling",
+      tone: "warning",
+      source: transport || "polling",
+      owned: false,
+      reason: "polling-fallback",
+    };
+  }
+
+  return {
+    label: "SNAPSHOT",
+    key: "snapshot",
+    tone: "muted",
+    source: "snapshot",
+    owned: false,
+    reason: "snapshot",
+  };
+}
+
 function renderSessionSummary(dom, currentState, conversation, liveRun, handoffState = { stage: "idle" }) {
   if (
     !dom.sessionSummaryRow ||
@@ -1486,6 +1551,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
     return;
   }
 
+  const threadTransition = currentState.threadTransition || {};
   const conversationId = conversation?.conversation_id || "";
   const appendStream = currentState.appendStream || {};
   const status = String(appendStream.status || "offline").toLowerCase();
@@ -1495,9 +1561,11 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const liveRun = deriveLiveRunState(conversation, currentState);
   const handoffState = conversation ? pendingHandoffState(conversation, currentState) : { stage: "idle" };
   const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
+  const ownerState = composerOwnerState(currentState, conversation);
+  const transportState = composerTransportState(currentState, conversation, liveRun, handoffState);
   currentState.sessionRail ||= { conversationId: "", expanded: false };
 
-  if (!conversationId) {
+  if (!conversationId && !(threadTransition.active && threadTransition.targetConversationId)) {
     dom.sessionStrip.hidden = true;
     dom.sessionStrip.dataset.sessionPresentation = "cleared";
     dom.sessionStrip.dataset.sessionTerminal = "false";
@@ -1513,6 +1581,12 @@ export function renderSessionStrip(dom, currentState, conversation) {
     dom.sessionStrip.dataset.liveRunTone = "idle";
     dom.sessionStrip.dataset.followState = "idle";
     dom.sessionStrip.dataset.sessionOwner = "none";
+    dom.sessionStrip.dataset.composerState = "idle";
+    dom.sessionStrip.dataset.composerTransport = "none";
+    dom.sessionStrip.dataset.composerTransportSource = "none";
+    dom.sessionStrip.dataset.composerTransportOwned = "false";
+    dom.sessionStrip.dataset.composerTransportReason = "idle";
+    dom.sessionStrip.dataset.composerTargetConversationId = "";
     dom.sessionStrip.dataset.sessionCollapsed = "false";
     dom.threadScroller.dataset.streamState = "offline";
     dom.threadScroller.dataset.renderSource = "snapshot";
@@ -1537,15 +1611,18 @@ export function renderSessionStrip(dom, currentState, conversation) {
     return;
   }
 
-  if (currentState.sessionRail.conversationId !== conversationId) {
+  const sessionConversationId = conversationId || String(threadTransition.targetConversationId || "");
+  if (currentState.sessionRail.conversationId !== sessionConversationId) {
     currentState.sessionRail = {
-      conversationId,
+      conversationId: sessionConversationId,
       expanded: false,
     };
   }
 
   const presentation =
-    status === "reconnecting"
+    ownerState.state === "switching"
+      ? "switching"
+      : status === "reconnecting"
       ? "reconnecting"
       : status === "connecting"
         ? "connecting"
@@ -1561,13 +1638,12 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const canCollapse = false;
   const shouldCollapse = false;
   const collapsedSummary = null;
-  const transportState = transportChip(status, presentation);
-  const phaseState = phaseChip(liveRun, presentation);
-  const proposalState = proposalChip(liveRun);
-  const showComposerLiveStrip = shouldShowComposerLiveStrip(conversation, currentState, liveRun, handoffState);
-  const liveOwned = inlineState.selectedThreadSseOwned && inlineState.status === "live" && inlineState.renderSource === "sse";
-  const sessionOwnerState = selectedThreadLiveSessionIndicator(currentState, conversation, liveRun);
-  dom.sessionStrip.hidden = !showComposerLiveStrip;
+  const liveOwned =
+    transportState.owned &&
+    inlineState.selectedThreadSseOwned &&
+    inlineState.status === "live" &&
+    inlineState.renderSource === "sse";
+  dom.sessionStrip.hidden = !sessionConversationId;
   dom.sessionStrip.dataset.liveOwned = liveOwned ? "true" : "false";
   dom.sessionStrip.dataset.sessionOwner = liveOwned ? "selected-thread" : "none";
   dom.sessionStrip.dataset.sessionPresentation = presentation;
@@ -1583,19 +1659,20 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStrip.dataset.liveRunSource = liveRun.source;
   dom.sessionStrip.dataset.liveRunJob = liveRun.jobId || "";
   dom.sessionStrip.dataset.liveRunTone = liveRun.tone;
-  dom.sessionStrip.dataset.followState = sessionOwnerState.state;
+  dom.sessionStrip.dataset.followState = transportState.owned ? "owned" : "idle";
+  dom.sessionStrip.dataset.composerState = ownerState.state;
+  dom.sessionStrip.dataset.composerTransport = transportState.key;
+  dom.sessionStrip.dataset.composerTransportSource = transportState.source;
+  dom.sessionStrip.dataset.composerTransportOwned = transportState.owned ? "true" : "false";
+  dom.sessionStrip.dataset.composerTransportReason = transportState.reason;
+  dom.sessionStrip.dataset.composerTargetConversationId = ownerState.conversationId;
 
-  const railChips = [
-    `<span class="session-chip" data-tone="${escapeHtml(sessionOwnerState.tone)}">${escapeHtml(sessionOwnerState.label)}</span>`,
+  dom.sessionStripState.innerHTML = [
+    `<span class="session-chip" data-tone="${escapeHtml(ownerState.tone)}">${escapeHtml(ownerState.label)}</span>`,
     `<span class="session-chip" data-tone="${escapeHtml(transportState.tone)}">${escapeHtml(transportState.label)}</span>`,
-    `<span class="session-chip" data-tone="${escapeHtml(phaseState.tone)}">${escapeHtml(phaseState.label)}</span>`,
-  ];
-  if (proposalState.label !== "NONE") {
-    railChips.push(`<span class="session-chip" data-tone="${escapeHtml(proposalState.tone)}">${escapeHtml(proposalState.label)}</span>`);
-  }
-  dom.sessionStripState.innerHTML = railChips.join("");
-  dom.sessionStripMeta.textContent = `${sessionOwnerState.state === "paused" ? "follow paused" : "following"} · #${lastLiveAppendId || lastAppendId || 0}${liveRun.jobId ? ` · ${liveRun.jobId}` : ""}`;
-  dom.sessionStripDetail.textContent = composerActionHint(status, presentation, liveRun);
+  ].join("");
+  dom.sessionStripMeta.textContent = ownerState.target;
+  dom.sessionStripDetail.textContent = ownerState.copy;
   if (dom.sessionStripToggle) {
     dom.sessionStripToggle.hidden = true;
     dom.sessionStripToggle.textContent = "세부 보기";

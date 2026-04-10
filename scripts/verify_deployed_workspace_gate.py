@@ -139,6 +139,7 @@ def browser_snapshot_script() -> str:
   const degradedBlock = document.querySelector('.session-inline-block[data-selected-thread-degraded-block="true"][data-live-block-owner="selected-thread"]');
   const follow = document.querySelector("#jump-to-latest");
   const activeSessionRow = document.querySelector("#active-session-row");
+  const sessionStrip = document.querySelector("#session-strip");
   const composerDock = document.querySelector("#conversation-footer-dock");
   const composerOwnerRow = document.querySelector("#composer-owner-row");
   const sendRequest = document.querySelector("#send-request");
@@ -168,6 +169,11 @@ def browser_snapshot_script() -> str:
       hidden: !!activeSessionRow.hidden,
       dataset: { ...activeSessionRow.dataset },
       text: (activeSessionRow.textContent || "").trim(),
+    } : null,
+    sessionStrip: sessionStrip ? {
+      hidden: !!sessionStrip.hidden,
+      dataset: { ...sessionStrip.dataset },
+      text: (sessionStrip.textContent || "").trim(),
     } : null,
     composerDock: composerDock ? {
       dataset: { ...composerDock.dataset },
@@ -297,6 +303,7 @@ def assert_browser_runtime_surface(
                   const block = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-owned="true"]');
                   const summary = document.querySelector("#session-summary-row");
                   const activeSessionRow = document.querySelector("#active-session-row");
+                  const sessionStrip = document.querySelector("#session-strip");
                   const composerDock = document.querySelector("#conversation-footer-dock");
                   const sendRequest = document.querySelector("#send-request");
                   const follow = document.querySelector("#jump-to-latest");
@@ -314,6 +321,12 @@ def assert_browser_runtime_surface(
                     activeSessionRow.dataset.activeSessionSource === "sse" &&
                     activeSessionRow.dataset.activeSessionState === "live" &&
                     activeSessionRow.dataset.activeSessionPhase === "SSE OWNER" &&
+                    sessionStrip &&
+                    !sessionStrip.hidden &&
+                    sessionStrip.dataset.composerState === "ready" &&
+                    sessionStrip.dataset.composerTransport === "sse-owner" &&
+                    sessionStrip.dataset.composerTransportSource === "sse" &&
+                    sessionStrip.dataset.composerTransportOwned === "true" &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     sendRequest &&
@@ -334,8 +347,9 @@ def assert_browser_runtime_surface(
                   const healthy = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-owned="true"]');
                   const summary = document.querySelector("#session-summary-row");
                   const activeSessionRow = document.querySelector("#active-session-row");
+                  const sessionStrip = document.querySelector("#session-strip");
                   const follow = document.querySelector("#jump-to-latest");
-                  if (!degraded || healthy || !summary || !follow || !activeSessionRow) {
+                  if (!degraded || healthy || !summary || !follow || !activeSessionRow || !sessionStrip) {
                     return false;
                   }
                   const reason = degraded.dataset.liveBlockReason || "";
@@ -347,6 +361,9 @@ def assert_browser_runtime_surface(
                     activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
                     activeSessionRow.dataset.activeSessionSource === "none" &&
+                    !sessionStrip.hidden &&
+                    ["reconnect", "polling"].includes(sessionStrip.dataset.composerTransport || "") &&
+                    sessionStrip.dataset.composerTransportOwned === "false" &&
                     follow.dataset.followOwned !== "selected-thread"
                   );
                 }""",
@@ -360,6 +377,7 @@ def assert_browser_runtime_surface(
                   const transition = document.querySelector('[data-thread-transition="loading"]');
                   const summary = document.querySelector("#session-summary-row");
                   const activeSessionRow = document.querySelector("#active-session-row");
+                  const sessionStrip = document.querySelector("#session-strip");
                   const composerDock = document.querySelector("#conversation-footer-dock");
                   const sendRequest = document.querySelector("#send-request");
                   const threadScroller = document.querySelector("#thread-scroller");
@@ -375,6 +393,11 @@ def assert_browser_runtime_surface(
                     activeSessionRow &&
                     activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
+                    sessionStrip &&
+                    !sessionStrip.hidden &&
+                    sessionStrip.dataset.composerState === "switching" &&
+                    sessionStrip.dataset.composerTransport === "attach" &&
+                    sessionStrip.dataset.composerTargetConversationId === targetConversationId &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     sendRequest &&
@@ -485,6 +508,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "selectedThreadLiveSessionIndicator", label="session live indicator helper")
     require(render_js, "latestSessionIndicatorEvent", label="session live indicator event helper")
     require(render_js, "composerOwnerState", label="composer owner state helper")
+    require(render_js, "composerTransportState", label="composer transport state helper")
     require(render_js, "syncComposerOwnership", label="composer ownership sync helper")
     require(render_js, "compactTargetLabel", label="compact target label helper")
     require(render_js, "summaryHint", label="summary hint helper")
@@ -542,6 +566,16 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "dataset.sessionOwner", label="session owner dataset")
     require(render_js, "dataset.liveOwned", label="live ownership dataset")
     require(render_js, "dataset.composerOwnerState", label="composer owner state dataset")
+    require(render_js, 'dom.sessionStrip.dataset.composerState = ownerState.state;', label="composer strip state dataset")
+    require(render_js, 'dom.sessionStrip.dataset.composerTransport = transportState.key;', label="composer strip transport dataset")
+    require(render_js, 'dom.sessionStrip.dataset.composerTransportSource = transportState.source;', label="composer strip transport source dataset")
+    require(render_js, 'dom.sessionStrip.dataset.composerTransportOwned = transportState.owned ? "true" : "false";', label="composer strip transport ownership dataset")
+    require(render_js, 'dom.sessionStrip.dataset.composerTransportReason = transportState.reason;', label="composer strip transport reason dataset")
+    require(render_js, 'dom.sessionStrip.dataset.composerTargetConversationId = ownerState.conversationId;', label="composer strip target dataset")
+    require(render_js, 'label: "ATTACH"', label="composer strip attach label")
+    require(render_js, 'label: "SNAPSHOT"', label="composer strip snapshot label")
+    require(render_js, 'label: "POLLING"', label="composer strip polling label")
+    require(render_js, 'label: "RECONNECT"', label="composer strip reconnect label")
     require(render_js, "dataset.followState", label="follow-state dataset")
     require(render_js, "export function renderJobActivity(dom, conversation, currentJobId, jobPayload = null, currentState = null)", label="job activity current-state signature")
     require(render_js, "const selectedThreadSseOwned =", label="job activity selected-thread SSE ownership guard")
@@ -565,12 +599,15 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "selectedThreadSseOwned", label="selected-thread SSE handoff guard")
     require(render_js, 'const handoffVisible = handoffState.stage === "pending-assistant" && selectedThreadSseOwned;', label="inline handoff visibility guard")
     require(render_js, "const liveVisible =", label="inline live visibility guard")
-    require(render_js, 'status !== "live"', label="healthy-only composer strip guard")
-    require(render_js, 'return inlineState.renderSource === "sse";', label="healthy-only composer strip render-source guard")
-    require(render_js, 'const liveOwned = inlineState.selectedThreadSseOwned && inlineState.status === "live" && inlineState.renderSource === "sse";', label="composer strip ownership decoupled from strip visibility")
+    require(render_js, 'if (!conversationId && !(threadTransition.active && threadTransition.targetConversationId)) {', label="composer strip idle clear branch")
+    require(render_js, 'const ownerState = composerOwnerState(currentState, conversation);', label="composer strip owner helper wiring")
+    require(render_js, 'const transportState = composerTransportState(currentState, conversation, liveRun, handoffState);', label="composer strip transport helper wiring")
+    require(render_js, "const liveOwned =", label="composer strip ownership decoupled from strip visibility")
+    require(render_js, 'dom.sessionStrip.hidden = !sessionConversationId;', label="composer strip selected-target visibility")
     require(render_js, 'dom.sessionStrip.dataset.sessionOwner = liveOwned ? "selected-thread" : "none";', label="composer strip selected-thread owner dataset")
-    require(render_js, 'dom.sessionStrip.dataset.followState = sessionOwnerState.state;', label="composer strip follow-state dataset")
-    require_absent(render_js, 'status === "reconnecting" || status === "connecting" || status === "offline"', label="legacy degraded strip visibility guard")
+    require(render_js, 'dom.sessionStrip.dataset.followState = transportState.owned ? "owned" : "idle";', label="composer strip follow-state dataset")
+    require(render_js, 'dom.sessionStripMeta.textContent = ownerState.target;', label="composer strip target copy")
+    require(render_js, 'dom.sessionStripDetail.textContent = ownerState.copy;', label="composer strip owner detail copy")
     require(render_js, 'return { label: "ACCEPTED", tone: "neutral" };', label="accepted handoff chip")
     require(render_js, '"RECONNECT"', label="reconnecting provenance label")
     require(render_js, '"OPEN"', label="connecting provenance label")

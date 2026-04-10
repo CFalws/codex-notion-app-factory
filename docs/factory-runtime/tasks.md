@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Reuse the existing selected-thread header ownership datasets as the sole authority for the left-rail mirror.
-- [x] Restrict the left-rail active-session row to one healthy SSE-owned selected-session mirror.
-- [x] Clear the left-rail mirror immediately on reconnect, polling fallback, terminal idle, and thread switch.
-- [x] Avoid introducing any new rail-only phase taxonomy or polling-dependent ownership semantics.
-- [x] Align the focused verifier, deployed workspace gate, and iteration artifacts with the single-source rail mirror contract.
+- [x] Reuse the existing composer owner state and selected-thread ownership datasets as the sole authority for the footer strip.
+- [x] Show one compact selected-thread target plus transport strip beside the bottom-fixed composer.
+- [x] Keep the strip aligned with `READY`, `SWITCHING`, or `HANDOFF` while mirroring healthy or degraded transport without pretending stale live ownership.
+- [x] Clear or downgrade the strip immediately on reconnect, polling fallback, terminal idle, and thread switch.
+- [x] Align the focused verifier, deployed workspace gate, and iteration artifacts with the composer-adjacent session strip contract.
