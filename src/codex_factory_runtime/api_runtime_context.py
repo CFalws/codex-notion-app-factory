@@ -55,7 +55,12 @@ class RuntimeApiContext:
         items.sort(key=lambda item: int(item["append_id"]))
         return items
 
-    def conversation_session_bootstrap(self, conversation_id: str) -> dict[str, Any]:
+    def conversation_session_bootstrap(
+        self,
+        conversation_id: str,
+        *,
+        requested_after_append_id: int = 0,
+    ) -> dict[str, Any]:
         conversation = self.require_conversation(conversation_id)
         messages = list(conversation.get("messages", []))
         events = list(conversation.get("events", []))
@@ -67,11 +72,14 @@ class RuntimeApiContext:
                 append_cursor = append_id
         if events:
             latest_event = max(events, key=lambda item: int(item.get("append_id") or 0))
+        resume_cursor = max(int(requested_after_append_id or 0), 0)
+        attach_mode = "sse-resume" if resume_cursor else "sse-bootstrap"
         return {
-            "version": 1,
+            "version": 2,
             "conversation_id": conversation_id,
-            "attach_mode": "sse-bootstrap",
+            "attach_mode": attach_mode,
             "append_cursor": append_cursor,
+            "resume_from_append_id": resume_cursor,
             "conversation": conversation,
             "latest_job_id": str(conversation.get("latest_job_id") or ""),
             "live_phase_summary": {

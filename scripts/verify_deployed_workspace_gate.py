@@ -245,6 +245,8 @@ def assert_browser_runtime_surface(
   const nativeFetch = window.fetch ? window.fetch.bind(window) : null;
   window.__verifyFetchLog = [];
   window.__verifySseEvents = [];
+  window.__verifySseUrls = [];
+  window.__verifyAppendLog = [];
   if (nativeFetch) {
     window.fetch = (...args) => {
       const request = args[0];
@@ -259,9 +261,36 @@ def assert_browser_runtime_surface(
   }
   window.__verifyForceDegrade = false;
   window.__verifyDegraded = false;
+  window.__verifyLatestEventSource = null;
+  window.__verifyTriggerDisconnect = () => {
+    const source = window.__verifyLatestEventSource;
+    if (!source) {
+      return false;
+    }
+    try {
+      source.close();
+      source.dispatchEvent(new Event("error"));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  };
   window.EventSource = class VerifyEventSource extends NativeEventSource {
     constructor(...args) {
       super(...args);
+      this.__verifyUrl = String(args[0] || "");
+      window.__verifyLatestEventSource = this;
+      window.__verifySseUrls.push(this.__verifyUrl);
+      if (window.__verifyForceDegrade) {
+        queueMicrotask(() => {
+          try {
+            this.close();
+            this.dispatchEvent(new Event("error"));
+          } catch (_) {
+            // Let the app retry and eventually fall back.
+          }
+        });
+      }
       this.addEventListener("session.bootstrap", (event) => {
         try {
           window.__verifySseEvents.push({ event: "session.bootstrap", data: JSON.parse(event.data || "{}") });
@@ -269,7 +298,16 @@ def assert_browser_runtime_surface(
           window.__verifySseEvents.push({ event: "session.bootstrap", data: {} });
         }
       });
-      this.addEventListener("conversation.append", () => {
+      this.addEventListener("conversation.append", (event) => {
+        try {
+          const data = JSON.parse(event.data || "{}");
+          window.__verifyAppendLog.push({
+            conversationId: String(data.conversation_id || ""),
+            appendId: Number(data.append_id || 0),
+          });
+        } catch (_) {
+          window.__verifyAppendLog.push({ conversationId: "", appendId: 0 });
+        }
         if (!window.__verifyForceDegrade || window.__verifyDegraded) {
           return;
         }
@@ -324,10 +362,14 @@ def assert_browser_runtime_surface(
                     sendRequest &&
                     sessionStrip &&
                     sessionStrip.dataset.attachMode === "sse-bootstrap" &&
-                    sessionStrip.dataset.bootstrapVersion === "1" &&
+                    sessionStrip.dataset.bootstrapVersion === "2" &&
+                    sessionStrip.dataset.resumeMode === "bootstrap" &&
+                    sessionStrip.dataset.resumeCursor === "0" &&
                     threadScroller &&
                     threadScroller.dataset.attachMode === "sse-bootstrap" &&
-                    threadScroller.dataset.bootstrapVersion === "1" &&
+                    threadScroller.dataset.bootstrapVersion === "2" &&
+                    threadScroller.dataset.resumeMode === "bootstrap" &&
+                    threadScroller.dataset.resumeCursor === "0" &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     document.querySelector(`[data-conversation-id="${conversationId}"]`) &&
@@ -430,7 +472,67 @@ def assert_browser_runtime_surface(
             )
             healthy_snapshot = page.evaluate(browser_snapshot_script())
 
-            page.evaluate("() => { window.__verifyForceDegrade = true; }")
+            page.evaluate(
+                "() => { window.__verifyFetchMark = window.__verifyFetchLog.length; window.__verifySseMark = window.__verifySseEvents.length; window.__verifyUrlMark = window.__verifySseUrls.length; window.__verifyAppendMark = window.__verifyAppendLog.length; window.__verifyTriggerDisconnect(); }"
+            )
+            page.wait_for_function(
+                """conversationId => {
+                  const sessionStrip = document.querySelector("#session-strip");
+                  const threadScroller = document.querySelector("#thread-scroller");
+                  const composerDock = document.querySelector("#conversation-footer-dock");
+                  const emptyState = document.querySelector(".timeline-empty");
+                  const fetchMark = Number(window.__verifyFetchMark || 0);
+                  const sseMark = Number(window.__verifySseMark || 0);
+                  const urlMark = Number(window.__verifyUrlMark || 0);
+                  const appendMark = Number(window.__verifyAppendMark || 0);
+                  const bootstrapEvents = (window.__verifySseEvents || []).slice(sseMark).filter(
+                    item => item.event === "session.bootstrap" && String(item.data?.conversation_id || "") === conversationId
+                  );
+                  const resumeEvents = bootstrapEvents.filter(
+                    item => String(item.data?.attach_mode || "") === "sse-resume"
+                  );
+                  const conversationFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
+                    entry => String(entry.url || "").includes(`/api/conversations/${conversationId}`)
+                  );
+                  const jobFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
+                    entry => String(entry.url || "").includes("/api/jobs/")
+                  );
+                  const resumeUrls = (window.__verifySseUrls || []).slice(urlMark).filter(
+                    url => String(url || "").includes(`/api/internal/conversations/${conversationId}/append-stream?after=`)
+                  );
+                  const appendIds = (window.__verifyAppendLog || []).slice(appendMark).filter(
+                    item => String(item.conversationId || "") === conversationId && Number(item.appendId || 0) > 0
+                  ).map(item => Number(item.appendId || 0));
+                  const deduped = new Set(appendIds);
+                  const lastResume = resumeEvents.length ? resumeEvents[resumeEvents.length - 1].data : {};
+                  return Boolean(
+                    sessionStrip &&
+                    sessionStrip.dataset.attachMode === "sse-resume" &&
+                    sessionStrip.dataset.bootstrapVersion === "2" &&
+                    sessionStrip.dataset.resumeMode === "resumed" &&
+                    Number(sessionStrip.dataset.resumeCursor || "0") > 0 &&
+                    threadScroller &&
+                    threadScroller.dataset.attachMode === "sse-resume" &&
+                    threadScroller.dataset.bootstrapVersion === "2" &&
+                    threadScroller.dataset.resumeMode === "resumed" &&
+                    Number(threadScroller.dataset.resumeCursor || "0") > 0 &&
+                    composerDock &&
+                    ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
+                    resumeEvents.length >= 1 &&
+                    Number(lastResume.resume_from_append_id || 0) > 0 &&
+                    resumeUrls.length >= 1 &&
+                    conversationFetches.length === 0 &&
+                    jobFetches.length === 0 &&
+                    appendIds.length === deduped.size &&
+                    !emptyState
+                  );
+                }""",
+                conversation_id,
+                timeout=30000,
+            )
+            resume_snapshot = page.evaluate(browser_snapshot_script())
+
+            page.evaluate("() => { window.__verifyForceDegrade = true; window.__verifyTriggerDisconnect(); }")
             page.wait_for_function(
                 """() => {
                   const degraded = document.querySelector('.session-inline-block[data-selected-thread-degraded-block="true"][data-live-owned="false"]');
@@ -528,6 +630,7 @@ def assert_browser_runtime_surface(
             return {
                 "job_id": job_id,
                 "healthy": healthy_snapshot,
+                "resume": resume_snapshot,
                 "degraded": degraded_snapshot,
                 "switch": switch_snapshot,
             }
@@ -678,6 +781,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "dataset.streamState", label="stream state dataset")
     require(render_js, "dataset.attachMode", label="attach mode dataset")
     require(render_js, "dataset.bootstrapVersion", label="bootstrap version dataset")
+    require(render_js, "dataset.resumeMode", label="resume mode dataset")
+    require(render_js, "dataset.resumeCursor", label="resume cursor dataset")
     require(render_js, "dataset.sessionOwner", label="session owner dataset")
     require(render_js, "dataset.liveOwned", label="live ownership dataset")
     require(render_js, "dataset.composerOwnerState", label="composer owner state dataset")
@@ -864,7 +969,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, "state.autonomySummary = projectedAutonomySummary;", label="append-driven autonomy summary state update")
     require_absent(conversations_js, "refreshGoalSummary().catch(() => {});", label="legacy append-driven autonomy summary refetch")
     require(conversations_js, "setJobMeta(dom, immediateMeta);", label="append-driven job meta refresh")
-    require(conversations_js, "ensurePollingForJob();", label="reconnect polling resume")
+    require(conversations_js, "scheduleAppendStreamResume", label="reconnect resume scheduler")
+    require(conversations_js, "transitionAppendStreamToFallback", label="explicit reconnect fallback helper")
     require(conversations_js, 'state.appendStream.transport = "sse"', label="selected-thread sse transport")
     require(store_js, "export function isAppendStreamAuthoritative", label="append stream authoritative helper")
     require(store_js, 'appendStream.status === "connecting" || appendStream.status === "live"', label="append stream authoritative connecting-or-live guard")

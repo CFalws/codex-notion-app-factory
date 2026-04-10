@@ -1619,6 +1619,8 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const status = String(appendStream.status || "offline").toLowerCase();
   const attachMode = String(appendStream.attachMode || "idle").toLowerCase();
   const bootstrapVersion = String(appendStream.bootstrapVersion || "");
+  const resumeMode = String(appendStream.resumeMode || "idle").toLowerCase();
+  const resumeCursor = Math.max(Number(appendStream.resumeCursor || 0), 0);
   const lastAppendId = Number(appendStream.lastAppendId || maxConversationAppendId(conversation) || 0);
   const lastRenderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
   const lastLiveAppendId = Number(appendStream.lastLiveAppendId || 0);
@@ -1637,6 +1639,8 @@ export function renderSessionStrip(dom, currentState, conversation) {
     dom.sessionStrip.dataset.streamState = "offline";
     dom.sessionStrip.dataset.attachMode = "idle";
     dom.sessionStrip.dataset.bootstrapVersion = "";
+    dom.sessionStrip.dataset.resumeMode = "idle";
+    dom.sessionStrip.dataset.resumeCursor = "0";
     dom.sessionStrip.dataset.renderSource = "snapshot";
     dom.sessionStrip.dataset.liveConversationId = "";
     dom.sessionStrip.dataset.lastAppendId = "0";
@@ -1658,6 +1662,8 @@ export function renderSessionStrip(dom, currentState, conversation) {
     dom.threadScroller.dataset.streamState = "offline";
     dom.threadScroller.dataset.attachMode = "idle";
     dom.threadScroller.dataset.bootstrapVersion = "";
+    dom.threadScroller.dataset.resumeMode = "idle";
+    dom.threadScroller.dataset.resumeCursor = "0";
     dom.threadScroller.dataset.renderSource = "snapshot";
     dom.threadScroller.dataset.liveConversationId = "";
     dom.threadScroller.dataset.lastAppendId = "0";
@@ -1721,6 +1727,8 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStrip.dataset.streamState = status;
   dom.sessionStrip.dataset.attachMode = attachMode;
   dom.sessionStrip.dataset.bootstrapVersion = bootstrapVersion;
+  dom.sessionStrip.dataset.resumeMode = resumeMode;
+  dom.sessionStrip.dataset.resumeCursor = String(resumeCursor);
   dom.sessionStrip.dataset.renderSource = lastRenderSource;
   dom.sessionStrip.dataset.liveConversationId = conversationId;
   dom.sessionStrip.dataset.lastAppendId = String(lastAppendId || 0);
@@ -1767,6 +1775,8 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.threadScroller.dataset.streamState = status;
   dom.threadScroller.dataset.attachMode = attachMode;
   dom.threadScroller.dataset.bootstrapVersion = bootstrapVersion;
+  dom.threadScroller.dataset.resumeMode = resumeMode;
+  dom.threadScroller.dataset.resumeCursor = String(resumeCursor);
   dom.threadScroller.dataset.renderSource = lastRenderSource;
   dom.threadScroller.dataset.liveConversationId = conversationId;
   dom.threadScroller.dataset.lastAppendId = String(lastAppendId || 0);

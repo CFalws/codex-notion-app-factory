@@ -60,16 +60,27 @@ def register_routes(app: FastAPI, context: RuntimeApiContext) -> None:
     @app.get("/api/internal/conversations/{conversation_id}/append-stream")
     async def conversation_append_stream(conversation_id: str, request: Request) -> StreamingResponse:
         context.require_conversation(conversation_id)
+        requested_after = request.query_params.get("after", "").strip()
         last_event_id = request.headers.get("last-event-id", "").strip()
         try:
-            after_append_id = int(last_event_id or "0")
+            query_after_append_id = int(requested_after or "0")
         except ValueError:
+            query_after_append_id = 0
+        try:
+            header_after_append_id = int(last_event_id or "0")
+        except ValueError:
+            header_after_append_id = 0
+        after_append_id = max(query_after_append_id, header_after_append_id)
+        if after_append_id < 0:
             after_append_id = 0
 
         async def stream() -> Any:
             queue = context.subscribe_conversation_appends(conversation_id)
             try:
-                bootstrap = context.conversation_session_bootstrap(conversation_id)
+                bootstrap = context.conversation_session_bootstrap(
+                    conversation_id,
+                    requested_after_append_id=after_append_id,
+                )
                 yield b"event: session.bootstrap\n"
                 yield f"data: {json.dumps(bootstrap, ensure_ascii=False)}\n\n".encode()
 

@@ -55,8 +55,13 @@ export function conversationMessagesUrl(conversationId) {
   return `${conversationUrl(conversationId)}/messages`;
 }
 
-export function internalConversationAppendStreamUrl(conversationId) {
-  return `${normalizeBaseUrl()}/api/internal/conversations/${conversationId}/append-stream`;
+export function internalConversationAppendStreamUrl(conversationId, options = {}) {
+  const url = new URL(`${normalizeBaseUrl()}/api/internal/conversations/${conversationId}/append-stream`);
+  const afterAppendId = Number(options.afterAppendId || 0);
+  if (afterAppendId > 0) {
+    url.searchParams.set("after", String(afterAppendId));
+  }
+  return url.toString();
 }
 
 export function proposalsApplyUrl(jobId) {

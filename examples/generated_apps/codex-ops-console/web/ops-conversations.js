@@ -29,6 +29,9 @@ export function createConversationController(deps) {
     renderSessionStrip,
   } = deps;
   const RECENT_THREAD_LIMIT = 4;
+  const RESUME_RETRY_DELAY_MS = 700;
+  const RESUME_BOOTSTRAP_TIMEOUT_MS = 1500;
+  const MAX_RESUME_ATTEMPTS = 3;
 
   function clearPendingOutgoing(conversationId = "") {
     if (conversationId && state.pendingOutgoing?.conversationId !== conversationId) {
@@ -131,19 +134,84 @@ export function createConversationController(deps) {
     state.appendStream.lastLiveAppendId = 0;
     state.appendStream.attachMode = conversationId ? "snapshot-fallback" : "idle";
     state.appendStream.bootstrapVersion = "";
+    state.appendStream.resumeMode = "idle";
+    state.appendStream.resumeCursor = 0;
+    state.appendStream.reconnectAttempt = 0;
+    state.appendStream.reconnectTimerId = 0;
     if (!conversationId) {
       state.appendStream.lastAppendId = 0;
     }
   }
 
-  function closeAppendStream() {
+  function clearAppendReconnectTimer() {
+    const timerId = Number(state.appendStream?.reconnectTimerId || 0);
+    if (timerId && typeof window !== "undefined") {
+      window.clearTimeout(timerId);
+    }
+    if (state.appendStream) {
+      state.appendStream.reconnectTimerId = 0;
+    }
+  }
+
+  function closeAppendStream(options = {}) {
+    const { preserveSelection = false } = options;
+    clearAppendReconnectTimer();
     if (state.appendStream?.source) {
       state.appendStream.source.close();
     }
     state.appendStream.source = null;
+    if (preserveSelection) {
+      return;
+    }
     resetAppendStream("");
     renderSessionStrip(dom, state, state.conversationCache);
     syncConversationCardState();
+  }
+
+  function transitionAppendStreamToFallback(conversationId, reason = "snapshot-fallback") {
+    closeAppendStream({ preserveSelection: true });
+    state.appendStream.conversationId = conversationId;
+    state.appendStream.status = "offline";
+    state.appendStream.transport = "polling";
+    state.appendStream.attachMode = "snapshot-fallback";
+    state.appendStream.resumeMode = "fallback";
+    state.appendStream.resumeCursor = Math.max(Number(state.appendStream.lastAppendId || 0), 0);
+    state.appendStream.reconnectAttempt = 0;
+    state.appendStream.lastRenderSource =
+      reason === "snapshot-fallback"
+        ? String(state.appendStream.lastRenderSource || "snapshot").toLowerCase() === "sse"
+          ? "sse"
+          : "snapshot"
+        : state.appendStream.lastRenderSource || "snapshot";
+    ensurePollingForJob();
+    renderSessionStrip(dom, state, state.conversationCache);
+    syncConversationCardState();
+  }
+
+  function scheduleAppendStreamResume(conversationId, attempt = 1) {
+    if (!conversationId || state.currentConversationId !== conversationId || state.appendStream?.conversationId !== conversationId) {
+      return;
+    }
+    clearAppendReconnectTimer();
+    if (attempt > MAX_RESUME_ATTEMPTS) {
+      transitionAppendStreamToFallback(conversationId, "resume-failed");
+      return;
+    }
+    state.appendStream.status = "reconnecting";
+    state.appendStream.transport = "sse";
+    state.appendStream.attachMode = "sse-resume";
+    state.appendStream.resumeMode = "scheduled";
+    state.appendStream.resumeCursor = Math.max(Number(state.appendStream.lastAppendId || 0), 0);
+    state.appendStream.reconnectAttempt = attempt;
+    renderSessionStrip(dom, state, state.conversationCache);
+    syncConversationCardState();
+    state.appendStream.reconnectTimerId = window.setTimeout(() => {
+      connectAppendStream(conversationId, {
+        resumeFromAppendId: Math.max(Number(state.appendStream.lastAppendId || 0), 0),
+        preserveState: true,
+        reconnectAttempt: attempt,
+      });
+    }, RESUME_RETRY_DELAY_MS);
   }
 
   function syncAppendCursor(conversation) {
@@ -388,10 +456,18 @@ export function createConversationController(deps) {
   }
 
   function connectAppendStream(conversationId, options = {}) {
-    const { awaitBootstrap = false } = options;
-    closeAppendStream();
+    const {
+      awaitBootstrap = false,
+      resumeFromAppendId = 0,
+      preserveState = false,
+      reconnectAttempt = 0,
+    } = options;
+    const resumeCursor = Math.max(Number(resumeFromAppendId || 0), 0);
+    const isResumeAttempt = resumeCursor > 0 || reconnectAttempt > 0;
+    closeAppendStream({ preserveSelection: preserveState });
     if (!conversationId || typeof window === "undefined" || typeof window.EventSource !== "function") {
       state.appendStream.attachMode = "snapshot-fallback";
+      state.appendStream.resumeMode = "fallback";
       return Promise.resolve(null);
     }
 
@@ -413,20 +489,36 @@ export function createConversationController(deps) {
     const bootstrapPromise = new Promise((resolve) => {
       bootstrapResolver = resolve;
     });
-    state.appendStream.source = new window.EventSource(internalConversationAppendStreamUrl(conversationId));
+    state.appendStream.source = new window.EventSource(
+      internalConversationAppendStreamUrl(conversationId, { afterAppendId: resumeCursor }),
+    );
     state.appendStream.conversationId = conversationId;
-    state.appendStream.status = "connecting";
+    state.appendStream.status = isResumeAttempt ? "reconnecting" : "connecting";
     state.appendStream.transport = "sse";
-    state.appendStream.lastRenderSource = "snapshot";
-    state.appendStream.attachMode = "awaiting-bootstrap";
-    state.appendStream.bootstrapVersion = "";
+    state.appendStream.lastRenderSource = preserveState
+      ? String(state.appendStream.lastRenderSource || "sse")
+      : "snapshot";
+    state.appendStream.attachMode = isResumeAttempt ? "sse-resume" : "awaiting-bootstrap";
+    state.appendStream.resumeMode = isResumeAttempt ? "resuming" : "bootstrap";
+    state.appendStream.resumeCursor = resumeCursor;
+    state.appendStream.reconnectAttempt = reconnectAttempt;
+    if (!preserveState) {
+      state.appendStream.bootstrapVersion = "";
+    }
     renderSessionStrip(dom, state, state.conversationCache);
     syncConversationCardState();
-    if (awaitBootstrap) {
+    if (awaitBootstrap || isResumeAttempt) {
       bootstrapTimeoutId = window.setTimeout(() => {
+        if (isResumeAttempt) {
+          closeAppendStream({ preserveSelection: true });
+          settle(null);
+          scheduleAppendStreamResume(conversationId, reconnectAttempt + 1);
+          return;
+        }
         state.appendStream.attachMode = "snapshot-fallback";
+        state.appendStream.resumeMode = "fallback";
         settle(null);
-      }, 1500);
+      }, RESUME_BOOTSTRAP_TIMEOUT_MS);
     }
 
     state.appendStream.source.addEventListener("open", () => {
@@ -434,8 +526,8 @@ export function createConversationController(deps) {
         return;
       }
       openedOnce = true;
-      state.appendStream.status = "live";
       stopPolling();
+      state.appendStream.status = bootstrapPayload || (!awaitBootstrap && !isResumeAttempt) ? "live" : isResumeAttempt ? "reconnecting" : "connecting";
       renderSessionStrip(dom, state, state.conversationCache);
       syncConversationCardState();
     });
@@ -454,14 +546,19 @@ export function createConversationController(deps) {
           Number(state.appendStream.lastAppendId || 0),
           Number(payload.append_cursor || 0),
         );
+        state.appendStream.status = "live";
         state.appendStream.lastRenderSource = "sse";
-        state.appendStream.attachMode = String(payload.attach_mode || "sse-bootstrap");
+        state.appendStream.attachMode = String(payload.attach_mode || (isResumeAttempt ? "sse-resume" : "sse-bootstrap"));
         state.appendStream.bootstrapVersion = String(payload.version || "");
+        state.appendStream.resumeMode = isResumeAttempt ? "resumed" : "bootstrap";
+        state.appendStream.resumeCursor = Math.max(Number(payload.resume_from_append_id || resumeCursor || 0), 0);
+        state.appendStream.reconnectAttempt = reconnectAttempt;
         renderSessionStrip(dom, state, state.conversationCache);
         syncConversationCardState();
         settle(payload);
       } catch (_) {
         state.appendStream.attachMode = "snapshot-fallback";
+        state.appendStream.resumeMode = "fallback";
         settle(null);
       }
     });
@@ -484,14 +581,19 @@ export function createConversationController(deps) {
       }
       if (!openedOnce || (awaitBootstrap && !bootstrapPayload)) {
         state.appendStream.attachMode = "snapshot-fallback";
+        state.appendStream.resumeMode = "fallback";
         settle(null);
-        closeAppendStream();
+        closeAppendStream({ preserveSelection: true });
         ensurePollingForJob();
         return;
       }
       state.appendStream.status = "reconnecting";
-      state.appendStream.attachMode = "snapshot-fallback";
-      ensurePollingForJob();
+      state.appendStream.transport = "sse";
+      state.appendStream.attachMode = "sse-resume";
+      state.appendStream.resumeMode = "awaiting-resume";
+      state.appendStream.resumeCursor = Math.max(Number(state.appendStream.lastAppendId || 0), 0);
+      closeAppendStream({ preserveSelection: true });
+      scheduleAppendStreamResume(conversationId, Math.max(reconnectAttempt, 0) + 1);
       renderSessionStrip(dom, state, state.conversationCache);
       syncConversationCardState();
     });
@@ -1357,10 +1459,15 @@ export function createConversationController(deps) {
       bootstrap && String(bootstrap.attach_mode || "") === "sse-bootstrap"
         ? "sse-bootstrap"
         : state.appendStream.attachMode || "snapshot-fallback";
+    state.appendStream.resumeMode =
+      bootstrap && String(bootstrap.attach_mode || "") === "sse-bootstrap"
+        ? "bootstrap"
+        : state.appendStream.resumeMode || "fallback";
     state.appendStream.bootstrapVersion =
       bootstrap && bootstrap.version !== undefined
         ? String(bootstrap.version)
         : state.appendStream.bootstrapVersion || "";
+    state.appendStream.resumeCursor = Math.max(Number(bootstrap?.resume_from_append_id || 0), 0);
     restoreDraft();
     syncDraftStatus();
 

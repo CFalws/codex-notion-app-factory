@@ -38,6 +38,10 @@ export const state = {
     lastLiveAppendId: 0,
     attachMode: "idle",
     bootstrapVersion: "",
+    resumeMode: "idle",
+    resumeCursor: 0,
+    reconnectAttempt: 0,
+    reconnectTimerId: 0,
   },
   liveFollow: {
     conversationId: "",

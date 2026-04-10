@@ -974,9 +974,30 @@ def verify_conversation_append_stream(client: TestClient) -> None:
         require(any(line == "event: session.bootstrap" for line in lines), "append stream should emit session.bootstrap before append events")
         data_lines = [line.split(":", 1)[1].lstrip() for line in lines if line.startswith("data:")]
         bootstrap = json.loads("\n".join(data_lines))
-        require(bootstrap.get("version") == 1, f"session bootstrap should be versioned: {bootstrap}")
+        require(bootstrap.get("version") == 2, f"session bootstrap should be versioned: {bootstrap}")
         require(bootstrap.get("attach_mode") == "sse-bootstrap", f"session bootstrap should mark sse attach mode: {bootstrap}")
+        require(int(bootstrap.get("resume_from_append_id") or 0) == 0, f"initial bootstrap should not resume from append id: {bootstrap}")
         require(bootstrap.get("conversation", {}).get("conversation_id") == conversation_id, "session bootstrap should hydrate the selected conversation")
+
+    with client.stream(
+        "GET",
+        f"/api/internal/conversations/{conversation_id}/append-stream?after=3",
+        headers=DEFAULT_HEADERS,
+    ) as response:
+        require(response.status_code == 200, f"append stream resume request failed: {response.text}")
+        lines = []
+        for raw_line in response.iter_lines():
+            if raw_line is None:
+                continue
+            line = raw_line.decode("utf-8") if isinstance(raw_line, bytes) else raw_line
+            lines.append(line)
+            if line == "":
+                break
+        data_lines = [line.split(":", 1)[1].lstrip() for line in lines if line.startswith("data:")]
+        bootstrap = json.loads("\n".join(data_lines))
+        require(bootstrap.get("version") == 2, f"resume bootstrap should keep versioned contract: {bootstrap}")
+        require(bootstrap.get("attach_mode") == "sse-resume", f"resume bootstrap should mark sse resume mode: {bootstrap}")
+        require(int(bootstrap.get("resume_from_append_id") or 0) == 3, f"resume bootstrap should echo requested append cursor: {bootstrap}")
 
 
 def main() -> None:
