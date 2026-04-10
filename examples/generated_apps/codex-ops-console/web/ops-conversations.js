@@ -671,6 +671,7 @@ export function createConversationController(deps) {
     const summaryLiveSource = String(dom.sessionSummaryRow?.dataset.liveSessionSource || "none");
     const summaryLiveState = String(dom.sessionSummaryRow?.dataset.liveSessionState || "idle");
     const summaryLiveReason = String(dom.sessionSummaryRow?.dataset.liveSessionReason || "idle");
+    const summaryStateLabel = String(dom.sessionSummaryState?.textContent || "").trim().toUpperCase();
     const sessionIndicatorLabel = String(dom.sessionLiveIndicator?.textContent || "").trim().toUpperCase();
     const healthySelectedSessionMirror =
       Boolean(selectedConversationId) &&
@@ -684,7 +685,7 @@ export function createConversationController(deps) {
     let conversationId = "";
     let rowState = "idle";
     let ownerLabel = "OWNER";
-    let stateLabel = "SSE OWNER";
+    let stateLabel = summaryStateLabel || "LIVE";
     let followLabel = "LIVE";
     let title = "";
     let meta = "";
@@ -697,18 +698,22 @@ export function createConversationController(deps) {
       visible = true;
       conversationId = selectedConversationId;
       rowState = summaryLiveState === "paused" ? "paused" : "live";
-      followLabel = summaryLiveState === "paused" ? "PAUSED" : "LIVE";
+      stateLabel = summaryStateLabel || liveRunPhase || "LIVE";
+      followLabel = jumpVisible ? "NEW" : summaryLiveState === "paused" ? "PAUSED" : "LIVE";
       rowOwned = true;
       rowSource = summaryLiveSource;
       rowPhase = stateLabel;
+      rowUnseenCount = jumpVisible ? Math.max(Number(unseenCount || 0), 0) : 0;
       title =
         threadTitleForConversation(selectedConversationId) ||
         String(dom.threadTitle?.textContent || "").trim() ||
         "현재 대화";
       meta =
-        summaryLiveReason === "selected-thread-follow-paused"
-          ? "selected thread · follow paused"
-          : "selected thread · sse owner";
+        jumpVisible && rowUnseenCount > 0
+          ? `selected thread · ${stateLabel.toLowerCase()} · ${rowUnseenCount} new`
+          : summaryLiveReason === "selected-thread-follow-paused"
+            ? `selected thread · ${stateLabel.toLowerCase()} · follow paused`
+            : `selected thread · ${stateLabel.toLowerCase()} · sse owner`;
     }
 
     dom.activeSessionRow.hidden = !visible;

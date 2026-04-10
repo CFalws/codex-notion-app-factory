@@ -336,8 +336,10 @@ def assert_browser_runtime_surface(
                     !activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "true" &&
                     activeSessionRow.dataset.activeSessionSource === "sse" &&
-                    activeSessionRow.dataset.activeSessionState === "live" &&
-                    activeSessionRow.dataset.activeSessionPhase === "SSE OWNER" &&
+                    ["live", "paused"].includes(activeSessionRow.dataset.activeSessionState || "") &&
+                    ["PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED"].includes(activeSessionRow.dataset.activeSessionPhase || "") &&
+                    ["live", "paused", "new"].includes(activeSessionRow.dataset.activeSessionFollow || "") &&
+                    activeSessionRow.textContent.includes("OWNER") &&
                     sessionStrip &&
                     !sessionStrip.hidden &&
                     sessionStrip.dataset.composerState === "ready" &&
@@ -752,16 +754,20 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, 'const summaryLiveOwned = String(dom.sessionSummaryRow?.dataset.liveSessionOwned || "false") === "true";', label="active session canonical ownership source")
     require(conversations_js, 'const summaryLiveSource = String(dom.sessionSummaryRow?.dataset.liveSessionSource || "none");', label="active session canonical source dataset")
     require(conversations_js, 'const summaryLiveState = String(dom.sessionSummaryRow?.dataset.liveSessionState || "idle");', label="active session canonical state dataset")
+    require(conversations_js, 'const summaryStateLabel = String(dom.sessionSummaryState?.textContent || "").trim().toUpperCase();', label="active session canonical phase label source")
     require(conversations_js, 'const sessionIndicatorLabel = String(dom.sessionLiveIndicator?.textContent || "").trim().toUpperCase();', label="active session canonical label source")
     require(conversations_js, 'const healthySelectedSessionMirror =', label="active session healthy mirror gate")
     require(conversations_js, 'summaryLiveSource === "sse"', label="active session healthy sse source gate")
     require(conversations_js, 'sessionIndicatorLabel === "SSE OWNER"', label="active session healthy label gate")
+    require(conversations_js, 'stateLabel = summaryStateLabel || liveRunPhase || "LIVE";', label="active session mirrored phase label")
     require(conversations_js, 'rowState = summaryLiveState === "paused" ? "paused" : "live";', label="active session mirrored state mapping")
-    require(conversations_js, 'followLabel = summaryLiveState === "paused" ? "PAUSED" : "LIVE";', label="active session mirrored follow mapping")
+    require(conversations_js, 'followLabel = jumpVisible ? "NEW" : summaryLiveState === "paused" ? "PAUSED" : "LIVE";', label="active session mirrored follow mapping")
     require(conversations_js, 'rowSource = summaryLiveSource;', label="active session mirrored source")
     require(conversations_js, 'rowPhase = stateLabel;', label="active session mirrored phase")
-    require(conversations_js, '"selected thread · sse owner"', label="active session healthy meta copy")
-    require(conversations_js, '"selected thread · follow paused"', label="active session paused meta copy")
+    require(conversations_js, 'rowUnseenCount = jumpVisible ? Math.max(Number(unseenCount || 0), 0) : 0;', label="active session unseen count mirror")
+    require(conversations_js, '`selected thread · ${stateLabel.toLowerCase()} · ${rowUnseenCount} new`', label="active session unseen meta copy")
+    require(conversations_js, '`selected thread · ${stateLabel.toLowerCase()} · follow paused`', label="active session paused meta copy")
+    require(conversations_js, '`selected thread · ${stateLabel.toLowerCase()} · sse owner`', label="active session healthy meta copy")
     require_absent(conversations_js, 'rowSource = "thread-transition";', label="legacy active session switching source")
     require_absent(conversations_js, 'selected-thread-handoff', label="legacy active session handoff source")
     require(conversations_js, "syncSelectedSessionFromLiveAppend", label="selected-thread live append sync helper")
