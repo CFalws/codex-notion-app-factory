@@ -7,6 +7,7 @@ import subprocess
 import sys
 import threading
 import time
+from importlib import import_module
 from typing import Any
 from urllib import parse, request
 
@@ -47,6 +48,16 @@ def require(content: str, needle: str, *, label: str) -> None:
 def require_absent(content: str, needle: str, *, label: str) -> None:
     if needle in content:
         raise RuntimeError(f"unexpected {label}: {needle}")
+
+
+def load_playwright() -> tuple[Any, Any]:
+    try:
+        playwright = import_module("playwright.sync_api")
+    except ImportError as exc:
+        raise RuntimeError(
+            "browser runtime verification requires the Python playwright package and installed browser binaries"
+        ) from exc
+    return playwright.sync_playwright, playwright.TimeoutError
 
 
 class SSERecorder:
@@ -118,6 +129,240 @@ class SSERecorder:
                 continue
             if line.startswith("data:"):
                 data_lines.append(line.split(":", 1)[1].lstrip())
+
+
+def browser_snapshot_script() -> str:
+    return """
+() => {
+  const summary = document.querySelector("#session-summary-row");
+  const healthyBlock = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-block-owner="selected-thread"]');
+  const degradedBlock = document.querySelector('.session-inline-block[data-selected-thread-degraded-block="true"][data-live-block-owner="selected-thread"]');
+  const follow = document.querySelector("#jump-to-latest");
+  const composerDock = document.querySelector("#conversation-footer-dock");
+  const composerOwnerRow = document.querySelector("#composer-owner-row");
+  const sendRequest = document.querySelector("#send-request");
+  const transition = document.querySelector('[data-thread-transition="loading"]');
+  return {
+    summary: summary ? {
+      hidden: !!summary.hidden,
+      dataset: { ...summary.dataset },
+      text: (summary.textContent || "").trim(),
+    } : null,
+    healthyBlock: healthyBlock ? {
+      dataset: { ...healthyBlock.dataset },
+      text: (healthyBlock.textContent || "").trim(),
+    } : null,
+    degradedBlock: degradedBlock ? {
+      dataset: { ...degradedBlock.dataset },
+      text: (degradedBlock.textContent || "").trim(),
+    } : null,
+    follow: follow ? {
+      hidden: !!follow.hidden,
+      dataset: { ...follow.dataset },
+      text: (follow.textContent || "").trim(),
+    } : null,
+    composerDock: composerDock ? {
+      dataset: { ...composerDock.dataset },
+      position: getComputedStyle(composerDock).position,
+    } : null,
+    composerOwnerRow: composerOwnerRow ? {
+      dataset: { ...composerOwnerRow.dataset },
+      text: (composerOwnerRow.textContent || "").trim(),
+    } : null,
+    sendRequest: sendRequest ? {
+      dataset: { ...sendRequest.dataset },
+      text: (sendRequest.textContent || "").trim(),
+      disabled: !!sendRequest.disabled,
+    } : null,
+    transition: transition ? {
+      dataset: { ...transition.dataset },
+      text: (transition.textContent || "").trim(),
+    } : null,
+  };
+}
+"""
+
+
+def assert_browser_runtime_surface(
+    *,
+    base_url: str,
+    ops_url: str,
+    api_key: str,
+    app_id: str,
+    conversation_id: str,
+    switch_conversation_id: str,
+    request_text: str,
+    source: str,
+) -> dict[str, Any]:
+    sync_playwright, playwright_timeout = load_playwright()
+
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        context = browser.new_context(
+            viewport={"width": 1440, "height": 960},
+            extra_http_headers={"X-API-Key": api_key} if api_key else {},
+        )
+        context.add_init_script(
+            """
+(() => {
+  const NativeEventSource = window.EventSource;
+  if (!NativeEventSource) {
+    return;
+  }
+  window.__verifyForceDegrade = false;
+  window.__verifyDegraded = false;
+  window.EventSource = class VerifyEventSource extends NativeEventSource {
+    constructor(...args) {
+      super(...args);
+      this.addEventListener("conversation.append", () => {
+        if (!window.__verifyForceDegrade || window.__verifyDegraded) {
+          return;
+        }
+        window.__verifyDegraded = true;
+        try {
+          this.close();
+          this.dispatchEvent(new Event("error"));
+        } catch (_) {
+          // Let the app fallback path recover.
+        }
+      });
+    }
+  };
+})();
+"""
+        )
+        page = context.new_page()
+        try:
+            page.goto(ops_url, wait_until="domcontentloaded", timeout=30000)
+            page.wait_for_selector("#app-select", timeout=30000)
+            page.select_option("#app-select", app_id)
+            page.wait_for_function(
+                """([primaryId, switchId]) => {
+                  return Boolean(
+                    document.querySelector(`[data-conversation-id="${primaryId}"]`) &&
+                    document.querySelector(`[data-conversation-id="${switchId}"]`)
+                  );
+                }""",
+                [conversation_id, switch_conversation_id],
+                timeout=30000,
+            )
+            page.click(f'[data-conversation-id="{conversation_id}"]')
+            page.wait_for_function(
+                """conversationId => {
+                  const summary = document.querySelector("#session-summary-row");
+                  const sendRequest = document.querySelector("#send-request");
+                  const composerDock = document.querySelector("#conversation-footer-dock");
+                  return Boolean(
+                    summary &&
+                    sendRequest &&
+                    composerDock &&
+                    ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
+                    document.querySelector(`[data-conversation-id="${conversationId}"]`)
+                  );
+                }""",
+                conversation_id,
+                timeout=30000,
+            )
+
+            page.fill("#request-text", request_text)
+            page.click("#send-request")
+
+            deadline = time.monotonic() + 60
+            job_id = ""
+            while time.monotonic() < deadline:
+                payload = http_json("GET", f"{base_url}/api/conversations/{conversation_id}", api_key=api_key)
+                job_id = str(payload.get("latest_job_id", "") or "")
+                if job_id:
+                    break
+                time.sleep(1)
+            if not job_id:
+                raise RuntimeError("browser runtime verifier could not observe latest_job_id after composer submit")
+
+            page.wait_for_function(
+                """conversationId => {
+                  const block = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-owned="true"]');
+                  const summary = document.querySelector("#session-summary-row");
+                  const composerDock = document.querySelector("#conversation-footer-dock");
+                  const sendRequest = document.querySelector("#send-request");
+                  const follow = document.querySelector("#jump-to-latest");
+                  return Boolean(
+                    block &&
+                    block.dataset.liveBlockOwner === "selected-thread" &&
+                    block.dataset.liveBlockSource === "sse" &&
+                    block.dataset.liveBlockPhase &&
+                    block.dataset.liveBlockPhase !== "IDLE" &&
+                    summary &&
+                    summary.dataset.liveSessionOwned === "true" &&
+                    composerDock &&
+                    ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
+                    sendRequest &&
+                    sendRequest.dataset.composerOwnerState &&
+                    follow &&
+                    follow.dataset.followOwned !== undefined
+                  );
+                }""",
+                conversation_id,
+                timeout=120000,
+            )
+            healthy_snapshot = page.evaluate(browser_snapshot_script())
+
+            page.evaluate("() => { window.__verifyForceDegrade = true; }")
+            page.wait_for_function(
+                """() => {
+                  const degraded = document.querySelector('.session-inline-block[data-selected-thread-degraded-block="true"][data-live-owned="false"]');
+                  const healthy = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-owned="true"]');
+                  const summary = document.querySelector("#session-summary-row");
+                  const follow = document.querySelector("#jump-to-latest");
+                  if (!degraded || healthy || !summary || !follow) {
+                    return false;
+                  }
+                  const reason = degraded.dataset.liveBlockReason || "";
+                  const phase = degraded.dataset.liveBlockPhase || "";
+                  return (
+                    ["retrying", "reconnecting", "polling-fallback", "session-rotation"].includes(reason) &&
+                    ["RECONNECT", "POLLING"].includes(phase) &&
+                    summary.dataset.liveSessionOwned === "false" &&
+                    follow.dataset.followOwned !== "selected-thread"
+                  );
+                }""",
+                timeout=120000,
+            )
+            degraded_snapshot = page.evaluate(browser_snapshot_script())
+
+            page.click(f'[data-conversation-id="{switch_conversation_id}"]')
+            page.wait_for_function(
+                """targetConversationId => {
+                  const transition = document.querySelector('[data-thread-transition="loading"]');
+                  const summary = document.querySelector("#session-summary-row");
+                  const sendRequest = document.querySelector("#send-request");
+                  const healthy = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-owned="true"]');
+                  const degraded = document.querySelector('.session-inline-block[data-selected-thread-degraded-block="true"]');
+                  return Boolean(
+                    transition &&
+                    transition.dataset.threadTransitionConversationId === targetConversationId &&
+                    summary &&
+                    summary.dataset.summaryPath === "switching" &&
+                    sendRequest &&
+                    sendRequest.dataset.composerOwnerState === "switching" &&
+                    !healthy &&
+                    !degraded
+                  );
+                }""",
+                switch_conversation_id,
+                timeout=30000,
+            )
+            switch_snapshot = page.evaluate(browser_snapshot_script())
+            return {
+                "job_id": job_id,
+                "healthy": healthy_snapshot,
+                "degraded": degraded_snapshot,
+                "switch": switch_snapshot,
+            }
+        except playwright_timeout as exc:
+            raise RuntimeError(f"browser runtime verification timed out: {exc}") from exc
+        finally:
+            context.close()
+            browser.close()
 
 
 def wait_for_job(base_url: str, job_id: str, api_key: str, *, timeout_seconds: float = 420.0) -> dict[str, Any]:
@@ -469,6 +714,7 @@ def main() -> int:
     api_key = os.environ.get("API_KEY", os.environ.get("CODEX_FACTORY_API_KEY", "")).strip()
     request_text = os.environ.get("VERIFY_REQUEST_TEXT", DEFAULT_REQUEST_TEXT).strip() or DEFAULT_REQUEST_TEXT
     source = os.environ.get("VERIFY_SOURCE", "verify-deployed-workspace-gate").strip() or "verify-deployed-workspace-gate"
+    verify_browser_runtime = os.environ.get("VERIFY_BROWSER_RUNTIME", "1").strip().lower() not in {"0", "false", "no"}
 
     assert_console_contract(ops_url, api_key)
 
@@ -486,6 +732,13 @@ def main() -> int:
         api_key=api_key,
     )
     conversation_id = str(conversation["conversation_id"])
+    switch_conversation = http_json(
+        "POST",
+        f"{base_url}/api/conversations",
+        {"app_id": app_id, "source": f"{source}-switch-target"},
+        api_key=api_key,
+    )
+    switch_conversation_id = str(switch_conversation["conversation_id"])
 
     recorder = SSERecorder(
         f"{base_url}/api/internal/conversations/{conversation_id}/append-stream",
@@ -495,13 +748,24 @@ def main() -> int:
     recorder.start()
     time.sleep(1)
 
-    message_response = http_json(
-        "POST",
-        f"{base_url}/api/conversations/{conversation_id}/messages",
-        {"message_text": request_text, "source": source},
-        api_key=api_key,
+    browser_runtime = (
+        assert_browser_runtime_surface(
+            base_url=base_url,
+            ops_url=ops_url,
+            api_key=api_key,
+            app_id=app_id,
+            conversation_id=conversation_id,
+            switch_conversation_id=switch_conversation_id,
+            request_text=request_text,
+            source=source,
+        )
+        if verify_browser_runtime
+        else None
     )
-    job_id = str(message_response["job"]["job_id"])
+    if not browser_runtime:
+        raise RuntimeError("browser runtime verification is required for the deployed workspace gate")
+
+    job_id = str(browser_runtime["job_id"])
     job = wait_for_job(base_url, job_id, api_key)
 
     time.sleep(2)
@@ -523,10 +787,12 @@ def main() -> int:
                 "workspace_gate": "ok",
                 "app_id": app_id,
                 "conversation_id": conversation_id,
+                "switch_conversation_id": switch_conversation_id,
                 "job_id": job_id,
                 "job_status": job.get("status"),
                 "sse_phase_events": captured_types,
                 "terminal_event": terminal_event,
+                "browser_runtime": "ok",
                 "ops_url": ops_url,
             },
             ensure_ascii=False,
