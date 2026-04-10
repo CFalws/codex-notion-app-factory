@@ -8,7 +8,7 @@
 
 ## Problem
 
-The healthy selected-thread SSE path is already conversation-first, but intentional thread switching still needs stronger intended-path proof to show that the workspace stays mounted, clears stale ownership immediately, and uses the dedicated transition placeholder instead of falling through to generic empty-state behavior.
+The healthy selected-thread SSE path already owns the session workspace, but the header badge and composer-adjacent strip still rely on generic running wording in places where the exact autonomy phase is already known. That leaves a small but real inference gap: the operator can tell the session is live, but still has to inspect deeper surfaces to know whether the system is proposing, reviewing, verifying, auto-applying, ready, or applied.
 
 ## Target User
 
@@ -18,11 +18,11 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the existing selected-thread ownership, thread-transition, header summary, and composer-owner contracts instead of adding a new backend or transport path.
-- Keep the change bounded to intentional selected-thread switch continuity and its verification contract.
-- Keep the center workspace mounted during switch: no generic empty-state flash unless there is truly no selected conversation.
-- Clear old-thread live ownership immediately in header, rail, transcript, and composer while making degraded fallback remain explicit rather than looking healthy.
+- Reuse the existing selected-thread ownership, liveRun, session-summary, and composer-strip contracts instead of adding a new backend or transport path.
+- Keep the change bounded to healthy selected-thread phase presentation in the header and composer-adjacent strip.
+- Keep the healthy path chip-first and conversation-first: exact phase labels should appear on the existing surfaces without creating a new panel or new polling authority.
+- Keep degraded reconnect, polling fallback, ownership loss, and switch states visibly non-owned so they cannot look like healthy live progression.
 
 ## Deliverable
 
-Define and verify one selected-thread switch path where the center workspace stays mounted, the dedicated transition placeholder owns the gap until the new snapshot attaches, the header live indicator clears immediately, and the composer remains docked with an explicit `SWITCHING` target state.
+Define and verify one healthy selected-thread SSE path where the header and composer-adjacent strip show explicit PROPOSAL, REVIEW, VERIFY, AUTO APPLY, READY, and APPLIED progression with concise detail copy, while degraded states remain clearly non-owned.

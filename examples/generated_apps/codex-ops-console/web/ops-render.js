@@ -81,6 +81,18 @@ function headerPhaseSource(liveRun) {
   return String(liveRun.source || "none").toLowerCase();
 }
 
+function phaseDetailCopy(liveRun) {
+  const detail = simplifyText(liveRun?.detail || "");
+  if (detail) {
+    return detail;
+  }
+  return phaseDetailHint(liveRun);
+}
+
+function compactPhaseDetailCopy(liveRun, fallback = "SESSION ACTIVE") {
+  return compactTargetLabel(phaseDetailCopy(liveRun), fallback);
+}
+
 export function updateHeroState(
   dom,
   {
@@ -107,6 +119,8 @@ export function updateHeroState(
     dom.threadPhaseChip.dataset.tone = phaseTone;
     dom.threadPhaseChip.dataset.threadPhase = phaseLabel;
     dom.threadPhaseChip.dataset.threadPhaseSource = phaseSource;
+    dom.threadPhaseChip.dataset.threadPhaseDetail = liveRun?.visible ? phaseDetailCopy(liveRun) : "idle";
+    dom.threadPhaseChip.title = liveRun?.visible ? phaseDetailCopy(liveRun) : "현재 활성 세션이 없습니다.";
   }
 }
 
@@ -347,9 +361,7 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
         ? liveRun?.jobId
           ? `SSE OWNER · ${liveRun.jobId}`
           : summaryHint("SSE OWNER", "FOLLOW PAUSED")
-        : liveRun?.jobId
-          ? `SSE OWNER · ${liveRun.jobId}`
-          : summaryHint("SSE OWNER", "LIVE");
+        : `SSE OWNER · ${compactPhaseDetailCopy(liveRun, stateLabel)}`;
   }
 
   dom.sessionSummaryRow.dataset.summaryPath = pathLabel.toLowerCase();
@@ -1493,7 +1505,7 @@ function composerActionHint(status, presentation, liveRun) {
 function threadMetaSummary(conversation, liveRun, messageCount, eventCount) {
   const parts = [conversation.updated_at ? new Date(conversation.updated_at).toLocaleString() : ""];
   if (liveRun?.visible && liveRun.phase && liveRun.phase !== "IDLE") {
-    parts.push(phaseDetailHint(liveRun));
+    parts.push(phaseDetailCopy(liveRun));
     return parts.filter(Boolean).join(" · ");
   }
   parts.push(`${messageCount} messages`);
@@ -1668,9 +1680,12 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStripState.innerHTML = [
     `<span class="session-chip" data-tone="${escapeHtml(ownerState.tone)}">${escapeHtml(ownerState.label)}</span>`,
     `<span class="session-chip" data-tone="${escapeHtml(transportState.tone)}">${escapeHtml(transportState.label)}</span>`,
+    ...(liveOwned && liveRun.phase && liveRun.phase !== "IDLE"
+      ? [`<span class="session-chip" data-tone="${escapeHtml(phaseChip(liveRun).tone)}">${escapeHtml(phaseChip(liveRun).label)}</span>`]
+      : []),
   ].join("");
   dom.sessionStripMeta.textContent = ownerState.target;
-  dom.sessionStripDetail.textContent = ownerState.copy;
+  dom.sessionStripDetail.textContent = liveOwned ? compactPhaseDetailCopy(liveRun, ownerState.copy) : ownerState.copy;
   if (dom.sessionStripToggle) {
     dom.sessionStripToggle.hidden = true;
     dom.sessionStripToggle.textContent = "세부 보기";

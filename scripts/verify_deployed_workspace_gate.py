@@ -307,8 +307,11 @@ def assert_browser_runtime_surface(
                 """conversationId => {
                   const liveActivity = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
                   const summary = document.querySelector("#session-summary-row");
+                  const threadPhase = document.querySelector("#thread-phase-chip");
                   const activeSessionRow = document.querySelector("#active-session-row");
                   const sessionStrip = document.querySelector("#session-strip");
+                  const sessionStripState = document.querySelector("#session-strip-state");
+                  const sessionStripDetail = document.querySelector("#session-strip-detail");
                   const composerDock = document.querySelector("#conversation-footer-dock");
                   const sendRequest = document.querySelector("#send-request");
                   const follow = document.querySelector("#jump-to-latest");
@@ -319,6 +322,10 @@ def assert_browser_runtime_surface(
                     liveActivity.dataset.liveRunPhase !== "IDLE" &&
                     summary &&
                     summary.dataset.liveSessionOwned === "true" &&
+                    threadPhase &&
+                    ["PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED"].includes(threadPhase.dataset.threadPhase || "") &&
+                    threadPhase.dataset.threadPhaseDetail &&
+                    threadPhase.dataset.threadPhaseDetail !== "idle" &&
                     activeSessionRow &&
                     !activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "true" &&
@@ -331,6 +338,10 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.composerTransport === "sse-owner" &&
                     sessionStrip.dataset.composerTransportSource === "sse" &&
                     sessionStrip.dataset.composerTransportOwned === "true" &&
+                    sessionStripState &&
+                    ["PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED"].some(label => sessionStripState.textContent.includes(label)) &&
+                    sessionStripDetail &&
+                    sessionStripDetail.textContent.trim().length > 0 &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     sendRequest &&
@@ -616,6 +627,10 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'label: "SSE OWNER"', label="live-session healthy ownership label")
     require(render_js, 'label: "RECONNECT"', label="live-session reconnect label")
     require(render_js, 'label: "POLLING"', label="live-session polling label")
+    require(render_js, "phaseDetailCopy", label="phase detail copy helper")
+    require(render_js, "compactPhaseDetailCopy", label="compact phase detail copy helper")
+    require(render_js, 'dom.threadPhaseChip.dataset.threadPhaseDetail = liveRun?.visible ? phaseDetailCopy(liveRun) : "idle";', label="thread phase detail dataset")
+    require(render_js, 'dom.threadPhaseChip.title = liveRun?.visible ? phaseDetailCopy(liveRun) : "현재 활성 세션이 없습니다.";', label="thread phase detail title")
     require(render_js, 'type === "codex.exec.retrying"', label="live-session retry degradation mapping")
     require(render_js, "selectedThreadSseOwned", label="selected-thread SSE handoff guard")
     require(render_js, 'const handoffVisible = handoffState.stage === "pending-assistant" && selectedThreadSseOwned;', label="inline handoff visibility guard")
@@ -628,7 +643,10 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.sessionStrip.dataset.sessionOwner = liveOwned ? "selected-thread" : "none";', label="composer strip selected-thread owner dataset")
     require(render_js, 'dom.sessionStrip.dataset.followState = transportState.owned ? "owned" : "idle";', label="composer strip follow-state dataset")
     require(render_js, 'dom.sessionStripMeta.textContent = ownerState.target;', label="composer strip target copy")
-    require(render_js, 'dom.sessionStripDetail.textContent = ownerState.copy;', label="composer strip owner detail copy")
+    require(render_js, 'liveOwned && liveRun.phase && liveRun.phase !== "IDLE"', label="composer strip live phase chip guard")
+    require(render_js, 'phaseChip(liveRun).tone', label="composer strip live phase chip tone")
+    require(render_js, 'phaseChip(liveRun).label', label="composer strip live phase chip label")
+    require(render_js, 'dom.sessionStripDetail.textContent = liveOwned ? compactPhaseDetailCopy(liveRun, ownerState.copy) : ownerState.copy;', label="composer strip live phase detail copy")
     require(render_js, 'return { label: "ACCEPTED", tone: "neutral" };', label="accepted handoff chip")
     require(render_js, '"RECONNECT"', label="reconnecting provenance label")
     require(render_js, '"OPEN"', label="connecting provenance label")
