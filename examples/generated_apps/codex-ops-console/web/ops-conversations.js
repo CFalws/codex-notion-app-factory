@@ -454,6 +454,32 @@ export function createConversationController(deps) {
     return "PAUSED";
   }
 
+  function liveOwnerState({ pendingStage = "", presentation = "", isFollowing = false, jumpVisible = false } = {}) {
+    if (pendingStage === "pending-user" || pendingStage === "pending-assistant") {
+      return "handoff";
+    }
+    if (jumpVisible) {
+      return "new";
+    }
+    if (presentation === "reconnecting" || !isFollowing) {
+      return "paused";
+    }
+    return "live";
+  }
+
+  function liveOwnerMarkerLabel(liveState = "") {
+    if (liveState === "handoff") {
+      return "HANDOFF";
+    }
+    if (liveState === "new") {
+      return "NEW";
+    }
+    if (liveState === "paused") {
+      return "PAUSED";
+    }
+    return "LIVE";
+  }
+
   function truncatePreview(value, maxLength = 88) {
     const text = simplifyPreviewText(value);
     if (text.length <= maxLength) {
@@ -523,6 +549,7 @@ export function createConversationController(deps) {
     const presentation = String(dom.threadScroller?.dataset.sessionPresentation || "cleared");
     const liveRunState = String(dom.threadScroller?.dataset.liveRunState || "done");
     const liveRunPhase = String(dom.threadScroller?.dataset.liveRunPhase || "");
+    const renderSource = String(dom.threadScroller?.dataset.renderSource || "snapshot");
     const pendingStage = String(dom.threadScroller?.dataset.pendingHandoffStage || "idle");
     const sessionTerminal = String(dom.threadScroller?.dataset.sessionTerminal || "false") === "true";
     const liveFollow = state.liveFollow || {};
@@ -533,11 +560,13 @@ export function createConversationController(deps) {
     let liveThreadState = "";
     let liveDetail = "";
     let liveFollowLabel = "";
+    let liveOwnerStateLabel = "";
     let showLiveMirror = false;
+    const selectedThreadSseOwned = selectedConversationId && selectedConversationId === liveConversationId && renderSource === "sse";
     const hasSelectedThreadState =
       selectedConversationId &&
       !sessionTerminal &&
-      (pendingStage === "pending-user" || pendingStage === "pending-assistant" || selectedConversationId === liveConversationId);
+      (pendingStage === "pending-user" || pendingStage === "pending-assistant" || selectedThreadSseOwned);
     if (hasSelectedThreadState) {
       liveThreadState =
         pendingStage === "pending-user" || pendingStage === "pending-assistant"
@@ -554,6 +583,7 @@ export function createConversationController(deps) {
       });
       liveDetail = liveOwnerDetail({ pendingStage, presentation, liveRunState, liveRunPhase });
       liveFollowLabel = liveOwnerFollowLabel({ pendingStage, isFollowing, jumpVisible, presentation });
+      liveOwnerStateLabel = liveOwnerState({ pendingStage, presentation, isFollowing, jumpVisible });
       showLiveMirror = true;
     }
 
@@ -571,9 +601,10 @@ export function createConversationController(deps) {
       card.dataset.selected = isSelected ? "true" : "false";
       card.dataset.threadState = isSelected ? (liveThreadState || "active") : snapshotState;
       card.dataset.liveOwner = isSelected && showLiveMirror ? "true" : "false";
+      card.dataset.liveOwnerState = isSelected && showLiveMirror ? liveOwnerStateLabel : "idle";
       if (marker) {
         marker.hidden = !isSelected;
-        marker.textContent = isSelected && showLiveMirror ? "LIVE" : "NOW";
+        marker.textContent = isSelected && showLiveMirror ? liveOwnerMarkerLabel(liveOwnerStateLabel) : "NOW";
       }
       if (sessionMarker) {
         sessionMarker.hidden = !isSelected;
@@ -585,12 +616,14 @@ export function createConversationController(deps) {
       }
       if (liveDetailRow) {
         liveDetailRow.hidden = !(isSelected && showLiveMirror);
+        liveDetailRow.dataset.liveOwnerState = isSelected && showLiveMirror ? liveOwnerStateLabel : "idle";
       }
       if (liveDetailText) {
         liveDetailText.textContent = isSelected && showLiveMirror ? liveDetail : "";
       }
       if (liveFollowText) {
         liveFollowText.textContent = isSelected && showLiveMirror ? liveFollowLabel : "";
+        liveFollowText.dataset.liveOwnerState = isSelected && showLiveMirror ? liveOwnerStateLabel : "idle";
       }
     }
   }

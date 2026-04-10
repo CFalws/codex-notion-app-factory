@@ -8,7 +8,7 @@
 
 ## Problem
 
-The rail is clearer now, but users can still lose live-session context when they scroll upward inside the selected transcript. The workspace needs one compact bottom follow control that makes detached-from-live state obvious and lets the operator return to the latest selected-thread output in one tap without opening any side panel.
+The center pane is now more session-like, but the left rail still does not make the active live thread unmistakable enough. The selected row needs a stronger live-owner treatment so users can identify the running conversation immediately, while every non-selected row remains strictly snapshot-only.
 
 ## Target User
 
@@ -19,10 +19,10 @@ The primary user is the operator or developer using the phone-friendly workspace
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
 - Reuse the existing selected-conversation SSE route instead of widening transport scope.
-- Constrain this iteration to one selected-thread transcript follow control.
+- Constrain this iteration to the left conversation rail.
 - Keep non-selected thread behavior snapshot-only.
-- Leave selected-thread transport ownership, the rail behavior, deployed verification gate, and polling fallback rules unchanged in this iteration.
+- Leave selected-thread transport ownership, dock behavior, deployed verification gate, and polling fallback rules unchanged in this iteration.
 
 ## Deliverable
 
-Keep the existing selected-conversation SSE path and overall shell ownership, but turn the bottom transcript follow affordance into one explicit conversation-local control that shows `NEW` for healthy off-screen SSE appends, `PAUSED` for degraded detached state, and clears immediately when the user jumps back to latest or re-engages the composer.
+Keep the existing selected-conversation SSE path and overall shell ownership, but refine the selected conversation row so it alone exposes compact live-owner cues for handoff, active SSE ownership, and follow or unread state, then clears those markers immediately on terminal resolution, polling-only fallback, or thread switch.

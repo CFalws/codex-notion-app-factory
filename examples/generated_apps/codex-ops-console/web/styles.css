@@ -425,6 +425,25 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   box-shadow: 0 6px 16px rgba(31, 120, 224, 0.24);
 }
 
+.conversation-card[data-live-owner-state="handoff"] .conversation-card-marker {
+  color: var(--warning);
+  border-color: rgba(178, 114, 24, 0.24);
+  background: rgba(178, 114, 24, 0.1);
+  box-shadow: none;
+}
+
+.conversation-card[data-live-owner-state="new"] .conversation-card-marker {
+  color: #fff;
+  border-color: rgba(31, 120, 224, 0.36);
+  background: linear-gradient(135deg, rgba(31, 120, 224, 0.94), rgba(18, 83, 163, 0.94));
+}
+
+.conversation-card[data-live-owner-state="paused"] .conversation-card-marker {
+  color: var(--warning);
+  border-color: rgba(178, 114, 24, 0.24);
+  background: rgba(178, 114, 24, 0.1);
+}
+
 .conversation-card[data-live-owner="true"] .conversation-card-session {
   border-color: rgba(31, 120, 224, 0.22);
   background: rgba(255, 255, 255, 0.98);
@@ -440,6 +459,27 @@ body[data-secondary-panel-open="true"] .desktop-shell {
 .conversation-card[data-live-owner="true"] .conversation-card-live-follow {
   border-color: rgba(31, 120, 224, 0.22);
   background: rgba(31, 120, 224, 0.12);
+}
+
+.conversation-card-live-owner-row[data-live-owner-state="handoff"] .conversation-card-live-follow,
+.conversation-card-live-follow[data-live-owner-state="handoff"] {
+  color: var(--warning);
+  border-color: rgba(178, 114, 24, 0.24);
+  background: rgba(178, 114, 24, 0.1);
+}
+
+.conversation-card-live-owner-row[data-live-owner-state="new"] .conversation-card-live-follow,
+.conversation-card-live-follow[data-live-owner-state="new"] {
+  color: #fff;
+  border-color: rgba(31, 120, 224, 0.36);
+  background: linear-gradient(135deg, rgba(31, 120, 224, 0.94), rgba(18, 83, 163, 0.94));
+}
+
+.conversation-card-live-owner-row[data-live-owner-state="paused"] .conversation-card-live-follow,
+.conversation-card-live-follow[data-live-owner-state="paused"] {
+  color: var(--warning);
+  border-color: rgba(178, 114, 24, 0.24);
+  background: rgba(178, 114, 24, 0.1);
 }
 
 .conversation-card[data-thread-state="connecting"] .conversation-card-live,

@@ -212,7 +212,7 @@ For the feature-flagged active-conversation append SSE path, verification should
 - on phone widths, closing the nav sheet or choosing a thread or app from it should return focus to the selected conversation surface so the transcript and composer resume as the default workspace owner
 - the selected-thread live rail should map healthy SSE events such as `goal.proposal.phase.started`, `goal.review.phase.started`, `goal.verify.phase.started`, `goal.proposal.auto_apply.started`, `proposal.ready`, and `codex.exec.applied` into explicit machine-readable phase labels so the central workspace no longer collapses them into generic thinking or done wording
 - the selected-thread center pane should expose one conversation-first workspace marker and one inline selected-thread session block that appears only for pending assistant handoff or active SSE-owned live progress, then clears on terminal resolution or thread switch without becoming a second multi-thread status surface
-- the selected conversation row in the left navigation should mirror pending handoff and active live session state only for the currently selected thread, show compact detail plus follow or unread chips, and clear those markers on terminal resolution or thread switch without making any non-selected row appear live-owned
+- the selected conversation row in the left navigation should mirror pending handoff and active live session state only for the currently selected thread, expose compact `HANDOFF`, `LIVE`, `NEW`, or `PAUSED` owner cues plus follow or unread chips, and clear those markers on terminal resolution, polling-only fallback, reconnect downgrade, or thread switch without making any non-selected row appear live-owned
 
 ## Commit And Deploy Policy
 

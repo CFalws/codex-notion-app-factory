@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Keep the current selected-conversation SSE path, rail behavior, and center-pane live surface unchanged.
-2. Reuse the existing jump-to-latest control as one explicit bottom-anchored transcript follow indicator for the selected conversation only.
-3. Show `NEW` when healthy off-screen selected-thread SSE appends arrive, and show `PAUSED` when detached follow state is visible through a degraded render source.
-4. Clear the follow indicator immediately when the operator jumps back to latest or re-engages the composer, while leaving it hidden when already following.
-5. Extend the focused verifier and docs so future sessions can prove selected-thread-only visibility, explicit `NEW` or `PAUSED` state, unseen-count metadata, and absence during healthy tail-following.
+1. Keep the current selected-conversation SSE path, dock behavior, transcript-tail live item, and non-selected snapshot rows unchanged.
+2. Strengthen the selected row as the sole rail live-owner surface by giving it one explicit owner-state contract for handoff, live, new, and paused conditions.
+3. Derive that owner-state contract from the existing pending handoff state, selected-thread SSE ownership, and live-follow state, and clear it immediately when render ownership degrades to snapshot or the user switches threads.
+4. Preserve phone and desktop scanability by keeping non-selected rows limited to their fixed snapshot labels and bounded preview lines.
+5. Extend the focused verifier and docs so future sessions can prove selected-row live ownership, state-specific cues, and immediate clearing on reconnect fallback, terminal resolution, or thread switch.
