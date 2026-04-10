@@ -163,7 +163,11 @@ class RuntimeState:
         path = self.conversation_path(conversation_id)
         if not path.exists():
             raise KeyError(f"Unknown conversation_id: {conversation_id}")
-        return self._read_json(path)
+        conversation = self._read_json(path)
+        normalized = self._normalize_conversation_payload(conversation)
+        if normalized != conversation:
+            self._write_json(path, normalized)
+        return normalized
 
     def save_conversation(self, conversation: dict[str, Any]) -> dict[str, Any]:
         conversation["updated_at"] = utc_now()
@@ -174,7 +178,7 @@ class RuntimeState:
         records: list[dict[str, Any]] = []
         for path in sorted(self.settings.conversations_root.glob("*.json")):
             try:
-                payload = self._read_json(path)
+                payload = self._normalize_conversation_payload(self._read_json(path))
             except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
                 logger.warning("Skipping unreadable conversation file %s: %s", path, exc)
                 continue
@@ -183,6 +187,41 @@ class RuntimeState:
             records.append(payload)
         records.sort(key=lambda item: item.get("updated_at", ""), reverse=True)
         return records
+
+    def _normalize_conversation_payload(self, conversation: dict[str, Any]) -> dict[str, Any]:
+        normalized = dict(conversation)
+        messages = [dict(item) for item in normalized.get("messages", [])]
+        events = [dict(item) for item in normalized.get("events", [])]
+
+        max_append_id = 0
+        missing = False
+        for item in [*messages, *events]:
+            append_id = int(item.get("append_id") or 0)
+            if append_id <= 0:
+                missing = True
+            max_append_id = max(max_append_id, append_id)
+
+        if missing:
+            combined: list[tuple[str, dict[str, Any]]] = [("message", item) for item in messages]
+            combined.extend(("event", item) for item in events)
+            combined.sort(
+                key=lambda entry: (
+                    str(entry[1].get("created_at") or ""),
+                    0 if entry[0] == "message" else 1,
+                )
+            )
+            for index, (_, item) in enumerate(combined, start=1):
+                item["append_id"] = index
+                item.setdefault("delivery_source", "snapshot")
+            max_append_id = len(combined)
+        else:
+            for item in [*messages, *events]:
+                item.setdefault("delivery_source", "snapshot")
+
+        normalized["messages"] = messages
+        normalized["events"] = events
+        normalized["next_append_id"] = max(int(normalized.get("next_append_id") or 0), max_append_id + 1, 1)
+        return normalized
 
     def append_conversation_message(
         self,
