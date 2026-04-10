@@ -584,6 +584,36 @@ export function createConversationController(deps) {
     };
   }
 
+  function syncSelectedAppSession({ detectRotation }) {
+    const app = selectedAppData(dom);
+    if (!app?.appId) {
+      state.appSession = {
+        appId: "",
+        sessionId: "",
+        previousSessionId: "",
+        rotationDetected: false,
+        rotationDetectedAt: "",
+      };
+      return;
+    }
+
+    const previous = state.appSession || {};
+    const previousSessionId = previous.appId === app.appId ? String(previous.sessionId || "") : "";
+    const nextSessionId = String(app.sessionId || "");
+    const rotationDetected =
+      Boolean(detectRotation) &&
+      Boolean(previousSessionId) &&
+      Boolean(nextSessionId) &&
+      previousSessionId !== nextSessionId;
+    state.appSession = {
+      appId: app.appId,
+      sessionId: nextSessionId,
+      previousSessionId: rotationDetected ? previousSessionId : "",
+      rotationDetected,
+      rotationDetectedAt: rotationDetected ? new Date().toISOString() : "",
+    };
+  }
+
   function threadTitleForConversation(conversationId = "") {
     if (!conversationId || !dom.conversationList) {
       return "";
@@ -1038,6 +1068,7 @@ export function createConversationController(deps) {
         option.value = app.app_id;
         option.textContent = `${app.title} (${app.app_id})`;
         option.dataset.deploymentUrl = app.deployment_url || "";
+        option.dataset.sessionId = app.session_id || "";
         option.dataset.title = app.title || app.app_id;
         dom.appSelect.append(option);
       }
@@ -1061,6 +1092,7 @@ export function createConversationController(deps) {
         dom.appSelect.selectedIndex = 0;
       }
 
+      syncSelectedAppSession({ detectRotation: true });
       updateSelectedAppCard(dom, selectedAppData(dom));
       persistSettings();
       setStatus(dom, `앱 ${apps.length}개를 불러왔습니다.`);
@@ -1072,6 +1104,7 @@ export function createConversationController(deps) {
   }
 
   async function handleAppChange() {
+    syncSelectedAppSession({ detectRotation: false });
     updateSelectedAppCard(dom, selectedAppData(dom));
     state.savedConversationId = "";
     stopPolling();

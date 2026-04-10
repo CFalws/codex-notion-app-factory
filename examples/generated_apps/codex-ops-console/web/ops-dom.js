@@ -17,6 +17,7 @@ export const dom = {
   sessionSummaryScope: document.getElementById("session-summary-scope"),
   sessionSummaryPath: document.getElementById("session-summary-path"),
   sessionSummaryState: document.getElementById("session-summary-state"),
+  sessionLiveIndicator: document.getElementById("session-live-indicator"),
   sessionSummaryCopy: document.getElementById("session-summary-copy"),
   sessionStrip: document.getElementById("session-strip"),
   sessionStripState: document.getElementById("session-strip-state"),

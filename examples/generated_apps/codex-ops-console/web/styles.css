@@ -730,6 +730,28 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   text-transform: uppercase;
 }
 
+.session-live-indicator {
+  white-space: nowrap;
+}
+
+.session-live-indicator[data-live-session-tone="healthy"] {
+  border-color: rgba(47, 138, 89, 0.24);
+  background: rgba(47, 138, 89, 0.1);
+  color: var(--success);
+}
+
+.session-live-indicator[data-live-session-tone="warning"] {
+  border-color: rgba(178, 114, 24, 0.24);
+  background: rgba(178, 114, 24, 0.08);
+  color: var(--warning);
+}
+
+.session-live-indicator[data-live-session-tone="danger"] {
+  border-color: rgba(182, 75, 65, 0.24);
+  background: rgba(182, 75, 65, 0.1);
+  color: var(--danger);
+}
+
 .session-summary-row[data-summary-path="sse"] .session-summary-chip[data-summary-chip="path"],
 .session-summary-row[data-summary-state^="proposal"] .session-summary-chip[data-summary-chip="state"],
 .session-summary-row[data-summary-state="review"] .session-summary-chip[data-summary-chip="state"],

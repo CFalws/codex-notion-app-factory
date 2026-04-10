@@ -231,6 +231,7 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
     !dom.sessionSummaryScope ||
     !dom.sessionSummaryPath ||
     !dom.sessionSummaryState ||
+    !dom.sessionLiveIndicator ||
     !dom.sessionSummaryCopy
   ) {
     return;
@@ -247,7 +248,9 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
     conversationId &&
     streamConversationId === conversationId &&
     transport === "sse" &&
-    renderSource === "sse";
+    renderSource === "sse" &&
+    status === "live";
+  const sessionIndicator = selectedThreadLiveSessionIndicator(currentState, conversation, liveRun, handoffState);
 
   let pathLabel = "SNAPSHOT";
   let stateLabel = conversationId ? "READY" : "IDLE";
@@ -279,9 +282,16 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
 
   dom.sessionSummaryRow.dataset.summaryPath = pathLabel.toLowerCase();
   dom.sessionSummaryRow.dataset.summaryState = stateLabel.toLowerCase();
+  dom.sessionSummaryRow.dataset.liveSessionState = sessionIndicator.state;
+  dom.sessionSummaryRow.dataset.liveSessionSource = sessionIndicator.source;
+  dom.sessionSummaryRow.dataset.liveSessionReason = sessionIndicator.reason;
+  dom.sessionSummaryRow.dataset.liveSessionOwned = sessionIndicator.owned ? "true" : "false";
   dom.sessionSummaryScope.textContent = compactTargetLabel(conversation?.title || threadTransition.targetTitle || "", "SELECTED");
   dom.sessionSummaryPath.textContent = pathLabel;
   dom.sessionSummaryState.textContent = stateLabel;
+  dom.sessionLiveIndicator.hidden = !sessionIndicator.visible;
+  dom.sessionLiveIndicator.textContent = sessionIndicator.label;
+  dom.sessionLiveIndicator.dataset.liveSessionTone = sessionIndicator.tone;
   dom.sessionSummaryCopy.textContent = copy;
 }
 
@@ -295,6 +305,126 @@ function isThreadNearBottom(threadScroller) {
 function phaseDetail(prefix, latestEvent, fallback) {
   const body = simplifyText(latestEvent?.body || "");
   return body ? `${prefix} ${body}` : fallback;
+}
+
+function latestSessionIndicatorEvent(conversation, currentState) {
+  const jobId = String(currentState.currentJobId || conversation?.latest_job_id || "");
+  const events = Array.isArray(conversation?.events) ? conversation.events : [];
+  const relevantEvents = jobId ? events.filter((event) => !event.job_id || event.job_id === jobId) : events;
+  for (let index = relevantEvents.length - 1; index >= 0; index -= 1) {
+    const event = relevantEvents[index];
+    const type = String(event?.type || "");
+    const status = String(event?.status || "").toLowerCase();
+    if (
+      type === "codex.exec.retrying" ||
+      type === "runtime.exception" ||
+      type === "job.completed" ||
+      type === "proposal.ready" ||
+      type === "codex.exec.applied" ||
+      type.startsWith("goal.proposal.phase.") ||
+      type.startsWith("goal.review.phase.") ||
+      type.startsWith("goal.verify.phase.") ||
+      type === "goal.proposal.auto_apply.started" ||
+      type === "job.running" ||
+      type === "job.queued" ||
+      type === "message.accepted" ||
+      status === "failed" ||
+      status === "completed" ||
+      status === "applied"
+    ) {
+      return event;
+    }
+  }
+  return relevantEvents.length ? relevantEvents[relevantEvents.length - 1] : null;
+}
+
+function selectedThreadLiveSessionIndicator(currentState, conversation, liveRun, handoffState = { stage: "idle" }) {
+  const appendStream = currentState.appendStream || {};
+  const threadTransition = currentState.threadTransition || {};
+  const appSession = currentState.appSession || {};
+  const conversationId = String(conversation?.conversation_id || "");
+  const streamConversationId = String(appendStream.conversationId || "");
+  const transport = String(appendStream.transport || "polling").toLowerCase();
+  const renderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
+  const status = String(appendStream.status || "offline").toLowerCase();
+  const latestEvent = latestSessionIndicatorEvent(conversation, currentState);
+  const latestType = String(latestEvent?.type || "");
+  const selectedThreadStream = Boolean(conversationId) && streamConversationId === conversationId;
+  const selectedThreadSseOwned =
+    selectedThreadStream &&
+    transport === "sse" &&
+    renderSource === "sse" &&
+    status === "live";
+  const hasActiveRun =
+    Boolean(conversationId) &&
+    liveRun?.visible &&
+    !liveRun?.terminal &&
+    liveRun?.phase &&
+    liveRun.phase !== "IDLE";
+  const retrying = latestType === "codex.exec.retrying";
+  const sessionRotationDetected = Boolean(appSession.rotationDetected) && Boolean(appSession.appId);
+  if (
+    !hasActiveRun ||
+    threadTransition.active ||
+    handoffState.stage === "pending-user" ||
+    handoffState.stage === "pending-assistant"
+  ) {
+    return {
+      visible: false,
+      label: "SESSION",
+      state: "idle",
+      source: "none",
+      reason: "idle",
+      tone: "muted",
+      owned: false,
+    };
+  }
+  if (selectedThreadSseOwned) {
+    return {
+      visible: true,
+      label: "SSE OWNER",
+      state: "live",
+      source: "sse",
+      reason: "selected-thread-sse",
+      tone: "healthy",
+      owned: true,
+    };
+  }
+  if (selectedThreadStream && status === "reconnecting") {
+    return {
+      visible: true,
+      label: "RECONNECT",
+      state: "reconnecting",
+      source: "sse",
+      reason: retrying ? "retrying" : "reconnecting",
+      tone: "warning",
+      owned: false,
+    };
+  }
+  if (
+    retrying ||
+    sessionRotationDetected ||
+    (selectedThreadStream && (transport !== "sse" || renderSource !== "sse"))
+  ) {
+    return {
+      visible: true,
+      label: "POLLING",
+      state: "polling",
+      source: transport === "sse" ? renderSource || "snapshot" : transport || "polling",
+      reason: sessionRotationDetected ? "session-rotation" : retrying ? "retrying" : "polling-fallback",
+      tone: sessionRotationDetected ? "danger" : "warning",
+      owned: false,
+    };
+  }
+  return {
+    visible: false,
+    label: "SESSION",
+    state: "idle",
+    source: "none",
+    reason: "idle",
+    tone: "muted",
+    owned: false,
+  };
 }
 
 function runStateSnapshot({
@@ -833,6 +963,7 @@ function latestMeaningfulConversationEvent(conversation, currentState) {
       type === "job.running" ||
       type === "job.queued" ||
       type === "message.accepted" ||
+      type === "codex.exec.retrying" ||
       type === "runtime.exception" ||
       type === "codex.exec.started" ||
       type === "codex.exec.finished" ||

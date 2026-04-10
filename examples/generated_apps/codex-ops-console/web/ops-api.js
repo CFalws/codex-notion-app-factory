@@ -31,6 +31,7 @@ export function selectedAppData(dom) {
     appId: option.value,
     title: option.dataset.title || option.value,
     deploymentUrl: option.dataset.deploymentUrl || "",
+    sessionId: option.dataset.sessionId || "",
   };
 }
 

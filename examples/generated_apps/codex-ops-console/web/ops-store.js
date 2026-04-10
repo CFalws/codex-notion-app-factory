@@ -8,6 +8,13 @@ export const state = {
   currentJobId: "",
   savedAppId: "",
   savedConversationId: "",
+  appSession: {
+    appId: "",
+    sessionId: "",
+    previousSessionId: "",
+    rotationDetected: false,
+    rotationDetectedAt: "",
+  },
   conversationCache: null,
   draftCache: {},
   pendingAttachmentPreviews: [],
