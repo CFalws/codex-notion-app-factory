@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Keep the current selected-conversation SSE path, dock behavior, transcript-tail live item, and non-selected snapshot rows unchanged.
-2. Strengthen the selected row as the sole rail live-owner surface by giving it one explicit owner-state contract for handoff, live, new, and paused conditions.
-3. Derive that owner-state contract from the existing pending handoff state, selected-thread SSE ownership, and live-follow state, and clear it immediately when render ownership degrades to snapshot or the user switches threads.
-4. Preserve phone and desktop scanability by keeping non-selected rows limited to their fixed snapshot labels and bounded preview lines.
-5. Extend the focused verifier and docs so future sessions can prove selected-row live ownership, state-specific cues, and immediate clearing on reconnect fallback, terminal resolution, or thread switch.
+1. Keep the current selected-conversation SSE path, selected-row live-owner contract, dock behavior, transcript-tail live item, and non-selected snapshot rows unchanged.
+2. Introduce one bounded `threadTransition` state for intentional thread switches so the center pane can render a compact in-place handoff placeholder instead of a blank reset.
+3. Clear prior-thread live ownership immediately when the switch starts, keep the composer dock and thread surface anchored, and attach the new snapshot plus selected-thread SSE path as soon as the fetch completes.
+4. Preserve phone and desktop continuity by keeping non-selected rows snapshot-only and avoiding any second switch-status panel in the rail or header.
+5. Extend the focused verifier and docs so future sessions can prove thread-switch continuity, transition placeholder rendering, and immediate stale-live clearing on thread change or degraded fallback.

@@ -844,6 +844,22 @@ function threadMetaSummary(conversation, liveRun, messageCount, eventCount) {
   return parts.filter(Boolean).join(" · ");
 }
 
+function renderThreadTransition(currentState) {
+  const threadTransition = currentState.threadTransition || {};
+  const targetTitle = String(threadTransition.targetTitle || "선택한 대화").trim();
+  return `
+    <article class="timeline-transition" data-thread-transition="loading" data-thread-transition-conversation-id="${escapeHtml(String(threadTransition.targetConversationId || ""))}">
+      <p class="timeline-kind">세션 전환</p>
+      <div class="timeline-transition-row">
+        <span class="timeline-transition-chip">SWITCH</span>
+        <span class="timeline-transition-chip">${escapeHtml(targetTitle.toUpperCase())}</span>
+      </div>
+      <p class="timeline-body">이전 thread의 live 소유권은 정리했고, 새 선택 대화의 snapshot과 append stream을 연결하는 중입니다.</p>
+      <p class="timeline-meta">selected thread handoff · snapshot attach pending</p>
+    </article>
+  `;
+}
+
 function sessionProvenance(status, lastAppendId, lastLiveAppendId, liveRun) {
   const sourceLabel =
     liveRun.source === "sse"
@@ -1239,6 +1255,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   const previousFollow = currentState.liveFollow || {};
   const previousConversationId = previousFollow.conversationId || "";
   const wasNearBottom = isThreadNearBottom(dom.threadScroller);
+  const threadTransition = currentState.threadTransition || {};
   currentState.conversationCache = conversation;
   currentState.currentConversationId = conversation ? conversation.conversation_id : "";
   if (conversation) {
@@ -1251,27 +1268,36 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   onPersist();
 
   if (!conversation) {
-    dom.conversationTimeline.innerHTML = '<p class="timeline-empty">새 대화를 만들면 요청과 이벤트가 여기 쌓입니다.</p>';
+    const isThreadTransition = Boolean(threadTransition.active && threadTransition.targetConversationId);
+    dom.conversationTimeline.innerHTML = isThreadTransition
+      ? renderThreadTransition(currentState)
+      : '<p class="timeline-empty">새 대화를 만들면 요청과 이벤트가 여기 쌓입니다.</p>';
     if (dom.threadScroller) {
-      dom.threadScroller.dataset.pendingConversationId ||= "";
+      dom.threadScroller.dataset.pendingConversationId = isThreadTransition
+        ? String(threadTransition.targetConversationId || "")
+        : "";
       dom.threadScroller.dataset.pendingHandoffStage = "idle";
       dom.threadScroller.dataset.pendingUserCount = "0";
       dom.threadScroller.dataset.pendingAssistantCount = "0";
+      dom.threadScroller.dataset.threadTransitionState = isThreadTransition ? "loading" : "idle";
+      dom.threadScroller.dataset.threadTransitionConversationId = isThreadTransition
+        ? String(threadTransition.targetConversationId || "")
+        : "";
     }
     renderSessionStrip(dom, currentState, null);
     currentState.liveFollow = {
-      conversationId: "",
+      conversationId: isThreadTransition ? String(threadTransition.targetConversationId || "") : "",
       isFollowing: true,
       jumpVisible: false,
       lastAppendId: 0,
       lastSeenAppendId: 0,
       pendingAppendCount: 0,
     };
-    syncJumpToLatest(dom, currentState, "", "snapshot");
+    syncJumpToLatest(dom, currentState, currentState.liveFollow.conversationId, "snapshot");
     updateHeroState(dom, {
-      threadTitle: "새 대화를 시작하세요",
+      threadTitle: isThreadTransition ? String(threadTransition.targetTitle || "대화 전환 중") : "새 대화를 시작하세요",
       threadKicker: "선택된 대화",
-      conversationState: "아직 대화 세션이 없습니다.",
+      conversationState: isThreadTransition ? "새 대화 스냅샷을 연결하는 중입니다." : "아직 대화 세션이 없습니다.",
       liveRun: runStateSnapshot({
         visible: true,
         phase: currentState.currentJobId ? "RUNNING" : "IDLE",
@@ -1279,7 +1305,12 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
         tone: currentState.currentJobId ? "running" : "idle",
       }),
     });
-    renderWorkspaceSummary(dom, "아직 대화가 없습니다. 새 대화를 만들거나 바로 메시지를 보내면 현재 앱 레인에서 이어서 작업합니다.");
+    renderWorkspaceSummary(
+      dom,
+      isThreadTransition
+        ? `${String(threadTransition.targetTitle || "선택한 대화")}로 전환 중입니다. 기존 live 표시는 정리했고 새 snapshot과 selected-thread SSE 경로가 연결되면 이 자리에서 바로 이어집니다.`
+        : "아직 대화가 없습니다. 새 대화를 만들거나 바로 메시지를 보내면 현재 앱 레인에서 이어서 작업합니다.",
+    );
     renderJobActivity(dom, null, "");
     return;
   }
@@ -1307,6 +1338,8 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
     dom.threadScroller.dataset.pendingHandoffStage = handoffState.stage;
     dom.threadScroller.dataset.pendingUserCount = String(handoffState.pendingUserCount);
     dom.threadScroller.dataset.pendingAssistantCount = String(handoffState.pendingAssistantCount);
+    dom.threadScroller.dataset.threadTransitionState = "idle";
+    dom.threadScroller.dataset.threadTransitionConversationId = "";
   }
   renderSessionStrip(dom, currentState, conversation);
   const latestAppendId = maxConversationAppendId(conversation);

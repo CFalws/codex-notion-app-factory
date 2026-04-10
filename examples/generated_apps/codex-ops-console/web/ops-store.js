@@ -37,6 +37,13 @@ export const state = {
     lastSeenAppendId: 0,
     pendingAppendCount: 0,
   },
+  threadTransition: {
+    active: false,
+    targetConversationId: "",
+    targetTitle: "",
+    sourceConversationId: "",
+    startedAt: "",
+  },
   sessionRail: {
     conversationId: "",
     expanded: false,

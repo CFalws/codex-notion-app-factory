@@ -480,6 +480,35 @@ export function createConversationController(deps) {
     return "LIVE";
   }
 
+  function clearThreadTransition() {
+    state.threadTransition = {
+      active: false,
+      targetConversationId: "",
+      targetTitle: "",
+      sourceConversationId: "",
+      startedAt: "",
+    };
+  }
+
+  function threadTitleForConversation(conversationId = "") {
+    if (!conversationId || !dom.conversationList) {
+      return "";
+    }
+    const card = dom.conversationList.querySelector(`[data-conversation-id="${conversationId}"]`);
+    const title = card?.querySelector(".conversation-card-title")?.textContent || "";
+    return String(title).trim();
+  }
+
+  function startThreadTransition(conversationId) {
+    state.threadTransition = {
+      active: Boolean(conversationId),
+      targetConversationId: conversationId || "",
+      targetTitle: threadTitleForConversation(conversationId) || "대화",
+      sourceConversationId: state.currentConversationId || "",
+      startedAt: new Date().toISOString(),
+    };
+  }
+
   function truncatePreview(value, maxLength = 88) {
     const text = simplifyPreviewText(value);
     if (text.length <= maxLength) {
@@ -694,6 +723,7 @@ export function createConversationController(deps) {
     const app = selectedAppData(dom);
     const preferredConversationId = state.currentConversationId || state.savedConversationId || "";
     state.conversationCache = null;
+    clearThreadTransition();
     closeAppendStream();
 
     if (!app) {
@@ -731,6 +761,7 @@ export function createConversationController(deps) {
       state.currentConversationId = "";
       state.savedConversationId = "";
       state.currentJobId = "";
+      clearThreadTransition();
       clearPendingOutgoing();
       renderConversation(dom, state, null, persistSettings);
       syncConversationCardState();
@@ -746,6 +777,7 @@ export function createConversationController(deps) {
       clearPendingOutgoing();
       state.currentConversationId = "";
       state.currentJobId = "";
+      clearThreadTransition();
       renderConversation(dom, state, null, persistSettings);
       syncConversationCardState();
       updateHeroState(dom, {
@@ -762,6 +794,7 @@ export function createConversationController(deps) {
   async function fetchConversation(conversationId, options = {}) {
     const { syncJob = true } = options;
     if (!conversationId) {
+      clearThreadTransition();
       clearPendingOutgoing();
       closeAppendStream();
       renderConversation(dom, state, null, persistSettings);
@@ -773,6 +806,8 @@ export function createConversationController(deps) {
       if (dom.threadScroller) {
         dom.threadScroller.dataset.pendingConversationId = conversationId;
       }
+      state.savedConversationId = conversationId;
+      startThreadTransition(conversationId);
       clearPendingOutgoing();
       closeAppendStream();
       state.currentConversationId = "";
@@ -782,7 +817,18 @@ export function createConversationController(deps) {
       syncConversationCardState();
     }
 
-    const conversation = await fetchJson(dom, conversationUrl(conversationId));
+    let conversation;
+    try {
+      conversation = await fetchJson(dom, conversationUrl(conversationId));
+    } catch (error) {
+      clearThreadTransition();
+      renderConversation(dom, state, null, persistSettings);
+      syncConversationCardState();
+      restoreDraft();
+      syncDraftStatus();
+      throw error;
+    }
+    clearThreadTransition();
     if (shouldClearPendingOutgoing(conversation)) {
       clearPendingOutgoing(conversation.conversation_id);
     }
