@@ -55,6 +55,38 @@ class RuntimeApiContext:
         items.sort(key=lambda item: int(item["append_id"]))
         return items
 
+    def conversation_session_bootstrap(self, conversation_id: str) -> dict[str, Any]:
+        conversation = self.require_conversation(conversation_id)
+        messages = list(conversation.get("messages", []))
+        events = list(conversation.get("events", []))
+        append_cursor = 0
+        latest_event: dict[str, Any] | None = None
+        for item in [*messages, *events]:
+            append_id = int(item.get("append_id") or 0)
+            if append_id > append_cursor:
+                append_cursor = append_id
+        if events:
+            latest_event = max(events, key=lambda item: int(item.get("append_id") or 0))
+        return {
+            "version": 1,
+            "conversation_id": conversation_id,
+            "attach_mode": "sse-bootstrap",
+            "append_cursor": append_cursor,
+            "conversation": conversation,
+            "latest_job_id": str(conversation.get("latest_job_id") or ""),
+            "live_phase_summary": {
+                "event_type": str((latest_event or {}).get("type") or ""),
+                "status": str((latest_event or {}).get("status") or ""),
+                "job_id": str((latest_event or {}).get("job_id") or conversation.get("latest_job_id") or ""),
+                "append_id": int((latest_event or {}).get("append_id") or 0),
+            },
+            "composer_owner": {
+                "state": "ready",
+                "conversation_id": conversation_id,
+                "target_title": str(conversation.get("title") or ""),
+            },
+        }
+
     def subscribe_conversation_appends(self, conversation_id: str) -> asyncio.Queue[dict[str, Any]]:
         queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
         self.append_subscribers.setdefault(conversation_id, set()).add(queue)

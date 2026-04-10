@@ -129,6 +129,8 @@ export function createConversationController(deps) {
     state.appendStream.transport = "polling";
     state.appendStream.lastRenderSource = "snapshot";
     state.appendStream.lastLiveAppendId = 0;
+    state.appendStream.attachMode = conversationId ? "snapshot-fallback" : "idle";
+    state.appendStream.bootstrapVersion = "";
     if (!conversationId) {
       state.appendStream.lastAppendId = 0;
     }
@@ -385,23 +387,50 @@ export function createConversationController(deps) {
     }
   }
 
-  function connectAppendStream(conversationId) {
+  function connectAppendStream(conversationId, options = {}) {
+    const { awaitBootstrap = false } = options;
     closeAppendStream();
     if (!conversationId || typeof window === "undefined" || typeof window.EventSource !== "function") {
-      return;
+      state.appendStream.attachMode = "snapshot-fallback";
+      return Promise.resolve(null);
     }
 
     let openedOnce = false;
+    let settled = false;
+    let bootstrapPayload = null;
+    let bootstrapTimeoutId = null;
+    const settle = (value) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      if (bootstrapTimeoutId !== null) {
+        window.clearTimeout(bootstrapTimeoutId);
+      }
+      bootstrapResolver(value);
+    };
+    let bootstrapResolver = () => {};
+    const bootstrapPromise = new Promise((resolve) => {
+      bootstrapResolver = resolve;
+    });
     state.appendStream.source = new window.EventSource(internalConversationAppendStreamUrl(conversationId));
     state.appendStream.conversationId = conversationId;
     state.appendStream.status = "connecting";
     state.appendStream.transport = "sse";
     state.appendStream.lastRenderSource = "snapshot";
+    state.appendStream.attachMode = "awaiting-bootstrap";
+    state.appendStream.bootstrapVersion = "";
     renderSessionStrip(dom, state, state.conversationCache);
     syncConversationCardState();
+    if (awaitBootstrap) {
+      bootstrapTimeoutId = window.setTimeout(() => {
+        state.appendStream.attachMode = "snapshot-fallback";
+        settle(null);
+      }, 1500);
+    }
 
     state.appendStream.source.addEventListener("open", () => {
-      if (state.currentConversationId !== conversationId || state.appendStream?.conversationId !== conversationId) {
+      if (state.appendStream?.conversationId !== conversationId) {
         return;
       }
       openedOnce = true;
@@ -409,6 +438,32 @@ export function createConversationController(deps) {
       stopPolling();
       renderSessionStrip(dom, state, state.conversationCache);
       syncConversationCardState();
+    });
+
+    state.appendStream.source.addEventListener("session.bootstrap", (event) => {
+      if (state.appendStream?.conversationId !== conversationId) {
+        return;
+      }
+      try {
+        const payload = JSON.parse(event.data || "{}");
+        if (String(payload.conversation_id || "") !== conversationId) {
+          return;
+        }
+        bootstrapPayload = payload;
+        state.appendStream.lastAppendId = Math.max(
+          Number(state.appendStream.lastAppendId || 0),
+          Number(payload.append_cursor || 0),
+        );
+        state.appendStream.lastRenderSource = "sse";
+        state.appendStream.attachMode = String(payload.attach_mode || "sse-bootstrap");
+        state.appendStream.bootstrapVersion = String(payload.version || "");
+        renderSessionStrip(dom, state, state.conversationCache);
+        syncConversationCardState();
+        settle(payload);
+      } catch (_) {
+        state.appendStream.attachMode = "snapshot-fallback";
+        settle(null);
+      }
     });
 
     state.appendStream.source.addEventListener("conversation.append", (event) => {
@@ -424,19 +479,24 @@ export function createConversationController(deps) {
     });
 
     state.appendStream.source.addEventListener("error", () => {
-      if (state.currentConversationId !== conversationId || state.appendStream?.conversationId !== conversationId) {
+      if (state.appendStream?.conversationId !== conversationId) {
         return;
       }
-      if (!openedOnce) {
+      if (!openedOnce || (awaitBootstrap && !bootstrapPayload)) {
+        state.appendStream.attachMode = "snapshot-fallback";
+        settle(null);
         closeAppendStream();
         ensurePollingForJob();
         return;
       }
       state.appendStream.status = "reconnecting";
+      state.appendStream.attachMode = "snapshot-fallback";
       ensurePollingForJob();
       renderSessionStrip(dom, state, state.conversationCache);
       syncConversationCardState();
     });
+
+    return bootstrapPromise;
   }
 
   function pickRelevantGoal(goals) {
@@ -1259,8 +1319,20 @@ export function createConversationController(deps) {
     }
 
     let conversation;
+    let bootstrap = null;
     try {
-      conversation = await fetchJson(dom, conversationUrl(conversationId));
+      bootstrap = await connectAppendStream(conversationId, { awaitBootstrap: true });
+      if (
+        bootstrap &&
+        String(bootstrap.attach_mode || "") === "sse-bootstrap" &&
+        bootstrap.conversation &&
+        String(bootstrap.conversation.conversation_id || "") === conversationId
+      ) {
+        conversation = bootstrap.conversation;
+      } else {
+        conversation = await fetchJson(dom, conversationUrl(conversationId));
+        connectAppendStream(conversationId);
+      }
     } catch (error) {
       clearThreadTransition();
       renderConversation(dom, state, null, persistSettings);
@@ -1281,7 +1353,14 @@ export function createConversationController(deps) {
     renderConversation(dom, state, conversation, persistSettings);
     syncConversationCardState();
     syncAppendCursor(conversation);
-    connectAppendStream(conversation.conversation_id);
+    state.appendStream.attachMode =
+      bootstrap && String(bootstrap.attach_mode || "") === "sse-bootstrap"
+        ? "sse-bootstrap"
+        : state.appendStream.attachMode || "snapshot-fallback";
+    state.appendStream.bootstrapVersion =
+      bootstrap && bootstrap.version !== undefined
+        ? String(bootstrap.version)
+        : state.appendStream.bootstrapVersion || "";
     restoreDraft();
     syncDraftStatus();
 

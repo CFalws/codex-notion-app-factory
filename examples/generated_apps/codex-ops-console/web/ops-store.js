@@ -36,6 +36,8 @@ export const state = {
     transport: "polling",
     lastRenderSource: "snapshot",
     lastLiveAppendId: 0,
+    attachMode: "idle",
+    bootstrapVersion: "",
   },
   liveFollow: {
     conversationId: "",

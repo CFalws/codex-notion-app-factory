@@ -957,6 +957,26 @@ def verify_conversation_append_stream(client: TestClient) -> None:
         int(first_message.get("append_id") or 0) != int(first_event.get("append_id") or 0),
         "conversation append ids should advance across messages and events",
     )
+    with client.stream(
+        "GET",
+        f"/api/internal/conversations/{conversation_id}/append-stream",
+        headers=DEFAULT_HEADERS,
+    ) as response:
+        require(response.status_code == 200, f"append stream request failed: {response.text}")
+        lines = []
+        for raw_line in response.iter_lines():
+            if raw_line is None:
+                continue
+            line = raw_line.decode("utf-8") if isinstance(raw_line, bytes) else raw_line
+            lines.append(line)
+            if line == "":
+                break
+        require(any(line == "event: session.bootstrap" for line in lines), "append stream should emit session.bootstrap before append events")
+        data_lines = [line.split(":", 1)[1].lstrip() for line in lines if line.startswith("data:")]
+        bootstrap = json.loads("\n".join(data_lines))
+        require(bootstrap.get("version") == 1, f"session bootstrap should be versioned: {bootstrap}")
+        require(bootstrap.get("attach_mode") == "sse-bootstrap", f"session bootstrap should mark sse attach mode: {bootstrap}")
+        require(bootstrap.get("conversation", {}).get("conversation_id") == conversation_id, "session bootstrap should hydrate the selected conversation")
 
 
 def main() -> None:

@@ -69,6 +69,10 @@ def register_routes(app: FastAPI, context: RuntimeApiContext) -> None:
         async def stream() -> Any:
             queue = context.subscribe_conversation_appends(conversation_id)
             try:
+                bootstrap = context.conversation_session_bootstrap(conversation_id)
+                yield b"event: session.bootstrap\n"
+                yield f"data: {json.dumps(bootstrap, ensure_ascii=False)}\n\n".encode()
+
                 for envelope in context.conversation_append_snapshot(conversation_id, after_append_id=after_append_id):
                     append_id = int(envelope["append_id"])
                     yield f"id: {append_id}\n".encode()

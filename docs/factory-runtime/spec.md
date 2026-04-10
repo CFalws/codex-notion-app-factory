@@ -8,7 +8,7 @@
 
 ## Problem
 
-The selected-thread switch path already uses a dedicated transition shell, but the intended-path proof did not yet explicitly show that old-thread live ownership clears immediately. Without that proof, a healthy prior-thread inline block or follow ownership could survive a switch unnoticed and undermine the single-session workspace contract.
+The selected-thread SSE stream only emits append envelopes today, so initial attach still depends on a separate conversation snapshot fetch. That forces the workspace to infer initial transcript, phase, and composer ownership from a mixed attach path instead of hydrating directly from the authoritative selected-thread stream, and it makes healthy attach versus degraded snapshot fallback harder to verify.
 
 ## Target User
 
@@ -18,14 +18,13 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the existing selected-thread append SSE transport, ownership, `liveRun`, transcript live activity, and `autonomySummary` data instead of adding a new backend or transport path.
-- Keep the change bounded to the selected-thread switch path and its existing selected-thread datasets.
-- Reuse the current `threadTransition`, composer shell, inline session block, and follow ownership state instead of adding new status surfaces.
-- Keep the center conversation shell and bottom-fixed composer mounted during an intentional switch.
-- Show exactly one compact transition placeholder until the new selected-thread snapshot attaches.
-- Clear prior-thread healthy inline-block ownership and follow ownership immediately on switch.
+- Reuse the existing selected-thread append SSE transport and keep `conversation.append` events unchanged.
+- Keep the change bounded to selected-thread bootstrap semantics, attach-mode signaling, and compatible client hydration.
+- Add one versioned bootstrap event shape to the current stream instead of creating a new channel or state bus.
+- Let healthy selected-thread attach hydrate transcript continuity, append cursor, live phase summary, and composer ownership from the bootstrap event alone.
+- Keep degraded fallback explicit through attach-mode state so snapshot fallback cannot be mistaken for healthy realtime attach.
 - Keep degraded reconnect, polling fallback, ownership loss, terminal idle, and switch states visibly non-owned or cleared so they cannot look like stale healthy live progression.
 
 ## Deliverable
 
-Define and verify one selected-thread switch path where the conversation shell and composer stay mounted, exactly one compact transition placeholder appears before attach, and prior-thread live-owned inline-block and follow ownership cues clear immediately instead of lingering through the transition.
+Define and verify one additive selected-thread `session.bootstrap` SSE contract with explicit versioning and attach mode, plus a compatible attach path that hydrates from that bootstrap on the healthy path and marks snapshot fallback explicitly when bootstrap is unavailable.

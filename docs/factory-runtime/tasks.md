@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Confirm the selected-thread switch path already keeps the conversation shell mounted and uses the dedicated transition placeholder instead of a generic empty reset.
-- [x] Confirm old-thread healthy inline-block ownership and follow ownership are expected to clear during switch.
-- [x] Tighten the deployed workspace gate so intentional switch verification rejects stale healthy inline-block and follow ownership cues.
-- [x] Preserve degraded, switched, and non-owned states as explicitly cleared selected-thread ownership states.
-- [x] Align the focused verifier and iteration artifacts with the tightened switch-continuity proof contract.
+- [x] Add a versioned additive `session.bootstrap` event to the selected-thread append SSE route without changing `conversation.append`.
+- [x] Hydrate healthy selected-thread attach from SSE bootstrap before falling back to a conversation snapshot fetch.
+- [x] Expose attach mode and bootstrap version in machine-readable session-strip and thread-scroller datasets.
+- [x] Tighten browser verification so healthy attach requires bootstrap plus no extra conversation snapshot fetch, while degraded fallback stays explicit.
+- [x] Align the focused verifier and iteration artifacts with the versioned bootstrap attach contract.

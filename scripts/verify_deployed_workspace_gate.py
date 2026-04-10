@@ -242,6 +242,18 @@ def assert_browser_runtime_surface(
             """
 (() => {
   const NativeEventSource = window.EventSource;
+  const nativeFetch = window.fetch ? window.fetch.bind(window) : null;
+  window.__verifyFetchLog = [];
+  window.__verifySseEvents = [];
+  if (nativeFetch) {
+    window.fetch = (...args) => {
+      const request = args[0];
+      const url = typeof request === "string" ? request : request?.url || "";
+      const method = typeof request === "object" && request?.method ? request.method : (args[1]?.method || "GET");
+      window.__verifyFetchLog.push({ url, method });
+      return nativeFetch(...args);
+    };
+  }
   if (!NativeEventSource) {
     return;
   }
@@ -250,6 +262,13 @@ def assert_browser_runtime_surface(
   window.EventSource = class VerifyEventSource extends NativeEventSource {
     constructor(...args) {
       super(...args);
+      this.addEventListener("session.bootstrap", (event) => {
+        try {
+          window.__verifySseEvents.push({ event: "session.bootstrap", data: JSON.parse(event.data || "{}") });
+        } catch (_) {
+          window.__verifySseEvents.push({ event: "session.bootstrap", data: {} });
+        }
+      });
       this.addEventListener("conversation.append", () => {
         if (!window.__verifyForceDegrade || window.__verifyDegraded) {
           return;
@@ -282,18 +301,39 @@ def assert_browser_runtime_surface(
                 [conversation_id, switch_conversation_id],
                 timeout=30000,
             )
+            page.evaluate("() => { window.__verifyFetchMark = window.__verifyFetchLog.length; window.__verifySseMark = window.__verifySseEvents.length; }")
             page.click(f'[data-conversation-id="{conversation_id}"]')
             page.wait_for_function(
                 """conversationId => {
                   const summary = document.querySelector("#session-summary-row");
                   const sendRequest = document.querySelector("#send-request");
+                  const sessionStrip = document.querySelector("#session-strip");
+                  const threadScroller = document.querySelector("#thread-scroller");
                   const composerDock = document.querySelector("#conversation-footer-dock");
+                  const emptyState = document.querySelector(".timeline-empty");
+                  const fetchMark = Number(window.__verifyFetchMark || 0);
+                  const sseMark = Number(window.__verifySseMark || 0);
+                  const bootstrapEvents = (window.__verifySseEvents || []).slice(sseMark).filter(
+                    item => item.event === "session.bootstrap" && String(item.data?.conversation_id || "") === conversationId
+                  );
+                  const conversationFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
+                    entry => String(entry.url || "").includes(`/api/conversations/${conversationId}`)
+                  );
                   return Boolean(
                     summary &&
                     sendRequest &&
+                    sessionStrip &&
+                    sessionStrip.dataset.attachMode === "sse-bootstrap" &&
+                    sessionStrip.dataset.bootstrapVersion === "1" &&
+                    threadScroller &&
+                    threadScroller.dataset.attachMode === "sse-bootstrap" &&
+                    threadScroller.dataset.bootstrapVersion === "1" &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
-                    document.querySelector(`[data-conversation-id="${conversationId}"]`)
+                    document.querySelector(`[data-conversation-id="${conversationId}"]`) &&
+                    bootstrapEvents.length >= 1 &&
+                    conversationFetches.length === 0 &&
+                    !emptyState
                   );
                 }""",
                 conversation_id,
@@ -636,6 +676,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "dataset.liveRunPhase", label="phase dataset")
     require(render_js, "dataset.liveRunSource", label="live run source dataset")
     require(render_js, "dataset.streamState", label="stream state dataset")
+    require(render_js, "dataset.attachMode", label="attach mode dataset")
+    require(render_js, "dataset.bootstrapVersion", label="bootstrap version dataset")
     require(render_js, "dataset.sessionOwner", label="session owner dataset")
     require(render_js, "dataset.liveOwned", label="live ownership dataset")
     require(render_js, "dataset.composerOwnerState", label="composer owner state dataset")
@@ -691,9 +733,9 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.threadPhaseChip.title = liveRun?.visible ? phaseDetailCopy(liveRun) : "현재 활성 세션이 없습니다.";', label="thread phase detail title")
     require(render_js, ': compactPhaseDetailCopy(liveRun, stateLabel);', label="summary live phase compact copy")
     require(render_js, 'type === "codex.exec.retrying"', label="live-session retry degradation mapping")
-    require(render_js, "selectedThreadSseOwned", label="selected-thread SSE handoff guard")
-    require(render_js, 'const handoffVisible = handoffState.stage === "pending-assistant" && selectedThreadSseOwned;', label="inline handoff visibility guard")
+    require(render_js, "isAppendStreamAuthoritative(currentState, conversationId)", label="selected-thread authoritative SSE handoff guard")
     require(render_js, "const liveVisible =", label="inline live visibility guard")
+    require(render_js, 'visible: liveVisible || degradedVisible,', label="inline block excludes handoff duplication")
     require(render_js, 'if (!conversationId && !(threadTransition.active && threadTransition.targetConversationId)) {', label="composer strip idle clear branch")
     require(render_js, 'const ownerState = composerOwnerState(currentState, conversation);', label="composer strip owner helper wiring")
     require(render_js, 'const transportState = composerTransportState(currentState, conversation, liveRun, handoffState);', label="composer strip transport helper wiring")
@@ -717,7 +759,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, '"OFFLINE"', label="offline provenance label")
     require(render_js, 'const stage = degradedVisible', label="inline degraded stage mapping")
     require(render_js, 'const phaseLabel = degradedVisible', label="inline degraded phase mapping")
-    require(render_js, 'const sourceLabel = degradedVisible ? String(sessionIndicator.source || "polling") : handoffVisible ? "handoff" : "sse";', label="inline degraded source mapping")
+    require(render_js, 'const sourceLabel = degradedVisible ? String(sessionIndicator.source || "polling") : "sse";', label="inline source mapping without handoff duplication")
+    require_absent(render_js, 'const handoffVisible = handoffState.stage === "pending-assistant" && selectedThreadSseOwned;', label="legacy inline handoff visibility guard")
     require(render_js, "sessionTimelineEventModel", label="session timeline event model helper")
     require(render_js, "renderSessionTimelineEvent", label="session timeline event render helper")
     require(render_js, "const transcriptLiveActivity = renderTranscriptLiveActivity(conversation, currentState, liveRun);", label="transcript live activity wiring")
