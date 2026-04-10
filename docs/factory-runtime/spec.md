@@ -8,7 +8,7 @@
 
 ## Problem
 
-The main workspace still risks feeling discontinuous during intentional thread switches if the center pane briefly reads like an empty request viewer instead of one continuous session. The switch path should keep the conversation shell and composer dock mounted, clear stale old-thread ownership immediately, and show one compact transition placeholder until the new snapshot attaches.
+The selected-thread footer can still feel more like a request form than a conversation composer if secondary controls sit too close to the primary send path. Apply and auto-open should remain reachable, but only through one compact, default-closed utility affordance so the textarea and send action stay dominant on desktop and phone widths.
 
 ## Target User
 
@@ -18,11 +18,11 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the existing selected-thread SSE ownership, thread transition, and composer target datasets instead of widening transport scope.
-- Constrain this iteration to the intentional selected-thread switch path in the center workspace and footer composer.
-- Keep the selected-thread SSE path, footer composer structure, side-panel behavior, and rail snapshot behavior unchanged.
-- Leave transport scope, runtime APIs, polling fallback rules, and proposal flow unchanged while tightening switch continuity.
+- Reuse the existing composer footer structure, utility toggle state, and selected-thread ownership datasets instead of widening transport scope.
+- Constrain this iteration to footer utility ergonomics in the selected-thread workspace.
+- Keep the selected-thread SSE path, footer live strip, side-panel behavior, and rail snapshot behavior unchanged.
+- Leave transport scope, runtime APIs, polling fallback rules, and proposal flow unchanged while tightening the footer control layout.
 
 ## Deliverable
 
-Keep the existing selected-conversation SSE path and conversation-first shell ownership, but preserve one continuous selected-thread workspace during intentional thread switches: clear old-thread live and follow ownership immediately, keep the transcript and composer dock mounted, and render exactly one compact `SWITCHING` placeholder until the new selected-thread snapshot attaches, with the generic empty state limited to true no-conversation idle.
+Keep the existing selected-conversation SSE path and conversation-first shell ownership, but preserve a compact footer utility cluster: keep the textarea and primary send action visually dominant, hold apply and auto-open behind one default-closed utility toggle with explicit open or closed state, and avoid introducing a second footer status surface or a form-like control row.
