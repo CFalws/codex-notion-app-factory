@@ -280,11 +280,11 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
     copy =
       sessionIndicator.state === "paused"
         ? liveRun?.jobId
-          ? `FOLLOW PAUSED · ${liveRun.jobId}`
-          : summaryHint("LIVE", "FOLLOW PAUSED")
+          ? `SSE OWNER · ${liveRun.jobId}`
+          : summaryHint("SSE OWNER", "FOLLOW PAUSED")
         : liveRun?.jobId
-          ? `FOLLOWING · ${liveRun.jobId}`
-          : summaryHint("LIVE", "FOLLOWING");
+          ? `SSE OWNER · ${liveRun.jobId}`
+          : summaryHint("SSE OWNER", "LIVE");
   }
 
   dom.sessionSummaryRow.dataset.summaryPath = pathLabel.toLowerCase();
@@ -300,6 +300,9 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   dom.sessionLiveIndicator.hidden = !sessionIndicator.visible;
   dom.sessionLiveIndicator.textContent = sessionIndicator.label;
   dom.sessionLiveIndicator.dataset.liveSessionTone = sessionIndicator.tone;
+  dom.sessionLiveIndicator.dataset.liveSessionSource = sessionIndicator.source;
+  dom.sessionLiveIndicator.dataset.liveSessionOwned = sessionIndicator.owned ? "true" : "false";
+  dom.sessionLiveIndicator.dataset.liveSessionReason = sessionIndicator.reason;
   dom.sessionSummaryCopy.textContent = copy;
 }
 
@@ -392,11 +395,11 @@ function selectedThreadLiveSessionIndicator(currentState, conversation, liveRun,
   if (selectedThreadSseOwned) {
     return {
       visible: true,
-      label: followPaused ? "FOLLOW PAUSED" : "FOLLOWING",
+      label: "SSE OWNER",
       state: followPaused ? "paused" : "following",
       source: "sse",
       reason: followPaused ? "selected-thread-follow-paused" : "selected-thread-following",
-      tone: followPaused ? "warning" : "healthy",
+      tone: "healthy",
       owned: true,
     };
   }
