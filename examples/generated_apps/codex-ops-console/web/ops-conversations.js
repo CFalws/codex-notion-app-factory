@@ -230,7 +230,7 @@ export function createConversationController(deps) {
     return true;
   }
 
-  function shouldRefreshGoalSummaryFromLiveAppend(kind, payload) {
+  function shouldProjectAutonomySummaryFromLiveAppend(kind, payload) {
     if (kind !== "event" || !payload) {
       return false;
     }
@@ -249,6 +249,67 @@ export function createConversationController(deps) {
       status === "completed" ||
       status === "applied"
     );
+  }
+
+  function projectAutonomySummaryFromLiveAppend(kind, payload) {
+    if (!shouldProjectAutonomySummaryFromLiveAppend(kind, payload)) {
+      return state.autonomySummary;
+    }
+    const currentSummary = state.autonomySummary || {};
+    const type = String(payload?.type || "");
+    const status = String(payload?.status || "").toLowerCase();
+    const degradedSignals = Array.isArray(currentSummary.degradedSignals)
+      ? [...currentSummary.degradedSignals]
+      : [];
+    let pathVerdict = String(currentSummary.pathVerdict || "EXPECTED").toUpperCase();
+    let verifierAcceptability = String(currentSummary.verifierAcceptability || "PENDING").toUpperCase();
+    let blockerReason = String(currentSummary.blockerReason || "none");
+
+    if (
+      type === "runtime.exception" ||
+      status === "failed"
+    ) {
+      pathVerdict = "DEGRADED";
+      verifierAcceptability = "DISQUALIFYING";
+      blockerReason = type === "runtime.exception" ? "runtime.exception" : "failed";
+      if (!degradedSignals.includes(blockerReason)) {
+        degradedSignals.push(blockerReason);
+      }
+    } else if (
+      type === "proposal.ready" ||
+      type === "codex.exec.applied" ||
+      status === "applied" ||
+      status === "completed"
+    ) {
+      pathVerdict = "EXPECTED";
+      verifierAcceptability = "ACCEPTABLE";
+      blockerReason = "none";
+    } else if (
+      type === "job.running" ||
+      type.startsWith("goal.proposal.phase.") ||
+      type.startsWith("goal.review.phase.") ||
+      type.startsWith("goal.verify.phase.") ||
+      type === "goal.proposal.auto_apply.started"
+    ) {
+      pathVerdict = "EXPECTED";
+      verifierAcceptability = "PENDING";
+      blockerReason = "none";
+    }
+
+    const nextSummary = {
+      goalTitle: currentSummary.goalTitle || "Autonomy Goal",
+      goalStatus: currentSummary.goalStatus || "running",
+      iteration: String(currentSummary.iteration || ""),
+      pathVerdict,
+      verifierAcceptability,
+      blockerReason,
+      expectedPath: currentSummary.expectedPath || "selected-thread-sse",
+      degradedSignals,
+      heading:
+        currentSummary.heading ||
+        `${currentSummary.goalTitle || "Autonomy Goal"} · ${currentSummary.goalStatus || "running"} · iteration ${String(currentSummary.iteration || "")}`,
+    };
+    return nextSummary;
   }
 
   function liveJobMetaLabel(kind, payload) {
@@ -306,8 +367,12 @@ export function createConversationController(deps) {
     if (immediateMeta) {
       setJobMeta(dom, immediateMeta);
     }
-    if (shouldRefreshGoalSummaryFromLiveAppend(kind, payload)) {
-      refreshGoalSummary().catch(() => {});
+    const projectedAutonomySummary = projectAutonomySummaryFromLiveAppend(kind, payload);
+    if (projectedAutonomySummary !== state.autonomySummary) {
+      state.autonomySummary = projectedAutonomySummary;
+      if (state.conversationCache) {
+        renderConversation(dom, state, state.conversationCache, persistSettings);
+      }
     }
   }
 
