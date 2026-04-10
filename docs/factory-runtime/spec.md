@@ -8,7 +8,7 @@
 
 ## Problem
 
-The selected-thread workspace is close to a continuous session shell, but thread switches still need to prove that the old thread loses ownership immediately and that the center pane never flashes a generic reset. Users should stay inside the mounted transcript and composer shell while one compact `SWITCHING` placeholder bridges the attach gap.
+The selected-thread workspace already preserves shell continuity across thread switches, but the composer-adjacent session rail still under-explains the intended realtime path. Operators should be able to tell at a glance whether the selected thread is on a healthy `LIVE` SSE path, reconnecting, or offline without scanning secondary panels or mistaking polling fallback for live ownership.
 
 ## Target User
 
@@ -19,10 +19,10 @@ The primary user is the operator or developer using the phone-friendly workspace
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
 - Reuse the existing selected-conversation SSE route instead of widening transport scope.
-- Constrain this iteration to selected-thread switch continuity in the existing center workspace and composer ownership path.
-- Keep the selected-thread SSE path, session strip ownership, bottom follow control, composer behavior, and side-panel behavior unchanged.
-- Leave transport scope, deployed verification gate, selected-row live ownership, and polling fallback rules unchanged in this iteration.
+- Constrain this iteration to the selected-thread composer-adjacent live rail in the existing center workspace.
+- Keep the selected-thread SSE path, transcript shell, composer ownership row, bottom follow control, and side-panel behavior unchanged.
+- Leave transport scope, runtime APIs, selected-row live ownership, and polling fallback semantics unchanged while making the selected-thread transport-health rail clearer.
 
 ## Deliverable
 
-Keep the existing selected-conversation SSE path and conversation-first shell ownership, but make intentional thread switches render as one continuous handoff: clear old-thread live ownership immediately, keep the transcript and composer mounted, show exactly one compact `SWITCHING` placeholder until attach resolves, and never fall back to a generic empty-state flash during that transition.
+Keep the existing selected-conversation SSE path and conversation-first shell ownership, but make the composer-adjacent session rail expose one compact chip-first source of truth for selected-thread transport health and phase: show explicit `LIVE`, `RECONNECT`, `OPEN`, or `OFFLINE` transport state beside the current phase and compact provenance, keep degraded transport visibly distinct without pretending live ownership, and clear the rail on polling-only fallback, terminal idle, or thread switch.

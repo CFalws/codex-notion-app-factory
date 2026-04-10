@@ -303,6 +303,33 @@ function transcriptLiveTone(liveRun) {
   return "neutral";
 }
 
+function shouldShowComposerLiveStrip(appendStream, conversationId, lastRenderSource, liveRun) {
+  const streamConversationId = String(appendStream?.conversationId || "");
+  const transport = String(appendStream?.transport || "polling").toLowerCase();
+  const status = String(appendStream?.status || "offline").toLowerCase();
+  const ownsSelectedThread = conversationId && streamConversationId === conversationId && transport === "sse";
+
+  if (
+    !ownsSelectedThread ||
+    !liveRun?.visible ||
+    liveRun.terminal ||
+    !liveRun.phase ||
+    liveRun.phase === "IDLE"
+  ) {
+    return false;
+  }
+
+  if (status === "live") {
+    return lastRenderSource === "sse";
+  }
+
+  if (status === "reconnecting" || status === "connecting" || status === "offline") {
+    return true;
+  }
+
+  return false;
+}
+
 function renderInlineSessionBlock(conversation, currentState, liveRun, handoffState) {
   const appendStream = currentState.appendStream || {};
   const conversationId = String(conversation?.conversation_id || "");
@@ -315,6 +342,11 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
     streamConversationId === conversationId &&
     transport === "sse" &&
     renderSource === "sse";
+  const showComposerLiveStrip = shouldShowComposerLiveStrip(appendStream, conversationId, renderSource, liveRun);
+
+  if (showComposerLiveStrip) {
+    return "";
+  }
 
   if (handoffState?.stage === "pending-assistant") {
     return `
@@ -359,15 +391,16 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
 }
 
 function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
-  if (liveRun?.visible && !liveRun?.terminal) {
-    return "";
-  }
   const appendStream = currentState.appendStream || {};
   const conversationId = String(conversation?.conversation_id || "");
   const streamConversationId = String(appendStream.conversationId || "");
   const renderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
   const transport = String(appendStream.transport || "polling").toLowerCase();
   const status = String(appendStream.status || "offline").toLowerCase();
+  const showComposerLiveStrip = shouldShowComposerLiveStrip(appendStream, conversationId, renderSource, liveRun);
+  if (showComposerLiveStrip || (liveRun?.visible && !liveRun?.terminal)) {
+    return "";
+  }
   if (!conversationId || streamConversationId !== conversationId) {
     return "";
   }
@@ -1018,9 +1051,9 @@ function sessionProvenance(status, lastAppendId, lastLiveAppendId, liveRun) {
     status === "live"
       ? "LIVE"
       : status === "reconnecting"
-        ? "DEGRADED"
+        ? "RECONNECT"
         : status === "connecting"
-          ? "OPENING"
+          ? "OPEN"
           : "OFFLINE";
   return `${sourceLabel} · ${transportLabel} · #${lastLiveAppendId || lastAppendId || 0}`;
 }
@@ -1046,10 +1079,6 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const lastRenderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
   const lastLiveAppendId = Number(appendStream.lastLiveAppendId || 0);
   const liveRun = deriveLiveRunState(conversation, currentState);
-  const sseLiveOwner =
-    appendStream.transport === "sse" &&
-    String(appendStream.conversationId || "") === conversationId &&
-    lastRenderSource === "sse";
   currentState.sessionRail ||= { conversationId: "", expanded: false };
 
   if (!conversationId) {
@@ -1116,16 +1145,10 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const transportState = transportChip(status, presentation);
   const phaseState = phaseChip(liveRun, presentation);
   const proposalState = proposalChip(liveRun);
-  const showComposerLiveStrip =
-    sseLiveOwner &&
-    !liveRun.terminal &&
-    liveRun.visible &&
-    liveRun.phase &&
-    liveRun.phase !== "IDLE" &&
-    liveRun.state !== "sending" &&
-    liveRun.state !== "generating";
+  const showComposerLiveStrip = shouldShowComposerLiveStrip(appendStream, conversationId, lastRenderSource, liveRun);
+  const liveOwned = showComposerLiveStrip && status === "live" && lastRenderSource === "sse";
   dom.sessionStrip.hidden = !showComposerLiveStrip;
-  dom.sessionStrip.dataset.liveOwned = showComposerLiveStrip ? "true" : "false";
+  dom.sessionStrip.dataset.liveOwned = liveOwned ? "true" : "false";
   dom.sessionStrip.dataset.sessionPresentation = presentation;
   dom.sessionStrip.dataset.sessionTerminal = liveRun.terminal ? "true" : "false";
   dom.sessionStrip.dataset.sessionCollapsed = shouldCollapse ? "true" : "false";

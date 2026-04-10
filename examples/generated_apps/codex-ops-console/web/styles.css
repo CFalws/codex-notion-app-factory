@@ -1014,6 +1014,21 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   background: linear-gradient(180deg, rgba(238, 245, 255, 0.9), rgba(255, 255, 255, 0.96));
 }
 
+.session-strip[data-stream-state="reconnecting"] {
+  border-color: rgba(178, 114, 24, 0.24);
+  background: linear-gradient(180deg, rgba(255, 247, 229, 0.96), rgba(255, 255, 255, 0.98));
+}
+
+.session-strip[data-stream-state="offline"] {
+  border-color: rgba(182, 75, 65, 0.22);
+  background: linear-gradient(180deg, rgba(255, 240, 238, 0.96), rgba(255, 255, 255, 0.98));
+}
+
+.session-strip[data-stream-state="connecting"] {
+  border-color: rgba(31, 120, 224, 0.18);
+  background: linear-gradient(180deg, rgba(241, 247, 255, 0.95), rgba(255, 255, 255, 0.98));
+}
+
 .session-strip-toggle {
   min-width: 5.8rem;
   margin-left: auto;
@@ -1094,6 +1109,20 @@ body[data-secondary-panel-open="true"] .desktop-shell {
 
 .session-strip-detail {
   font-weight: 600;
+}
+
+.session-strip[data-live-owned="true"] .session-strip-meta {
+  color: var(--accent-ink);
+}
+
+.session-strip[data-stream-state="reconnecting"] .session-strip-meta,
+.session-strip[data-stream-state="reconnecting"] .session-strip-detail {
+  color: #8d5607;
+}
+
+.session-strip[data-stream-state="offline"] .session-strip-meta,
+.session-strip[data-stream-state="offline"] .session-strip-detail {
+  color: #9f3f37;
 }
 
 .timeline-item {
