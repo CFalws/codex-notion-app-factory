@@ -142,6 +142,8 @@ def browser_snapshot_script() -> str:
   const composerOwnerRow = document.querySelector("#composer-owner-row");
   const sendRequest = document.querySelector("#send-request");
   const transition = document.querySelector('[data-thread-transition="loading"]');
+  const emptyState = document.querySelector(".timeline-empty");
+  const threadScroller = document.querySelector("#thread-scroller");
   return {
     summary: summary ? {
       hidden: !!summary.hidden,
@@ -177,6 +179,12 @@ def browser_snapshot_script() -> str:
     transition: transition ? {
       dataset: { ...transition.dataset },
       text: (transition.textContent || "").trim(),
+    } : null,
+    emptyState: emptyState ? {
+      text: (emptyState.textContent || "").trim(),
+    } : null,
+    threadScroller: threadScroller ? {
+      dataset: { ...threadScroller.dataset },
     } : null,
   };
 }
@@ -334,18 +342,29 @@ def assert_browser_runtime_surface(
                 """targetConversationId => {
                   const transition = document.querySelector('[data-thread-transition="loading"]');
                   const summary = document.querySelector("#session-summary-row");
+                  const composerDock = document.querySelector("#conversation-footer-dock");
                   const sendRequest = document.querySelector("#send-request");
+                  const threadScroller = document.querySelector("#thread-scroller");
                   const healthy = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-owned="true"]');
                   const degraded = document.querySelector('.session-inline-block[data-selected-thread-degraded-block="true"]');
+                  const empty = document.querySelector(".timeline-empty");
                   return Boolean(
                     transition &&
+                    document.querySelectorAll('[data-thread-transition="loading"]').length === 1 &&
                     transition.dataset.threadTransitionConversationId === targetConversationId &&
                     summary &&
                     summary.dataset.summaryPath === "switching" &&
+                    composerDock &&
+                    ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     sendRequest &&
                     sendRequest.dataset.composerOwnerState === "switching" &&
+                    threadScroller &&
+                    threadScroller.dataset.threadTransitionState === "loading" &&
+                    threadScroller.dataset.threadTransitionConversationId === targetConversationId &&
+                    threadScroller.dataset.sessionOwner !== "selected-thread" &&
                     !healthy &&
-                    !degraded
+                    !degraded &&
+                    !empty
                   );
                 }""",
                 switch_conversation_id,

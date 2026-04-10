@@ -8,7 +8,7 @@
 
 ## Problem
 
-Healthy selected-thread inline live and degraded markers are now in place, and live autonomy summary is already projected from append events, but the central transcript still renders many session milestones as generic event cards. That leaves the operator inferring phase progression instead of seeing one conversation-first session timeline.
+Healthy selected-thread timeline state is already converging into the conversation surface, but intentional thread switches still depend on proving that the center shell stays mounted and never flashes the generic empty workspace. Without that continuity, the live-session illusion breaks exactly when the operator changes focus.
 
 ## Target User
 
@@ -18,10 +18,10 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the existing selected-thread append events, live-run state, and autonomy summary projection instead of changing backend transport or state schema.
-- Keep the change bounded to the transcript render layer for selected-thread session milestones.
-- Preserve the current degraded-session indicator and thread-switch placeholder behavior without duplicating state in separate panels.
+- Reuse the existing selected-thread transition state, composer shell, and thread-switch placeholder instead of changing backend transport or state schema.
+- Keep the change bounded to the selected-thread switch path and its verification contract.
+- Preserve true empty-state rendering for no-selection idle only.
 
 ## Deliverable
 
-Define and verify one compact session-event projection layer so proposal, review, verify, auto-apply, ready, applied, and failure transitions render directly in the selected-thread conversation timeline from append events while healthy SSE ownership holds.
+Define and verify one compact selected-thread switch placeholder path so intentional switches keep the same center workspace shell and bottom-fixed composer visible, clear old live ownership immediately, and reserve the generic empty state for true no-selection idle only.
