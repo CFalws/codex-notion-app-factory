@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep the existing conversation-first shell, header ownership chip, transcript timeline, footer composer dock, and side-panel behavior unchanged.
-- [x] Extend the selected-thread live-run snapshot with terminal event append and time metadata.
-- [x] Add a deterministic inline terminal-retention helper scoped to selected-thread healthy SSE ownership.
-- [x] Keep exactly one inline phase item by reusing the existing selected-thread inline block for retained `READY` and `APPLIED`.
-- [x] Align the focused verifier, deployed workspace gate, and iteration artifacts with the inline terminal-retention contract.
+- [x] Keep the conversation-first shell, inline session block, bottom-fixed composer, and composer owner row unchanged.
+- [x] Add one shared selected-thread inline-session visibility helper for healthy handoff, live phases, and retained terminal states.
+- [x] Suppress the duplicate composer-adjacent live strip whenever the inline session block is the healthy selected-thread live surface.
+- [x] Preserve selected-thread ownership datasets on the thread scroller so follow-state and jump-to-latest behavior keep working without the strip.
+- [x] Align the focused verifier, deployed workspace gate, and iteration artifacts with the single healthy live-surface contract.

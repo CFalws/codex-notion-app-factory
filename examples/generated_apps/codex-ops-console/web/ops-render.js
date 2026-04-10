@@ -493,36 +493,13 @@ function transcriptLiveTone(liveRun) {
   return "neutral";
 }
 
-function shouldShowComposerLiveStrip(appendStream, conversationId, lastRenderSource, liveRun) {
-  const streamConversationId = String(appendStream?.conversationId || "");
-  const transport = String(appendStream?.transport || "polling").toLowerCase();
-  const status = String(appendStream?.status || "offline").toLowerCase();
-  const ownsSelectedThread = conversationId && streamConversationId === conversationId && transport === "sse";
-
-  if (
-    !ownsSelectedThread ||
-    !liveRun?.visible ||
-    liveRun.terminal ||
-    !liveRun.phase ||
-    liveRun.phase === "IDLE"
-  ) {
-    return false;
-  }
-
-  if (status !== "live") {
-    return false;
-  }
-
-  return lastRenderSource === "sse";
-}
-
-function renderInlineSessionBlock(conversation, currentState, liveRun, handoffState) {
+function selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState = { stage: "idle" }) {
   const appendStream = currentState.appendStream || {};
   const conversationId = String(conversation?.conversation_id || "");
-  const streamConversationId = String(appendStream.conversationId || "");
-  const renderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
-  const transport = String(appendStream.transport || "polling").toLowerCase();
-  const status = String(appendStream.status || "offline").toLowerCase();
+  const streamConversationId = String(appendStream?.conversationId || "");
+  const transport = String(appendStream?.transport || "polling").toLowerCase();
+  const renderSource = String(appendStream?.lastRenderSource || "snapshot").toLowerCase();
+  const status = String(appendStream?.status || "offline").toLowerCase();
   const selectedThreadSseOwned = conversationId && streamConversationId === conversationId && transport === "sse";
   const handoffVisible = handoffState.stage === "pending-assistant" && selectedThreadSseOwned;
   const retainedTerminalVisible = shouldRetainInlineTerminalPhase(
@@ -542,6 +519,45 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
     liveRun.state !== "sending" &&
     liveRun.state !== "generating" &&
     (!liveRun.terminal || retainedTerminalVisible);
+  return {
+    conversationId,
+    selectedThreadSseOwned,
+    renderSource,
+    status,
+    transport,
+    handoffVisible,
+    retainedTerminalVisible,
+    liveVisible,
+    visible: handoffVisible || liveVisible,
+  };
+}
+
+function shouldShowComposerLiveStrip(conversation, currentState, liveRun, handoffState = { stage: "idle" }) {
+  const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
+  if (inlineState.visible) {
+    return false;
+  }
+  if (
+    !inlineState.selectedThreadSseOwned ||
+    !liveRun?.visible ||
+    liveRun.terminal ||
+    !liveRun.phase ||
+    liveRun.phase === "IDLE"
+  ) {
+    return false;
+  }
+
+  if (inlineState.status !== "live") {
+    return false;
+  }
+
+  return inlineState.renderSource === "sse";
+}
+
+function renderInlineSessionBlock(conversation, currentState, liveRun, handoffState) {
+  const appendStream = currentState.appendStream || {};
+  const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
+  const { handoffVisible, liveVisible, status } = inlineState;
 
   if (!handoffVisible && !liveVisible) {
     return "";
@@ -578,7 +594,7 @@ function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
   const renderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
   const transport = String(appendStream.transport || "polling").toLowerCase();
   const status = String(appendStream.status || "offline").toLowerCase();
-  const showComposerLiveStrip = shouldShowComposerLiveStrip(appendStream, conversationId, renderSource, liveRun);
+  const showComposerLiveStrip = shouldShowComposerLiveStrip(conversation, currentState, liveRun);
   if (showComposerLiveStrip || (liveRun?.visible && !liveRun?.terminal)) {
     return "";
   }
@@ -1315,6 +1331,8 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const lastRenderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
   const lastLiveAppendId = Number(appendStream.lastLiveAppendId || 0);
   const liveRun = deriveLiveRunState(conversation, currentState);
+  const handoffState = conversation ? pendingHandoffState(conversation, currentState) : { stage: "idle" };
+  const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
   currentState.sessionRail ||= { conversationId: "", expanded: false };
 
   if (!conversationId) {
@@ -1384,8 +1402,8 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const transportState = transportChip(status, presentation);
   const phaseState = phaseChip(liveRun, presentation);
   const proposalState = proposalChip(liveRun);
-  const showComposerLiveStrip = shouldShowComposerLiveStrip(appendStream, conversationId, lastRenderSource, liveRun);
-  const liveOwned = showComposerLiveStrip && status === "live" && lastRenderSource === "sse";
+  const showComposerLiveStrip = shouldShowComposerLiveStrip(conversation, currentState, liveRun, handoffState);
+  const liveOwned = inlineState.selectedThreadSseOwned && inlineState.status === "live" && inlineState.renderSource === "sse";
   const sessionOwnerState = selectedThreadLiveSessionIndicator(currentState, conversation, liveRun);
   dom.sessionStrip.hidden = !showComposerLiveStrip;
   dom.sessionStrip.dataset.liveOwned = liveOwned ? "true" : "false";
