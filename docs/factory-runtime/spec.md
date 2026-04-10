@@ -8,7 +8,7 @@
 
 ## Problem
 
-The selected-thread handoff and quick-switch paths are now compact and verified, but the workspace still makes users infer whether they are attached to the live tail after scrolling up to read history. That weakens the realtime-session feel because healthy SSE ownership remains active while the visible workspace no longer says whether follow is still attached or paused.
+The workspace already has compact header, rail, and footer cues, but live progress still reads like chrome around the conversation instead of part of the conversation itself. That leaves the transcript feeling passive even when the selected thread is actively handing off or streaming through the intended SSE path.
 
 ## Target User
 
@@ -18,11 +18,11 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the existing `liveFollow`, selected-thread SSE ownership, append-stream, and jump-to-latest state instead of widening transport scope.
-- Constrain this iteration to live progress visibility inside the selected-thread header summary, jump-to-latest affordance, and composer-adjacent session strip.
-- Keep the left rail, runtime APIs, side-panel behavior, SSE transport, and recent-thread quick-switch rail unchanged.
-- Clear paused or following follow-state signals immediately on thread switch, reconnect downgrade, polling fallback, and terminal completion.
+- Reuse the existing selected-thread append-stream, pending handoff, live-follow, and live-run selectors instead of adding a new runtime state source.
+- Constrain this iteration to one compact inline transcript-tail live session block in the selected conversation pane.
+- Keep the left rail, runtime APIs, side-panel behavior, SSE transport, and broader workspace layout unchanged.
+- Clear the inline block immediately on first real assistant append, terminal completion, reconnect downgrade, polling fallback, or thread switch.
 
 ## Deliverable
 
-Promote the existing selected-thread `liveFollow` state into the conversation-first workspace so the header summary, composer-adjacent session strip, and jump-to-latest affordance explicitly distinguish FOLLOWING versus FOLLOW PAUSED on the healthy selected-thread SSE path, while degraded and terminal paths clear those signals immediately.
+Render exactly one compact inline live session block at the transcript tail for the selected thread only, showing HANDOFF before the first assistant append and LIVE during healthy SSE-owned progress, with immediate clearing on degraded, switched, or terminal paths.

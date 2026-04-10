@@ -493,41 +493,43 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
   const renderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
   const transport = String(appendStream.transport || "polling").toLowerCase();
   const status = String(appendStream.status || "offline").toLowerCase();
-  const sseLiveOwner =
-    conversationId &&
-    streamConversationId === conversationId &&
-    transport === "sse" &&
-    renderSource === "sse";
-  const showComposerLiveStrip = shouldShowComposerLiveStrip(appendStream, conversationId, renderSource, liveRun);
+  const selectedThreadSseOwned = conversationId && streamConversationId === conversationId && transport === "sse";
+  const handoffVisible = handoffState.stage === "pending-assistant" && selectedThreadSseOwned;
+  const liveVisible =
+    selectedThreadSseOwned &&
+    renderSource === "sse" &&
+    status === "live" &&
+    liveRun?.visible &&
+    !liveRun.terminal &&
+    liveRun.phase &&
+    liveRun.phase !== "IDLE" &&
+    liveRun.state !== "sending" &&
+    liveRun.state !== "generating";
 
-  if (showComposerLiveStrip) {
+  if (!handoffVisible && !liveVisible) {
     return "";
   }
 
-  if (
-    !sseLiveOwner ||
-    !liveRun?.visible ||
-    liveRun.terminal ||
-    !liveRun.phase ||
-    liveRun.phase === "IDLE" ||
-    liveRun.state === "sending" ||
-    liveRun.state === "generating"
-  ) {
-    return "";
-  }
-
-  const tone = transcriptLiveTone(liveRun);
-  const detail = simplifyText(phaseDetailHint(liveRun) || liveRun.detail || "");
   const appendId = Number(appendStream.lastLiveAppendId || appendStream.lastAppendId || 0);
+  const stage = handoffVisible ? "handoff" : String(liveRun.state || "live");
+  const phaseLabel = handoffVisible ? "HANDOFF" : String(liveRun.phase || "LIVE").toUpperCase();
+  const sourceLabel = handoffVisible ? "handoff" : "sse";
+  const tone = handoffVisible ? "neutral" : transcriptLiveTone(liveRun);
+  const detail = handoffVisible
+    ? "서버 handoff가 확인되어 첫 live assistant append를 기다리는 중입니다."
+    : simplifyText(phaseDetailHint(liveRun) || liveRun.detail || "");
+  const meta = handoffVisible
+    ? `selected thread · SSE · HANDOFF${liveRun.jobId ? ` · ${escapeHtml(liveRun.jobId)}` : ""}`
+    : `selected thread · SSE · ${escapeHtml(status.toUpperCase())} · append #${appendId || 0}${liveRun.jobId ? ` · ${escapeHtml(liveRun.jobId)}` : ""}`;
   return `
-    <section class="session-inline-block" data-selected-thread-live-block="true" data-live-block-stage="${escapeHtml(liveRun.state)}" data-live-block-source="sse">
+    <section class="session-inline-block" data-selected-thread-live-block="true" data-live-block-owner="selected-thread" data-live-owned="true" data-live-block-stage="${escapeHtml(stage)}" data-live-block-phase="${escapeHtml(phaseLabel)}" data-live-block-source="${escapeHtml(sourceLabel)}">
       <p class="session-inline-kicker">Selected Thread Session</p>
       <div class="session-inline-row">
-        <span class="session-inline-chip" data-tone="neutral">LIVE</span>
-        <span class="session-inline-chip" data-tone="${escapeHtml(tone)}">${escapeHtml(String(liveRun.phase || "LIVE").toUpperCase())}</span>
+        <span class="session-inline-chip" data-tone="neutral">${handoffVisible ? "HANDOFF" : "LIVE"}</span>
+        <span class="session-inline-chip" data-tone="${escapeHtml(tone)}">${escapeHtml(phaseLabel)}</span>
       </div>
       <p class="session-inline-body">${escapeHtml(detail || "선택된 대화의 최신 live 진행 상태를 표시하는 중입니다.")}</p>
-      <p class="session-inline-meta">selected thread · SSE · ${escapeHtml(status.toUpperCase())} · append #${appendId || 0}${liveRun.jobId ? ` · ${escapeHtml(liveRun.jobId)}` : ""}</p>
+      <p class="session-inline-meta">${meta}</p>
     </section>
   `;
 }
@@ -1751,8 +1753,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
     return;
   }
 
-  const liveActivityTurn = renderTranscriptLiveActivity(conversation, currentState, liveRun);
-  dom.conversationTimeline.innerHTML = inlineSessionBlock + items
+  const renderedItems = items
     .map((item) => {
       if (item.kind === "event") {
         return `
@@ -1772,7 +1773,8 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
         </article>
       `;
     })
-    .join("") + liveActivityTurn;
+    .join("");
+  dom.conversationTimeline.innerHTML = renderedItems + inlineSessionBlock;
   if (dom.threadScroller && currentState.liveFollow.isFollowing) {
     dom.threadScroller.scrollTop = dom.threadScroller.scrollHeight;
   }
