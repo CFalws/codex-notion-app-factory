@@ -225,6 +225,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, "liveOwnerFollowLabel", label="selected card live follow helper")
     require(conversations_js, "liveOwnerState", label="selected card live owner state helper")
     require(conversations_js, "liveOwnerMarkerLabel", label="selected card live owner marker helper")
+    require(conversations_js, 'return "OWNER";', label="selected card live owner session chip label")
+    require(conversations_js, 'return "PROPOSAL";', label="compact proposal rail label")
     require(conversations_js, "startThreadTransition", label="thread transition start helper")
     require(conversations_js, "clearThreadTransition", label="thread transition clear helper")
     require(conversations_js, 'const selectedThreadSseOwned = selectedConversationId && selectedConversationId === liveConversationId && renderSource === "sse";', label="selected card sse ownership guard")

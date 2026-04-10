@@ -358,7 +358,7 @@ export function createConversationController(deps) {
       return "REVIEW";
     }
     if (threadState === "proposal") {
-      return "PROPOSE";
+      return "PROPOSAL";
     }
     if (threadState === "done") {
       return "DONE";
@@ -401,41 +401,29 @@ export function createConversationController(deps) {
   }
 
   function liveOwnerLabel(liveLabel = "") {
-    return liveLabel ? `LIVE · ${liveLabel}` : "LIVE";
+    if (liveLabel) {
+      return "OWNER";
+    }
+    return "LIVE";
   }
 
   function liveOwnerDetail({ pendingStage = "", presentation = "", liveRunState = "", liveRunPhase = "" } = {}) {
     if (pendingStage === "pending-user") {
-      return "메시지 handoff 중";
+      return "HANDOFF";
     }
     if (pendingStage === "pending-assistant") {
-      return "첫 응답 대기";
+      return "HANDOFF";
     }
     if (presentation === "connecting") {
-      return "선택된 세션 연결 중";
+      return "PAUSED";
     }
     if (presentation === "reconnecting") {
-      return "선택된 세션 복구 중";
+      return "PAUSED";
     }
-    if (liveRunState === "proposal-phase" || liveRunPhase === "PROPOSAL") {
-      return "proposal 진행";
+    if (liveRunState || liveRunPhase) {
+      return "LIVE";
     }
-    if (liveRunState === "review-phase" || liveRunPhase === "REVIEW") {
-      return "review 진행";
-    }
-    if (liveRunState === "verify-phase" || liveRunPhase === "VERIFY") {
-      return "verify 진행";
-    }
-    if (liveRunState === "proposal-ready" || liveRunPhase === "READY") {
-      return "proposal ready";
-    }
-    if (liveRunState === "auto-apply" || liveRunPhase === "AUTO APPLY") {
-      return "auto apply";
-    }
-    if (liveRunState === "running-tool" || liveRunPhase === "RUNNING") {
-      return "실행 중";
-    }
-    return "live session";
+    return "LIVE";
   }
 
   function liveOwnerFollowLabel({ pendingStage = "", isFollowing = false, jumpVisible = false, presentation = "" } = {}) {
@@ -449,7 +437,7 @@ export function createConversationController(deps) {
       return "NEW";
     }
     if (isFollowing) {
-      return "FOLLOW";
+      return "LIVE";
     }
     return "PAUSED";
   }
@@ -509,7 +497,7 @@ export function createConversationController(deps) {
     };
   }
 
-  function truncatePreview(value, maxLength = 88) {
+  function truncatePreview(value, maxLength = 72) {
     const text = simplifyPreviewText(value);
     if (text.length <= maxLength) {
       return text;
