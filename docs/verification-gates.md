@@ -218,6 +218,8 @@ For the feature-flagged active-conversation append SSE path, verification should
 - the secondary operator panel should remain collapsed by default, and deeper autonomy or workspace-summary prose should stay optional rather than competing with the transcript and composer as a primary workspace surface
 - the selected transcript should expose exactly one compact bottom follow control only when the selected thread is detached from the tail and unseen selected-thread appends are present, and that control should publish explicit `NEW` vs `PAUSED` state plus unseen-count metadata
 - the selected-thread follow control should clear immediately on jump-to-latest, thread switch, terminal idle, reconnect downgrade, or polling-only fallback, and no non-selected thread should ever gain a live-owned transcript follow affordance
+- the selected-thread footer should remain chat-first, with the textarea and primary send action visually dominant while apply and auto-open live behind one compact utility affordance rather than an always-expanded control cluster
+- the footer utility affordance should expose machine-readable open or closed state, remain collapsed by default, and should not become a second live-status surface or re-expand into a form-like footer on phone widths
 
 ## Commit And Deploy Policy
 

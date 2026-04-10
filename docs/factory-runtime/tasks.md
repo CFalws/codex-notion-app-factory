@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Keep the current selected-conversation SSE path, composer dock, thread-switch continuity, selected-row live-owner contract, and non-selected snapshot rows unchanged.
-- [x] Expose one compact bottom follow control only when the selected transcript is detached from the tail and unseen selected-thread appends are present.
-- [x] Make the control publish explicit `NEW` vs `PAUSED` state plus unseen-count metadata derived from selected-thread append provenance and live-follow state.
-- [x] Clear the control immediately on jump-to-latest, thread switch, terminal idle, reconnect downgrade, and polling-only fallback.
-- [x] Extend focused verification so future sessions can prove the follow control remains selected-thread-only and distinguishes healthy live off-screen appends from degraded follow state.
+- [x] Keep the current selected-conversation SSE path, session strip ownership, bottom follow control, thread-switch continuity, and non-selected snapshot rows unchanged.
+- [x] Move apply and auto-open behind one compact footer utility affordance so send remains the dominant action.
+- [x] Shorten the persistent composer hint and keep the utility panel hidden by default on desktop and phone widths.
+- [x] Preserve machine-readable footer utility-open state without adding a new footer status surface.
+- [x] Extend focused verification so future sessions can prove the compact chat-first footer structure remains intact.

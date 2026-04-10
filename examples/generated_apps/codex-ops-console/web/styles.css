@@ -1290,17 +1290,41 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   font-size: 0.86rem;
 }
 
-.composer-utility-cluster {
+.composer-footer {
+  align-items: flex-end;
+}
+
+.composer-utility-menu {
+  position: relative;
   display: flex;
-  align-items: flex-start;
   justify-content: flex-end;
-  gap: 0.7rem;
-  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.composer-utility-toggle-button {
+  min-width: 4.8rem;
+  padding-inline: 0.88rem;
+}
+
+.composer-utility-cluster {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.55rem);
+  display: grid;
+  gap: 0.55rem;
+  min-width: min(17rem, calc(100vw - 2rem));
+  padding: 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 0.95rem;
+  background: rgba(255, 253, 250, 0.98);
+  box-shadow: 0 14px 30px rgba(44, 25, 6, 0.12);
+  z-index: 8;
 }
 
 .composer-send-primary {
   min-width: 9.5rem;
   padding-inline: 1.15rem;
+  flex: 1 1 auto;
   flex-shrink: 0;
 }
 
@@ -1310,7 +1334,6 @@ body[data-secondary-panel-open="true"] .desktop-shell {
 }
 
 .composer-utility-toggle {
-  order: 2;
   font-size: 0.84rem;
   padding: 0.56rem 0.72rem;
 }
@@ -1732,16 +1755,23 @@ body[data-secondary-panel-open="true"] .secondary-panel {
 
   .composer-toolbar,
   .composer-footer,
-  .composer-utility-cluster,
   .section-head {
     display: grid;
   }
 
+  .composer-utility-menu,
+  .composer-utility-cluster,
   .composer-utility-cluster button,
   .toggle.inline,
   .secondary,
   button {
     width: 100%;
+  }
+
+  .composer-utility-cluster {
+    position: static;
+    min-width: 0;
+    margin-top: 0.55rem;
   }
 
   .timeline-item.message {

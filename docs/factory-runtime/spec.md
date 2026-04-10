@@ -8,7 +8,7 @@
 
 ## Problem
 
-The selected-thread workspace still makes live transcript following too implicit during active SSE delivery. When the operator scrolls away from the bottom, the console needs to make it obvious whether new selected-thread appends are arriving live off-screen or whether the session has degraded back toward a paused or snapshot path.
+The footer composer still reads too much like an operator form because apply and auto-open stay fully expanded beside the primary send path. Even after live-state ownership was simplified, the active workspace still does not feel chat-first enough at the point where the operator actually types.
 
 ## Target User
 
@@ -19,10 +19,10 @@ The primary user is the operator or developer using the phone-friendly workspace
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
 - Reuse the existing selected-conversation SSE route instead of widening transport scope.
-- Constrain this iteration to the selected-thread transcript follow control and live-follow state presentation.
-- Keep non-selected thread behavior, selected-thread SSE ownership, composer dock, thread-switch continuity, and side-panel behavior unchanged.
-- Leave selected-thread transport ownership, selected-row live ownership, deployed verification gate, and polling fallback rules unchanged in this iteration.
+- Constrain this iteration to the footer composer surface and its local utility affordance.
+- Keep the selected-thread SSE path, session strip ownership, bottom follow control, thread navigation behavior, and side-panel behavior unchanged.
+- Leave transport scope, selected-row live ownership, deployed verification gate, and polling fallback rules unchanged in this iteration.
 
 ## Deliverable
 
-Keep the existing selected-conversation SSE path and conversation-first shell ownership, but make the selected transcript expose one compact bottom follow control with explicit `NEW` vs `PAUSED` state and unseen-append count derived only from selected-thread scroll position plus append provenance. The control should appear only when relevant, clear immediately on jump-to-latest, thread switch, terminal idle, or degraded fallback, and avoid creating any new multi-thread or secondary-panel status surface.
+Keep the existing selected-conversation SSE path and conversation-first shell ownership, but make the footer composer read as a stricter chat-first surface: the textarea plus primary send action stay visually dominant, while apply and auto-open move behind one compact secondary utility affordance. The session strip and bottom follow control remain the only live-progress surfaces, and no new footer status surface is introduced.

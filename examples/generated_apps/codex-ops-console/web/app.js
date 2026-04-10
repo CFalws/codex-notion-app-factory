@@ -123,13 +123,25 @@ function syncNavOpsSection() {
   dom.navOpsSection.open = !isPhoneViewport();
 }
 
+function setComposerUtilityOpen(isOpen) {
+  if (dom.composerUtilityMenu) {
+    dom.composerUtilityMenu.dataset.composerUtilityOpen = isOpen ? "true" : "false";
+  }
+  if (dom.composerUtilityCluster) {
+    dom.composerUtilityCluster.hidden = !isOpen;
+  }
+  if (dom.composerUtilityToggle) {
+    dom.composerUtilityToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  }
+}
+
 function syncComposerMeta() {
   const app = selectedAppData(dom);
   const text = dom.requestTextInput.value;
   renderComposerMeta(dom, {
     hint: app
-      ? `${app.title}에 이어서 보낼 지시입니다. 필요하면 현재 대화 맥락을 짧게 적고, 검증 방법을 마지막 줄에 남기세요.`
-      : "먼저 앱을 고르면 이 입력창이 앱 레인에 연결됩니다.",
+      ? `${app.title} 대화에 바로 이어서 보냅니다.`
+      : "먼저 앱을 고르면 이 입력창이 대화 레인에 연결됩니다.",
     count: text.length,
   });
 }
@@ -220,6 +232,7 @@ async function sendMessage() {
     setDraft(state, app.appId, "", "");
     setDraft(state, app.appId, conversationId, "");
     dom.requestTextInput.value = "";
+    setComposerUtilityOpen(false);
     syncComposerMeta();
     syncDraftStatus();
     renderConversation(dom, state, payload.conversation, persistSettings);
@@ -355,6 +368,11 @@ function wireEvents() {
   });
   dom.sendRequestButton.addEventListener("click", sendMessage);
   dom.openAppButton.addEventListener("click", openSelectedApp);
+  dom.composerUtilityToggle?.addEventListener("click", () => {
+    const isOpen = dom.composerUtilityMenu?.dataset.composerUtilityOpen === "true";
+    setComposerUtilityOpen(!isOpen);
+  });
+  dom.applyProposalButton.addEventListener("click", () => setComposerUtilityOpen(false));
   dom.applyProposalButton.addEventListener("click", applyProposal);
   dom.requestTextInput.addEventListener("input", persistDraft);
   dom.requestTextInput.addEventListener("input", reengageLiveFollowFromComposer);
@@ -431,6 +449,7 @@ function init() {
   syncMobileWorkspaceMode();
   setNavigationOpen(false);
   setSecondaryPanelOpen(false);
+  setComposerUtilityOpen(false);
   loadSettings(dom, state);
   updateSelectedAppCard(dom, selectedAppData(dom));
   updateProposalButton(dom, state.latestProposalJobId);
