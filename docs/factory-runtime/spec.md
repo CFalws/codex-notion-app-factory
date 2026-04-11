@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `210`
-- bounded focus: `mirror the selected-thread live session into the left rail sticky row`
+- current iteration: `211`
+- bounded focus: `preserve one continuous center workspace during selected-thread switches`
 
 ## Request
 
@@ -13,22 +13,23 @@
 
 ## Problem
 
-Healthy selected-thread ownership, explicit autonomy milestones, switch continuity, healthy-path SSE authority, secondary-card suppression, and the compact composer utility affordance are already present, but the left rail still under-mirrors the active session during the healthy selected-thread path. The remaining bounded risk is that operators still have to infer which thread is actively live from the center pane and composer alone because the sticky rail row is still treated as degraded-only in verifier and durable-contract terms.
+Healthy selected-thread ownership, explicit autonomy milestones, left-rail mirroring, healthy-path SSE authority, secondary-card suppression, and the compact composer utility affordance are already present, but thread switches still need to read as one continuous live workspace rather than a drop into an empty or reset view. The remaining bounded risk is that operators may still infer the wrong state during a deliberate thread switch if the center pane or composer appears to unmount, flash empty, or leave stale ownership cues behind while the next snapshot attaches.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the navigation rail to mirror the currently live selected session without becoming a second authority surface.
+The primary user is the operator or developer using the phone-friendly realtime workspace and expecting intentional thread switches to feel like one continuous session workspace rather than a tear-down and rebuild.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the iteration bounded to the sticky active-session row, selected-thread rail rendering, and browser verification coverage.
-- Reuse the current selected-thread session authority, phase, and follow or unseen datasets; do not change backend transport, polling, or broader ownership rules.
-- Keep the rail row non-authoritative and chip-first even when it mirrors the healthy selected-thread session.
-- Show exactly one sticky active-session row for the selected thread on healthy live, handoff, switching, new, or paused states.
-- Clear the sticky row immediately on reconnect downgrade, polling fallback, thread switch, deselection, idle, or terminal resolution, and never let a non-selected row gain live-owned treatment.
+- Keep the iteration bounded to selected-thread switch rendering, workspace placeholders, composer continuity, and browser verification coverage.
+- Reuse the current selected-thread session authority and thread-transition datasets; do not change backend transport, polling, or broader ownership rules.
+- Keep the center shell and bottom-fixed composer mounted throughout an intentional selected-thread switch.
+- Show at most one compact switching placeholder while the new selected-thread snapshot attaches.
+- Clear old-thread live-owned cues immediately on switch start and reserve the generic empty workspace for true no-selection idle only.
+- Keep reconnect downgrade, polling fallback, deselection, restore-gap loss, and terminal resolution on the existing fail-open clear path.
 
 ## Deliverable
 
-Expose one conversation-first selected-thread workspace where the left rail shows exactly one compact sticky row for the selected live thread without creating a second authoritative session surface.
+Expose one conversation-first selected-thread workspace where intentional thread switches preserve the mounted conversation shell and composer, show at most one compact switching placeholder, and never flash the generic empty state.

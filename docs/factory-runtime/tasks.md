@@ -1,11 +1,11 @@
 # Factory Runtime Tasks
 
-## Iteration 210
+## Iteration 211
 
-- [x] Keep the change bounded to the sticky active-session row and selected-thread rail mirroring.
-- [x] Reuse the existing selected-thread authority, phase, and follow or unseen datasets.
-- [x] Show exactly one compact sticky row for healthy live, handoff, switching, new, or paused selected-thread states.
-- [x] Keep the rail row non-authoritative and chip-first.
-- [x] Clear the row immediately on reconnect downgrade, polling fallback, switch, deselection, idle, or terminal resolution.
-- [x] Keep the selected-card live-owner marker suppressed whenever the sticky row is present so no second rail row appears.
-- [x] Align static checks, browser checks, and proposal artifacts with the rail-mirroring contract.
+- [x] Keep the change bounded to the selected-thread switch path and existing workspace placeholder behavior.
+- [x] Reuse the existing selected-thread session and thread-transition datasets.
+- [x] Keep the center conversation shell and bottom-fixed composer mounted during intentional thread switches.
+- [x] Show at most one compact switching placeholder until the new selected-thread snapshot attaches.
+- [x] Clear stale old-thread live ownership immediately when the switch starts.
+- [x] Reserve the generic empty workspace for true no-selection idle only.
+- [x] Align static checks, browser checks, and proposal artifacts with the switch-continuity contract.
