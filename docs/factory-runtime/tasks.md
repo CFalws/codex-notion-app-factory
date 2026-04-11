@@ -1,9 +1,9 @@
 # Factory Runtime Tasks
 
-## Iteration 148
+## Iteration 151
 
-- [x] Add one store-owned selected-thread active-session row model for owned, handoff, switching, and cleared states.
-- [x] Route the active-session row through that store model instead of mirroring rendered header datasets.
-- [x] Keep the row compact while exposing `HANDOFF`, `LIVE`, `NEW`, `PAUSED`, and `SWITCHING` cues from selected-thread session state.
-- [x] Require switching to keep the rail row visible with `SWITCHING` and `ATTACH` cues instead of clearing to idle.
-- [x] Align focused static verification and proposal artifacts with the iteration-148 left-rail session-mirroring contract.
+- [x] Restore one compact inline selected-thread session block from the existing session surface and phase-progression models.
+- [x] Restrict the block to healthy selected-thread live progress and pending assistant handoff only.
+- [x] Clear the block immediately on reconnect, polling fallback, restore, terminal idle, deselection, switch, and other lost-authority paths.
+- [x] Suppress the pending assistant placeholder when the handoff block is visible.
+- [x] Align focused static verification and proposal artifacts with the iteration-151 inline-session contract.

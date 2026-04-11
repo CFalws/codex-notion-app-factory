@@ -968,7 +968,57 @@ function selectedThreadTimelineAuthorityModel(conversation, currentState, liveRu
 }
 
 function renderInlineSessionBlock(conversation, currentState, liveRun, handoffState) {
-  return "";
+  const sessionSurface = deriveSelectedThreadSessionSurfaceModel(currentState, conversation);
+  const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
+  const { liveAutonomy, phaseProgression } = sessionSurface;
+  const liveOwned = Boolean(sessionSurface.liveOwned && inlineState.liveVisible);
+  const handoffVisible = Boolean(inlineState.handoffVisible && !liveOwned);
+  if (!handoffVisible && !liveOwned) {
+    return "";
+  }
+
+  const phaseLabel = handoffVisible
+    ? "HANDOFF"
+    : String(sessionSurface.phaseLabel || phaseProgression.label || liveRun.phase || "LIVE").toUpperCase();
+  const transportLabel = handoffVisible
+    ? "HANDOFF"
+    : String(liveAutonomy.label || sessionSurface.sessionStatus.transportLabel || "SSE OWNER").toUpperCase();
+  const transportTone = handoffVisible ? "neutral" : liveAutonomy.owned ? "healthy" : "warning";
+  const phaseTone = handoffVisible
+    ? "neutral"
+    : phaseProgression.owned
+      ? "healthy"
+      : liveRun?.tone === "done"
+        ? "healthy"
+        : liveRun?.tone === "running"
+          ? "danger"
+          : liveRun?.tone === "waiting"
+            ? "warning"
+            : "neutral";
+  const detail = handoffVisible
+    ? "서버 handoff가 확인되어 첫 live assistant append를 기다리는 중입니다."
+    : simplifyText(phaseDetailHint(liveRun) || liveRun.detail || "");
+  const sourceLabel = handoffVisible
+    ? "handoff"
+    : String(sessionSurface.source || phaseProgression.source || liveAutonomy.source || "sse").toLowerCase();
+  const pathVerdict = liveOwned ? String(sessionSurface.pathVerdict || "") : "";
+  const verifierAcceptability = liveOwned ? String(sessionSurface.verifierAcceptability || "") : "";
+  const blockerReason = liveOwned ? String(sessionSurface.blockerReason || "") : "";
+
+  return `
+    <article class="session-inline-block" data-selected-thread-live-block="true" data-selected-thread-degraded-block="false" data-live-block-owner="selected-thread" data-live-block-presentation="${escapeHtml(handoffVisible ? "handoff" : "healthy")}" data-live-block-transport="${escapeHtml(transportLabel)}" data-live-block-phase="${escapeHtml(phaseLabel)}" data-live-block-source="${escapeHtml(sourceLabel)}" data-live-block-path-verdict="${escapeHtml(pathVerdict)}" data-live-block-verifier-acceptability="${escapeHtml(verifierAcceptability)}" data-live-block-blocker-reason="${escapeHtml(blockerReason)}" data-live-block-reason="${escapeHtml(handoffVisible ? "pending-handoff" : String(liveAutonomy.reason || "healthy"))}" data-live-owned="${liveOwned ? "true" : "false"}">
+      <p class="session-inline-kicker">Selected Thread Session</p>
+      <div class="session-inline-row">
+        <span class="session-inline-chip" data-tone="${escapeHtml(transportTone)}">${escapeHtml(transportLabel)}</span>
+        <span class="session-inline-chip" data-tone="${escapeHtml(phaseTone)}">${escapeHtml(phaseLabel)}</span>
+        ${liveOwned && pathVerdict ? `<span class="session-inline-chip" data-tone="${escapeHtml(autonomyChipTone(pathVerdict))}">${escapeHtml(pathVerdict)}</span>` : ""}
+        ${liveOwned && verifierAcceptability ? `<span class="session-inline-chip" data-tone="${escapeHtml(autonomyChipTone(verifierAcceptability))}">${escapeHtml(verifierAcceptability)}</span>` : ""}
+        ${liveOwned && blockerReason ? `<span class="session-inline-chip" data-tone="${escapeHtml(blockerTone(blockerReason))}">BLOCKER ${escapeHtml(blockerReason)}</span>` : ""}
+      </div>
+      <p class="session-inline-body">${escapeHtml(detail || "선택된 대화의 현재 세션 상태를 반영하는 중입니다.")}</p>
+      <p class="session-inline-meta">selected thread · ${escapeHtml(phaseLabel)} · ${escapeHtml(sourceLabel.toUpperCase())}</p>
+    </article>
+  `;
 }
 
 function autonomyChipTone(value) {
@@ -2485,6 +2535,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   });
 
   const liveRun = deriveLiveRunState(conversation, currentState);
+  const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
   const inlineSessionBlock = renderInlineSessionBlock(conversation, currentState, liveRun, handoffState);
   const transcriptLiveActivity = renderTranscriptLiveActivity(conversation, currentState, liveRun);
   if (dom.threadScroller) {
@@ -2556,6 +2607,10 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
             <p class="timeline-meta">${item.created_at}${item.job_id ? ` · ${item.job_id}` : ""}${item.delivery_source === "sse" ? ' · <span class="timeline-provenance">SSE LIVE</span>' : ""}</p>
           </article>
         `;
+      }
+
+      if (item.pending_assistant && inlineState.handoffVisible) {
+        return "";
       }
 
       return `

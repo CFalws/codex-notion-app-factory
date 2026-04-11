@@ -536,7 +536,15 @@ def assert_browser_runtime_surface(
                     entry => String(entry.url || "").includes("/api/jobs/")
                   );
                   return Boolean(
-                    !healthyBlock &&
+                    healthyBlock &&
+                    document.querySelectorAll('.session-inline-block[data-selected-thread-live-block="true"][data-live-block-owner="selected-thread"]').length === 1 &&
+                    healthyBlock.dataset.liveOwned === "true" &&
+                    healthyBlock.dataset.liveBlockPresentation === "healthy" &&
+                    healthyBlock.dataset.liveBlockTransport === "SSE OWNER" &&
+                    healthyBlock.dataset.liveBlockPhase === liveActivity.dataset.liveRunPhase &&
+                    healthyBlock.dataset.liveBlockPathVerdict === liveActivity.dataset.livePathVerdict &&
+                    healthyBlock.dataset.liveBlockVerifierAcceptability === liveActivity.dataset.liveVerifierAcceptability &&
+                    healthyBlock.dataset.liveBlockBlockerReason === liveActivity.dataset.liveBlockerReason &&
                     liveActivity &&
                     primaryLiveActivities.length === 1 &&
                     liveActivity.dataset.liveSessionPrimary === "true" &&
@@ -782,6 +790,7 @@ def assert_browser_runtime_surface(
                     jobFetches.length === 0 &&
                     goalsFetches.length === 0 &&
                     appendIds.length === deduped.size &&
+                    !healthyBlock &&
                     !emptyState
                   );
                 }""",
@@ -796,6 +805,7 @@ def assert_browser_runtime_surface(
                   const degraded = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="false"]');
                   const healthy = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
                   const healthyBlock = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-owned="true"]');
+                  const degradedBlock = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-owned="false"]');
                   const summary = document.querySelector("#session-summary-row");
                   const liveIndicator = document.querySelector("#session-live-indicator");
                   const activeSessionRow = document.querySelector("#active-session-row");
@@ -805,7 +815,7 @@ def assert_browser_runtime_surface(
                   const executionStatusCard = statusOutput ? statusOutput.closest(".inspector-card") : null;
                   const follow = document.querySelector("#jump-to-latest");
                   const stripChips = sessionStripState ? sessionStripState.querySelectorAll(".session-chip") : [];
-                  if (!degraded || healthy || healthyBlock || !summary || !follow || !activeSessionRow || !sessionStrip || !sessionStripState || !executionStatusCard || !statusOutput) {
+                  if (!degraded || healthy || healthyBlock || degradedBlock || !summary || !follow || !activeSessionRow || !sessionStrip || !sessionStripState || !executionStatusCard || !statusOutput) {
                     return false;
                   }
                   const reason = degraded.dataset.liveReason || "";
@@ -1307,7 +1317,14 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.conversationTimeline.dataset.workspaceOwnerCleared = "false";', label="conversation workspace ownership-cleared reset")
     require(render_js, 'dom.threadScroller.dataset.workspaceOwnerCleared = "false";', label="conversation scroller ownership-cleared reset")
     require(render_js, "const { handoffVisible, degradedVisible, sessionIndicator } = inlineState;", label="transcript live state wiring")
-    require(render_js, 'return "";', label="inline session block removed as primary live surface")
+    require(render_js, 'data-selected-thread-live-block="true"', label="inline selected-thread live block dataset")
+    require(render_js, 'data-selected-thread-degraded-block="false"', label="inline selected-thread non-degraded dataset")
+    require(render_js, 'data-live-block-owner="selected-thread"', label="inline selected-thread owner dataset")
+    require(render_js, 'data-live-block-phase="${escapeHtml(phaseLabel)}"', label="inline session phase dataset")
+    require(render_js, 'data-live-block-path-verdict="${escapeHtml(pathVerdict)}"', label="inline session path verdict dataset")
+    require(render_js, 'data-live-block-verifier-acceptability="${escapeHtml(verifierAcceptability)}"', label="inline session verifier dataset")
+    require(render_js, 'data-live-block-blocker-reason="${escapeHtml(blockerReason)}"', label="inline session blocker dataset")
+    require(render_js, 'if (item.pending_assistant && inlineState.handoffVisible) {', label="pending assistant placeholder suppression behind inline block")
     require(render_js, 'data-live-autonomy="true"', label="inline autonomy DOM")
     require(render_js, 'data-autonomy-path-verdict="', label="inline autonomy path verdict dataset")
     require(render_js, 'data-autonomy-verifier-acceptability="', label="inline autonomy verifier dataset")

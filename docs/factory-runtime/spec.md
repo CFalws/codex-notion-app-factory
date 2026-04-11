@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `148`
-- bounded focus: `mirror the selected-thread healthy SSE session into one compact active-session row in the left rail`
+- current iteration: `151`
+- bounded focus: `restore one compact inline selected-thread session block in the center conversation workspace`
 
 ## Request
 
@@ -13,24 +13,24 @@
 
 ## Problem
 
-The selected-thread center workspace now behaves more like one live session, but the left rail still makes operators infer whether the selected thread is the active live owner because the active-session row is rebuilt indirectly and clears too aggressively on bounded nonterminal states.
+The center timeline already has a canonical selected-thread live activity item, but the conversation workspace still lacks the compact inline session anchor that makes the selected thread read like one continuous realtime session instead of a timeline plus peripheral mirrors.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the left rail to mirror the selected thread's live ownership state without prose-heavy status panels or stale cues.
+The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the selected conversation itself to show the current live session state without relying only on the header, rail, or footer mirrors.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the iteration bounded to the selected-thread left-rail active-session row plus focused verifier and doc updates.
-- Do not change transport, polling suppression, backend state sources, or composer ownership rules.
-- Reuse the existing selected-thread session status, shell phase, follow control, and thread-transition datasets.
-- Keep the row compact and chip-first instead of adding prose-heavy detail or a second authority surface.
-- Show the row only for authoritative selected-thread ownership or bounded selected-thread handoff or switch states.
-- Clear or demote the row immediately on reconnect downgrade, polling fallback, terminal idle, deselection, or thread loss of authority.
+- Keep the iteration bounded to the center-pane inline session block plus focused verifier and doc updates.
+- Do not change transport, polling suppression, backend state sources, footer ownership rules, or left-rail ownership rules.
+- Reuse the existing selected-thread session surface, phase progression, live autonomy, and pending-handoff models.
+- Keep the block compact and chip-first instead of adding prose-heavy detail or a second authority source.
+- Show the block only for pending assistant handoff or healthy selected-thread SSE-owned live progress.
+- Clear the block immediately on reconnect downgrade, polling fallback, terminal idle, deselection, switch, or thread loss of authority.
 - Never make a non-selected thread appear live-owned.
 
 ## Deliverable
 
-Mirror the selected-thread session into the existing left-rail active-session row so it exposes one compact rail-level live owner surface with selected-thread owner, phase, follow, handoff, and switching cues derived directly from the selected-thread session state and cleared fail-closed when authority is lost.
+Restore one compact inline selected-thread session block in the conversation workspace so the selected thread exposes machine-readable transport, phase, path, verifier, and blocker state directly from the existing selected-thread session contract while failing closed on degraded or lost-authority paths.
