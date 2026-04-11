@@ -489,7 +489,7 @@ def assert_browser_runtime_surface(
                     !activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "true" &&
                     activeSessionRow.dataset.activeSessionSource === "sse" &&
-                    ["live", "paused"].includes(activeSessionRow.dataset.activeSessionState || "") &&
+                    ["live", "paused", "new"].includes(activeSessionRow.dataset.activeSessionState || "") &&
                     activeSessionRow.dataset.activeSessionPhase === healthyBlock.dataset.liveBlockPhase &&
                     ["live", "paused", "new"].includes(activeSessionRow.dataset.activeSessionFollow || "") &&
                     activeSessionRow.textContent.includes("OWNER") &&
@@ -724,16 +724,13 @@ def assert_browser_runtime_surface(
                     threadTitle.textContent.trim().length > 0 &&
                     threadTitle.textContent.trim() !== "새 대화를 시작하세요" &&
                     activeSessionRow &&
-                    !activeSessionRow.hidden &&
+                    activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
-                    activeSessionRow.dataset.activeSessionSource === "transition" &&
-                    activeSessionRow.dataset.activeSessionState === "switching" &&
-                    activeSessionRow.dataset.activeSessionPhase === "UNKNOWN" &&
-                    activeSessionRow.dataset.activeSessionConversationId === targetConversationId &&
-                    activeSessionRow.dataset.activeSessionFollow === "attach" &&
-                    activeSessionRow.textContent.includes("TARGET") &&
-                    activeSessionRow.textContent.includes("SWITCHING") &&
-                    activeSessionRow.textContent.includes("ATTACH") &&
+                    activeSessionRow.dataset.activeSessionSource === "none" &&
+                    activeSessionRow.dataset.activeSessionState === "idle" &&
+                    activeSessionRow.dataset.activeSessionPhase === "IDLE" &&
+                    activeSessionRow.dataset.activeSessionConversationId === "" &&
+                    activeSessionRow.dataset.activeSessionFollow === "idle" &&
                     sessionStrip &&
                     !sessionStrip.hidden &&
                     sessionStripState &&
@@ -799,13 +796,13 @@ def assert_browser_runtime_surface(
                     document.querySelectorAll('[data-thread-transition="loading"]').length === 1 &&
                     transition.dataset.threadTransitionConversationId === targetConversationId &&
                     activeSessionRow &&
-                    !activeSessionRow.hidden &&
+                    activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
-                    activeSessionRow.dataset.activeSessionSource === "transition" &&
-                    activeSessionRow.dataset.activeSessionState === "switching" &&
-                    activeSessionRow.dataset.activeSessionPhase === "UNKNOWN" &&
-                    activeSessionRow.dataset.activeSessionConversationId === targetConversationId &&
-                    activeSessionRow.dataset.activeSessionFollow === "attach" &&
+                    activeSessionRow.dataset.activeSessionSource === "none" &&
+                    activeSessionRow.dataset.activeSessionState === "idle" &&
+                    activeSessionRow.dataset.activeSessionPhase === "IDLE" &&
+                    activeSessionRow.dataset.activeSessionConversationId === "" &&
+                    activeSessionRow.dataset.activeSessionFollow === "idle" &&
                     sessionStrip &&
                     sessionStripState &&
                     sessionStripState.querySelectorAll(".session-chip").length === 1 &&
@@ -868,13 +865,13 @@ def assert_browser_runtime_surface(
                     summary &&
                     summary.dataset.liveSessionOwned === "false" &&
                     activeSessionRow &&
-                    !activeSessionRow.hidden &&
+                    activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
-                    activeSessionRow.dataset.activeSessionSource === "transition" &&
-                    activeSessionRow.dataset.activeSessionState === "switching" &&
-                    activeSessionRow.dataset.activeSessionPhase === "UNKNOWN" &&
-                    activeSessionRow.dataset.activeSessionConversationId === targetConversationId &&
-                    activeSessionRow.dataset.activeSessionFollow === "attach" &&
+                    activeSessionRow.dataset.activeSessionSource === "none" &&
+                    activeSessionRow.dataset.activeSessionState === "idle" &&
+                    activeSessionRow.dataset.activeSessionPhase === "IDLE" &&
+                    activeSessionRow.dataset.activeSessionConversationId === "" &&
+                    activeSessionRow.dataset.activeSessionFollow === "idle" &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     follow &&
@@ -1240,30 +1237,33 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, 'const summaryLiveOwned = String(dom.sessionSummaryRow?.dataset.liveSessionOwned || "false") === "true";', label="active session canonical ownership source")
     require(conversations_js, 'const summaryLiveSource = String(dom.sessionSummaryRow?.dataset.liveSessionSource || "none");', label="active session canonical source dataset")
     require(conversations_js, 'const summaryLiveState = String(dom.sessionSummaryRow?.dataset.liveSessionState || "idle");', label="active session canonical state dataset")
+    require(conversations_js, 'const summaryLiveReason = String(dom.sessionSummaryRow?.dataset.liveSessionReason || "idle");', label="active session canonical reason dataset")
     require(conversations_js, 'const summaryStateLabel = String(dom.sessionSummaryState?.textContent || "").trim().toUpperCase();', label="active session canonical phase label source")
     require(conversations_js, 'const sessionIndicatorLabel = String(dom.sessionLiveIndicator?.textContent || "").trim().toUpperCase();', label="active session canonical label source")
+    require(conversations_js, "const handoffActive =", label="active session handoff gate")
     require(conversations_js, 'const healthySelectedSessionMirror =', label="active session healthy mirror gate")
+    require(conversations_js, 'rowState = "handoff";', label="active session handoff state mapping")
+    require(conversations_js, 'stateLabel = "HANDOFF";', label="active session handoff state label")
+    require(conversations_js, 'followLabel = "HANDOFF";', label="active session handoff follow label")
+    require(conversations_js, 'rowSource = "handoff";', label="active session handoff source")
+    require(conversations_js, 'rowPhase = "HANDOFF";', label="active session handoff phase")
+    require(conversations_js, 'meta = "selected thread · handoff";', label="active session handoff meta copy")
     require(conversations_js, 'summaryLiveSource === "sse"', label="active session healthy sse source gate")
     require(conversations_js, 'sessionIndicatorLabel === "SSE OWNER"', label="active session healthy label gate")
-    require(conversations_js, 'stateLabel = summaryStateLabel || liveRunPhase || "LIVE";', label="active session mirrored phase label")
-    require(conversations_js, 'rowState = summaryLiveState === "paused" ? "paused" : "live";', label="active session mirrored state mapping")
-    require(conversations_js, 'followLabel = jumpVisible ? "NEW" : summaryLiveState === "paused" ? "PAUSED" : "LIVE";', label="active session mirrored follow mapping")
+    require(conversations_js, 'const livePhaseLabel = summaryStateLabel || liveRunPhase || "LIVE";', label="active session mirrored live phase label")
+    require(conversations_js, 'rowState = jumpVisible ? "new" : summaryLiveState === "paused" ? "paused" : "live";', label="active session mirrored state mapping")
+    require(conversations_js, 'stateLabel = jumpVisible ? "NEW" : summaryLiveState === "paused" ? "PAUSED" : "LIVE";', label="active session mirrored finite state label")
+    require(conversations_js, 'followLabel = stateLabel;', label="active session mirrored follow label")
     require(conversations_js, 'rowSource = summaryLiveSource;', label="active session mirrored source")
-    require(conversations_js, 'rowPhase = stateLabel;', label="active session mirrored phase")
+    require(conversations_js, 'rowPhase = livePhaseLabel;', label="active session mirrored phase")
     require(conversations_js, 'rowUnseenCount = jumpVisible ? Math.max(Number(unseenCount || 0), 0) : 0;', label="active session unseen count mirror")
-    require(conversations_js, '`selected thread · ${stateLabel.toLowerCase()} · ${rowUnseenCount} new`', label="active session unseen meta copy")
-    require(conversations_js, '`selected thread · ${stateLabel.toLowerCase()} · follow paused`', label="active session paused meta copy")
-    require(conversations_js, '`selected thread · ${stateLabel.toLowerCase()} · sse owner`', label="active session healthy meta copy")
-    require(conversations_js, 'const switchingTargetId = String(threadTransition.targetConversationId || "");', label="active session switching target id")
-    require(conversations_js, "} else if (threadTransition.active && switchingTargetId) {", label="active session switching branch")
-    require(conversations_js, 'ownerLabel = "TARGET";', label="active session switching owner label")
-    require(conversations_js, 'stateLabel = "SWITCHING";', label="active session switching state label")
-    require(conversations_js, 'followLabel = "ATTACH";', label="active session switching follow label")
-    require(conversations_js, 'rowSource = "transition";', label="active session switching source")
-    require(conversations_js, 'rowPhase = "UNKNOWN";', label="active session switching phase")
-    require(conversations_js, 'meta = "selected thread · switching · attach";', label="active session switching meta copy")
-    require_absent(conversations_js, 'rowSource = "thread-transition";', label="legacy active session switching source")
-    require_absent(conversations_js, 'selected-thread-handoff', label="legacy active session handoff source")
+    require(conversations_js, '`selected thread · ${livePhaseLabel.toLowerCase()} · ${rowUnseenCount} new`', label="active session unseen meta copy")
+    require(conversations_js, '`selected thread · ${livePhaseLabel.toLowerCase()} · follow paused`', label="active session paused meta copy")
+    require(conversations_js, '`selected thread · ${livePhaseLabel.toLowerCase()} · sse owner`', label="active session healthy meta copy")
+    require_absent(conversations_js, 'stateLabel = "SWITCHING";', label="legacy active session switching state label")
+    require_absent(conversations_js, 'followLabel = "ATTACH";', label="legacy active session switching follow label")
+    require_absent(conversations_js, 'rowSource = "transition";', label="legacy active session switching source")
+    require_absent(conversations_js, 'meta = "selected thread · switching · attach";', label="legacy active session switching meta copy")
     require(conversations_js, "syncSelectedSessionFromLiveAppend", label="selected-thread live append sync helper")
     require(conversations_js, "const liveJobId = String(livePayload.job_id || \"\").trim();", label="live append job id extraction")
     require(conversations_js, "state.currentJobId = liveJobId;", label="live append selected-thread job id authority")

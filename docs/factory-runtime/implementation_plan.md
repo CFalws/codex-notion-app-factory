@@ -1,11 +1,11 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 86
+## Iteration 89
 
-Tighten the center-header session contract so the selected-thread workspace exposes attached target and live ownership state directly without widening transport or timeline scope.
+Tighten the sticky left-rail active-session row so it mirrors only canonical selected-thread state and uses a finite navigation vocabulary.
 
-1. Reuse the existing selected-thread session summary row and live-indicator datasets instead of adding another status surface.
-2. Keep the summary row visible for selected-thread and switching contexts so the center pane remains the authoritative session-context surface.
-3. Show healthy selected-thread ownership as `SSE OWNER`, degraded ownership as `RECONNECT` or `POLLING`, and clear ownership immediately on switch or terminal idle.
-4. Keep the existing switch continuity, composer docking, and side-surface suppression intact while removing the hidden-header contract.
-5. Reconfirm the focused browser-proof and static verifiers around the bounded center-header ownership contract.
+1. Reuse the existing active-session row surface instead of introducing another rail model.
+2. Show `HANDOFF` during pending submit and first-assistant handoff from canonical selected-thread state.
+3. Show `LIVE`, `NEW`, or `PAUSED` only while the selected thread remains healthy SSE-owned, with the real phase kept only in metadata and datasets.
+4. Clear the row immediately on reconnect downgrade, polling fallback, terminal idle, or thread switch.
+5. Reconfirm the focused browser-proof and static verifiers around the bounded finite-state rail contract.
