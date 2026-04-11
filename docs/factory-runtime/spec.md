@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `204`
-- bounded focus: `extend the selected-thread live timeline into one explicit autonomy progression lane`
+- current iteration: `205`
+- bounded focus: `preserve one mounted selected-thread workspace during intentional thread switches`
 
 ## Request
 
@@ -13,21 +13,21 @@
 
 ## Problem
 
-The healthy selected-thread path now has a stable authority contract and a composer-authoritative session bar, but the center timeline still compresses autonomy progression too aggressively. `AUTO APPLY` is not explicit in the milestone lane, so proposal, review, verify, apply, ready, and applied progression still requires some inference instead of reading one compact live lane.
+Healthy selected-thread ownership and explicit autonomy milestones are already present, but a Codex-desktop-style realtime session still depends on thread switches feeling continuous. The remaining bounded risk is that an intentional switch could appear to drop the session shell, flash a generic empty workspace, or leave stale owner residue instead of behaving like one mounted session surface bridging to the next thread.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the selected-thread center timeline to explain live proposal progression at a glance without reading prose-heavy side panels.
+The primary user is the operator or developer using the phone-friendly realtime workspace and expecting thread switches to preserve the same mounted conversation shell and fixed composer instead of looking like the session disappeared.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the iteration bounded to the selected-thread live timeline lane, the existing shared selected-thread authority model, and the focused verification seam.
-- Reuse the current selected-thread autonomy and milestone helpers; do not change transport or broaden session ownership scope.
-- On the healthy selected-thread path, expose explicit `PROPOSAL`, `REVIEW`, `VERIFY`, `AUTO APPLY`, `READY`, and `APPLIED` milestone states in the center timeline lane.
-- Keep degraded, handoff, reconnect, polling fallback, switch, deselection, restore-gap loss, and terminal-clear behavior unchanged.
+- Keep the iteration bounded to the selected-thread switch path, the existing workspace placeholder and transition helpers, and the focused browser verification seam.
+- Reuse the current selected-thread session status, thread transition, and mounted composer shell behavior; do not change transport or broader multi-thread ownership rules.
+- During an intentional selected-thread switch, keep the conversation shell and bottom-fixed composer mounted, clear old ownership immediately, and show at most one compact switching placeholder until the new snapshot attaches.
+- Reserve the generic empty workspace for true no-conversation idle only.
 
 ## Deliverable
 
-Expose one conversation-first selected-thread workspace where the healthy selected-thread center timeline includes one explicit machine-readable autonomy progression lane with all major proposal phases visible in realtime.
+Expose one conversation-first selected-thread workspace where intentional thread switches preserve the mounted shell and fixed composer, clear stale owner chrome immediately, and bridge with one compact switching placeholder instead of an empty-state flash.

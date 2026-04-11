@@ -1,12 +1,12 @@
 # Factory Runtime Deploy Plan
 
-## Iteration 204
+## Iteration 205
 
-This deploy plan validates the selected-thread center timeline as an explicit healthy-path autonomy progression lane.
+This deploy plan validates intentional selected-thread switch continuity in the mounted conversation-first workspace.
 
 ## Deployment Impact
 
-This iteration keeps transport and ownership unchanged while making the healthy selected-thread milestone lane explicit. The healthy path should now expose `AUTO APPLY` as its own visible progression state between `VERIFY` and `READY`.
+This iteration keeps transport and ownership unchanged while validating the existing switch-continuity behavior. The mounted conversation shell and fixed composer should persist through intentional thread switches, with stale owner chrome cleared and one compact switching placeholder bridging to the new snapshot.
 
 ## Rollout Notes
 
@@ -14,7 +14,7 @@ This iteration keeps transport and ownership unchanged while making the healthy 
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
 3. Open the operator console on desktop and phone widths with at least one selected-thread conversation.
 4. Start from a healthy selected-thread conversation with internal append SSE enabled and drive the session through `PROPOSAL`, `REVIEW`, `VERIFY`, `AUTO APPLY`, `READY`, and `APPLIED`.
-5. Confirm the healthy selected-thread center timeline shows one explicit milestone lane with visible `PROPOSAL`, `REVIEW`, `VERIFY`, `AUTO APPLY`, `READY`, and `APPLIED` chips.
-6. Confirm `AUTO APPLY` appears as its own active milestone when the corresponding SSE phase is emitted and no longer masquerades as `READY`.
-7. Confirm reconnect downgrade, polling fallback, switch, deselection, restore-gap loss, and terminal completion still downgrade or clear the timeline lane in the same frame rather than leaving stale active milestones behind.
-8. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible healthy path passes only when the explicit milestone lane is present and non-healthy transitions clear or downgrade it immediately.
+5. Confirm an intentional selected-thread switch keeps the mounted conversation shell visible and never falls through to the generic empty workspace.
+6. Confirm the bottom-fixed composer dock remains visible and usable throughout the switch path.
+7. Confirm stale owner chrome clears immediately, only one compact switching placeholder appears, and reconnect, polling fallback, deselection, restore-gap loss, and terminal completion still downgrade or clear correctly.
+8. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible switch path passes only when there is no empty-state flash, no hidden composer dock, no duplicate switching placeholders, and no stale owner residue.
