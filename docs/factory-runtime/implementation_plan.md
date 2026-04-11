@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Add one backend helper that builds a minimal autonomy summary plus freshness envelope from the latest relevant app goal.
-2. Expose that additive `autonomy_summary` payload on both `/api/conversations/{id}` and `session.bootstrap`, with explicit `source`, `generated_at`, `freshness_state`, and `fallback_allowed`.
-3. Hydrate selected-thread autonomy state from that server payload in `ops-conversations.js` before the existing goals polling fallback runs.
-4. Preserve append-driven autonomy updates and goals polling fallback behavior, but carry the server-authored freshness fields forward in state.
-5. Align focused verifier, runtime contract checks, and iteration artifacts around the bounded freshness-envelope contract.
+1. Reuse the existing `autonomy_summary` freshness envelope from conversation snapshot and `session.bootstrap` as the first selected-thread autonomy source.
+2. Add one client-side fallback gate in `ops-conversations.js` that keeps healthy selected-thread attach, resume, and switch on the snapshot-plus-SSE path when `fallback_allowed=false`.
+3. Allow `/api/apps/{app_id}/goals` polling fallback only when freshness is `stale-or-missing`, selected-thread SSE ownership drops, or reconnect degrades away from the healthy path.
+4. Preserve append-driven autonomy updates and server-authored freshness fields while making the healthy versus degraded ownership boundary explicit in code.
+5. Align focused browser-proof verifiers and iteration artifacts around the bounded polling-suppression contract.

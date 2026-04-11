@@ -83,6 +83,38 @@ export function createConversationController(deps) {
     return true;
   }
 
+  function isSelectedThreadAutonomyAuthoritative(conversationId = "") {
+    const appendStream = state.appendStream || {};
+    return (
+      Boolean(conversationId) &&
+      state.currentConversationId === conversationId &&
+      appendStream.conversationId === conversationId &&
+      appendStream.transport === "sse" &&
+      appendStream.lastRenderSource === "sse" &&
+      (appendStream.status === "connecting" || appendStream.status === "live")
+    );
+  }
+
+  function shouldAllowGoalsPollingFallback({
+    conversationId = state.currentConversationId || state.savedConversationId || "",
+    autonomySummary = state.autonomySummary,
+  } = {}) {
+    if (!conversationId) {
+      return true;
+    }
+    if (!autonomySummary || typeof autonomySummary !== "object") {
+      return true;
+    }
+    const freshnessState = String(autonomySummary.freshnessState || "stale-or-missing").toLowerCase();
+    if (freshnessState === "stale-or-missing") {
+      return true;
+    }
+    if (Boolean(autonomySummary.fallbackAllowed)) {
+      return true;
+    }
+    return !isSelectedThreadAutonomyAuthoritative(conversationId);
+  }
+
   function resetSessionPhase() {
     state.appendStream.sessionPhase = normalizeSessionPhase({}, "none");
   }
@@ -1305,14 +1337,18 @@ export function createConversationController(deps) {
     });
   }
 
-  async function refreshGoalSummary() {
+  async function refreshGoalSummary(options = {}) {
     const app = selectedAppData(dom);
+    const { conversationId = state.currentConversationId || state.savedConversationId || "" } = options;
     if (!app) {
       state.autonomySummary = null;
       clearAutonomySummary(dom, "앱을 선택하면 최근 autonomous iteration blocker가 여기에 표시됩니다.");
       if (state.conversationCache) {
         renderConversation(dom, state, state.conversationCache, persistSettings);
       }
+      return;
+    }
+    if (!shouldAllowGoalsPollingFallback({ conversationId })) {
       return;
     }
     try {
@@ -1422,7 +1458,6 @@ export function createConversationController(deps) {
 
     try {
       const conversations = await fetchJson(dom, appConversationsUrl(app.appId));
-      await refreshGoalSummary();
       const fallbackConversationId =
         preferredConversationId ||
         (conversations.length ? conversations[0].conversation_id : "");
@@ -1434,6 +1469,8 @@ export function createConversationController(deps) {
         await fetchConversation(fallbackConversationId);
         return;
       }
+
+      await refreshGoalSummary();
 
       state.currentConversationId = "";
       state.savedConversationId = "";
@@ -1549,6 +1586,7 @@ export function createConversationController(deps) {
         : state.appendStream.bootstrapVersion || "";
     state.appendStream.resumeCursor = Math.max(Number(bootstrap?.resume_from_append_id || 0), 0);
     state.appendStream.sessionPhase = normalizeSessionPhase(bootstrap?.session_phase || {}, "sse");
+    await refreshGoalSummary({ conversationId: conversation.conversation_id });
     restoreDraft();
     syncDraftStatus();
 

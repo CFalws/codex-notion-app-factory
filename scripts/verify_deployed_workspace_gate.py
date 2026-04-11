@@ -357,6 +357,9 @@ def assert_browser_runtime_surface(
                   const conversationFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
                     entry => String(entry.url || "").includes(`/api/conversations/${conversationId}`)
                   );
+                  const goalsFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
+                    entry => String(entry.url || "").includes(`/api/apps/${appId}/goals`)
+                  );
                   return Boolean(
                     summary &&
                     sendRequest &&
@@ -375,10 +378,11 @@ def assert_browser_runtime_surface(
                     document.querySelector(`[data-conversation-id="${conversationId}"]`) &&
                     bootstrapEvents.length >= 1 &&
                     conversationFetches.length === 0 &&
+                    goalsFetches.length === 0 &&
                     !emptyState
                   );
                 }""",
-                conversation_id,
+                [app_id, conversation_id],
                 timeout=30000,
             )
 
@@ -397,7 +401,7 @@ def assert_browser_runtime_surface(
                 raise RuntimeError("browser runtime verifier could not observe latest_job_id after composer submit")
 
             page.wait_for_function(
-                """conversationId => {
+                """([appId, conversationId]) => {
                   const healthyBlock = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-block-owner="selected-thread"][data-live-owned="true"]');
                   const liveActivity = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
                   const summary = document.querySelector("#session-summary-row");
@@ -515,6 +519,9 @@ def assert_browser_runtime_surface(
                   const jobFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
                     entry => String(entry.url || "").includes("/api/jobs/")
                   );
+                  const goalsFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
+                    entry => String(entry.url || "").includes(`/api/apps/${appId}/goals`)
+                  );
                   const resumeUrls = (window.__verifySseUrls || []).slice(urlMark).filter(
                     url => String(url || "").includes(`/api/internal/conversations/${conversationId}/append-stream?after=`)
                   );
@@ -546,11 +553,12 @@ def assert_browser_runtime_surface(
                     resumeUrls.length >= 1 &&
                     conversationFetches.length === 0 &&
                     jobFetches.length === 0 &&
+                    goalsFetches.length === 0 &&
                     appendIds.length === deduped.size &&
                     !emptyState
                   );
                 }""",
-                conversation_id,
+                [app_id, conversation_id],
                 timeout=30000,
             )
             resume_snapshot = page.evaluate(browser_snapshot_script())
@@ -590,7 +598,7 @@ def assert_browser_runtime_surface(
             page.evaluate("() => { window.__verifyFetchMark = window.__verifyFetchLog.length; }")
             page.click(f'[data-conversation-id="{switch_conversation_id}"]')
             page.wait_for_function(
-                """targetConversationId => {
+                """([appId, targetConversationId]) => {
                   const transition = document.querySelector('[data-thread-transition="loading"]');
                   const summary = document.querySelector("#session-summary-row");
                   const liveIndicator = document.querySelector("#session-live-indicator");
@@ -609,6 +617,9 @@ def assert_browser_runtime_surface(
                   const fetchMark = Number(window.__verifyFetchMark || 0);
                   const jobFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
                     entry => String(entry.url || "").includes("/api/jobs/")
+                  );
+                  const goalsFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
+                    entry => String(entry.url || "").includes(`/api/apps/${appId}/goals`)
                   );
                   return Boolean(
                     transition &&
@@ -653,13 +664,14 @@ def assert_browser_runtime_surface(
                     follow &&
                     follow.dataset.followOwned !== "selected-thread" &&
                     jobFetches.length === 0 &&
+                    goalsFetches.length === 0 &&
                     !healthyBlock &&
                     !healthy &&
                     !degraded &&
                     !empty
                   );
                 }""",
-                switch_conversation_id,
+                [app_id, switch_conversation_id],
                 timeout=30000,
             )
             switch_snapshot = page.evaluate(browser_snapshot_script())
@@ -1017,9 +1029,13 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, "projectAutonomySummaryFromLiveAppend", label="autonomy summary live projection helper")
     require(conversations_js, "normalizeAutonomySummary", label="autonomy summary normalization helper")
     require(conversations_js, "hydrateAutonomySummary", label="autonomy summary hydration helper")
+    require(conversations_js, "isSelectedThreadAutonomyAuthoritative", label="selected-thread autonomy authority helper")
+    require(conversations_js, "shouldAllowGoalsPollingFallback", label="selected-thread goals fallback gate")
     require(conversations_js, "liveJobMetaLabel", label="live append job meta helper")
     require(conversations_js, "const projectedAutonomySummary = projectAutonomySummaryFromLiveAppend(kind, payload);", label="append-driven autonomy summary projection")
     require(conversations_js, "state.autonomySummary = projectedAutonomySummary;", label="append-driven autonomy summary state update")
+    require(conversations_js, 'if (!shouldAllowGoalsPollingFallback({ conversationId })) {', label="healthy selected-thread goals fallback suppression")
+    require(conversations_js, 'await refreshGoalSummary({ conversationId: conversation.conversation_id });', label="conversation-scoped autonomy fallback refresh")
     require_absent(conversations_js, "refreshGoalSummary().catch(() => {});", label="legacy append-driven autonomy summary refetch")
     require(conversations_js, "setJobMeta(dom, immediateMeta);", label="append-driven job meta refresh")
     require(conversations_js, "scheduleAppendStreamResume", label="reconnect resume scheduler")
