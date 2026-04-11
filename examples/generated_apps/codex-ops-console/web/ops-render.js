@@ -292,11 +292,13 @@ function sessionStripStateRow(ownerState, transportState, liveRun, presentation,
     };
   }
   if (footerFollow?.visible) {
+    const followPhaseLabel = footerDock?.phaseLabel || ownerState.label || "READY";
+    const followPhaseTone = footerDock?.chips?.[0]?.tone || (footerFollow.followState === "new" ? "warning" : "healthy");
     return {
-      label: footerFollow.followState === "new" ? "LIVE" : ownerState.label || "READY",
-      tone: "healthy",
+      label: followPhaseLabel,
+      tone: followPhaseTone,
       role: "live-follow",
-      chips: [{ label: footerFollow.followState === "new" ? "LIVE" : ownerState.label || "READY", tone: "healthy", role: "live-follow" }],
+      chips: [{ label: followPhaseLabel, tone: followPhaseTone, role: "live-follow" }],
     };
   }
   return {
@@ -489,9 +491,16 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
     headerSummaryVisible &&
     !Boolean(liveRun?.terminal && sessionStatus.presentation !== "restore") &&
     Boolean(sessionStatus.selectedThreadRestore || sessionIndicator.visible);
+  const healthyPhaseLabel = String(
+    deriveSelectedThreadShellPhaseLabel(currentState, conversation) || liveRun?.phase || "LIVE",
+  ).toUpperCase();
   const ownershipIndicatorLabel = sessionStatus.selectedThreadRestore
     ? String(sessionStatus.transportLabel || (sessionStatus.restoreResume ? "RESUME" : "ATTACH"))
-    : String(sessionIndicator.label || sessionStatus.transportLabel || "SESSION");
+    : sessionIndicator.owned
+      ? healthyPhaseLabel
+      : sessionIndicator.state === "handoff"
+        ? "HANDOFF"
+        : String(sessionIndicator.label || sessionStatus.transportLabel || "SESSION").toUpperCase();
   const ownershipIndicatorTone = sessionStatus.selectedThreadRestore
     ? String(sessionStatus.transportTone || "warning")
     : String(sessionIndicator.tone || sessionStatus.transportTone || "muted");
@@ -508,7 +517,19 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   const ownershipIndicatorReason = sessionStatus.selectedThreadRestore
     ? String(sessionStatus.transportReason || "saved-restore-attach")
     : String(sessionIndicator.reason || "idle");
+  const ownershipIndicatorDetail = sessionStatus.selectedThreadRestore
+    ? `SSE ${sessionStatus.restoreResume ? "RESUME" : "ATTACH"}`
+    : sessionIndicator.owned
+      ? String(sessionStatus.transportLabel || "SSE OWNER")
+      : sessionIndicator.state === "reconnecting"
+        ? "SSE RECONNECT"
+        : sessionIndicator.state === "polling"
+          ? "POLLING FALLBACK"
+          : sessionIndicator.state === "handoff"
+            ? "HANDOFF"
+            : String(sessionStatus.transportLabel || "SESSION");
   const indicatorOnlySummary = Boolean(ownershipIndicatorVisible && (timelineAuthority.visible || sessionStatus.presentation === "restore"));
+  const summaryDetailVisible = ownershipIndicatorVisible || !indicatorOnlySummary;
 
   let pathLabel = "SNAPSHOT";
   let stateLabel = conversationId ? "READY" : "IDLE";
@@ -579,7 +600,7 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   dom.sessionSummaryScope.hidden = indicatorOnlySummary;
   dom.sessionSummaryPath.hidden = indicatorOnlySummary;
   dom.sessionSummaryState.hidden = indicatorOnlySummary;
-  dom.sessionSummaryCopy.hidden = indicatorOnlySummary;
+  dom.sessionSummaryCopy.hidden = !summaryDetailVisible;
   dom.sessionLiveIndicator.hidden = !ownershipIndicatorVisible;
   dom.sessionLiveIndicator.textContent = ownershipIndicatorLabel;
   dom.sessionLiveIndicator.dataset.liveSessionTone = ownershipIndicatorTone;
@@ -589,7 +610,9 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   dom.sessionLiveIndicator.dataset.liveSessionPresentation = ownershipIndicatorPresentation;
   dom.sessionLiveIndicator.dataset.liveSessionVisible = ownershipIndicatorVisible ? "true" : "false";
   dom.sessionLiveIndicator.dataset.liveSessionProvenance = ownershipIndicatorSource;
-  dom.sessionSummaryCopy.textContent = copy;
+  dom.sessionLiveIndicator.dataset.liveSessionPhase = ownershipIndicatorLabel;
+  dom.sessionLiveIndicator.dataset.liveSessionDetail = ownershipIndicatorDetail;
+  dom.sessionSummaryCopy.textContent = ownershipIndicatorVisible ? ownershipIndicatorDetail : copy;
   if (dom.threadPhaseChip) {
     dom.threadPhaseChip.hidden = headerSummaryVisible || switchingSelectedThread;
   }

@@ -1,12 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 144
+## Iteration 145
 
-Expose one compact selected-thread header ownership indicator without weakening the center-timeline authority contract.
+Map explicit selected-thread SSE phase labels into the existing header indicator context and composer-adjacent session rail.
 
-1. Reuse existing selected-thread session-status and timeline-authority helpers to derive one compact header ownership indicator for healthy, degraded, and restore states.
-2. Keep that indicator secondary by collapsing the summary row into an indicator-only row whenever timeline authority or restore visibility is active.
-3. Hide the indicator immediately on switch and terminal idle.
-4. Publish machine-readable datasets for indicator visibility, presentation, and provenance so browser verification can prove it comes from the intended selected-thread session path.
-5. Preserve transport, polling suppression, composer, and cross-thread behavior unchanged.
-6. Extend focused static and deployed verification plus proposal artifacts so iteration 144 proves healthy and degraded ownership visibility without reintroducing duplicate authority prose.
+1. Reuse the current selected-thread shell-phase derivation for the healthy selected-thread SSE path so the header chip becomes phase-first instead of ownership-first.
+2. Keep ownership provenance in the compact header copy rather than in a second chip or prose-heavy summary row.
+3. Reuse the same explicit phase label in the composer-adjacent live-follow chip so detached follow states do not fall back to generic `LIVE` or `READY`.
+4. Keep reconnect, polling fallback, restore, switch, deselection, and terminal idle clearing rules unchanged.
+5. Publish machine-readable phase and detail datasets on the header chip so verification can prove those labels come from the intended selected-thread SSE path.
+6. Extend focused static and deployed verification plus proposal artifacts so iteration 145 proves phase-specific selected-thread chrome without reintroducing a competing authority surface.

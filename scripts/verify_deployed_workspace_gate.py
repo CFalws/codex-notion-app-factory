@@ -492,13 +492,16 @@ def assert_browser_runtime_surface(
                     summary.dataset.indicatorOnly === "true" &&
                     summary.dataset.summaryState === "attached" &&
                     summaryCopy &&
-                    summaryCopy.hidden &&
+                    !summaryCopy.hidden &&
+                    summaryCopy.textContent.trim() === "SSE OWNER" &&
                     liveIndicator &&
                     !liveIndicator.hidden &&
-                    liveIndicator.textContent.trim() === "SSE OWNER" &&
+                    liveIndicator.textContent.trim() === summary.dataset.summaryPhase &&
                     liveIndicator.dataset.liveSessionVisible === "true" &&
                     liveIndicator.dataset.liveSessionPresentation === "healthy" &&
                     liveIndicator.dataset.liveSessionProvenance === "sse" &&
+                    liveIndicator.dataset.liveSessionPhase === summary.dataset.summaryPhase &&
+                    liveIndicator.dataset.liveSessionDetail === "SSE OWNER" &&
                     liveIndicator.dataset.liveSessionOwned === "true" &&
                     liveIndicator.dataset.liveSessionSource === "sse" &&
                     threadPhase &&
@@ -745,6 +748,8 @@ def assert_browser_runtime_surface(
                     summary.dataset.centerTimelineAuthority === "true" &&
                     summary.dataset.centerTimelinePresentation === "degraded" &&
                     summary.dataset.indicatorOnly === "true" &&
+                    summaryCopy &&
+                    !summaryCopy.hidden &&
                     liveIndicator &&
                     !liveIndicator.hidden &&
                     ["RECONNECT", "POLLING"].includes(liveIndicator.textContent.trim()) &&
@@ -1284,7 +1289,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.sessionSummaryScope.hidden = indicatorOnlySummary;', label="header scope demotion")
     require(render_js, 'dom.sessionSummaryPath.hidden = indicatorOnlySummary;', label="header path demotion")
     require(render_js, 'dom.sessionSummaryState.hidden = indicatorOnlySummary;', label="header state demotion")
-    require(render_js, 'dom.sessionSummaryCopy.hidden = indicatorOnlySummary;', label="header copy demotion")
+    require(render_js, 'dom.sessionSummaryCopy.hidden = !summaryDetailVisible;', label="header copy visibility")
     require(render_js, 'dom.sessionLiveIndicator.hidden = !ownershipIndicatorVisible;', label="header indicator visibility")
     require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionSource = ownershipIndicatorSource;', label="header indicator source dataset")
     require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionOwned = sessionIndicator.owned ? "true" : "false";', label="header indicator ownership dataset")
@@ -1292,11 +1297,16 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionPresentation = ownershipIndicatorPresentation;', label="header indicator presentation dataset")
     require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionVisible = ownershipIndicatorVisible ? "true" : "false";', label="header indicator visible dataset")
     require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionProvenance = ownershipIndicatorSource;', label="header indicator provenance dataset")
+    require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionPhase = ownershipIndicatorLabel;', label="header indicator phase dataset")
+    require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionDetail = ownershipIndicatorDetail;', label="header indicator detail dataset")
     require(render_js, 'label: sessionStatus.transportLabel || "SSE OWNER"', label="live-session healthy ownership label")
+    require(render_js, 'const ownershipIndicatorDetail =', label="header ownership detail helper")
+    require(render_js, 'const healthyPhaseLabel = String(', label="header healthy phase label helper")
     require(store_js, 'transportLabel = "RECONNECT";', label="live-session reconnect label")
     require(store_js, 'transportLabel = "POLLING";', label="live-session polling label")
     require(render_js, "joinSessionChromeTokens", label="session chrome token join helper")
     require(render_js, "sessionFollowLabel", label="session follow token helper")
+    require(render_js, 'const followPhaseLabel = footerDock?.phaseLabel || ownerState.label || "READY";', label="footer follow phase label helper")
     require(render_js, "proposalStatusLabel", label="session proposal status token helper")
     require(render_js, "sessionChromeCopy", label="session summary chrome copy helper")
     require(render_js, "sessionStripDetailCopy", label="session strip detail copy helper")

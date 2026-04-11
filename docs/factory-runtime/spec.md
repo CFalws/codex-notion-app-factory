@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `144`
-- bounded focus: `add one compact selected-thread header ownership indicator derived from existing session status without creating a second authority surface`
+- current iteration: `145`
+- bounded focus: `map explicit selected-thread SSE phase labels into the existing header and composer-adjacent session chrome without adding a new authority surface`
 
 ## Request
 
@@ -13,11 +13,11 @@
 
 ## Problem
 
-Iteration 143 made the center timeline the sole authority-looking selected-thread session surface, but the header still leaves operators inferring whether the selected conversation is SSE-owned, reconnecting, polling, or restoring. That ownership state exists already, but it is not exposed as one compact secondary indicator in the header.
+The selected-thread header ownership chip and composer-adjacent session rail already reflect healthy and degraded ownership, but they still leave operators inferring the current live stage because generic ownership wording survives where explicit phase labels already exist in the selected-thread SSE state.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly workspace and expecting the selected conversation header to show current session ownership at a glance without competing with the timeline.
+The primary user is the operator or developer using the phone-friendly workspace and expecting the existing session chrome to show the current live selected-thread phase at a glance without introducing another status surface.
 
 ## Constraints
 
@@ -26,9 +26,9 @@ The primary user is the operator or developer using the phone-friendly workspace
 - Keep the iteration presentation-only in the render layer plus focused verifier and doc updates.
 - Do not change transport, polling suppression, backend state sources, or composer ownership rules.
 - Keep the center timeline as the only authority-looking live session surface.
-- Reuse the existing selected-thread session status, timeline authority, and degraded-path rules.
-- Clear the header indicator immediately on switch and terminal idle.
+- Reuse the existing selected-thread session status, shell-phase derivation, and degraded-path rules.
+- Clear phase-owned treatment immediately on reconnect downgrade, polling fallback, switch, deselection, and terminal idle.
 
 ## Deliverable
 
-Expose one compact selected-thread header ownership indicator derived from existing session status so healthy SSE, reconnect, polling fallback, and restore states are visible at a glance while the timeline remains the sole selected-thread authority surface.
+Expose explicit selected-thread phase labels through the existing header indicator context and composer-adjacent live session chrome so healthy SSE progression reads as `PROPOSAL`, `REVIEW`, `VERIFY`, `AUTO APPLY`, `READY`, and `APPLIED` without adding a second authority surface.
