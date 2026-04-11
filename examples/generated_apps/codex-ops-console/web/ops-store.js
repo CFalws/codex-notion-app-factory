@@ -781,7 +781,8 @@ export function deriveSelectedThreadTimelineMilestones(currentState, conversatio
     { key: "proposal", label: "PROPOSAL", state: phaseRank > 0 ? "complete" : currentPhase === "PROPOSAL" ? "active" : "active" },
     { key: "review", label: "REVIEW", state: phaseRank > 1 ? "complete" : currentPhase === "REVIEW" ? "active" : "pending" },
     { key: "verify", label: "VERIFY", state: phaseRank > 2 ? "complete" : currentPhase === "VERIFY" ? "active" : "pending" },
-    { key: "ready", label: "READY", state: phaseRank > 4 ? "complete" : currentPhase === "AUTO APPLY" || currentPhase === "READY" ? "active" : "pending" },
+    { key: "auto-apply", label: "AUTO APPLY", state: phaseRank > 3 ? "complete" : currentPhase === "AUTO APPLY" ? "active" : "pending" },
+    { key: "ready", label: "READY", state: phaseRank > 4 ? "complete" : currentPhase === "READY" ? "active" : "pending" },
     { key: "applied", label: "APPLIED", state: currentPhase === "APPLIED" ? "active" : "pending" },
   ];
 

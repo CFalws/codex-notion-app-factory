@@ -576,7 +576,9 @@ def assert_browser_runtime_surface(
                     ["PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED"].includes(liveActivity.dataset.liveRunPhase || "") &&
                     milestoneLane &&
                     milestoneLane.dataset.liveMilestones === "true" &&
+                    milestoneLane.dataset.liveMilestonesExplicit === "true" &&
                     milestoneLane.dataset.liveMilestonesPhase === liveActivity.dataset.liveMilestonesPhase &&
+                    milestoneLane.querySelector('[data-milestone-key="auto-apply"]') &&
                     !legacyLaneMeta &&
                     threadSessionSummary &&
                     threadSessionSummary.hidden &&

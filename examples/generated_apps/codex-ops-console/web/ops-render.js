@@ -1182,7 +1182,7 @@ function renderTranscriptMilestones(currentState, conversation) {
     return "";
   }
   return `
-    <div class="timeline-live-row timeline-live-row-milestones" data-live-milestones="true" data-live-milestones-source="${escapeHtml(String(milestoneModel.source || "none"))}" data-live-milestones-phase="${escapeHtml(String(milestoneModel.currentLabel || "UNKNOWN"))}">
+    <div class="timeline-live-row timeline-live-row-milestones" data-live-milestones="true" data-live-milestones-explicit="true" data-live-milestones-source="${escapeHtml(String(milestoneModel.source || "none"))}" data-live-milestones-phase="${escapeHtml(String(milestoneModel.currentLabel || "UNKNOWN"))}">
       ${milestoneModel.items
         .map(
           (item) => `<span class="autonomy-chip ${

@@ -1,12 +1,12 @@
 # Factory Runtime Deploy Plan
 
-## Iteration 203
+## Iteration 204
 
-This deploy plan validates the fixed composer strip as the canonical healthy selected-thread session bar.
+This deploy plan validates the selected-thread center timeline as an explicit healthy-path autonomy progression lane.
 
 ## Deployment Impact
 
-This iteration keeps transport unchanged while shifting healthy selected-thread ownership chrome to the fixed composer surface. The healthy path should show owner, phase, and active run state there, while header and rail ownership chrome stay suppressed or cleared until authority is lost.
+This iteration keeps transport and ownership unchanged while making the healthy selected-thread milestone lane explicit. The healthy path should now expose `AUTO APPLY` as its own visible progression state between `VERIFY` and `READY`.
 
 ## Rollout Notes
 
@@ -14,7 +14,7 @@ This iteration keeps transport unchanged while shifting healthy selected-thread 
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
 3. Open the operator console on desktop and phone widths with at least one selected-thread conversation.
 4. Start from a healthy selected-thread conversation with internal append SSE enabled and drive the session through `PROPOSAL`, `REVIEW`, `VERIFY`, `AUTO APPLY`, `READY`, and `APPLIED`.
-5. Confirm the fixed composer strip stays visible and exposes compact `SSE OWNER`, phase, and live-run state chips for the selected thread on the healthy path.
-6. Confirm healthy header summary and healthy active-session rail ownership cues stay suppressed or cleared so the composer is the single authoritative session bar.
-7. Confirm reconnect downgrade, polling fallback, switch, deselection, restore-gap loss, and terminal completion downgrade or clear the composer bar and related session chrome in the same transition frame.
-8. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible healthy path passes only when the composer strip is authoritative and stale owner residue does not remain elsewhere.
+5. Confirm the healthy selected-thread center timeline shows one explicit milestone lane with visible `PROPOSAL`, `REVIEW`, `VERIFY`, `AUTO APPLY`, `READY`, and `APPLIED` chips.
+6. Confirm `AUTO APPLY` appears as its own active milestone when the corresponding SSE phase is emitted and no longer masquerades as `READY`.
+7. Confirm reconnect downgrade, polling fallback, switch, deselection, restore-gap loss, and terminal completion still downgrade or clear the timeline lane in the same frame rather than leaving stale active milestones behind.
+8. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible healthy path passes only when the explicit milestone lane is present and non-healthy transitions clear or downgrade it immediately.

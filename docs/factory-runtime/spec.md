@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `203`
-- bounded focus: `promote the bottom-fixed composer into the single authoritative healthy selected-thread session bar`
+- current iteration: `204`
+- bounded focus: `extend the selected-thread live timeline into one explicit autonomy progression lane`
 
 ## Request
 
@@ -13,22 +13,21 @@
 
 ## Problem
 
-The selected-thread workspace now has enough shared authority state to keep surfaces in sync, but the healthy path still distributes ownership cues across the header, rail chrome, and composer-adjacent surfaces. That weakens the “one live session” feel because the operator still has to scan multiple regions to confirm owner, phase, and current run state.
+The healthy selected-thread path now has a stable authority contract and a composer-authoritative session bar, but the center timeline still compresses autonomy progression too aggressively. `AUTO APPLY` is not explicit in the milestone lane, so proposal, review, verify, apply, ready, and applied progression still requires some inference instead of reading one compact live lane.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the fixed composer area to behave like the single live session control surface for the currently selected thread.
+The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the selected-thread center timeline to explain live proposal progression at a glance without reading prose-heavy side panels.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the iteration bounded to the selected-thread composer bar, the shared selected-thread authority model, and the focused browser verification seam.
-- Reuse the existing selected-thread SSE-owned authority datasets; do not change transport or add cross-thread session ownership.
-- On the healthy selected-thread path, make the fixed composer strip the single authoritative session bar for owner, phase, and active run state.
-- Suppress or clear duplicate healthy-path owner chrome outside that composer surface.
-- Keep degraded, restore, switch, deselection, restore-gap loss, and terminal transitions fail-open or cleared immediately.
+- Keep the iteration bounded to the selected-thread live timeline lane, the existing shared selected-thread authority model, and the focused verification seam.
+- Reuse the current selected-thread autonomy and milestone helpers; do not change transport or broaden session ownership scope.
+- On the healthy selected-thread path, expose explicit `PROPOSAL`, `REVIEW`, `VERIFY`, `AUTO APPLY`, `READY`, and `APPLIED` milestone states in the center timeline lane.
+- Keep degraded, handoff, reconnect, polling fallback, switch, deselection, restore-gap loss, and terminal-clear behavior unchanged.
 
 ## Deliverable
 
-Expose one conversation-first selected-thread workspace where the fixed composer bar is the canonical healthy selected-thread session surface and healthy ownership does not compete with header or rail chrome, while downgrade and clear transitions still happen in the same frame.
+Expose one conversation-first selected-thread workspace where the healthy selected-thread center timeline includes one explicit machine-readable autonomy progression lane with all major proposal phases visible in realtime.

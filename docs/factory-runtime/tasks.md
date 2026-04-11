@@ -1,11 +1,10 @@
 # Factory Runtime Tasks
 
-## Iteration 203
+## Iteration 204
 
-- [x] Keep the change bounded to the selected-thread composer bar and shared authority model.
-- [x] Bring the shared selected-thread authority model into this proposal branch.
-- [x] Make the healthy selected-thread composer strip visible and authoritative.
-- [x] Render compact owner, phase, and active-run state at the fixed composer.
-- [x] Suppress healthy-path header and rail ownership chrome outside the composer bar.
-- [x] Preserve immediate degraded or clear transitions for reconnect, polling fallback, switch, deselection, restore-gap loss, and terminal completion.
-- [x] Align browser and static verification with the composer-authoritative healthy-path contract.
+- [x] Keep the change bounded to the selected-thread milestone lane and verification seam.
+- [x] Preserve the existing shared selected-thread authority model and composer-authoritative healthy path.
+- [x] Add an explicit `AUTO APPLY` milestone state instead of folding it into `READY`.
+- [x] Keep the center timeline milestone lane machine-readable and compact.
+- [x] Preserve degraded, reconnect, polling fallback, switch, deselection, restore-gap, and terminal-clear behavior unchanged.
+- [x] Align browser and static verification with the explicit autonomy progression lane.

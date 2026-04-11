@@ -1,13 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 203
+## Iteration 204
 
-Promote the fixed composer strip into the healthy selected-thread session bar using the shared selected-thread authority model.
+Extend the existing selected-thread live milestone lane so the healthy SSE-owned path shows explicit autonomy progression states without adding a new surface.
 
-1. Keep the change bounded to the selected-thread authority model, composer strip, header, rail row, and verifier expectations.
-2. Reuse the shared selected-thread authority model so healthy, degraded, restore, switch, and cleared states are read from one contract.
-3. Make the bottom-fixed composer strip visible and authoritative on the healthy selected-thread path.
-4. Render compact owner, phase, and active-run state chips there from the healthy selected-thread model.
-5. Suppress healthy-path header and rail ownership chrome so the composer becomes the single authoritative session bar.
-6. Preserve immediate downgrade or clear behavior on reconnect, polling fallback, switch, deselection, restore-gap loss, and terminal completion.
-7. Align browser and static verification with the composer-authoritative healthy path.
+1. Keep the change bounded to the selected-thread milestone model, its timeline renderer, and verifier expectations.
+2. Reuse the current selected-thread authority and live autonomy helpers instead of adding a new status owner.
+3. Make the live milestone lane explicitly represent `PROPOSAL`, `REVIEW`, `VERIFY`, `AUTO APPLY`, `READY`, and `APPLIED`.
+4. Preserve the current healthy-path composer-authoritative ownership contract from iteration 203.
+5. Preserve degraded, reconnect, polling fallback, switch, deselection, restore-gap, and terminal-clear behavior without adding new fallback UI.
+6. Align static and browser verification with the explicit progression lane.
