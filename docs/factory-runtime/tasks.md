@@ -1,10 +1,10 @@
 # Factory Runtime Tasks
 
-## Iteration 175
+## Iteration 176
 
-- [x] Keep the change presentation-only inside the left navigation seam over the existing selected-thread authority.
-- [x] Make the sticky active-session row the only healthy live navigation mirror for the selected thread.
-- [x] Suppress selected-card helper live detail when that sticky row is authoritative.
-- [x] Keep selected-card session chips minimal and finite.
-- [x] Fail closed immediately on degraded, restore-gap, deselected, switched, and terminal paths.
-- [x] Align focused docs and verification with the iteration-175 rail-authority contract.
+- [x] Keep the change bounded to switch-path presentation and verification over the existing selected-thread authority seam.
+- [x] Preserve the current transcript/composer frame during intentional switches instead of falling through to a true empty workspace.
+- [x] Keep exactly one compact transition placeholder visible until the incoming selected-thread snapshot attaches.
+- [x] Clear old-thread live ownership immediately and keep the composer target row pinned to the incoming thread while switching.
+- [x] Fail closed immediately on degraded, reconnect, polling fallback, restore-gap, deselected, switched, and terminal paths.
+- [x] Align focused docs and verification with the iteration-176 switch-continuity contract.

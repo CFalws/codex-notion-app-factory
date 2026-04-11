@@ -1,12 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 175
+## Iteration 176
 
-Make the sticky active-session row the single healthy navigation mirror for the selected thread.
+Keep the selected-thread conversation shell and bottom-fixed composer dock mounted through intentional thread switches.
 
-1. Keep the change presentation-only inside the left navigation seam over the existing selected-thread authority.
-2. Let the sticky active-session row remain the only healthy live navigation mirror for the selected thread.
-3. Suppress selected-card helper live detail when that sticky row is authoritative.
-4. Keep selected-card session chips minimal and finite.
-5. Fail closed immediately on degraded, restore-gap, deselected, switched, and terminal paths.
-6. Align focused verification and proposal artifacts with the iteration-175 rail-authority contract.
+1. Keep the change bounded to switch-path presentation and verification over the existing selected-thread authority seam.
+2. Preserve the current transcript/composer frame during intentional switches instead of falling through to a true empty workspace.
+3. Keep exactly one compact transition placeholder visible until the incoming selected-thread snapshot attaches.
+4. Clear old-thread live ownership immediately and keep the composer target row pinned to the incoming thread while switching.
+5. Fail closed immediately on degraded, reconnect, polling fallback, restore-gap, deselected, switched, and terminal paths.
+6. Align focused verification and proposal artifacts with the iteration-176 switch-continuity contract.

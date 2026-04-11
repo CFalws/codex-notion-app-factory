@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `175`
-- bounded focus: `make the sticky active-session row the single healthy navigation mirror for the selected thread`
+- current iteration: `176`
+- bounded focus: `keep the selected-thread conversation shell and bottom composer mounted through intentional thread switches`
 
 ## Request
 
@@ -13,22 +13,22 @@
 
 ## Problem
 
-The center pane now has one authoritative healthy live session surface, but the left rail still duplicates selected-thread live ownership through both the sticky active-session row and the selected-card helper row. That overlap keeps the navigation layer noisier than the already-authoritative center pane.
+Healthy selected-thread SSE ownership is already authoritative across the transcript, footer strip, and left rail, but the remaining high-friction gap is the thread-switch boundary. If the workspace looks briefly empty during an intentional switch, the operator has to infer whether the session is attaching to a new thread or has actually fallen back to idle.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the left rail to make the current live session obvious at a glance without multiple selected-row helper surfaces competing for attention.
+The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the center conversation shell and fixed composer to stay continuous while the selected thread changes.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the iteration bounded to the left navigation presentation seam in the operator console.
-- Reuse the existing selected-thread SSE and `session_status` authority; do not add a new navigation state source.
-- Promote the sticky active-session row as the only healthy navigation-level mirror for the selected thread.
-- Suppress selected-card helper live detail when that sticky row is authoritative.
-- Fail closed on degraded, restore-gap, deselected, switched, and no-selection states.
+- Keep the iteration bounded to the selected-thread switch presentation seam in the operator console.
+- Reuse the existing selected-thread SSE, `session_status`, and thread-transition state; do not change transport ownership rules.
+- Preserve the current transcript/composer frame during intentional switches instead of flashing the generic empty workspace.
+- Keep exactly one compact transition placeholder visible until the incoming thread snapshot attaches.
+- Fail closed on degraded, reconnect, polling fallback, restore-gap, deselected, switched, and no-selection states.
 
 ## Deliverable
 
-Expose one obvious healthy sticky active-session row above the thread list as the canonical navigation mirror for the selected thread, while the selected card falls back to minimal chips and helper-style live detail stays suppressed on that same path.
+Expose one continuous conversation-first workspace during intentional thread switches: keep the fixed composer dock mounted, clear old-thread live ownership immediately, and show one compact transition placeholder until the incoming selected-thread snapshot attaches.

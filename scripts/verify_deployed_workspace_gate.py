@@ -1032,14 +1032,17 @@ def assert_browser_runtime_surface(
                     !composerOwnerRow.hidden &&
                     composerOwnerRow.dataset.composerOwnerMerged === "false" &&
                     composerOwnerRow.dataset.composerOwner === "switching" &&
+                    composerOwnerRow.dataset.composerOwnerConversationId === targetConversationId &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     sendRequest &&
                     sendRequest.dataset.composerOwnerState === "switching" &&
+                    sendRequest.dataset.composerOwnerConversationId === targetConversationId &&
                     threadScroller &&
                     threadScroller.dataset.threadTransitionState === "switching" &&
                     threadScroller.dataset.threadTransitionConversationId === targetConversationId &&
                     document.querySelector("#conversation-timeline").dataset.workspacePlaceholder === "switching" &&
+                    document.querySelector("#conversation-timeline").dataset.workspacePlaceholder !== "empty" &&
                     document.querySelector("#conversation-timeline").dataset.workspaceConversationId === targetConversationId &&
                     document.querySelector("#conversation-timeline").dataset.workspaceOwnerCleared === "true" &&
                     threadScroller.dataset.phaseValue === "UNKNOWN" &&
@@ -1393,6 +1396,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'data-thread-transition-owner-cleared="true"', label="thread transition ownership-cleared dataset")
     require(render_js, "selectedThreadWorkspacePlaceholder", label="thread transition workspace placeholder helper")
     require(render_js, "const workspacePlaceholder = selectedThreadWorkspacePlaceholder(currentState);", label="thread transition workspace placeholder state")
+    require(render_js, "if (isSwitching) {", label="switch placeholder branch")
+    require(render_js, "if (isRestore) {", label="restore placeholder branch")
     require(render_js, 'workspaceSummary: "selected thread switching · target snapshot attach pending",', label="switch workspace summary copy")
     require(render_js, 'workspaceSummary: sessionStatus.restoreResume', label="restore workspace summary copy")
     require(render_js, 'workspaceSummary: "선택된 대화가 없으면 현재 세션 맥락이 여기에 정리됩니다.",', label="empty workspace summary copy")
