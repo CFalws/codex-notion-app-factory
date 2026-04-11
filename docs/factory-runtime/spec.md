@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `205`
-- bounded focus: `preserve one mounted selected-thread workspace during intentional thread switches`
+- current iteration: `206`
+- bounded focus: `make append SSE the sole healthy-path selected-thread session authority`
 
 ## Request
 
@@ -13,21 +13,21 @@
 
 ## Problem
 
-Healthy selected-thread ownership and explicit autonomy milestones are already present, but a Codex-desktop-style realtime session still depends on thread switches feeling continuous. The remaining bounded risk is that an intentional switch could appear to drop the session shell, flash a generic empty workspace, or leave stale owner residue instead of behaving like one mounted session surface bridging to the next thread.
+Healthy selected-thread ownership, explicit autonomy milestones, and switch continuity are already present, but the selected-thread workspace can still inherit polling-owned job or autonomy state during healthy attach and render paths. The remaining bounded risk is hidden polling authority mutating a supposedly live session surface, which breaks the goal of a true session-level realtime workspace.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly realtime workspace and expecting thread switches to preserve the same mounted conversation shell and fixed composer instead of looking like the session disappeared.
+The primary user is the operator or developer using the phone-friendly realtime workspace and expecting healthy selected-thread job, phase, proposal, verifier, and apply state to update from one live session path without hidden polling-driven overrides.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the iteration bounded to the selected-thread switch path, the existing workspace placeholder and transition helpers, and the focused browser verification seam.
-- Reuse the current selected-thread session status, thread transition, and mounted composer shell behavior; do not change transport or broader multi-thread ownership rules.
-- During an intentional selected-thread switch, keep the conversation shell and bottom-fixed composer mounted, clear old ownership immediately, and show at most one compact switching placeholder until the new snapshot attaches.
-- Reserve the generic empty workspace for true no-conversation idle only.
+- Keep the iteration bounded to the selected-thread healthy path, the existing append SSE session status payload, and the job and goals fallback gate in the operator console.
+- Reuse the current selected-thread session status and session strip model; do not change backend transport or broader multi-thread ownership rules.
+- On the healthy selected-thread path, treat append SSE session status as the sole authority for current job, phase, proposal readiness, verifier status, and apply availability.
+- Preserve the current fallback behavior only for reconnect, deselection, switch, restore-gap, or terminal authority loss.
 
 ## Deliverable
 
-Expose one conversation-first selected-thread workspace where intentional thread switches preserve the mounted shell and fixed composer, clear stale owner chrome immediately, and bridge with one compact switching placeholder instead of an empty-state flash.
+Expose one conversation-first selected-thread workspace where healthy selected-thread session state is owned by append SSE alone, with polling and goal-summary fallback re-enabled only on explicit authority loss.

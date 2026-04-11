@@ -990,6 +990,7 @@ export function deriveSelectedThreadSessionStripModel(currentState, conversation
   const blockerReason = String(sessionStatusPayload?.blockerReason || sessionStatusPayload?.blocker_reason || "none").toUpperCase();
   const proposalReady = Boolean(sessionStatusPayload?.proposalReady ?? sessionStatusPayload?.proposal_ready ?? false);
   const proposalStatus = String(sessionStatusPayload?.proposalStatus || sessionStatusPayload?.proposal_status || "").toLowerCase();
+  const proposalJobId = String(sessionStatusPayload?.proposalJobId || sessionStatusPayload?.proposal_job_id || "");
   const latestJobId = String(sessionStatusPayload?.latestJobId || sessionStatusPayload?.latest_job_id || "");
   const degradedSignals = Array.isArray(sessionStatusPayload?.degradedSignals || sessionStatusPayload?.degraded_signals)
     ? (sessionStatusPayload.degradedSignals || sessionStatusPayload.degraded_signals)
@@ -1026,6 +1027,7 @@ export function deriveSelectedThreadSessionStripModel(currentState, conversation
       blockerReason: "",
       proposalReady: false,
       proposalStatus: "",
+      proposalJobId: "",
       proposalLabel: "",
       latestJobId: "",
       degradedSignals: [],
@@ -1084,6 +1086,7 @@ export function deriveSelectedThreadSessionStripModel(currentState, conversation
     blockerReason,
     proposalReady,
     proposalStatus,
+    proposalJobId,
     proposalLabel,
     latestJobId,
     degradedSignals,

@@ -862,11 +862,36 @@ function selectedThreadSseAuthorityEvent(conversation, currentState) {
   return null;
 }
 
+function selectedThreadSseAuthorityStatus(conversation, currentState) {
+  const sessionStrip = deriveSelectedThreadSessionStripModel(currentState, conversation, null);
+  if (!sessionStrip?.visible || !sessionStrip?.owned || sessionStrip.presentation !== "healthy") {
+    return null;
+  }
+  return sessionStrip;
+}
+
 function sessionAuthorityJobId(conversation, currentState) {
+  const liveAuthorityStatus = selectedThreadSseAuthorityStatus(conversation, currentState);
+  const phaseJobId = String(
+    currentState?.appendStream?.sessionStatus?.phase?.jobId ||
+      currentState?.appendStream?.sessionStatus?.phase?.job_id ||
+      "",
+  ).trim();
+  const proposalJobId = String(liveAuthorityStatus?.proposalJobId || "").trim();
+  const latestJobId = String(liveAuthorityStatus?.latestJobId || "").trim();
   const liveAuthorityEvent = selectedThreadSseAuthorityEvent(conversation, currentState);
   const liveAuthorityJobId = String(liveAuthorityEvent?.job_id || "").trim();
   if (liveAuthorityJobId) {
     return liveAuthorityJobId;
+  }
+  if (proposalJobId) {
+    return proposalJobId;
+  }
+  if (latestJobId) {
+    return latestJobId;
+  }
+  if (phaseJobId) {
+    return phaseJobId;
   }
   return String(currentState.currentJobId || conversation?.latest_job_id || "");
 }
@@ -2423,9 +2448,12 @@ export function renderJobActivity(dom, conversation, currentJobId, jobPayload = 
   dom.jobPhase.className = `activity-phase ${phase.toLowerCase()}`;
 
   if (currentState && dom.applyProposalButton && selectedThreadSseOwned) {
+    const sessionStrip = deriveSelectedThreadSessionStripModel(currentState, conversation, liveRun);
     currentState.latestProposalJobId =
-      liveRun.state === "proposal-ready"
-        ? String(liveRun.jobId || conversation?.latest_job_id || "")
+      sessionStrip?.owned && (sessionStrip.proposalReady || sessionStrip.proposalStatus === "ready_to_apply")
+        ? String(sessionStrip.proposalJobId || sessionStrip.latestJobId || liveRun.jobId || "")
+        : liveRun.state === "proposal-ready"
+          ? String(liveRun.jobId || conversation?.latest_job_id || "")
         : "";
     updateProposalButton(dom, currentState.latestProposalJobId);
   }

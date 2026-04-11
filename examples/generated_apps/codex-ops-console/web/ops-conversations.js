@@ -1781,10 +1781,24 @@ export function createConversationController(deps) {
       state.currentConversationId === conversation.conversation_id &&
       state.appendStream?.conversationId === conversation.conversation_id &&
       state.appendStream?.transport === "sse" &&
-      state.appendStream?.lastRenderSource === "sse" &&
+      (
+        state.appendStream?.lastRenderSource === "sse" ||
+        state.appendStream?.attachMode === "sse-bootstrap" ||
+        state.appendStream?.attachMode === "sse-resume"
+      ) &&
       (state.appendStream?.status === "connecting" || state.appendStream?.status === "live");
     if (authoritativeSelectedAttach) {
       stopPolling();
+      state.currentJobId = String(
+        state.appendStream?.sessionStatus?.proposalJobId ||
+          state.appendStream?.sessionStatus?.proposal_job_id ||
+          state.appendStream?.sessionStatus?.latestJobId ||
+          state.appendStream?.sessionStatus?.latest_job_id ||
+          state.appendStream?.sessionStatus?.phase?.jobId ||
+          state.appendStream?.sessionStatus?.phase?.job_id ||
+          state.currentJobId ||
+          "",
+      );
       return;
     }
 

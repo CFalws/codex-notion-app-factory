@@ -1,12 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 205
+## Iteration 206
 
-Record the already-present selected-thread switch continuity path as the iteration 205 proposal contract.
+Tighten the selected-thread healthy-path transport boundary so append SSE session state is the sole live authority for job, phase, proposal, verifier, and apply state.
 
-1. Keep the change bounded to the selected-thread switch placeholder, mounted conversation shell, composer dock continuity, and verifier expectations.
-2. Preserve the mounted shell and fixed composer during intentional selected-thread switches.
-3. Preserve immediate old-owner clearing across header, timeline, rail, and composer metadata when a switch begins.
-4. Preserve exactly one compact switching placeholder while the new snapshot attaches.
-5. Preserve negative assertions against generic empty-state fallback, hidden composer dock, duplicate switching placeholders, and stale owner residue.
-6. Align proposal artifacts with the existing switch-continuity contract already present in the branch.
+1. Keep the change bounded to the selected-thread append SSE path, its session-status projection, and verifier expectations.
+2. Prefer append SSE session-status job identity over snapshot or polling-owned `currentJobId/latest_job_id` while healthy selected-thread authority is active.
+3. Preserve apply readiness from the selected-thread session strip model instead of live-run or polling-only fallbacks.
+4. Suppress polling-owned `syncLatestJob` and goals refresh mutations during healthy selected-thread attach.
+5. Preserve reconnect, switch, deselection, restore-gap, and terminal-clear fallback behavior unchanged.
+6. Align static checks, browser checks, and proposal artifacts with the tightened healthy-path authority contract.
