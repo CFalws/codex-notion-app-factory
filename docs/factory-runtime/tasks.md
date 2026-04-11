@@ -1,9 +1,9 @@
 # Factory Runtime Tasks
 
-## Iteration 152
+## Iteration 153
 
-- [x] Derive the sticky active-session row directly from selected-thread session status, shell phase, and follow-control models.
-- [x] Restrict the row to healthy selected-thread ownership and bounded handoff only.
-- [x] Clear the row immediately on reconnect, polling fallback, switch, terminal idle, deselection, and other lost-authority paths.
-- [x] Preserve compact owner, phase, and follow or unseen cues without introducing another state source.
-- [x] Align focused static verification and proposal artifacts with the iteration-152 left-rail sticky-row contract.
+- [x] Reuse the selected-thread primary timeline session contract as the only center-pane session surface.
+- [x] Remove the standalone inline selected-thread session block from healthy and handoff rendering.
+- [x] Keep degraded and restore session visibility transcript-native while failing closed on switch, terminal, deselection, and lost-authority paths.
+- [x] Enforce exactly one selected-thread center session item and zero duplicate inline blocks in focused static and deployed verification.
+- [x] Align proposal artifacts with the iteration-153 center-pane convergence contract.

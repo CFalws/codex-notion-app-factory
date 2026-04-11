@@ -135,8 +135,7 @@ def browser_snapshot_script() -> str:
     return """
 () => {
   const summary = document.querySelector("#session-summary-row");
-  const healthyBlock = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-block-owner="selected-thread"]');
-  const degradedBlock = document.querySelector('.session-inline-block[data-selected-thread-degraded-block="true"][data-live-block-owner="selected-thread"]');
+  const inlineBlocks = Array.from(document.querySelectorAll('.session-inline-block[data-selected-thread-live-block="true"], .session-inline-block[data-selected-thread-degraded-block="true"]'));
   const liveActivity = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
   const follow = document.querySelector("#jump-to-latest");
   const activeSessionRow = document.querySelector("#active-session-row");
@@ -157,14 +156,10 @@ def browser_snapshot_script() -> str:
       dataset: { ...summary.dataset },
       text: (summary.textContent || "").trim(),
     } : null,
-    healthyBlock: healthyBlock ? {
-      dataset: { ...healthyBlock.dataset },
-      text: (healthyBlock.textContent || "").trim(),
-    } : null,
-    degradedBlock: degradedBlock ? {
-      dataset: { ...degradedBlock.dataset },
-      text: (degradedBlock.textContent || "").trim(),
-    } : null,
+    inlineBlocks: inlineBlocks.map(block => ({
+      dataset: { ...block.dataset },
+      text: (block.textContent || "").trim(),
+    })),
     liveActivity: liveActivity ? {
       dataset: { ...liveActivity.dataset },
       text: (liveActivity.textContent || "").trim(),
@@ -502,7 +497,7 @@ def assert_browser_runtime_surface(
 
             page.wait_for_function(
                 """conversationId => {
-                  const healthyBlock = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-block-owner="selected-thread"][data-live-owned="true"]');
+                  const inlineBlocks = document.querySelectorAll('.session-inline-block[data-selected-thread-live-block="true"], .session-inline-block[data-selected-thread-degraded-block="true"]');
                   const liveActivity = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
                   const primaryLiveActivities = document.querySelectorAll('.timeline-item.live-activity[data-live-session-primary="true"]');
                   const summary = document.querySelector("#session-summary-row");
@@ -536,15 +531,7 @@ def assert_browser_runtime_surface(
                     entry => String(entry.url || "").includes("/api/jobs/")
                   );
                   return Boolean(
-                    healthyBlock &&
-                    document.querySelectorAll('.session-inline-block[data-selected-thread-live-block="true"][data-live-block-owner="selected-thread"]').length === 1 &&
-                    healthyBlock.dataset.liveOwned === "true" &&
-                    healthyBlock.dataset.liveBlockPresentation === "healthy" &&
-                    healthyBlock.dataset.liveBlockTransport === "SSE OWNER" &&
-                    healthyBlock.dataset.liveBlockPhase === liveActivity.dataset.liveRunPhase &&
-                    healthyBlock.dataset.liveBlockPathVerdict === liveActivity.dataset.livePathVerdict &&
-                    healthyBlock.dataset.liveBlockVerifierAcceptability === liveActivity.dataset.liveVerifierAcceptability &&
-                    healthyBlock.dataset.liveBlockBlockerReason === liveActivity.dataset.liveBlockerReason &&
+                    inlineBlocks.length === 0 &&
                     liveActivity &&
                     primaryLiveActivities.length === 1 &&
                     liveActivity.dataset.liveSessionPrimary === "true" &&
@@ -553,6 +540,8 @@ def assert_browser_runtime_surface(
                     liveActivity.dataset.liveSessionDuplicates === "collapsed" &&
                     liveActivity.dataset.liveSessionLane === "selected-thread" &&
                     liveActivity.dataset.liveMilestonesVisible === "true" &&
+                    liveActivity.dataset.liveTransport === "SSE OWNER" &&
+                    liveActivity.dataset.liveTransportOwned === "true" &&
                     ["EXPECTED", "ACCEPTABLE"].includes(liveActivity.dataset.livePathVerdict || "") &&
                     ["ACCEPTABLE", "PENDING"].includes(liveActivity.dataset.liveVerifierAcceptability || "") &&
                     (liveActivity.dataset.liveBlockerReason || "").length > 0 &&
@@ -717,7 +706,8 @@ def assert_browser_runtime_surface(
                   const threadScroller = document.querySelector("#thread-scroller");
                   const summary = document.querySelector("#session-summary-row");
                   const composerOwnerRow = document.querySelector("#composer-owner-row");
-                  const healthyBlock = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-block-owner="selected-thread"]');
+                  const liveActivity = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-session-primary="true"]');
+                  const inlineBlocks = document.querySelectorAll('.session-inline-block[data-selected-thread-live-block="true"], .session-inline-block[data-selected-thread-degraded-block="true"]');
                   const composerDock = document.querySelector("#conversation-footer-dock");
                   const statusOutput = document.querySelector("#status-output");
                   const executionStatusCard = statusOutput ? statusOutput.closest(".inspector-card") : null;
@@ -790,7 +780,7 @@ def assert_browser_runtime_surface(
                     jobFetches.length === 0 &&
                     goalsFetches.length === 0 &&
                     appendIds.length === deduped.size &&
-                    !healthyBlock &&
+                    inlineBlocks.length === 0 &&
                     !emptyState
                   );
                 }""",
@@ -804,10 +794,10 @@ def assert_browser_runtime_surface(
                 """() => {
                   const degraded = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="false"]');
                   const healthy = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
-                  const healthyBlock = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-owned="true"]');
-                  const degradedBlock = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-owned="false"]');
+                  const inlineBlocks = document.querySelectorAll('.session-inline-block[data-selected-thread-live-block="true"], .session-inline-block[data-selected-thread-degraded-block="true"]');
                   const summary = document.querySelector("#session-summary-row");
                   const liveIndicator = document.querySelector("#session-live-indicator");
+                  const summaryCopy = document.querySelector("#session-summary-copy");
                   const activeSessionRow = document.querySelector("#active-session-row");
                   const sessionStrip = document.querySelector("#session-strip");
                   const sessionStripState = document.querySelector("#session-strip-state");
@@ -815,7 +805,7 @@ def assert_browser_runtime_surface(
                   const executionStatusCard = statusOutput ? statusOutput.closest(".inspector-card") : null;
                   const follow = document.querySelector("#jump-to-latest");
                   const stripChips = sessionStripState ? sessionStripState.querySelectorAll(".session-chip") : [];
-                  if (!degraded || healthy || healthyBlock || degradedBlock || !summary || !follow || !activeSessionRow || !sessionStrip || !sessionStripState || !executionStatusCard || !statusOutput) {
+                  if (!degraded || healthy || inlineBlocks.length !== 0 || !summary || !follow || !activeSessionRow || !sessionStrip || !sessionStripState || !executionStatusCard || !statusOutput) {
                     return false;
                   }
                   const reason = degraded.dataset.liveReason || "";
@@ -823,6 +813,8 @@ def assert_browser_runtime_surface(
                   return (
                     ["retrying", "reconnecting", "polling-fallback", "session-rotation"].includes(reason) &&
                     ["RECONNECT", "POLLING"].includes(phase) &&
+                    ["RECONNECT", "POLLING"].includes(degraded.dataset.liveTransport || "") &&
+                    degraded.dataset.liveTransportOwned === "false" &&
                     !summary.hidden &&
                     summary.dataset.summaryPath === "degraded" &&
                     summary.dataset.liveSessionOwned === "false" &&
@@ -883,9 +875,9 @@ def assert_browser_runtime_surface(
                   const sendRequest = document.querySelector("#send-request");
                   const composerOwnerRow = document.querySelector("#composer-owner-row");
                   const threadScroller = document.querySelector("#thread-scroller");
-                  const healthyBlock = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-owned="true"]');
+                  const inlineBlocks = document.querySelectorAll('.session-inline-block[data-selected-thread-live-block="true"], .session-inline-block[data-selected-thread-degraded-block="true"]');
                   const healthy = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
-                  const degraded = document.querySelector('.session-inline-block[data-selected-thread-degraded-block="true"]');
+                  const degraded = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="false"]');
                   const empty = document.querySelector(".timeline-empty");
                   const follow = document.querySelector("#jump-to-latest");
                   const fetchMark = Number(window.__verifyFetchMark || 0);
@@ -962,7 +954,7 @@ def assert_browser_runtime_surface(
                     switchMonitor.maxTransitionCount === 1 &&
                     switchMonitor.sawHiddenComposerDock === false &&
                     switchMonitor.sawClearedWorkspacePlaceholder === false &&
-                    !healthyBlock &&
+                    inlineBlocks.length === 0 &&
                     !healthy &&
                     !degraded &&
                     !empty
@@ -1053,8 +1045,8 @@ def assert_browser_runtime_surface(
                   const activeSessionRow = document.querySelector("#active-session-row");
                   const follow = document.querySelector("#jump-to-latest");
                   const empty = document.querySelector(".timeline-empty");
-                  const healthyBlock = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-owned="true"]');
-                  const degraded = document.querySelector('.session-inline-block[data-selected-thread-degraded-block="true"]');
+                  const inlineBlocks = document.querySelectorAll('.session-inline-block[data-selected-thread-live-block="true"], .session-inline-block[data-selected-thread-degraded-block="true"]');
+                  const degraded = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="false"]');
                   const fetchMark = Number(window.__verifyFetchMark || 0);
                   const jobFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
                     entry => String(entry.url || "").includes("/api/jobs/")
@@ -1103,7 +1095,7 @@ def assert_browser_runtime_surface(
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     follow &&
                     follow.dataset.followOwned !== "selected-thread" &&
-                    !healthyBlock &&
+                    inlineBlocks.length === 0 &&
                     !degraded &&
                     !empty &&
                     switchMonitor.active === true &&
@@ -1220,7 +1212,6 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(styles, ".composer-owner-row", label="composer owner row CSS")
     require(styles, ".composer-owner-chip", label="composer owner chip CSS")
     require(styles, ".autonomy-detail-card", label="secondary panel autonomy detail card CSS")
-    require(styles, ".session-inline-block", label="inline session block CSS")
     require(styles, ".session-inline-autonomy", label="inline autonomy row CSS")
     require(styles, ".timeline-item.session-event", label="session timeline event CSS")
     require(styles, '.timeline-item.session-event[data-session-verdict="disqualifying"]', label="session timeline disqualifying CSS")
@@ -1315,13 +1306,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.conversationTimeline.dataset.workspaceOwnerCleared = "false";', label="conversation workspace ownership-cleared reset")
     require(render_js, 'dom.threadScroller.dataset.workspaceOwnerCleared = "false";', label="conversation scroller ownership-cleared reset")
     require(render_js, "const { handoffVisible, degradedVisible, sessionIndicator } = inlineState;", label="transcript live state wiring")
-    require(render_js, 'data-selected-thread-live-block="true"', label="inline selected-thread live block dataset")
-    require(render_js, 'data-selected-thread-degraded-block="false"', label="inline selected-thread non-degraded dataset")
-    require(render_js, 'data-live-block-owner="selected-thread"', label="inline selected-thread owner dataset")
-    require(render_js, 'data-live-block-phase="${escapeHtml(phaseLabel)}"', label="inline session phase dataset")
-    require(render_js, 'data-live-block-path-verdict="${escapeHtml(pathVerdict)}"', label="inline session path verdict dataset")
-    require(render_js, 'data-live-block-verifier-acceptability="${escapeHtml(verifierAcceptability)}"', label="inline session verifier dataset")
-    require(render_js, 'data-live-block-blocker-reason="${escapeHtml(blockerReason)}"', label="inline session blocker dataset")
+    require(render_js, 'return "";', label="inline session block collapsed into transcript item")
     require(render_js, 'if (item.pending_assistant && inlineState.handoffVisible) {', label="pending assistant placeholder suppression behind inline block")
     require(render_js, 'data-live-autonomy="true"', label="inline autonomy DOM")
     require(render_js, 'data-autonomy-path-verdict="', label="inline autonomy path verdict dataset")
@@ -1333,6 +1318,9 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'data-autonomy-fallback-allowed="', label="inline autonomy fallback dataset")
     require(render_js, 'data-autonomy-generated-at="', label="inline autonomy generated-at dataset")
     require(render_js, 'data-live-reason="${escapeHtml(', label="transcript live reason dataset")
+    require(render_js, 'data-live-transport="${escapeHtml(transportLabel)}"', label="transcript live transport dataset")
+    require(render_js, 'data-live-transport-owned="${liveOwned ? "true" : "false"}"', label="transcript live transport ownership dataset")
+    require(render_js, 'data-live-transport="SSE RESTORE"', label="restore transcript transport dataset")
     require(render_js, 'const retainedTerminalVisible = shouldRetainInlineTerminalPhase(', label="inline terminal retention wiring")
     require(render_js, '(!liveRun.terminal || retainedTerminalVisible);', label="inline terminal visibility guard")
     require(render_js, 'Date.now() - createdAtMs <= INLINE_TERMINAL_RETENTION_MS;', label="inline terminal retention deadline")

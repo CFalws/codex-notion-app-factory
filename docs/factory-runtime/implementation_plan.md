@@ -1,12 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 152
+## Iteration 153
 
-Wire the existing left-rail sticky active-session row to selected-thread session authority.
+Collapse the selected-thread center-pane realtime status surfaces into one transcript-native session timeline item.
 
-1. Derive the sticky row only from the existing selected-thread session status, shell phase, and follow-control models.
-2. Render the row only for healthy selected-thread ownership or bounded selected-thread handoff.
-3. Keep reconnect, polling fallback, switch, terminal, deselected, non-selected, and lost-authority paths fail-closed so the sticky row clears immediately when authority is lost.
-4. Keep the row compact while mirroring owner, phase, and follow or unseen cues from the selected-thread session contract.
-5. Extend focused static and deployed verification so healthy, degraded, and switching states prove the sticky row matches the selected-thread contract and never preserves stale switching ownership.
-6. Align proposal artifacts with the iteration-152 left-rail sticky-row contract.
+1. Reuse the existing selected-thread primary timeline session helper as the single center-pane session contract.
+2. Remove the standalone inline session block so healthy and handoff states render only through the transcript-native live activity item.
+3. Preserve degraded and restore session visibility through that same transcript-native session item without leaving duplicate inline ownership behind.
+4. Keep reconnect, polling fallback, switch, terminal, deselected, non-selected, and lost-authority paths fail-closed so no stale inline session surface remains mounted.
+5. Extend focused static and deployed verification so healthy, degraded, restore, and switching states prove the center pane exposes exactly one selected-thread session item and zero duplicate inline session blocks.
+6. Align proposal artifacts with the iteration-153 center-pane timeline convergence contract.
