@@ -441,6 +441,11 @@ def assert_browser_runtime_surface(
                   const summaryCopy = document.querySelector("#session-summary-copy");
                   const threadPhase = document.querySelector("#thread-phase-chip");
                   const activeSessionRow = document.querySelector("#active-session-row");
+                  const selectedCard = document.querySelector('.conversation-card[data-selected="true"]');
+                  const selectedCardLiveOwnerRow = selectedCard ? selectedCard.querySelector('[data-conversation-live-owner-row]') : null;
+                  const selectedRecentThread = document.querySelector('.recent-thread-chip[data-selected="true"]');
+                  const selectedRecentThreadOwner = selectedRecentThread ? selectedRecentThread.querySelector('[data-recent-thread-owner]') : null;
+                  const selectedRecentThreadFollow = selectedRecentThread ? selectedRecentThread.querySelector('[data-recent-thread-follow]') : null;
                   const sessionStrip = document.querySelector("#session-strip");
                   const sessionStripState = document.querySelector("#session-strip-state");
                   const sessionStripDetail = document.querySelector("#session-strip-detail");
@@ -503,6 +508,9 @@ def assert_browser_runtime_surface(
                     activeSessionRow.dataset.activeSessionPhase === summary.dataset.summaryPhase &&
                     ["live", "paused", "new"].includes(activeSessionRow.dataset.activeSessionFollow || "") &&
                     activeSessionRow.textContent.includes("OWNER") &&
+                    !selectedCardLiveOwnerRow &&
+                    !selectedRecentThreadOwner &&
+                    !selectedRecentThreadFollow &&
                     sessionStrip &&
                     !sessionStrip.hidden &&
                     sessionStrip.dataset.liveOwned === "true" &&
@@ -1057,8 +1065,6 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(styles, ".recent-thread-rail-list", label="recent-thread rail list CSS")
     require(styles, ".recent-thread-chip", label="recent-thread chip CSS")
     require(styles, '.recent-thread-chip[data-thread-state="switching"] .recent-thread-token[data-recent-thread-state]', label="recent-thread switching chip CSS")
-    require(styles, '.recent-thread-chip[data-live-owner="true"] .recent-thread-token[data-recent-thread-owner]', label="recent-thread owner chip CSS")
-    require(styles, '.recent-thread-chip[data-live-owner-state="new"] .recent-thread-token[data-recent-thread-follow]', label="recent-thread new follow chip CSS")
     require(styles, ".session-live-indicator", label="session live indicator CSS")
     require(styles, '.session-live-indicator[data-live-session-tone="healthy"]', label="session live indicator healthy CSS")
     require(styles, '.session-live-indicator[data-live-session-tone="warning"]', label="session live indicator warning CSS")
@@ -1359,21 +1365,14 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, "renderRecentThreadRail", label="recent-thread rail render helper")
     require(conversations_js, "RECENT_THREAD_LIMIT = 4", label="bounded recent-thread rail limit")
     require(conversations_js, "data-recent-thread-chip", label="recent-thread chip DOM")
-    require(conversations_js, "data-recent-thread-owner", label="recent-thread owner DOM")
     require(conversations_js, "data-recent-thread-state", label="recent-thread state DOM")
-    require(conversations_js, "data-recent-thread-follow", label="recent-thread follow DOM")
-    require(conversations_js, 'chip.dataset.liveOwner = isSelected && showLiveMirror ? "true" : "false";', label="recent-thread live owner dataset")
+    require(conversations_js, 'chip.dataset.liveOwner = "false";', label="recent-thread live owner dataset")
     require_absent(conversations_js, 'follow.textContent = isSwitching ? "ATTACH" : isSelected && showLiveMirror ? liveFollowLabel : "";', label="recent-thread attach follow wiring")
     require(conversations_js, "syncActiveSessionRow", label="active session row helper")
     require(conversations_js, "data-conversation-live-state", label="selected card live dataset")
-    require(conversations_js, "data-conversation-live-owner-row", label="selected card live owner row")
-    require(conversations_js, "data-conversation-live-detail", label="selected card live detail")
-    require(conversations_js, "data-conversation-live-follow", label="selected card live follow")
-    require(conversations_js, "liveOwnerDetail", label="selected card live detail helper")
-    require(conversations_js, "liveOwnerFollowLabel", label="selected card live follow helper")
-    require(conversations_js, "liveOwnerState", label="selected card live owner state helper")
-    require(conversations_js, "liveOwnerMarkerLabel", label="selected card live owner marker helper")
-    require(conversations_js, 'return "OWNER";', label="selected card live owner session chip label")
+    require(conversations_js, 'marker.textContent = "NOW";', label="selected card marker label")
+    require(conversations_js, 'card.dataset.liveOwnerState = "idle";', label="selected card owner state")
+    require(conversations_js, 'sessionMarker.textContent = isSelected ? (showLiveMirror ? liveLabel || snapshotLabel : snapshotLabel) : "";', label="selected card compact session chip label")
     require(conversations_js, 'return "PROPOSAL";', label="compact proposal rail label")
     require(conversations_js, 'return "WAITING";', label="compact waiting rail label")
     require(conversations_js, 'return "ACTIVE";', label="compact active rail label")
@@ -1384,8 +1383,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, "clearThreadTransition", label="thread transition clear helper")
     require(conversations_js, 'state.currentConversationId = "";', label="thread switch clears current conversation before attach")
     require(conversations_js, 'const selectedThreadSseOwned = selectedConversationId && selectedConversationId === liveConversationId && renderSource === "sse";', label="selected card sse ownership guard")
-    require(conversations_js, 'card.dataset.liveOwner = isSelected && showLiveMirror ? "true" : "false";', label="selected live owner dataset")
-    require(conversations_js, 'card.dataset.liveOwnerState = isSelected && showLiveMirror ? liveOwnerStateLabel : "idle";', label="selected live owner state dataset")
+    require(conversations_js, 'card.dataset.liveOwner = "false";', label="selected live owner dataset")
+    require(conversations_js, 'card.dataset.liveOwnerState = "idle";', label="selected live owner state dataset")
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionState = visible ? rowState : "idle";', label="active session row state dataset")
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionConversationId = visible ? conversationId : "";', label="active session row conversation dataset")
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionFollow = visible ? followLabel.toLowerCase() : "idle";', label="active session row follow dataset")

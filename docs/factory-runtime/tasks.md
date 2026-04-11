@@ -1,8 +1,8 @@
 # Factory Runtime Tasks
 
-## Iteration 124
+## Iteration 125
 
-- [x] Keep the healthy selected-thread transcript live activity item as the only rich phase surface.
-- [x] Reduce the healthy selected-thread footer session bar to compact phase or follow chrome only.
-- [x] Preserve degraded-path clearing and downgrade behavior without changing transport ownership.
-- [x] Align focused verifiers and proposal artifacts with the iteration-124 live-surface composition contract.
+- [x] Keep the sticky active-session row as the only live-owned left-rail session mirror.
+- [x] Remove helper-style live owner and follow prose from the selected conversation card.
+- [x] Keep recent-thread chips snapshot-only instead of mirroring selected-thread owner or follow state.
+- [x] Align focused verifiers and proposal artifacts with the iteration-125 left-rail compaction contract.

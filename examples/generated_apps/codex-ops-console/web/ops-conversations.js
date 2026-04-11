@@ -844,74 +844,6 @@ export function createConversationController(deps) {
     return "ACTIVE";
   }
 
-  function liveOwnerLabel(liveLabel = "") {
-    if (liveLabel) {
-      return "OWNER";
-    }
-    return "LIVE";
-  }
-
-  function liveOwnerDetail({ pendingStage = "", presentation = "", liveRunState = "", liveRunPhase = "" } = {}) {
-    if (pendingStage === "pending-user") {
-      return "HANDOFF";
-    }
-    if (pendingStage === "pending-assistant") {
-      return "HANDOFF";
-    }
-    if (presentation === "connecting") {
-      return "PAUSED";
-    }
-    if (presentation === "reconnecting") {
-      return "PAUSED";
-    }
-    if (liveRunState || liveRunPhase) {
-      return "LIVE";
-    }
-    return "LIVE";
-  }
-
-  function liveOwnerFollowLabel({ pendingStage = "", isFollowing = false, jumpVisible = false, presentation = "" } = {}) {
-    if (pendingStage === "pending-user" || pendingStage === "pending-assistant") {
-      return "HANDOFF";
-    }
-    if (presentation === "reconnecting") {
-      return "PAUSED";
-    }
-    if (jumpVisible) {
-      return "NEW";
-    }
-    if (isFollowing) {
-      return "LIVE";
-    }
-    return "PAUSED";
-  }
-
-  function liveOwnerState({ pendingStage = "", presentation = "", isFollowing = false, jumpVisible = false } = {}) {
-    if (pendingStage === "pending-user" || pendingStage === "pending-assistant") {
-      return "handoff";
-    }
-    if (jumpVisible) {
-      return "new";
-    }
-    if (presentation === "reconnecting" || !isFollowing) {
-      return "paused";
-    }
-    return "live";
-  }
-
-  function liveOwnerMarkerLabel(liveState = "") {
-    if (liveState === "handoff") {
-      return "HANDOFF";
-    }
-    if (liveState === "new") {
-      return "NEW";
-    }
-    if (liveState === "paused") {
-      return "PAUSED";
-    }
-    return "LIVE";
-  }
-
   function syncActiveSessionRow({
     selectedConversationId = "",
     liveConversationId = "",
@@ -1221,9 +1153,7 @@ export function createConversationController(deps) {
             <span class="recent-thread-chip-title">${escapeHtml(compactRailTitle(conversation.title))}</span>
             <span class="recent-thread-chip-row">
               <span class="recent-thread-token" data-recent-thread-marker ${isSelected ? "" : "hidden"}>NOW</span>
-              <span class="recent-thread-token" data-recent-thread-owner hidden>OWNER</span>
               <span class="recent-thread-token" data-recent-thread-state>${snapshotLabel}</span>
-              <span class="recent-thread-token" data-recent-thread-follow hidden></span>
             </span>
           </button>
         `;
@@ -1247,9 +1177,6 @@ export function createConversationController(deps) {
 
     let liveLabel = "";
     let liveThreadState = "";
-    let liveDetail = "";
-    let liveFollowLabel = "";
-    let liveOwnerStateLabel = "";
     let showLiveMirror = false;
     const selectedThreadSseOwned = selectedConversationId && selectedConversationId === liveConversationId && renderSource === "sse";
     const hasSelectedThreadState =
@@ -1270,9 +1197,6 @@ export function createConversationController(deps) {
         pendingStage,
         isSelected: true,
       });
-      liveDetail = liveOwnerDetail({ pendingStage, presentation, liveRunState, liveRunPhase });
-      liveFollowLabel = liveOwnerFollowLabel({ pendingStage, isFollowing, jumpVisible, presentation });
-      liveOwnerStateLabel = liveOwnerState({ pendingStage, presentation, isFollowing, jumpVisible });
       showLiveMirror = true;
     }
 
@@ -1281,74 +1205,45 @@ export function createConversationController(deps) {
       const marker = card.querySelector("[data-conversation-marker]");
       const sessionMarker = card.querySelector("[data-conversation-session]");
       const liveState = card.querySelector("[data-conversation-live-state]");
-      const liveDetailRow = card.querySelector("[data-conversation-live-owner-row]");
-      const liveDetailText = card.querySelector("[data-conversation-live-detail]");
-      const liveFollowText = card.querySelector("[data-conversation-live-follow]");
       const snapshotLabel = String(card.dataset.snapshotStateLabel || "IDLE");
       const snapshotState = String(card.dataset.snapshotThreadState || "idle");
       card.classList.toggle("active", isSelected);
       card.dataset.selected = isSelected ? "true" : "false";
       card.dataset.threadState = isSelected ? (liveThreadState || "active") : snapshotState;
-      card.dataset.liveOwner = isSelected && showLiveMirror ? "true" : "false";
-      card.dataset.liveOwnerState = isSelected && showLiveMirror ? liveOwnerStateLabel : "idle";
+      card.dataset.liveOwner = "false";
+      card.dataset.liveOwnerState = "idle";
       if (marker) {
         marker.hidden = !isSelected;
-        marker.textContent = isSelected && showLiveMirror ? liveOwnerMarkerLabel(liveOwnerStateLabel) : "NOW";
+        marker.textContent = "NOW";
       }
       if (sessionMarker) {
         sessionMarker.hidden = !isSelected;
-        sessionMarker.textContent = isSelected ? (showLiveMirror ? liveOwnerLabel(liveLabel) : snapshotLabel) : "";
+        sessionMarker.textContent = isSelected ? (showLiveMirror ? liveLabel || snapshotLabel : snapshotLabel) : "";
       }
       if (liveState) {
         liveState.hidden = isSelected;
         liveState.textContent = snapshotLabel;
-      }
-      if (liveDetailRow) {
-        liveDetailRow.hidden = !(isSelected && showLiveMirror);
-        liveDetailRow.dataset.liveOwnerState = isSelected && showLiveMirror ? liveOwnerStateLabel : "idle";
-      }
-      if (liveDetailText) {
-        liveDetailText.textContent = isSelected && showLiveMirror ? liveDetail : "";
-      }
-      if (liveFollowText) {
-        liveFollowText.textContent = isSelected && showLiveMirror ? liveFollowLabel : "";
-        liveFollowText.dataset.liveOwnerState = isSelected && showLiveMirror ? liveOwnerStateLabel : "idle";
       }
     }
 
     for (const chip of dom.recentThreadRailList?.querySelectorAll("[data-conversation-id]") || []) {
       const isSelected = chip.dataset.conversationId === selectedConversationId;
       const marker = chip.querySelector("[data-recent-thread-marker]");
-      const owner = chip.querySelector("[data-recent-thread-owner]");
       const stateLabel = chip.querySelector("[data-recent-thread-state]");
-      const follow = chip.querySelector("[data-recent-thread-follow]");
       const snapshotLabel = String(chip.dataset.snapshotStateLabel || "IDLE");
       const snapshotState = String(chip.dataset.snapshotThreadState || "idle");
       chip.classList.toggle("active", isSelected);
       chip.dataset.selected = isSelected ? "true" : "false";
-      chip.dataset.threadState = isSelected ? (liveThreadState || "active") : snapshotState;
-      chip.dataset.liveOwner = isSelected && showLiveMirror ? "true" : "false";
-      chip.dataset.liveOwnerState = isSelected && showLiveMirror ? liveOwnerStateLabel : "idle";
+      chip.dataset.threadState = snapshotState;
+      chip.dataset.liveOwner = "false";
+      chip.dataset.liveOwnerState = "idle";
 
       if (marker) {
         marker.hidden = !isSelected;
         marker.textContent = "NOW";
       }
-      if (owner) {
-        owner.hidden = !(isSelected && showLiveMirror);
-        owner.textContent = "OWNER";
-      }
       if (stateLabel) {
-        stateLabel.textContent = isSelected
-          ? (showLiveMirror
-            ? compactConversationLabel({ presentation, liveRunState, liveRunPhase, pendingStage, isSelected: true })
-            : snapshotLabel)
-          : snapshotLabel;
-      }
-      if (follow) {
-        follow.hidden = !(isSelected && showLiveMirror);
-        follow.textContent = isSelected && showLiveMirror ? liveFollowLabel : "";
-        follow.dataset.liveOwnerState = isSelected && showLiveMirror ? liveOwnerStateLabel : "idle";
+        stateLabel.textContent = snapshotLabel;
       }
     }
 
@@ -1445,10 +1340,6 @@ export function createConversationController(deps) {
               </span>
             </span>
             <span class="conversation-card-preview" data-preview-lines="1">${escapeHtml(conversationPreview(conversation))}</span>
-            <span class="conversation-card-live-owner-row" data-conversation-live-owner-row hidden>
-              <span class="conversation-card-live-detail" data-conversation-live-detail></span>
-              <span class="conversation-card-live-follow" data-conversation-live-follow></span>
-            </span>
             <span class="conversation-card-meta-row">
               <span class="conversation-card-meta">${new Date(conversation.updated_at).toLocaleString()}</span>
               <span class="conversation-card-live" data-conversation-live-state ${isActive ? "hidden" : ""}>${snapshotThreadLabel(snapshotState)}</span>
