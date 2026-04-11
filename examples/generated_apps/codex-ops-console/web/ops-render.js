@@ -3,6 +3,7 @@ import {
   deriveSelectedThreadFollowControlModel,
   deriveSelectedThreadLiveAutonomy,
   deriveSelectedThreadPhaseProgression,
+  deriveSelectedThreadShellPhaseLabel,
   deriveSelectedThreadSessionStatus,
   deriveSelectedThreadTimelineMilestones,
   maxConversationAppendId,
@@ -243,6 +244,7 @@ function sessionStripStateChipMarkup(chips) {
 function selectedThreadFooterDockModel(currentState, conversation, liveRun, footerFollow = null) {
   const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
   const phaseProgression = deriveSelectedThreadPhaseProgression(currentState, conversation);
+  const shellPhaseLabel = deriveSelectedThreadShellPhaseLabel(currentState, conversation);
   const liveAutonomy = deriveSelectedThreadLiveAutonomy(currentState, conversation);
   const milestoneModel = deriveSelectedThreadTimelineMilestones(currentState, conversation);
   const liveOwned = Boolean(
@@ -250,7 +252,7 @@ function selectedThreadFooterDockModel(currentState, conversation, liveRun, foot
       phaseProgression.visible &&
       String(phaseProgression.source || "none").toLowerCase() === "sse",
   );
-  const phaseLabel = String(phaseProgression.label || liveRun?.phase || "LIVE").toUpperCase();
+  const phaseLabel = String(shellPhaseLabel || phaseProgression.label || liveRun?.phase || "LIVE").toUpperCase();
   const chips = [
     footerFollow?.visible
       ? {
@@ -535,7 +537,7 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
 
   dom.sessionSummaryRow.dataset.summaryPath = pathLabel.toLowerCase();
   dom.sessionSummaryRow.dataset.summaryState = stateLabel.toLowerCase();
-  dom.sessionSummaryRow.dataset.summaryPhase = String(phaseProgression.label || liveRun?.phase || "IDLE").toUpperCase();
+  dom.sessionSummaryRow.dataset.summaryPhase = String(deriveSelectedThreadShellPhaseLabel(currentState, conversation) || "").toUpperCase();
   dom.sessionSummaryRow.dataset.restoreStage = sessionStatus.restoreStage || "none";
   dom.sessionSummaryRow.dataset.restorePath = sessionStatus.restorePath || "none";
   dom.sessionSummaryRow.dataset.restoreProvenance = sessionStatus.restoreProvenance || "none";

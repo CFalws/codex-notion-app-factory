@@ -476,7 +476,7 @@ def assert_browser_runtime_surface(
                     ["EXPECTED", "ACCEPTABLE"].includes(liveActivity.dataset.livePathVerdict || "") &&
                     ["ACCEPTABLE", "PENDING"].includes(liveActivity.dataset.liveVerifierAcceptability || "") &&
                     (liveActivity.dataset.liveBlockerReason || "").length > 0 &&
-                    ["PROPOSAL", "REVIEW", "VERIFY", "READY", "APPLIED"].includes(liveActivity.dataset.liveRunPhase || "") &&
+                    ["PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED"].includes(liveActivity.dataset.liveRunPhase || "") &&
                     milestoneLane &&
                     milestoneLane.dataset.liveMilestones === "true" &&
                     milestoneLane.dataset.liveMilestonesPhase === liveActivity.dataset.liveMilestonesPhase &&
@@ -527,7 +527,7 @@ def assert_browser_runtime_surface(
                     sessionStripState.dataset.sessionStripRole === "live-dock" &&
                     ["PROPOSAL", "REVIEW", "VERIFY", "READY", "APPLIED", "NEW", "PAUSED"].includes(sessionStripState.dataset.sessionStripLabel || "") &&
                     sessionStripState.textContent.trim().length > 0 &&
-                    ["HANDOFF", "PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED", "FAILED", "LIVE", "UNKNOWN"].includes(summary.dataset.summaryPhase || "") &&
+                    ["PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED", "FAILED", ""].includes(summary.dataset.summaryPhase || "") &&
                     sessionStripDetail &&
                     sessionStripDetail.textContent.trim().length > 0 &&
                     !sessionStripDetail.textContent.includes("OWNER") &&
@@ -1400,20 +1400,21 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, 'const sessionIndicatorLabel = String(dom.sessionLiveIndicator?.textContent || "").trim().toUpperCase();', label="active session canonical label source")
     require(conversations_js, 'const followControl = deriveSelectedThreadFollowControlModel(state);', label="active session follow-control helper read")
     require(conversations_js, 'const sessionStatus = deriveSelectedThreadSessionStatus(state, state.conversationCache);', label="active session canonical status helper read")
+    require(conversations_js, "deriveSelectedThreadShellPhaseLabel", label="active session shell phase helper read")
     require(conversations_js, 'const healthySelectedSessionMirror =', label="active session healthy mirror gate")
     require(conversations_js, 'summaryLiveSource === "sse"', label="active session healthy sse source gate")
     require(conversations_js, 'sessionIndicatorLabel === "SSE OWNER"', label="active session healthy label gate")
-    require(conversations_js, 'const livePhaseLabel = summaryPhaseLabel || liveRunPhase || sessionStatus.phaseValue || "LIVE";', label="active session mirrored live phase label")
+    require(conversations_js, 'const livePhaseLabel =', label="active session mirrored live phase label")
     require(conversations_js, 'rowState = followControl.visible ? followControl.followState : "live";', label="active session mirrored state mapping")
     require(conversations_js, 'ownerLabel = sessionStatus.transportLabel || "SSE OWNER";', label="active session mirrored owner label")
-    require(conversations_js, 'stateLabel = livePhaseLabel;', label="active session mirrored finite state label")
+    require(conversations_js, 'stateLabel = livePhaseLabel || "SESSION";', label="active session mirrored finite state label")
     require(conversations_js, 'followLabel = followControl.visible ? followControl.stateLabel : "LIVE";', label="active session mirrored follow label")
     require(conversations_js, 'rowSource = summaryLiveSource;', label="active session mirrored source")
-    require(conversations_js, 'rowPhase = livePhaseLabel;', label="active session mirrored phase")
+    require(conversations_js, 'rowPhase = livePhaseLabel || "IDLE";', label="active session mirrored phase")
     require(conversations_js, 'rowUnseenCount = followControl.visible ? Math.max(Number(followControl.unseenCount || unseenCount || 0), 0) : 0;', label="active session unseen count mirror")
-    require(conversations_js, '`selected thread · ${livePhaseLabel.toLowerCase()} · ${rowUnseenCount} new`', label="active session unseen meta copy")
-    require(conversations_js, '`selected thread · ${livePhaseLabel.toLowerCase()} · ${followControl.detailLabel}`', label="active session paused meta copy")
-    require(conversations_js, '`selected thread · ${livePhaseLabel.toLowerCase()} · sse owner`', label="active session healthy meta copy")
+    require(conversations_js, '`selected thread · ${(livePhaseLabel || "session").toLowerCase()} · ${rowUnseenCount} new`', label="active session unseen meta copy")
+    require(conversations_js, '`selected thread · ${(livePhaseLabel || "session").toLowerCase()} · ${followControl.detailLabel}`', label="active session paused meta copy")
+    require(conversations_js, '`selected thread · ${(livePhaseLabel || "session").toLowerCase()} · sse owner`', label="active session healthy meta copy")
     require(conversations_js, "syncSelectedSessionFromLiveAppend", label="selected-thread live append sync helper")
     require(conversations_js, "const liveJobId = String(livePayload.job_id || \"\").trim();", label="live append job id extraction")
     require(conversations_js, "state.currentJobId = liveJobId;", label="live append selected-thread job id authority")
@@ -1446,6 +1447,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(store_js, 'presentation = "restore";', label="selected-thread restore presentation")
     require(store_js, "export function deriveSelectedThreadLiveAutonomy", label="canonical selected-thread live autonomy helper")
     require(store_js, "export function deriveSelectedThreadPhaseProgression", label="canonical selected-thread phase progression helper")
+    require(store_js, "export function deriveSelectedThreadShellPhaseLabel", label="canonical selected-thread shell phase helper")
     require(store_js, "export function deriveSelectedThreadTimelineMilestones", label="canonical selected-thread timeline milestones helper")
     require(store_js, "export function isSelectedThreadSessionOwned", label="selected-thread session ownership helper")
     require(store_js, 'phaseValue === "LIVE"', label="selected-thread session live phase guard")

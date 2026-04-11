@@ -1,11 +1,11 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 125
+## Iteration 129
 
-Collapse left-rail selected-thread live mirroring into the sticky active-session row and keep list surfaces compact.
+Use one authoritative SSE-derived phase vocabulary across the selected-thread session shell.
 
-1. Keep the existing selected-thread SSE authority and transcript-owned rich live detail contracts unchanged.
-2. Remove helper-style live owner and follow prose from the selected conversation card so it stays chip-first.
-3. Remove owner and follow mirroring from the recent-thread chip so it remains snapshot-only even for the selected thread.
-4. Preserve same-cycle clearing on switching, reconnect downgrade, polling fallback, deselection, and terminal idle.
-5. Extend the focused verifier layer and proposal artifacts so iteration 125 proves the sticky active-session row is the only live-owned rail surface.
+1. Keep the selected-thread SSE authority, verifier-evidence projection, transcript-owned live detail, and compact footer contracts unchanged.
+2. Add one store-owned shell-phase helper derived from the selected-thread SSE phase progression.
+3. Use that helper in the left rail, header summary dataset, and composer-adjacent live strip so healthy selected-thread surfaces present the same phase label in the same render cycle.
+4. Preserve explicit reconnect, polling fallback, switch, and deselection downgrade behavior so stale healthy phase labels clear immediately.
+5. Extend the focused verifier layer and proposal artifacts so iteration 129 proves the shell no longer relies on generic `LIVE`, `READY`, or `ACTIVE` fallbacks on the healthy path.

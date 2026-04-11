@@ -514,6 +514,23 @@ export function deriveSelectedThreadPhaseProgression(currentState, conversation 
   };
 }
 
+export function deriveSelectedThreadShellPhaseLabel(currentState, conversation = null) {
+  const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
+  const phaseProgression = deriveSelectedThreadPhaseProgression(currentState, conversation);
+  if (
+    !sessionStatus.liveOwned ||
+    !phaseProgression.visible ||
+    !phaseProgression.owned ||
+    !phaseProgression.authoritative
+  ) {
+    return "";
+  }
+  const label = String(phaseProgression.label || "").toUpperCase();
+  return ["PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED", "FAILED"].includes(label)
+    ? label
+    : "";
+}
+
 export function deriveSelectedThreadTimelineMilestones(currentState, conversation = null) {
   const liveAutonomy = deriveSelectedThreadLiveAutonomy(currentState, conversation);
   const phaseProgression = deriveSelectedThreadPhaseProgression(currentState, conversation);

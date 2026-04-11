@@ -1,4 +1,8 @@
-import { deriveSelectedThreadFollowControlModel, deriveSelectedThreadSessionStatus } from "./ops-store.js";
+import {
+  deriveSelectedThreadFollowControlModel,
+  deriveSelectedThreadSessionStatus,
+  deriveSelectedThreadShellPhaseLabel,
+} from "./ops-store.js";
 
 export function createConversationController(deps) {
   const {
@@ -810,9 +814,19 @@ export function createConversationController(deps) {
     return "IDLE";
   }
 
-  function compactConversationLabel({ presentation = "", liveRunState = "", liveRunPhase = "", pendingStage = "", isSelected = false } = {}) {
+  function compactConversationLabel({
+    presentation = "",
+    liveRunState = "",
+    liveRunPhase = "",
+    pendingStage = "",
+    isSelected = false,
+    shellPhaseLabel = "",
+  } = {}) {
     if (!isSelected) {
       return snapshotThreadLabel(liveRunState);
+    }
+    if (shellPhaseLabel) {
+      return shellPhaseLabel;
     }
     if (pendingStage === "pending-user" || pendingStage === "pending-assistant") {
       return "HANDOFF";
@@ -887,7 +901,7 @@ export function createConversationController(deps) {
     let conversationId = "";
     let rowState = "idle";
     let ownerLabel = "OWNER";
-    let stateLabel = "LIVE";
+    let stateLabel = "SESSION";
     let followLabel = "LIVE";
     let title = "";
     let meta = "";
@@ -895,18 +909,22 @@ export function createConversationController(deps) {
     let rowSource = "none";
     let rowPhase = "IDLE";
     let rowUnseenCount = 0;
-    const livePhaseLabel = summaryPhaseLabel || liveRunPhase || sessionStatus.phaseValue || "LIVE";
+    const livePhaseLabel =
+      deriveSelectedThreadShellPhaseLabel(state, state.conversationCache) ||
+      summaryPhaseLabel ||
+      liveRunPhase ||
+      "";
 
     if (healthySelectedSessionMirror) {
       visible = true;
       conversationId = selectedConversationId;
       rowState = followControl.visible ? followControl.followState : "live";
       ownerLabel = sessionStatus.transportLabel || "SSE OWNER";
-      stateLabel = livePhaseLabel;
+      stateLabel = livePhaseLabel || "SESSION";
       followLabel = followControl.visible ? followControl.stateLabel : "LIVE";
       rowOwned = true;
       rowSource = summaryLiveSource;
-      rowPhase = livePhaseLabel;
+      rowPhase = livePhaseLabel || "IDLE";
       rowUnseenCount = followControl.visible ? Math.max(Number(followControl.unseenCount || unseenCount || 0), 0) : 0;
       title =
         sessionStatus.conversationTitle ||
@@ -915,10 +933,10 @@ export function createConversationController(deps) {
         "현재 대화";
       meta =
         followControl.followState === "new" && rowUnseenCount > 0
-          ? `selected thread · ${livePhaseLabel.toLowerCase()} · ${rowUnseenCount} new`
+          ? `selected thread · ${(livePhaseLabel || "session").toLowerCase()} · ${rowUnseenCount} new`
           : followControl.followState === "paused"
-            ? `selected thread · ${livePhaseLabel.toLowerCase()} · ${followControl.detailLabel}`
-            : `selected thread · ${livePhaseLabel.toLowerCase()} · sse owner`;
+            ? `selected thread · ${(livePhaseLabel || "session").toLowerCase()} · ${followControl.detailLabel}`
+            : `selected thread · ${(livePhaseLabel || "session").toLowerCase()} · sse owner`;
     }
 
     dom.activeSessionRow.hidden = !visible;
@@ -1196,6 +1214,7 @@ export function createConversationController(deps) {
         liveRunPhase,
         pendingStage,
         isSelected: true,
+        shellPhaseLabel: deriveSelectedThreadShellPhaseLabel(state, state.conversationCache),
       });
       showLiveMirror = true;
     }
