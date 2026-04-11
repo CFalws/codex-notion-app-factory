@@ -622,6 +622,7 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
 
   const threadTransition = currentState.threadTransition || {};
   const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
+  const sessionSurface = deriveSelectedThreadSessionSurfaceModel(currentState, conversation);
   const timelineAuthority = selectedThreadTimelineAuthorityModel(conversation, currentState, liveRun, handoffState);
   const conversationId = String(conversation?.conversation_id || sessionStatus.conversationId || "");
   const switchingSelectedThread = Boolean(threadTransition.active && threadTransition.targetConversationId);
@@ -682,32 +683,40 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
         : sessionIndicator.state === "handoff"
             ? `${healthyPhaseLabel} VIA HANDOFF`
             : `${healthyPhaseLabel} VIA ${String(sessionStatus.transportLabel || "SESSION").toUpperCase()}`;
-  const summarySuppressed =
+  const summaryVisible =
     Boolean(conversationId) &&
     !switchingSelectedThread &&
     !sessionStatus.selectedThreadRestore &&
     !Boolean(liveRun?.terminal) &&
     sessionIndicator.owned &&
     badgePresentation === "healthy";
-  const summaryVisible = false;
-  if (dom.threadSessionSummary && dom.threadSessionSummaryScope && dom.threadSessionSummaryPath && dom.threadSessionSummaryPhase) {
+  if (
+    dom.threadSessionSummary &&
+    dom.threadSessionSummaryScope &&
+    dom.threadSessionSummaryPath &&
+    dom.threadSessionSummaryOwner &&
+    dom.threadSessionSummaryPhase
+  ) {
     const summaryScope = "SELECTED";
-    const summaryPath = String(sessionStatus.pathVerdict || "EXPECTED").toUpperCase();
+    const summaryPath = String(sessionSurface.pathVerdict || "EXPECTED").toUpperCase();
+    const summaryOwner = String(sessionStatus.transportLabel || "SSE OWNER").toUpperCase();
     dom.threadSessionSummary.hidden = !summaryVisible;
     dom.threadSessionSummary.dataset.threadSummaryVisible = summaryVisible ? "true" : "false";
-    dom.threadSessionSummary.dataset.threadSummaryPresentation = summarySuppressed ? "suppressed" : "cleared";
+    dom.threadSessionSummary.dataset.threadSummaryPresentation = summaryVisible ? "healthy" : "cleared";
     dom.threadSessionSummary.dataset.threadSummaryScope = summaryVisible ? "selected-thread" : "";
     dom.threadSessionSummary.dataset.threadSummaryPath = summaryVisible ? summaryPath : "";
+    dom.threadSessionSummary.dataset.threadSummaryOwner = summaryVisible ? summaryOwner : "";
     dom.threadSessionSummary.dataset.threadSummaryPhase = summaryVisible ? healthyPhaseLabel : "";
     dom.threadSessionSummary.dataset.threadSummarySource = summaryVisible ? badgeSource : "none";
     dom.threadSessionSummary.dataset.threadSummaryOwned = summaryVisible ? "true" : "false";
     dom.threadSessionSummary.dataset.threadSummaryConversationId = summaryVisible ? conversationId : "";
-    dom.threadSessionSummary.dataset.threadSummaryReason = summarySuppressed ? "center-timeline-canonical" : badgeReason;
+    dom.threadSessionSummary.dataset.threadSummaryReason = summaryVisible ? "authoritative-selected-thread" : badgeReason;
     dom.threadSessionSummaryScope.textContent = summaryScope;
     dom.threadSessionSummaryPath.textContent = summaryPath;
+    dom.threadSessionSummaryOwner.textContent = summaryOwner;
     dom.threadSessionSummaryPhase.textContent = healthyPhaseLabel;
   }
-  dom.threadPhaseChip.hidden = summarySuppressed ? true : !badgeVisible;
+  dom.threadPhaseChip.hidden = summaryVisible ? true : !badgeVisible;
   dom.threadPhaseChip.textContent = badgeLabel;
   dom.threadPhaseChip.dataset.tone = badgeTone;
   dom.threadPhaseChip.dataset.threadPhase = badgeLabel;

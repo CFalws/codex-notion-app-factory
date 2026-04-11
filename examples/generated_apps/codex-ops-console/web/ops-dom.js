@@ -16,6 +16,7 @@ export const dom = {
   threadSessionSummary: document.getElementById("thread-session-summary"),
   threadSessionSummaryScope: document.getElementById("thread-session-summary-scope"),
   threadSessionSummaryPath: document.getElementById("thread-session-summary-path"),
+  threadSessionSummaryOwner: document.getElementById("thread-session-summary-owner"),
   threadSessionSummaryPhase: document.getElementById("thread-session-summary-phase"),
   recentThreadRail: document.getElementById("recent-thread-rail"),
   recentThreadRailCopy: document.getElementById("recent-thread-rail-copy"),

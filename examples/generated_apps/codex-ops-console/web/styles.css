@@ -748,6 +748,12 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   color: var(--accent-ink);
 }
 
+.thread-session-summary[data-thread-summary-presentation="healthy"] .session-summary-chip[data-thread-summary-chip="owner"] {
+  border-color: rgba(47, 138, 89, 0.24);
+  background: rgba(47, 138, 89, 0.08);
+  color: var(--success);
+}
+
 .thread-phase-chip {
   display: inline-flex;
   align-items: center;
