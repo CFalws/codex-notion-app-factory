@@ -1,11 +1,11 @@
 # Factory Runtime Tasks
 
-## Iteration 214
+## Iteration 215
 
-- [x] Keep the change bounded to the sticky rail active-session row and existing selected-thread session authority.
-- [x] Reuse the existing selected-thread authority, inline transcript block, and composer dock datasets.
-- [x] Keep exactly one compact sticky rail row for healthy selected-thread SSE and intentional switch states.
-- [x] Keep the rail row non-authoritative and chip-first.
-- [x] Suppress the selected-card live-owner marker whenever the sticky rail row is present.
-- [x] Clear or downgrade the rail row immediately on reconnect, polling fallback, deselection, or terminal completion.
-- [x] Align static checks, browser checks, and proposal artifacts with the strict rail-mirroring contract.
+- [x] Keep the change bounded to the selected-thread switch path and existing workspace placeholder behavior.
+- [x] Reuse the existing selected-thread session authority, switch monitor, workspace placeholder, and composer dock datasets.
+- [x] Keep the center conversation shell and bottom-fixed composer mounted during intentional selected-thread switches.
+- [x] Show at most one compact switching placeholder until the new selected-thread snapshot attaches.
+- [x] Clear stale live-owner treatment immediately when the switch starts.
+- [x] Reserve the generic empty workspace for true no-selection idle only.
+- [x] Align static checks, browser checks, and proposal artifacts with the switch-continuity contract.
