@@ -1084,18 +1084,21 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
   const pathVerdict = String(sessionStrip.pathVerdict || "UNKNOWN").toUpperCase();
   const verifierAcceptability = String(sessionStrip.verifierAcceptability || "PENDING").toUpperCase();
   const blockerReason = String(sessionStrip.blockerReason || "NONE").toUpperCase();
+  const proposalLabel = String(sessionStrip.proposalLabel || "").toUpperCase();
+  const latestJobId = String(sessionStrip.latestJobId || "");
   return `
-    <article class="timeline-item timeline-session-strip" data-live-session-strip="true" data-live-session-strip-owned="${sessionStrip.owned ? "true" : "false"}" data-live-session-strip-presentation="${escapeHtml(sessionStrip.presentation)}" data-live-session-strip-conversation-id="${escapeHtml(sessionStrip.conversationId)}" data-live-session-strip-phase="${escapeHtml(sessionStrip.phaseLabel)}" data-live-session-strip-state="${escapeHtml(sessionStrip.stateLabel)}" data-live-session-strip-transport="${escapeHtml(sessionStrip.transportState)}" data-live-session-strip-attach-mode="${escapeHtml(sessionStrip.attachMode)}" data-live-session-strip-path-verdict="${escapeHtml(pathVerdict)}" data-live-session-strip-verifier="${escapeHtml(verifierAcceptability)}" data-live-session-strip-blocker="${escapeHtml(blockerReason)}" data-live-session-strip-proposal-ready="${sessionStrip.proposalReady ? "true" : "false"}" data-live-session-strip-clear-reason="${escapeHtml(sessionStrip.clearReason || "none")}">
+    <article class="timeline-item session-event timeline-session-inline" data-session-event="true" data-session-event-source="session-status" data-live-session-strip="true" data-live-session-primary="true" data-live-session-strip-owned="${sessionStrip.owned ? "true" : "false"}" data-live-session-strip-presentation="${escapeHtml(sessionStrip.presentation)}" data-live-session-strip-conversation-id="${escapeHtml(sessionStrip.conversationId)}" data-live-session-strip-phase="${escapeHtml(sessionStrip.phaseLabel)}" data-live-session-strip-state="${escapeHtml(sessionStrip.stateLabel)}" data-live-session-strip-transport="${escapeHtml(sessionStrip.transportState)}" data-live-session-strip-attach-mode="${escapeHtml(sessionStrip.attachMode)}" data-live-session-strip-path-verdict="${escapeHtml(pathVerdict)}" data-live-session-strip-verifier="${escapeHtml(verifierAcceptability)}" data-live-session-strip-blocker="${escapeHtml(blockerReason)}" data-live-session-strip-proposal-ready="${sessionStrip.proposalReady ? "true" : "false"}" data-live-session-strip-proposal-state="${escapeHtml(proposalLabel)}" data-live-session-strip-job-id="${escapeHtml(latestJobId)}" data-live-session-strip-clear-reason="${escapeHtml(sessionStrip.clearReason || "none")}">
       <p class="timeline-kind">세션 상태</p>
       <div class="timeline-live-row">
         <span class="timeline-live-chip" data-tone="${escapeHtml(sessionStrip.tone)}">${escapeHtml(sessionStrip.stateLabel)}</span>
         <span class="timeline-live-chip" data-tone="${escapeHtml(sessionStrip.tone)}">${escapeHtml(sessionStrip.phaseLabel)}</span>
+        ${proposalLabel ? `<span class="timeline-live-chip" data-tone="${escapeHtml(sessionStrip.proposalReady ? "healthy" : "neutral")}">${escapeHtml(proposalLabel)}</span>` : ""}
         <span class="timeline-live-chip" data-tone="${escapeHtml(autonomyChipTone(pathVerdict))}">${escapeHtml(pathVerdict)}</span>
         <span class="timeline-live-chip" data-tone="${escapeHtml(autonomyChipTone(verifierAcceptability))}">${escapeHtml(verifierAcceptability)}</span>
         <span class="timeline-live-chip" data-tone="${escapeHtml(blockerTone(blockerReason.toLowerCase()))}">BLOCKER ${escapeHtml(blockerReason)}</span>
       </div>
       <p class="timeline-body">${escapeHtml(sessionStrip.detail)}</p>
-      <p class="timeline-meta">selected thread · ${escapeHtml(sessionStrip.phaseLabel)} · <span class="timeline-provenance">${escapeHtml(sessionStrip.stateLabel)}</span></p>
+      <p class="timeline-meta">selected thread · canonical session status${latestJobId ? ` · ${escapeHtml(latestJobId)}` : ""} · <span class="timeline-provenance">${escapeHtml(sessionStrip.stateLabel)}</span></p>
     </article>
   `;
 }
@@ -2743,7 +2746,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
       `;
     })
     .join("");
-  dom.conversationTimeline.innerHTML = renderedItems + transcriptLiveActivity + inlineSessionBlock;
+  dom.conversationTimeline.innerHTML = inlineSessionBlock + renderedItems + transcriptLiveActivity;
   if (dom.threadScroller && currentState.liveFollow.isFollowing) {
     dom.threadScroller.scrollTop = dom.threadScroller.scrollHeight;
   }

@@ -744,6 +744,8 @@ export function deriveSelectedThreadSessionStripModel(currentState, conversation
   ).toUpperCase();
   const blockerReason = String(sessionStatusPayload?.blockerReason || sessionStatusPayload?.blocker_reason || "none").toUpperCase();
   const proposalReady = Boolean(sessionStatusPayload?.proposalReady ?? sessionStatusPayload?.proposal_ready ?? false);
+  const proposalStatus = String(sessionStatusPayload?.proposalStatus || sessionStatusPayload?.proposal_status || "").toLowerCase();
+  const latestJobId = String(sessionStatusPayload?.latestJobId || sessionStatusPayload?.latest_job_id || "");
   const degradedSignals = Array.isArray(sessionStatusPayload?.degradedSignals || sessionStatusPayload?.degraded_signals)
     ? (sessionStatusPayload.degradedSignals || sessionStatusPayload.degraded_signals)
     : [];
@@ -778,6 +780,9 @@ export function deriveSelectedThreadSessionStripModel(currentState, conversation
       verifierAcceptability: "",
       blockerReason: "",
       proposalReady: false,
+      proposalStatus: "",
+      proposalLabel: "",
+      latestJobId: "",
       degradedSignals: [],
       owned: false,
       source: "none",
@@ -803,11 +808,21 @@ export function deriveSelectedThreadSessionStripModel(currentState, conversation
   const restore = attachMode === "sse-resume" || attachMode === "sse-bootstrap";
   const tone = owned ? "healthy" : degraded ? "warning" : restore ? "neutral" : "muted";
   const presentation = owned ? "healthy" : degraded ? "degraded" : restore ? "restore" : "cleared";
+  const proposalLabel =
+    proposalReady || proposalStatus === "ready_to_apply"
+      ? "APPLY READY"
+      : proposalStatus === "applied"
+        ? "APPLIED"
+        : proposalStatus
+          ? proposalStatus.toUpperCase()
+          : "";
   const detail = degraded
     ? `selected thread ${pathStateLabel.toLowerCase()} · ${selectedThreadStatus.transportReason || "fallback"}`
     : restore
       ? `selected thread ${pathStateLabel.toLowerCase()} · bootstrap pending`
-      : `selected thread ${phaseLabel.toLowerCase()} · live session`;
+      : latestJobId
+        ? `selected thread ${phaseLabel.toLowerCase()} · job ${latestJobId}`
+        : `selected thread ${phaseLabel.toLowerCase()} · live session`;
 
   return {
     visible: owned || degraded || restore,
@@ -823,6 +838,9 @@ export function deriveSelectedThreadSessionStripModel(currentState, conversation
     verifierAcceptability,
     blockerReason,
     proposalReady,
+    proposalStatus,
+    proposalLabel,
+    latestJobId,
     degradedSignals,
     owned,
     source: String(sessionStatusPayload?.source || sessionStatusPayload?.transport?.channel || "append-sse").toLowerCase(),

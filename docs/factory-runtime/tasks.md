@@ -1,9 +1,10 @@
 # Factory Runtime Tasks
 
-## Iteration 161
+## Iteration 162
 
-- [x] Keep the center conversation shell mounted during intentional selected-thread switches.
-- [x] Keep exactly one compact selected-thread transition placeholder until the new snapshot attaches.
-- [x] Expose machine-readable cleared ownership datasets for the selected-thread live strip during switch and deselection paths.
-- [x] Keep reconnect, polling fallback, terminal completion, and non-selected thread paths fail closed for primary selected-thread ownership.
-- [x] Extend focused docs and verification for the iteration-161 switch continuity contract.
+- [x] Keep canonical `appendStream.sessionStatus` as the only selected-thread source for the inline session lane.
+- [x] Expose proposal or apply state and latest job id from canonical `session_status` in that lane.
+- [x] Render the canonical selected-thread status lane inside the conversation timeline instead of as a separate strip surface.
+- [x] Keep the lane single-instance and fail closed on switch, deselection, terminal completion, and lost authority.
+- [x] Keep degraded reconnect and polling fallback visibly demoted rather than silently primary.
+- [x] Align focused docs and verification with the iteration-162 canonical inline timeline-lane contract.
