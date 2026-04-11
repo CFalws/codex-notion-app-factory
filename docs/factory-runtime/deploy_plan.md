@@ -1,5 +1,9 @@
 # Factory Runtime Deploy Plan
 
+## Iteration 80
+
+This deploy plan validates the already-bounded left-rail continuity path and does not introduce any new transport or layout behavior beyond that contract.
+
 ## Deployment Impact
 
 This iteration changes only sticky left-rail active-session-row continuity in the existing conversation-first workspace. The bounded expectation is that the row stays visible for the healthy selected thread, retargets to one non-owned switching row during intentional thread changes, and clears immediately when the selected-thread path degrades or becomes truly idle.

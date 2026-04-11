@@ -1,5 +1,10 @@
 # Factory Runtime Spec
 
+## Iteration
+
+- current iteration: `80`
+- bounded focus: `left-rail active-session row continuity`
+
 ## Request
 
 - title: `Fully Realtime Session UX Like Codex Desktop`

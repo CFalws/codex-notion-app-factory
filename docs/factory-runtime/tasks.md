@@ -1,5 +1,9 @@
 # Factory Runtime Tasks
 
+## Iteration 80
+
+- [x] Confirm the proposal branch already contains the bounded left-rail continuity implementation.
+
 - [x] Reuse the existing selected-thread session and thread-transition datasets for the sticky active-session row.
 - [x] Keep the row visible for healthy selected-thread `OWNER` plus phase and `LIVE` or `NEW` or `PAUSED` state without making non-selected rows live-owned.
 - [x] Add one non-owned `SWITCHING` row state that retargets immediately to the latest pending conversation during intentional switches.
