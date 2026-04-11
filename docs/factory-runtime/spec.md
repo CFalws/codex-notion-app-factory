@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `101`
-- bounded focus: `selected-thread autonomy authority from healthy SSE session state`
+- current iteration: `102`
+- bounded focus: `selected-thread switch continuity through one transition owner`
 
 ## Request
 
@@ -13,7 +13,7 @@
 
 ## Problem
 
-The selected-thread restore stage and single healthy center-pane live surface are now canonical, but autonomy blocker, path, verifier, and apply state can still refresh from `/api/goals` even when the selected thread already owns healthy SSE session authority. That weakens the conversation-first session model because healthy success can still look polling-backed instead of session-backed.
+The selected-thread restore stage, healthy live surface, and autonomy authority are now canonical, but the intentional thread-switch moment can still look split across surfaces. The remaining UX gap is that switching still relies on mixed cues instead of one explicit transition owner across the center pane and fixed composer.
 
 ## Target User
 
@@ -27,9 +27,11 @@ The primary user is the operator or developer using the phone-friendly workspace
 - Do not introduce a new transport or a new polling contract.
 - Keep exactly one live-owned center-pane session surface during healthy selected-thread SSE progress.
 - Preserve the bottom-fixed composer, restore stage, thread-switch clearing, degraded reconnect or polling markers, and rail behavior already established in earlier iterations.
-- Do not change transport contracts or the render layout in this iteration.
-- Allow `/api/goals` refresh only after explicit degraded transport, missing selected-thread session authority, or stale-or-missing bootstrap autonomy data.
+- Do not change transport contracts or add new polling behavior in this iteration.
+- Keep the center conversation shell and bottom-fixed composer mounted during intentional thread changes.
+- Clear stale old-thread live or polling-owned markers immediately when thread transition starts.
+- Let the thread transition state own switch presentation instead of introducing separate switching mirrors elsewhere.
 
 ## Deliverable
 
-Define and verify one selected-thread autonomy authority contract where healthy session bootstrap plus live append events own blocker, path, verifier, and apply progress, and `/api/goals` remains a degraded fallback only when the selected-thread SSE path is missing, stale, or explicitly downgraded.
+Define and verify one selected-thread switch continuity contract where intentional thread changes keep one compact switching placeholder in the center pane, one switching composer target state, no generic empty-state flash, and immediate clearing of old-thread ownership until the new thread snapshot or SSE attach becomes authoritative.

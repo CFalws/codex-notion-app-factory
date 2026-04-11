@@ -130,6 +130,7 @@ export function deriveSelectedThreadSessionStatus(currentState, conversation = n
   const phaseSource = String(sessionPhase.source || "none").toLowerCase();
   const targetConversationId = String(threadTransition.targetConversationId || "");
   const targetTitle = String(threadTransition.targetTitle || "").trim() || conversationTitle;
+  const switchActive = Boolean(threadTransition.active && targetConversationId);
   const latestEvent = events.length ? events[events.length - 1] : null;
   const latestType = String(latestEvent?.type || "");
   const retrying = latestType === "codex.exec.retrying";
@@ -202,7 +203,7 @@ export function deriveSelectedThreadSessionStatus(currentState, conversation = n
     transportLabel = restoreResume ? "RESUME" : "ATTACH";
     transportTone = restoreResume ? "warning" : "neutral";
     transportReason = restoreResume ? "saved-restore-resume" : "saved-restore-attach";
-  } else if (threadTransition.active && targetConversationId) {
+  } else if (switchActive) {
     transportState = "attach";
     transportLabel = "ATTACH";
     transportTone = "warning";
@@ -226,7 +227,7 @@ export function deriveSelectedThreadSessionStatus(currentState, conversation = n
   let restorePath = "none";
   let restoreProvenance = "none";
 
-  if (threadTransition.active && targetConversationId) {
+  if (switchActive) {
     presentation = "attach";
     clearReason = "thread-switch";
   } else if (selectedThreadRestore) {
@@ -266,6 +267,9 @@ export function deriveSelectedThreadSessionStatus(currentState, conversation = n
     conversationTitle,
     targetConversationId,
     targetTitle,
+    switchActive,
+    switchConversationId: targetConversationId,
+    switchTargetTitle: targetTitle,
     selectedThreadRestore,
     restoreResume,
     restoreStage,

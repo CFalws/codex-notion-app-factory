@@ -501,9 +501,9 @@ def assert_browser_runtime_surface(
                     threadScroller.dataset.phaseProvenance === liveActivity.dataset.liveRunSource &&
                     sessionStripState &&
                     stripChips.length === 1 &&
-                    sessionStripState.dataset.sessionStripRole === "context" &&
-                    sessionStripState.dataset.sessionStripLabel === "TARGET" &&
-                    sessionStripState.textContent.trim() === "TARGET" &&
+                    sessionStripState.dataset.sessionStripRole === "transition" &&
+                    sessionStripState.dataset.sessionStripLabel === "SWITCHING" &&
+                    sessionStripState.textContent.trim() === "SWITCHING" &&
                     ["HANDOFF", "PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED", "FAILED", "LIVE", "UNKNOWN"].includes(liveActivity.dataset.liveRunPhase || "") &&
                     sessionStripDetail &&
                     sessionStripDetail.textContent.trim().length > 0 &&
@@ -732,9 +732,9 @@ def assert_browser_runtime_surface(
                     !sessionStrip.hidden &&
                     sessionStripState &&
                     sessionStripState.querySelectorAll(".session-chip").length === 1 &&
-                    sessionStripState.dataset.sessionStripRole === "context" &&
-                    sessionStripState.dataset.sessionStripLabel === "TARGET" &&
-                    sessionStripState.textContent.trim() === "TARGET" &&
+                    sessionStripState.dataset.sessionStripRole === "transition" &&
+                    sessionStripState.dataset.sessionStripLabel === "SWITCHING" &&
+                    sessionStripState.textContent.trim() === "SWITCHING" &&
                     sessionStrip.dataset.composerState === "switching" &&
                     sessionStrip.dataset.composerTransport === "attach" &&
                     sessionStrip.dataset.composerTargetConversationId === targetConversationId &&
@@ -803,9 +803,9 @@ def assert_browser_runtime_surface(
                     sessionStrip &&
                     sessionStripState &&
                     sessionStripState.querySelectorAll(".session-chip").length === 1 &&
-                    sessionStripState.dataset.sessionStripRole === "context" &&
-                    sessionStripState.dataset.sessionStripLabel === "TARGET" &&
-                    sessionStripState.textContent.trim() === "TARGET" &&
+                    sessionStripState.dataset.sessionStripRole === "transition" &&
+                    sessionStripState.dataset.sessionStripLabel === "SWITCHING" &&
+                    sessionStripState.textContent.trim() === "SWITCHING" &&
                     sessionStrip.dataset.composerState === "switching" &&
                     sessionStrip.dataset.composerTargetConversationId === targetConversationId &&
                     threadScroller &&
@@ -847,9 +847,9 @@ def assert_browser_runtime_surface(
                     !sessionStrip.hidden &&
                     sessionStripState &&
                     sessionStripState.querySelectorAll(".session-chip").length === 1 &&
-                    sessionStripState.dataset.sessionStripRole === "context" &&
-                    sessionStripState.dataset.sessionStripLabel === "TARGET" &&
-                    sessionStripState.textContent.trim() === "TARGET" &&
+                    sessionStripState.dataset.sessionStripRole === "transition" &&
+                    sessionStripState.dataset.sessionStripLabel === "SWITCHING" &&
+                    sessionStripState.textContent.trim() === "SWITCHING" &&
                     sessionStrip.dataset.composerState === "switching" &&
                     sessionStrip.dataset.composerTargetConversationId === targetConversationId &&
                     sessionStrip.dataset.phaseValue === "UNKNOWN" &&
@@ -1009,11 +1009,13 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "INLINE_TERMINAL_RETENTION_MS = 12000", label="inline terminal retention window")
     require(render_js, "shouldRetainInlineTerminalPhase", label="inline terminal retention helper")
     require(render_js, "renderThreadTransition", label="thread transition helper")
+    require(render_js, "function renderThreadTransition(currentState, sessionStatus = deriveSelectedThreadSessionStatus(currentState, null))", label="thread transition canonical status signature")
     require(render_js, "pendingHandoffState", label="pending handoff helper")
     require(render_js, 'data-thread-transition="loading"', label="thread transition DOM")
     require(render_js, 'data-thread-transition-phase="switching"', label="thread transition phase dataset")
     require(render_js, 'dom.conversationTimeline.innerHTML = isThreadTransition', label="thread transition placeholder render branch")
-    require(render_js, '? renderThreadTransition(currentState)', label="thread transition placeholder render path")
+    require(render_js, '? renderThreadTransition(currentState, restoreSessionStatus)', label="thread transition placeholder render path")
+    require(render_js, 'data-thread-transition-conversation-id="${escapeHtml(String(sessionStatus.switchConversationId || sessionStatus.targetConversationId || ""))}"', label="thread transition canonical conversation dataset")
     require(render_js, 'const isSavedRestore = !isThreadTransition && restoreSessionStatus.presentation === "restore";', label="saved restore timeline guard")
     require(render_js, 'const restoreTimeline = isSavedRestore ? renderRestoreSessionTimeline(currentState) : "";', label="saved restore timeline render branch")
     require(render_js, ': restoreTimeline || \'<p class="timeline-empty">새 대화를 만들면 요청과 이벤트가 여기 쌓입니다.</p>\';', label="empty state limited to non-transition path")
@@ -1147,6 +1149,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.sessionStripState.dataset.sessionStripLabel = stripState.label;', label="composer strip state label dataset")
     require(render_js, 'dom.sessionStripState.dataset.sessionStripTone = stripState.tone;', label="composer strip state tone dataset")
     require(render_js, 'dom.sessionStripMeta.textContent = ownerState.target;', label="composer strip target copy")
+    require(render_js, 'return { label: "SWITCHING", tone: "warning", role: "transition" };', label="composer strip switching row")
     require(render_js, 'return { label: "TARGET", tone: "muted", role: "context" };', label="composer strip context row")
     require(render_js, 'return { label: transportState.label, tone: transportState.tone, role: "degraded" };', label="composer strip degraded phase row")
     require(render_js, 'dom.sessionStripState.innerHTML = sessionStripStateChipMarkup(stripState);', label="composer strip single-chip render")
@@ -1209,7 +1212,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, "data-recent-thread-state", label="recent-thread state DOM")
     require(conversations_js, "data-recent-thread-follow", label="recent-thread follow DOM")
     require(conversations_js, 'chip.dataset.liveOwner = isSelected && showLiveMirror ? "true" : "false";', label="recent-thread live owner dataset")
-    require(conversations_js, 'follow.textContent = isSwitching ? "ATTACH" : isSelected && showLiveMirror ? liveFollowLabel : "";', label="recent-thread attach follow wiring")
+    require_absent(conversations_js, 'follow.textContent = isSwitching ? "ATTACH" : isSelected && showLiveMirror ? liveFollowLabel : "";', label="recent-thread attach follow wiring")
     require(conversations_js, "syncActiveSessionRow", label="active session row helper")
     require(conversations_js, "data-conversation-live-state", label="selected card live dataset")
     require(conversations_js, "data-conversation-live-owner-row", label="selected card live owner row")
@@ -1298,6 +1301,9 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(store_js, "selectedThreadRestore", label="selected-thread restore state")
     require(store_js, "restoreResume", label="selected-thread restore resume state")
     require(store_js, "restoreStage", label="selected-thread restore stage")
+    require(store_js, "switchActive", label="selected-thread switch activity state")
+    require(store_js, "switchConversationId", label="selected-thread switch conversation state")
+    require(store_js, "switchTargetTitle", label="selected-thread switch title state")
     require(store_js, 'transportReason = restoreResume ? "saved-restore-resume" : "saved-restore-attach";', label="selected-thread restore transport reason")
     require(store_js, 'presentation = "restore";', label="selected-thread restore presentation")
     require(store_js, "export function deriveSelectedThreadLiveAutonomy", label="canonical selected-thread live autonomy helper")

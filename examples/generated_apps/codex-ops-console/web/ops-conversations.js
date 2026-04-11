@@ -1348,14 +1348,9 @@ export function createConversationController(deps) {
       const follow = chip.querySelector("[data-recent-thread-follow]");
       const snapshotLabel = String(chip.dataset.snapshotStateLabel || "IDLE");
       const snapshotState = String(chip.dataset.snapshotThreadState || "idle");
-      const isSwitching =
-        isSelected &&
-        Boolean(threadTransition.active) &&
-        String(threadTransition.targetConversationId || "") === selectedConversationId;
-
       chip.classList.toggle("active", isSelected);
       chip.dataset.selected = isSelected ? "true" : "false";
-      chip.dataset.threadState = isSwitching ? "switching" : isSelected ? (liveThreadState || "active") : snapshotState;
+      chip.dataset.threadState = isSelected ? (liveThreadState || "active") : snapshotState;
       chip.dataset.liveOwner = isSelected && showLiveMirror ? "true" : "false";
       chip.dataset.liveOwnerState = isSelected && showLiveMirror ? liveOwnerStateLabel : "idle";
 
@@ -1368,18 +1363,16 @@ export function createConversationController(deps) {
         owner.textContent = "OWNER";
       }
       if (stateLabel) {
-        stateLabel.textContent = isSwitching
-          ? "SWITCHING"
-          : isSelected
-            ? (showLiveMirror
-              ? compactConversationLabel({ presentation, liveRunState, liveRunPhase, pendingStage, isSelected: true })
-              : snapshotLabel)
-            : snapshotLabel;
+        stateLabel.textContent = isSelected
+          ? (showLiveMirror
+            ? compactConversationLabel({ presentation, liveRunState, liveRunPhase, pendingStage, isSelected: true })
+            : snapshotLabel)
+          : snapshotLabel;
       }
       if (follow) {
-        follow.hidden = !(isSelected && (showLiveMirror || isSwitching));
-        follow.textContent = isSwitching ? "ATTACH" : isSelected && showLiveMirror ? liveFollowLabel : "";
-        follow.dataset.liveOwnerState = isSelected && showLiveMirror ? liveOwnerStateLabel : isSwitching ? "handoff" : "idle";
+        follow.hidden = !(isSelected && showLiveMirror);
+        follow.textContent = isSelected && showLiveMirror ? liveFollowLabel : "";
+        follow.dataset.liveOwnerState = isSelected && showLiveMirror ? liveOwnerStateLabel : "idle";
       }
     }
 

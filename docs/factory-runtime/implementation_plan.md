@@ -1,11 +1,11 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 101
+## Iteration 102
 
-Make healthy selected-thread SSE session state the only authoritative autonomy summary source without changing transport or the visible session layout.
+Make intentional selected-thread switching read as one continuous session workspace without changing transport or introducing a new render surface.
 
-1. Reuse the existing selected-thread session, restore, live-autonomy, and phase helpers rather than adding a new authority model.
-2. Mark `session.bootstrap` autonomy data as fresh and fallback-disallowed when the bootstrap payload already carries the selected-thread autonomy summary.
-3. Prefer bootstrap autonomy over snapshot autonomy during `fetchConversation(...)` so the selected-thread session path becomes authoritative as soon as bootstrap succeeds.
-4. Gate `/api/goals` refresh behind explicit degraded transport, missing selected-thread authority, or stale-or-missing autonomy data instead of always refreshing after conversation fetch.
-5. Extend the focused verifier layer and proposal artifacts so the healthy path proves session-owned autonomy state and the negative case proves the absence of polling-owned success.
+1. Reuse the existing `threadTransition` and selected-thread session-status helpers instead of introducing another switch state model.
+2. Keep the center conversation shell mounted and render exactly one compact transition placeholder while `threadTransition` is active.
+3. Make the composer strip show an explicit `SWITCHING` target state during attach instead of a generic target label.
+4. Clear switch mirrors from the recent-thread rail so the transition is owned by the center pane and fixed composer only.
+5. Extend the focused verifier layer and proposal artifacts so the switch path proves no empty-state flash, no stale old-thread ownership, and no polling-owned success presentation.

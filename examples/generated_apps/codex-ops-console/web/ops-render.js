@@ -233,6 +233,9 @@ function sessionStripStateRow(ownerState, transportState, liveRun, presentation,
   if (transportState.key === "reconnect" || transportState.key === "polling") {
     return { label: transportState.label, tone: transportState.tone, role: "degraded" };
   }
+  if (ownerState.state === "switching") {
+    return { label: "SWITCHING", tone: "warning", role: "transition" };
+  }
   return { label: "TARGET", tone: "muted", role: "context" };
 }
 
@@ -1536,11 +1539,10 @@ function threadMetaSummary(conversation, liveRun, messageCount, eventCount) {
   return parts.filter(Boolean).join(" · ");
 }
 
-function renderThreadTransition(currentState) {
-  const threadTransition = currentState.threadTransition || {};
-  const targetTitle = String(threadTransition.targetTitle || "선택한 대화").trim();
+function renderThreadTransition(currentState, sessionStatus = deriveSelectedThreadSessionStatus(currentState, null)) {
+  const targetTitle = String(sessionStatus.switchTargetTitle || sessionStatus.targetTitle || "선택한 대화").trim();
   return `
-    <article class="timeline-transition" data-thread-transition="loading" data-thread-transition-phase="switching" data-thread-transition-conversation-id="${escapeHtml(String(threadTransition.targetConversationId || ""))}">
+    <article class="timeline-transition" data-thread-transition="loading" data-thread-transition-phase="switching" data-thread-transition-conversation-id="${escapeHtml(String(sessionStatus.switchConversationId || sessionStatus.targetConversationId || ""))}">
       <p class="timeline-kind">세션 전환</p>
       <div class="timeline-transition-row">
         <span class="timeline-transition-chip">SWITCH</span>
@@ -2121,12 +2123,12 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   onPersist();
 
   if (!conversation) {
-    const isThreadTransition = Boolean(threadTransition.active && threadTransition.targetConversationId);
     const restoreSessionStatus = deriveSelectedThreadSessionStatus(currentState, null);
+    const isThreadTransition = restoreSessionStatus.presentation === "attach" && Boolean(restoreSessionStatus.switchConversationId);
     const isSavedRestore = !isThreadTransition && restoreSessionStatus.presentation === "restore";
     const restoreTimeline = isSavedRestore ? renderRestoreSessionTimeline(currentState) : "";
     dom.conversationTimeline.innerHTML = isThreadTransition
-      ? renderThreadTransition(currentState)
+      ? renderThreadTransition(currentState, restoreSessionStatus)
       : restoreTimeline || '<p class="timeline-empty">새 대화를 만들면 요청과 이벤트가 여기 쌓입니다.</p>';
     if (dom.threadScroller) {
       dom.threadScroller.dataset.pendingConversationId = isThreadTransition
