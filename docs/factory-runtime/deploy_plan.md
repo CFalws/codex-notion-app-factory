@@ -1,12 +1,12 @@
 # Factory Runtime Deploy Plan
 
-## Iteration 103
+## Iteration 104
 
-This deploy plan validates the selected-thread unified timeline progression contract and does not introduce new transport, new polling behavior, or new non-timeline healthy status surfaces.
+This deploy plan validates the selected-thread unified footer-follow contract and does not introduce new transport, new polling behavior, or new duplicate healthy follow surfaces.
 
 ## Deployment Impact
 
-This iteration changes healthy selected-thread autonomy progression presentation only. The bounded expectation is that proposal, review, verify, ready, and applied state appears in one transcript live surface on the healthy SSE-owned path, while degraded, reconnect, restore, and polling provenance remains explicit and non-healthy.
+This iteration changes healthy selected-thread follow presentation only. The bounded expectation is that detached `NEW` or `PAUSED` follow state appears in the composer-adjacent footer strip on the healthy SSE-owned path, while degraded, reconnect, restore, switching, and polling provenance immediately clear or downgrade that footer ownership.
 
 ## Rollout Notes
 
@@ -14,8 +14,8 @@ This iteration changes healthy selected-thread autonomy progression presentation
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
 3. Open the operator console on desktop and phone widths with at least one healthy selected-thread conversation and one additional conversation for switching.
 4. Reload the workspace or re-enter with a saved selected conversation and confirm restore still appears through one transcript-tail `ATTACH` or `RESUME` item before bootstrap settles.
-5. Start from one healthy selected-thread conversation and drive proposal, review, verify, ready, and applied progress through the intended SSE path.
-6. Confirm the transcript live activity item shows milestone progression for those states without requiring the sidecar autonomy card or `/api/goals` owned success.
-7. Confirm the sidecar autonomy surface stays hidden only while the selected-thread session is healthy-owned, and degraded, reconnect, restore, or polling states return explicit non-healthy provenance.
-8. Confirm the fixed composer remains bound to the same conversation and the compact header stays contextual rather than becoming a second healthy autonomy surface.
-9. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible selected-thread unified timeline progression contract succeeds through the intended path.
+5. Start from one healthy selected-thread conversation, scroll away from the live tail, and let unseen append backlog accumulate.
+6. Confirm the composer-adjacent footer strip becomes the only visible detached follow surface with compact `LIVE` or `READY` plus `NEW` or `PAUSED` context and unseen-count metadata.
+7. Confirm the footer action jumps back to the live tail and clears detached follow ownership in place.
+8. Confirm reconnect, polling fallback, terminal idle, or thread switch immediately clear or downgrade the footer follow surface instead of leaving stale selected-thread ownership.
+9. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible selected-thread unified footer-follow contract succeeds through the intended path.

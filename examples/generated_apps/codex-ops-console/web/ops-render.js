@@ -209,13 +209,16 @@ function sessionChromeCopy(ownerState, transportState, sessionIndicator, liveRun
   return target;
 }
 
-function sessionStripDetailCopy(ownerState, transportState, sessionIndicator, liveRun, proposalState, liveOwned) {
+function sessionStripDetailCopy(ownerState, transportState, sessionIndicator, liveRun, proposalState, liveOwned, footerFollow = null) {
   const target = ownerState.target;
   if (ownerState.state === "switching") {
     return target;
   }
   if (ownerState.state === "handoff") {
     return target;
+  }
+  if (footerFollow?.visible) {
+    return `${footerFollow.stateLabel} · ${footerFollow.detailLabel}`;
   }
   if (liveOwned) {
     return target;
@@ -230,12 +233,15 @@ function sessionStripStateChipMarkup({ label, tone, role }) {
   return `<span class="session-chip" data-tone="${escapeHtml(tone)}" data-session-strip-role="${escapeHtml(role)}">${escapeHtml(label)}</span>`;
 }
 
-function sessionStripStateRow(ownerState, transportState, liveRun, presentation, liveOwned) {
+function sessionStripStateRow(ownerState, transportState, liveRun, presentation, liveOwned, footerFollow = null) {
   if (transportState.key === "reconnect" || transportState.key === "polling") {
     return { label: transportState.label, tone: transportState.tone, role: "degraded" };
   }
   if (ownerState.state === "switching") {
     return { label: "SWITCHING", tone: "warning", role: "transition" };
+  }
+  if (footerFollow?.visible) {
+    return { label: footerFollow.followState === "new" ? "LIVE" : ownerState.label || "READY", tone: "healthy", role: "live-follow" };
   }
   return { label: "TARGET", tone: "muted", role: "context" };
 }
@@ -1123,6 +1129,27 @@ function syncJumpToLatest(dom, currentState, conversationId, renderSource) {
   if (!dom.jumpToLatestButton) {
     return;
   }
+  const footerFollow = selectedThreadFooterFollowState(dom, currentState, conversationId, renderSource);
+  const isVisible = footerFollow.visible ? false : footerFollow.detached;
+  const stateLabel = footerFollow.stateLabel;
+  const detailLabel = footerFollow.detailLabel;
+  dom.jumpToLatestButton.hidden = !isVisible;
+  dom.jumpToLatestButton.dataset.followConversationId = conversationId || "";
+  dom.jumpToLatestButton.dataset.followOwned = footerFollow.visible ? "none" : footerFollow.liveOwned ? "selected-thread" : "none";
+  dom.jumpToLatestButton.dataset.followMode = footerFollow.isFollowing ? "following" : "paused";
+  dom.jumpToLatestButton.dataset.followState = isVisible ? footerFollow.followState : "hidden";
+  dom.jumpToLatestButton.dataset.followCount = String(isVisible ? footerFollow.unseenCount : 0);
+  dom.jumpToLatestButton.dataset.followRenderSource = renderSource || "snapshot";
+  dom.jumpToLatestButton.setAttribute(
+    "aria-label",
+    isVisible ? `${stateLabel}. ${detailLabel}. 최신 응답으로 이동` : "최신 응답으로 이동",
+  );
+  dom.jumpToLatestButton.innerHTML = isVisible
+    ? `<span class="jump-to-latest-chip">${stateLabel}</span><span class="jump-to-latest-copy">${detailLabel}</span>`
+    : '<span class="jump-to-latest-chip">NEW</span><span class="jump-to-latest-copy">최신 응답으로 이동</span>';
+}
+
+function selectedThreadFooterFollowState(dom, currentState, conversationId, renderSource) {
   const liveFollow = currentState.liveFollow || {};
   const unseenCount = Math.max(
     Number(liveFollow.pendingAppendCount || 0),
@@ -1138,9 +1165,7 @@ function syncJumpToLatest(dom, currentState, conversationId, renderSource) {
     !terminalIdle;
   const detached = !Boolean(liveFollow.isFollowing);
   const hasBacklog = unseenCount > 0;
-  const pausedVisible = liveOwned && detached && !hasBacklog;
   const followState = hasBacklog ? "new" : "paused";
-  const isVisible = Boolean(liveOwned && detached);
   const stateLabel = followState === "new" ? "NEW" : "PAUSED";
   const detailLabel =
     followState === "new"
@@ -1148,20 +1173,16 @@ function syncJumpToLatest(dom, currentState, conversationId, renderSource) {
         ? `새 live append ${unseenCount}개`
         : "새 live append"
       : "live follow paused";
-  dom.jumpToLatestButton.hidden = !isVisible;
-  dom.jumpToLatestButton.dataset.followConversationId = conversationId || "";
-  dom.jumpToLatestButton.dataset.followOwned = liveOwned ? "selected-thread" : "none";
-  dom.jumpToLatestButton.dataset.followMode = liveFollow.isFollowing ? "following" : "paused";
-  dom.jumpToLatestButton.dataset.followState = isVisible ? followState : "hidden";
-  dom.jumpToLatestButton.dataset.followCount = String(isVisible ? unseenCount : 0);
-  dom.jumpToLatestButton.dataset.followRenderSource = renderSource || "snapshot";
-  dom.jumpToLatestButton.setAttribute(
-    "aria-label",
-    isVisible ? `${stateLabel}. ${detailLabel}. 최신 응답으로 이동` : "최신 응답으로 이동",
-  );
-  dom.jumpToLatestButton.innerHTML = isVisible
-    ? `<span class="jump-to-latest-chip">${stateLabel}</span><span class="jump-to-latest-copy">${detailLabel}</span>`
-    : '<span class="jump-to-latest-chip">NEW</span><span class="jump-to-latest-copy">최신 응답으로 이동</span>';
+  return {
+    liveOwned,
+    isFollowing: Boolean(liveFollow.isFollowing),
+    detached: Boolean(liveOwned && detached),
+    visible: Boolean(liveOwned && detached),
+    followState,
+    unseenCount,
+    stateLabel,
+    detailLabel,
+  };
 }
 
 export function updateLiveFollowFromScroll(dom, currentState) {
@@ -1635,6 +1656,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const sessionIndicator = selectedThreadLiveSessionIndicator(currentState, conversation, liveRun, handoffState);
   const proposalState = proposalChip(liveRun);
   const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
+  const footerFollow = selectedThreadFooterFollowState(dom, currentState, conversationId, lastRenderSource);
   currentState.sessionRail ||= { conversationId: "", expanded: false };
 
   if (!conversationId && !(threadTransition.active && threadTransition.targetConversationId) && !sessionStatus.conversationId) {
@@ -1693,6 +1715,9 @@ export function renderSessionStrip(dom, currentState, conversation) {
     if (dom.sessionStripToggle) {
       dom.sessionStripToggle.hidden = true;
       dom.sessionStripToggle.textContent = "세부 보기";
+      dom.sessionStripToggle.dataset.sessionAction = "toggle-session-rail";
+      dom.sessionStripToggle.dataset.followState = "idle";
+      dom.sessionStripToggle.dataset.followCount = "0";
     }
     return;
   }
@@ -1736,9 +1761,9 @@ export function renderSessionStrip(dom, currentState, conversation) {
     inlineState.selectedThreadSseOwned &&
     inlineState.status === "live" &&
     inlineState.renderSource === "sse";
-  const stripLiveOwned = false;
-  const stripState = sessionStripStateRow(ownerState, transportState, liveRun, presentation, liveOwned);
-  dom.sessionStrip.hidden = liveOwned ? true : !sessionConversationId;
+  const stripLiveOwned = Boolean(footerFollow.visible);
+  const stripState = sessionStripStateRow(ownerState, transportState, liveRun, presentation, liveOwned, footerFollow);
+  dom.sessionStrip.hidden = !sessionConversationId ? true : liveOwned ? !footerFollow.visible : false;
   dom.sessionStrip.dataset.liveOwned = stripLiveOwned ? "true" : "false";
   dom.sessionStrip.dataset.sessionOwner = stripLiveOwned ? "selected-thread" : "none";
   dom.sessionStrip.dataset.sessionPresentation = presentation;
@@ -1761,7 +1786,8 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStrip.dataset.liveRunSource = liveRun.source;
   dom.sessionStrip.dataset.liveRunJob = liveRun.jobId || "";
   dom.sessionStrip.dataset.liveRunTone = liveRun.tone;
-  dom.sessionStrip.dataset.followState = transportState.owned ? "owned" : "idle";
+  dom.sessionStrip.dataset.followState = footerFollow.visible ? footerFollow.followState : transportState.owned ? "owned" : "idle";
+  dom.sessionStrip.dataset.followCount = String(footerFollow.visible ? footerFollow.unseenCount : 0);
   dom.sessionStrip.dataset.composerState = ownerState.state;
   dom.sessionStrip.dataset.composerTransport = transportState.key;
   dom.sessionStrip.dataset.composerTransportSource = transportState.source;
@@ -1784,10 +1810,14 @@ export function renderSessionStrip(dom, currentState, conversation) {
     liveRun,
     proposalState,
     liveOwned,
+    footerFollow,
   );
   if (dom.sessionStripToggle) {
-    dom.sessionStripToggle.hidden = true;
-    dom.sessionStripToggle.textContent = "세부 보기";
+    dom.sessionStripToggle.hidden = !footerFollow.visible;
+    dom.sessionStripToggle.textContent = footerFollow.visible ? (footerFollow.followState === "new" ? "최신으로" : "재개") : "세부 보기";
+    dom.sessionStripToggle.dataset.sessionAction = footerFollow.visible ? "jump-latest" : "toggle-session-rail";
+    dom.sessionStripToggle.dataset.followState = footerFollow.visible ? footerFollow.followState : "idle";
+    dom.sessionStripToggle.dataset.followCount = String(footerFollow.visible ? footerFollow.unseenCount : 0);
   }
   if (dom.draftStatus) {
     dom.draftStatus.hidden = true;

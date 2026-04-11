@@ -415,7 +415,13 @@ function wireEvents() {
   });
   dom.threadScroller?.addEventListener("scroll", () => updateLiveFollowFromScroll(dom, state));
   dom.jumpToLatestButton?.addEventListener("click", () => jumpToLatest(dom, state));
-  dom.sessionStripToggle?.addEventListener("click", () => toggleSessionRail(dom, state));
+  dom.sessionStripToggle?.addEventListener("click", () => {
+    if (dom.sessionStripToggle?.dataset.sessionAction === "jump-latest") {
+      jumpToLatest(dom, state);
+      return;
+    }
+    toggleSessionRail(dom, state);
+  });
   dom.conversationList.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-conversation-id]");
     if (!button) {

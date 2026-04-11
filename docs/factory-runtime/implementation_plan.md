@@ -1,11 +1,11 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 103
+## Iteration 104
 
-Make healthy selected-thread autonomy progression read as one canonical timeline surface without changing transport or introducing a new status panel.
+Make healthy selected-thread detached follow state read as part of one unified footer surface without changing transport or introducing a new control surface.
 
-1. Reuse the existing selected-thread live-autonomy and phase-progression helpers instead of adding a second autonomy view model.
-2. Derive a store-owned selected-thread timeline milestone model for proposal, review, verify, ready, and applied progression on the healthy SSE-owned path.
-3. Render that milestone model only inside the transcript live activity item so the center conversation becomes the primary progression surface.
-4. Keep degraded, reconnect, restore, and polling provenance explicit, and stop hiding the sidecar autonomy surface when the selected-thread session is not healthy-owned.
-5. Extend the focused verifier layer and proposal artifacts so the healthy path proves timeline-owned progression and the degraded path proves visible non-healthy provenance.
+1. Reuse the existing selected-thread live-follow datasets instead of adding a second follow-state source.
+2. Move healthy-path detached `NEW` or `PAUSED` follow state into the composer-adjacent session strip and make that strip actionable through the existing footer toggle.
+3. Keep the transcript-level jump control mounted but non-visible while the footer owns follow state so the healthy path has no duplicate follow surface.
+4. Clear or downgrade footer follow ownership immediately on reconnect, polling fallback, terminal idle, or thread switch.
+5. Extend the focused verifier layer and proposal artifacts so the healthy path proves footer-owned follow state and degraded paths prove immediate non-healthy clearing.
