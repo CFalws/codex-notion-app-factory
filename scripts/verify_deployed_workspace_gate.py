@@ -261,6 +261,74 @@ def assert_browser_runtime_surface(
   window.__verifyDelayedConversationId = "";
   window.__verifyDelayedConversationConsumed = false;
   window.__verifyConversationDelayMs = 0;
+  window.__verifySwitchObserver = null;
+  window.__verifySwitchMonitor = {
+    active: false,
+    targetConversationId: "",
+    sawEmptyState: false,
+    maxTransitionCount: 0,
+    sawHiddenComposerDock: false,
+    sawClearedWorkspacePlaceholder: false,
+  };
+  window.__verifySampleSwitchMonitor = () => {
+    const monitor = window.__verifySwitchMonitor;
+    if (!monitor || !monitor.active) {
+      return;
+    }
+    const timeline = document.querySelector("#conversation-timeline");
+    const composerDock = document.querySelector("#conversation-footer-dock");
+    const emptyState = document.querySelector(".timeline-empty");
+    const transitions = document.querySelectorAll('[data-thread-transition="switching"]');
+    const targetConversationId = String(monitor.targetConversationId || "");
+    const placeholderMode = String(timeline?.dataset.workspacePlaceholder || "");
+    const placeholderConversationId = String(timeline?.dataset.workspaceConversationId || "");
+    const targetAttached = placeholderMode === "conversation" && placeholderConversationId === targetConversationId;
+    monitor.maxTransitionCount = Math.max(Number(monitor.maxTransitionCount || 0), transitions.length);
+    if (!targetAttached && emptyState) {
+      monitor.sawEmptyState = true;
+    }
+    if (composerDock) {
+      const style = getComputedStyle(composerDock);
+      if (composerDock.hidden || style.display === "none" || style.visibility === "hidden") {
+        monitor.sawHiddenComposerDock = true;
+      }
+    }
+    if (!targetAttached && placeholderMode !== "switching") {
+      monitor.sawClearedWorkspacePlaceholder = true;
+    }
+  };
+  window.__verifyStartSwitchMonitor = (targetConversationId) => {
+    if (window.__verifySwitchObserver) {
+      window.__verifySwitchObserver.disconnect();
+    }
+    window.__verifySwitchMonitor = {
+      active: true,
+      targetConversationId: String(targetConversationId || ""),
+      sawEmptyState: false,
+      maxTransitionCount: 0,
+      sawHiddenComposerDock: false,
+      sawClearedWorkspacePlaceholder: false,
+    };
+    window.__verifySwitchObserver = new MutationObserver(() => {
+      window.__verifySampleSwitchMonitor();
+    });
+    window.__verifySwitchObserver.observe(document.documentElement, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ["hidden", "data-workspace-placeholder", "data-workspace-conversation-id", "style"],
+    });
+    window.__verifySampleSwitchMonitor();
+  };
+  window.__verifyStopSwitchMonitor = () => {
+    if (window.__verifySwitchObserver) {
+      window.__verifySwitchObserver.disconnect();
+      window.__verifySwitchObserver = null;
+    }
+    if (window.__verifySwitchMonitor) {
+      window.__verifySwitchMonitor.active = false;
+    }
+  };
   if (nativeFetch) {
     window.fetch = (...args) => {
       const request = args[0];
@@ -781,7 +849,13 @@ def assert_browser_runtime_surface(
             )
             degraded_snapshot = page.evaluate(browser_snapshot_script())
 
-            page.evaluate("() => { window.__verifyFetchMark = window.__verifyFetchLog.length; }")
+            page.evaluate(
+                """targetConversationId => {
+                  window.__verifyStartSwitchMonitor(targetConversationId);
+                  window.__verifyFetchMark = window.__verifyFetchLog.length;
+                }""",
+                switch_conversation_id,
+            )
             page.click(f'[data-conversation-id="{switch_conversation_id}"]')
             page.wait_for_function(
                 """([appId, targetConversationId]) => {
@@ -808,12 +882,14 @@ def assert_browser_runtime_surface(
                   const goalsFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
                     entry => String(entry.url || "").includes(`/api/apps/${appId}/goals`)
                   );
+                  const switchMonitor = window.__verifySwitchMonitor || {};
                   return Boolean(
                     transition &&
                     document.querySelectorAll('[data-thread-transition="switching"]').length === 1 &&
                     transition.dataset.threadTransitionPhase === "switching" &&
                     transition.dataset.threadTransitionSource === "selected-thread-session" &&
                     transition.dataset.threadTransitionOwnerCleared === "true" &&
+                    transition.dataset.threadTransitionCompact === "true" &&
                     transition.dataset.threadTransitionConversationId === targetConversationId &&
                     summary &&
                     summary.hidden &&
@@ -867,6 +943,12 @@ def assert_browser_runtime_surface(
                     follow.dataset.followOwned !== "selected-thread" &&
                     jobFetches.length === 0 &&
                     goalsFetches.length === 0 &&
+                    switchMonitor.active === true &&
+                    switchMonitor.targetConversationId === targetConversationId &&
+                    switchMonitor.sawEmptyState === false &&
+                    switchMonitor.maxTransitionCount === 1 &&
+                    switchMonitor.sawHiddenComposerDock === false &&
+                    switchMonitor.sawClearedWorkspacePlaceholder === false &&
                     !healthyBlock &&
                     !healthy &&
                     !degraded &&
@@ -880,6 +962,7 @@ def assert_browser_runtime_surface(
 
             page.evaluate(
                 """switchConversationId => {
+                  window.__verifyStartSwitchMonitor(switchConversationId);
                   window.__verifyDelayedConversationId = String(switchConversationId || "");
                   window.__verifyDelayedConversationConsumed = false;
                   window.__verifyConversationDelayMs = 800;
@@ -896,10 +979,12 @@ def assert_browser_runtime_surface(
                   const sessionStripState = document.querySelector("#session-strip-state");
                   const threadScroller = document.querySelector("#thread-scroller");
                   const empty = document.querySelector(".timeline-empty");
+                  const switchMonitor = window.__verifySwitchMonitor || {};
                   return Boolean(
                     transition &&
                     document.querySelectorAll('[data-thread-transition="switching"]').length === 1 &&
                     transition.dataset.threadTransitionOwnerCleared === "true" &&
+                    transition.dataset.threadTransitionCompact === "true" &&
                     transition.dataset.threadTransitionConversationId === targetConversationId &&
                     activeSessionRow &&
                     activeSessionRow.hidden &&
@@ -924,13 +1009,25 @@ def assert_browser_runtime_surface(
                     document.querySelector("#conversation-timeline").dataset.workspaceConversationId === targetConversationId &&
                     document.querySelector("#conversation-timeline").dataset.workspaceOwnerCleared === "true" &&
                     threadScroller.dataset.workspaceOwnerCleared === "true" &&
+                    switchMonitor.active === true &&
+                    switchMonitor.targetConversationId === targetConversationId &&
+                    switchMonitor.sawEmptyState === false &&
+                    switchMonitor.maxTransitionCount === 1 &&
+                    switchMonitor.sawHiddenComposerDock === false &&
+                    switchMonitor.sawClearedWorkspacePlaceholder === false &&
                     !empty
                   );
                 }""",
                 switch_conversation_id,
                 timeout=30000,
             )
-            page.evaluate("() => { window.__verifyFetchMark = window.__verifyFetchLog.length; }")
+            page.evaluate(
+                """targetConversationId => {
+                  window.__verifyStartSwitchMonitor(targetConversationId);
+                  window.__verifyFetchMark = window.__verifyFetchLog.length;
+                }""",
+                conversation_id,
+            )
             page.click(f'[data-conversation-id="{conversation_id}"]')
             page.wait_for_function(
                 """([appId, targetConversationId]) => {
@@ -952,10 +1049,12 @@ def assert_browser_runtime_surface(
                   const goalsFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
                     entry => String(entry.url || "").includes(`/api/apps/${appId}/goals`)
                   );
+                  const switchMonitor = window.__verifySwitchMonitor || {};
                   return Boolean(
                     transition &&
                     document.querySelectorAll('[data-thread-transition="switching"]').length === 1 &&
                     transition.dataset.threadTransitionOwnerCleared === "true" &&
+                    transition.dataset.threadTransitionCompact === "true" &&
                     transition.dataset.threadTransitionConversationId === targetConversationId &&
                     sessionStrip &&
                     !sessionStrip.hidden &&
@@ -994,6 +1093,12 @@ def assert_browser_runtime_surface(
                     !healthyBlock &&
                     !degraded &&
                     !empty &&
+                    switchMonitor.active === true &&
+                    switchMonitor.targetConversationId === targetConversationId &&
+                    switchMonitor.sawEmptyState === false &&
+                    switchMonitor.maxTransitionCount === 1 &&
+                    switchMonitor.sawHiddenComposerDock === false &&
+                    switchMonitor.sawClearedWorkspacePlaceholder === false &&
                     jobFetches.length === 0 &&
                     goalsFetches.length === 0
                   );
@@ -1161,6 +1266,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'data-thread-transition-source="selected-thread-session"', label="thread transition source dataset")
     require(render_js, 'data-thread-transition-phase="switching"', label="thread transition phase dataset")
     require(render_js, 'data-thread-transition-owner-cleared="true"', label="thread transition ownership-cleared dataset")
+    require(render_js, 'data-thread-transition-compact="true"', label="thread transition compact dataset")
     require(render_js, 'data-thread-transition-owner-cleared="true"', label="thread transition ownership-cleared dataset")
     require(render_js, "selectedThreadWorkspacePlaceholder", label="thread transition workspace placeholder helper")
     require(render_js, "const workspacePlaceholder = selectedThreadWorkspacePlaceholder(currentState);", label="thread transition workspace placeholder state")
@@ -1248,6 +1354,12 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.sessionSummaryRow.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="header center-timeline presentation dataset")
     require(render_js, 'dom.sessionSummaryRow.dataset.indicatorOnly = indicatorOnlySummary ? "true" : "false";', label="header indicator-only summary dataset")
     require(render_js, 'dom.sessionSummaryRow.hidden = !headerSummaryVisible || (!ownershipIndicatorVisible && timelineAuthority.visible);', label="header summary row visibility")
+    require(content, "__verifyStartSwitchMonitor", label="switch monitor start helper")
+    require(content, "__verifySwitchMonitor", label="switch monitor state")
+    require(content, "switchMonitor.sawEmptyState === false", label="switch monitor no empty-state flash assertion")
+    require(content, "switchMonitor.maxTransitionCount === 1", label="switch monitor single placeholder assertion")
+    require(content, "switchMonitor.sawHiddenComposerDock === false", label="switch monitor composer continuity assertion")
+    require(content, "switchMonitor.sawClearedWorkspacePlaceholder === false", label="switch monitor placeholder persistence assertion")
     require(render_js, 'label: "ATTACH"', label="composer strip attach label")
     require(render_js, 'label: "SNAPSHOT"', label="composer strip snapshot label")
     require(store_js, 'transportLabel = "POLLING";', label="composer strip polling label")

@@ -1,12 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 145
+## Iteration 146
 
-Map explicit selected-thread SSE phase labels into the existing header indicator context and composer-adjacent session rail.
+Preserve selected-thread workspace continuity across intentional thread switches.
 
-1. Reuse the current selected-thread shell-phase derivation for the healthy selected-thread SSE path so the header chip becomes phase-first instead of ownership-first.
-2. Keep ownership provenance in the compact header copy rather than in a second chip or prose-heavy summary row.
-3. Reuse the same explicit phase label in the composer-adjacent live-follow chip so detached follow states do not fall back to generic `LIVE` or `READY`.
-4. Keep reconnect, polling fallback, restore, switch, deselection, and terminal idle clearing rules unchanged.
-5. Publish machine-readable phase and detail datasets on the header chip so verification can prove those labels come from the intended selected-thread SSE path.
-6. Extend focused static and deployed verification plus proposal artifacts so iteration 145 proves phase-specific selected-thread chrome without reintroducing a competing authority surface.
+1. Reuse the current selected-thread workspace placeholder path so intentional switches render one compact `SWITCHING` placeholder instead of dropping into the generic empty-state.
+2. Keep the center conversation shell and bottom composer dock mounted throughout the switch window.
+3. Clear the previous thread's live-owned treatment immediately when the switch begins, without leaving stale ownership cues behind.
+4. Mark the switching placeholder with an explicit compact dataset so browser verification can distinguish it from true idle and from duplicate placeholders.
+5. Extend the deployed verifier to observe the full switch window and fail if the empty-state flashes, the composer dock hides, the switching placeholder duplicates, or the placeholder clears before the new selected-thread snapshot attaches.
+6. Align focused static verification and proposal artifacts with the iteration-146 switch-continuity contract.

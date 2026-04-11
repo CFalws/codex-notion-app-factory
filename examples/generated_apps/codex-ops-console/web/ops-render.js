@@ -1716,7 +1716,7 @@ function threadMetaSummary(conversation, liveRun, messageCount, eventCount) {
 function renderThreadTransition(currentState, sessionStatus = deriveSelectedThreadSessionStatus(currentState, null)) {
   const targetTitle = String(sessionStatus.switchTargetTitle || sessionStatus.targetTitle || "선택한 대화").trim();
   return `
-    <article class="timeline-transition" data-thread-transition="switching" data-thread-transition-phase="switching" data-thread-transition-conversation-id="${escapeHtml(String(sessionStatus.switchConversationId || sessionStatus.targetConversationId || ""))}" data-thread-transition-source="selected-thread-session" data-thread-transition-owner-cleared="true">
+    <article class="timeline-transition" data-thread-transition="switching" data-thread-transition-phase="switching" data-thread-transition-conversation-id="${escapeHtml(String(sessionStatus.switchConversationId || sessionStatus.targetConversationId || ""))}" data-thread-transition-source="selected-thread-session" data-thread-transition-owner-cleared="true" data-thread-transition-compact="true">
       <p class="timeline-kind">세션 전환</p>
       <div class="timeline-transition-row">
         <span class="timeline-transition-chip">SWITCHING</span>

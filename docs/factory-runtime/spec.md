@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `145`
-- bounded focus: `map explicit selected-thread SSE phase labels into the existing header and composer-adjacent session chrome without adding a new authority surface`
+- current iteration: `146`
+- bounded focus: `preserve the selected-thread conversation shell and composer through intentional thread switches with one compact transition placeholder and no empty-state flash`
 
 ## Request
 
@@ -13,22 +13,24 @@
 
 ## Problem
 
-The selected-thread header ownership chip and composer-adjacent session rail already reflect healthy and degraded ownership, but they still leave operators inferring the current live stage because generic ownership wording survives where explicit phase labels already exist in the selected-thread SSE state.
+The selected-thread live timeline, header chip, and composer rail already reflect healthy and degraded state, but intentional thread switches can still force the workspace through a reset-looking gap that makes operators infer whether the session is loading, cleared, or broken.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly workspace and expecting the existing session chrome to show the current live selected-thread phase at a glance without introducing another status surface.
+The primary user is the operator or developer using the phone-friendly realtime workspace and expecting an intentional thread switch to feel continuous rather than like a transient reset.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the iteration presentation-only in the render layer plus focused verifier and doc updates.
+- Keep the iteration bounded to the selected-thread switch render path plus focused verifier and doc updates.
 - Do not change transport, polling suppression, backend state sources, or composer ownership rules.
-- Keep the center timeline as the only authority-looking live session surface.
-- Reuse the existing selected-thread session status, shell-phase derivation, and degraded-path rules.
-- Clear phase-owned treatment immediately on reconnect downgrade, polling fallback, switch, deselection, and terminal idle.
+- Keep the center conversation shell and bottom composer mounted during an intentional switch.
+- Reuse the existing switching placeholder and selected-thread workspace ownership rules.
+- Suppress the generic empty-state only during an active intentional switch for the selected thread.
+- Clear the previous thread's live-owned treatment immediately, and clear the switch placeholder as soon as the new selected-thread snapshot or live session attaches.
+- Preserve the normal empty-state for true idle with no selected conversation.
 
 ## Deliverable
 
-Expose explicit selected-thread phase labels through the existing header indicator context and composer-adjacent live session chrome so healthy SSE progression reads as `PROPOSAL`, `REVIEW`, `VERIFY`, `AUTO APPLY`, `READY`, and `APPLIED` without adding a second authority surface.
+Preserve the selected-thread conversation shell and fixed composer through an intentional thread switch by rendering at most one compact, machine-readable `SWITCHING` placeholder until the new selected-thread snapshot or live session attaches, without ever flashing the generic empty-state during that switch window.
