@@ -212,17 +212,33 @@ function sessionStripDetailCopy(ownerState, transportState, sessionIndicator, li
     return joinSessionChromeTokens(target, ownerState.copy, "PENDING");
   }
   if (liveOwned) {
-    return joinSessionChromeTokens(
-      target,
-      phaseDetailHint(liveRun),
-      sessionFollowLabel(sessionIndicator, transportState),
-      proposalStatusLabel(proposalState),
-    );
+    return joinSessionChromeTokens(target, sessionFollowLabel(sessionIndicator, transportState));
   }
   if (transportState.key === "reconnect" || transportState.key === "polling") {
     return joinSessionChromeTokens(target, transportState.label, "DEGRADED");
   }
   return joinSessionChromeTokens(target, ownerState.copy);
+}
+
+function sessionStripStateChipMarkup({ label, tone, role }) {
+  return `<span class="session-chip" data-tone="${escapeHtml(tone)}" data-session-strip-role="${escapeHtml(role)}">${escapeHtml(label)}</span>`;
+}
+
+function sessionStripStateRow(ownerState, transportState, liveRun, presentation, liveOwned) {
+  if (ownerState.state === "switching") {
+    return { label: "ATTACH", tone: "warning", role: "transition" };
+  }
+  if (transportState.key === "reconnect" || transportState.key === "polling") {
+    return { label: transportState.label, tone: transportState.tone, role: "degraded" };
+  }
+  if (ownerState.state === "handoff") {
+    return { label: ownerState.label, tone: ownerState.tone, role: "handoff" };
+  }
+  if (liveOwned) {
+    const phaseState = phaseChip(liveRun, presentation);
+    return { label: phaseState.label, tone: phaseState.tone, role: "phase" };
+  }
+  return { label: ownerState.label, tone: ownerState.tone, role: "idle" };
 }
 
 function composerOwnerState(currentState, conversation) {
@@ -1726,6 +1742,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
     inlineState.selectedThreadSseOwned &&
     inlineState.status === "live" &&
     inlineState.renderSource === "sse";
+  const stripState = sessionStripStateRow(ownerState, transportState, liveRun, presentation, liveOwned);
   dom.sessionStrip.hidden = !sessionConversationId;
   dom.sessionStrip.dataset.liveOwned = liveOwned ? "true" : "false";
   dom.sessionStrip.dataset.sessionOwner = liveOwned ? "selected-thread" : "none";
@@ -1756,17 +1773,11 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStrip.dataset.composerTransportOwned = transportState.owned ? "true" : "false";
   dom.sessionStrip.dataset.composerTransportReason = transportState.reason;
   dom.sessionStrip.dataset.composerTargetConversationId = ownerState.conversationId;
+  dom.sessionStripState.dataset.sessionStripRole = stripState.role;
+  dom.sessionStripState.dataset.sessionStripLabel = stripState.label;
+  dom.sessionStripState.dataset.sessionStripTone = stripState.tone;
 
-  dom.sessionStripState.innerHTML = [
-    `<span class="session-chip" data-tone="${escapeHtml(ownerState.tone)}">${escapeHtml(ownerState.label)}</span>`,
-    `<span class="session-chip" data-tone="${escapeHtml(transportState.tone)}">${escapeHtml(transportState.label)}</span>`,
-    ...(liveOwned && liveRun.phase && liveRun.phase !== "IDLE"
-      ? [`<span class="session-chip" data-tone="${escapeHtml(phaseChip(liveRun).tone)}">${escapeHtml(phaseChip(liveRun).label)}</span>`]
-      : []),
-    ...(liveOwned && proposalState.label !== "NONE"
-      ? [`<span class="session-chip" data-tone="${escapeHtml(proposalState.tone)}">${escapeHtml(proposalState.label)}</span>`]
-      : []),
-  ].join("");
+  dom.sessionStripState.innerHTML = sessionStripStateChipMarkup(stripState);
   dom.sessionStripMeta.textContent = ownerState.target;
   dom.sessionStripDetail.textContent = sessionStripDetailCopy(
     ownerState,

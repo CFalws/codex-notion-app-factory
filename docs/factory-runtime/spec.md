@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `80`
-- bounded focus: `left-rail active-session row continuity`
+- current iteration: `81`
+- bounded focus: `composer-adjacent session strip phase authority`
 
 ## Request
 
@@ -13,7 +13,7 @@
 
 ## Problem
 
-Healthy selected-thread session ownership, transcript-tail follow visibility, and center-pane switch continuity are now bounded, but the sticky left-rail active-session row still disappears during intentional switches, which forces the operator to infer continuity from the center pane alone.
+Healthy selected-thread session ownership and switch continuity are now bounded, but the composer-adjacent session strip still spreads live phase reading across owner, transport, and phase chips, which forces the operator to infer the current session phase instead of reading one authoritative strip state.
 
 ## Target User
 
@@ -23,13 +23,13 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the existing selected-thread SSE ownership, session summary, follow, and thread-transition datasets.
-- Keep the change bounded to `syncActiveSessionRow(...)`, the existing active-session row DOM and CSS, and the focused browser-proof verifier.
-- Keep the row visible for the healthy selected thread and for exactly one bounded switching target during intentional switches.
-- Clear stale old-thread ownership immediately by switching the row to non-owned transition state instead of reusing `OWNER` copy.
-- Hide the row on reconnect downgrade, polling fallback, terminal idle, and true no-conversation idle.
-- Keep all non-selected conversation rows snapshot-only and do not introduce new transport or side surfaces.
+- Reuse the existing selected-thread SSE ownership, `liveRun`, `sessionPhase`, and degraded-path datasets.
+- Keep the change bounded to the composer-adjacent session strip renderer and the focused selected-thread verifier contract.
+- Render the healthy selected-thread strip as one compact machine-readable phase row driven by selected-thread SSE provenance.
+- Downgrade the strip immediately to `RECONNECT` or `POLLING` on degraded ownership and clear stale healthy phase on switch or idle.
+- Keep the bottom-fixed composer intact on desktop and phone layouts.
+- Do not introduce new transport, new side surfaces, or renewed `/api/goals` dependency on the healthy path.
 
 ## Deliverable
 
-Keep the sticky left-rail active-session row alive through healthy selected-thread runs and intentional switches so it mirrors `OWNER` plus phase and follow state on the healthy SSE path, then retargets to one non-owned `SWITCHING` row for the pending conversation until attach or degrade resolves it.
+Make the composer-adjacent selected-thread session strip the single authoritative live phase surface on the healthy SSE path so it shows `LIVE`, `PROPOSAL`, `REVIEW`, `VERIFY`, `READY`, and `APPLIED` directly from selected-thread SSE provenance, then relabels or clears immediately on reconnect, polling fallback, switch, or idle.

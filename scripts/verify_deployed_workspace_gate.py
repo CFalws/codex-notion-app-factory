@@ -443,6 +443,7 @@ def assert_browser_runtime_surface(
                   const sessionStrip = document.querySelector("#session-strip");
                   const sessionStripState = document.querySelector("#session-strip-state");
                   const sessionStripDetail = document.querySelector("#session-strip-detail");
+                  const stripChips = sessionStripState ? sessionStripState.querySelectorAll(".session-chip") : [];
                   const threadScroller = document.querySelector("#thread-scroller");
                   const composerOwnerRow = document.querySelector("#composer-owner-row");
                   const composerDock = document.querySelector("#conversation-footer-dock");
@@ -499,7 +500,10 @@ def assert_browser_runtime_surface(
                     threadScroller.dataset.phaseProvenance === healthyBlock.dataset.liveBlockPhaseProvenance &&
                     threadScroller.dataset.phaseAuthoritative === healthyBlock.dataset.liveBlockPhaseAuthoritative &&
                     sessionStripState &&
-                    sessionStripState.textContent.includes(healthyBlock.dataset.liveBlockPhase || "") &&
+                    stripChips.length === 1 &&
+                    sessionStripState.dataset.sessionStripRole === "phase" &&
+                    sessionStripState.dataset.sessionStripLabel === (healthyBlock.dataset.liveBlockPhase || "") &&
+                    sessionStripState.textContent.trim() === (healthyBlock.dataset.liveBlockPhase || "") &&
                     (
                       (
                         healthyBlock.dataset.liveBlockPhaseAuthoritative === "true" &&
@@ -628,10 +632,12 @@ def assert_browser_runtime_surface(
                   const summary = document.querySelector("#session-summary-row");
                   const activeSessionRow = document.querySelector("#active-session-row");
                   const sessionStrip = document.querySelector("#session-strip");
+                  const sessionStripState = document.querySelector("#session-strip-state");
                   const statusOutput = document.querySelector("#status-output");
                   const executionStatusCard = statusOutput ? statusOutput.closest(".inspector-card") : null;
                   const follow = document.querySelector("#jump-to-latest");
-                  if (!degraded || healthy || healthyBlock || !summary || !follow || !activeSessionRow || !sessionStrip || !executionStatusCard || !statusOutput) {
+                  const stripChips = sessionStripState ? sessionStripState.querySelectorAll(".session-chip") : [];
+                  if (!degraded || healthy || healthyBlock || !summary || !follow || !activeSessionRow || !sessionStrip || !sessionStripState || !executionStatusCard || !statusOutput) {
                     return false;
                   }
                   const reason = degraded.dataset.liveBlockReason || "";
@@ -644,6 +650,10 @@ def assert_browser_runtime_surface(
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
                     activeSessionRow.dataset.activeSessionSource === "none" &&
                     !sessionStrip.hidden &&
+                    stripChips.length === 1 &&
+                    sessionStripState.dataset.sessionStripRole === "degraded" &&
+                    sessionStripState.dataset.sessionStripLabel === phase &&
+                    sessionStripState.textContent.trim() === phase &&
                     ["reconnect", "polling"].includes(sessionStrip.dataset.composerTransport || "") &&
                     sessionStrip.dataset.composerTransportOwned === "false" &&
                     !executionStatusCard.hidden &&
@@ -667,6 +677,7 @@ def assert_browser_runtime_surface(
                   const threadTitle = document.querySelector("#thread-title");
                   const activeSessionRow = document.querySelector("#active-session-row");
                   const sessionStrip = document.querySelector("#session-strip");
+                  const sessionStripState = document.querySelector("#session-strip-state");
                   const composerDock = document.querySelector("#conversation-footer-dock");
                   const sendRequest = document.querySelector("#send-request");
                   const composerOwnerRow = document.querySelector("#composer-owner-row");
@@ -711,6 +722,11 @@ def assert_browser_runtime_surface(
                     activeSessionRow.textContent.includes("ATTACH") &&
                     sessionStrip &&
                     !sessionStrip.hidden &&
+                    sessionStripState &&
+                    sessionStripState.querySelectorAll(".session-chip").length === 1 &&
+                    sessionStripState.dataset.sessionStripRole === "transition" &&
+                    sessionStripState.dataset.sessionStripLabel === "ATTACH" &&
+                    sessionStripState.textContent.trim() === "ATTACH" &&
                     sessionStrip.dataset.composerState === "switching" &&
                     sessionStrip.dataset.composerTransport === "attach" &&
                     sessionStrip.dataset.composerTargetConversationId === targetConversationId &&
@@ -761,6 +777,7 @@ def assert_browser_runtime_surface(
                   const transition = document.querySelector('[data-thread-transition="loading"]');
                   const activeSessionRow = document.querySelector("#active-session-row");
                   const sessionStrip = document.querySelector("#session-strip");
+                  const sessionStripState = document.querySelector("#session-strip-state");
                   const threadScroller = document.querySelector("#thread-scroller");
                   const empty = document.querySelector(".timeline-empty");
                   return Boolean(
@@ -776,6 +793,11 @@ def assert_browser_runtime_surface(
                     activeSessionRow.dataset.activeSessionConversationId === targetConversationId &&
                     activeSessionRow.dataset.activeSessionFollow === "attach" &&
                     sessionStrip &&
+                    sessionStripState &&
+                    sessionStripState.querySelectorAll(".session-chip").length === 1 &&
+                    sessionStripState.dataset.sessionStripRole === "transition" &&
+                    sessionStripState.dataset.sessionStripLabel === "ATTACH" &&
+                    sessionStripState.textContent.trim() === "ATTACH" &&
                     sessionStrip.dataset.composerState === "switching" &&
                     sessionStrip.dataset.composerTargetConversationId === targetConversationId &&
                     threadScroller &&
@@ -793,6 +815,7 @@ def assert_browser_runtime_surface(
                 """([appId, targetConversationId]) => {
                   const transition = document.querySelector('[data-thread-transition="loading"]');
                   const sessionStrip = document.querySelector("#session-strip");
+                  const sessionStripState = document.querySelector("#session-strip-state");
                   const threadScroller = document.querySelector("#thread-scroller");
                   const composerDock = document.querySelector("#conversation-footer-dock");
                   const summary = document.querySelector("#session-summary-row");
@@ -814,6 +837,11 @@ def assert_browser_runtime_surface(
                     transition.dataset.threadTransitionConversationId === targetConversationId &&
                     sessionStrip &&
                     !sessionStrip.hidden &&
+                    sessionStripState &&
+                    sessionStripState.querySelectorAll(".session-chip").length === 1 &&
+                    sessionStripState.dataset.sessionStripRole === "transition" &&
+                    sessionStripState.dataset.sessionStripLabel === "ATTACH" &&
+                    sessionStripState.textContent.trim() === "ATTACH" &&
                     sessionStrip.dataset.composerState === "switching" &&
                     sessionStrip.dataset.composerTargetConversationId === targetConversationId &&
                     sessionStrip.dataset.phaseValue === "UNKNOWN" &&
@@ -1072,6 +1100,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "proposalStatusLabel", label="session proposal status token helper")
     require(render_js, "sessionChromeCopy", label="session summary chrome copy helper")
     require(render_js, "sessionStripDetailCopy", label="session strip detail copy helper")
+    require(render_js, "sessionStripStateChipMarkup", label="session strip chip markup helper")
+    require(render_js, "sessionStripStateRow", label="session strip single-row state helper")
     require(render_js, 'copy: "ATTACH"', label="composer switching compact copy")
     require(render_js, 'pendingOutgoing.status === "sending-user"', label="composer sending compact copy guard")
     require(render_js, '? "SEND"', label="composer sending compact copy")
@@ -1096,11 +1126,15 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.sessionStrip.hidden = !sessionConversationId;', label="composer strip selected-target visibility")
     require(render_js, 'dom.sessionStrip.dataset.sessionOwner = liveOwned ? "selected-thread" : "none";', label="composer strip selected-thread owner dataset")
     require(render_js, 'dom.sessionStrip.dataset.followState = transportState.owned ? "owned" : "idle";', label="composer strip follow-state dataset")
+    require(render_js, 'dom.sessionStripState.dataset.sessionStripRole = stripState.role;', label="composer strip state role dataset")
+    require(render_js, 'dom.sessionStripState.dataset.sessionStripLabel = stripState.label;', label="composer strip state label dataset")
+    require(render_js, 'dom.sessionStripState.dataset.sessionStripTone = stripState.tone;', label="composer strip state tone dataset")
     require(render_js, 'dom.sessionStripMeta.textContent = ownerState.target;', label="composer strip target copy")
-    require(render_js, 'liveOwned && liveRun.phase && liveRun.phase !== "IDLE"', label="composer strip live phase chip guard")
-    require(render_js, 'proposalState.label !== "NONE"', label="composer strip proposal chip visibility")
-    require(render_js, 'phaseChip(liveRun).tone', label="composer strip live phase chip tone")
-    require(render_js, 'phaseChip(liveRun).label', label="composer strip live phase chip label")
+    require(render_js, 'return { label: "ATTACH", tone: "warning", role: "transition" };', label="composer strip transition phase row")
+    require(render_js, 'return { label: transportState.label, tone: transportState.tone, role: "degraded" };', label="composer strip degraded phase row")
+    require(render_js, 'const phaseState = phaseChip(liveRun, presentation);', label="composer strip live phase row source")
+    require(render_js, 'return { label: phaseState.label, tone: phaseState.tone, role: "phase" };', label="composer strip live phase row")
+    require(render_js, 'dom.sessionStripState.innerHTML = sessionStripStateChipMarkup(stripState);', label="composer strip single-chip render")
     require(render_js, 'dom.sessionStripDetail.textContent = sessionStripDetailCopy(', label="composer strip live phase detail copy")
     require(render_js, 'const mergedStripVisible = Boolean(dom.sessionStrip && !dom.sessionStrip.hidden);', label="composer owner row merged strip visibility")
     require(render_js, 'dom.composerOwnerRow.dataset.composerOwnerMerged = mergedStripVisible ? "true" : "false";', label="composer owner merged dataset")
