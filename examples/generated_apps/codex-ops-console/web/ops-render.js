@@ -1707,7 +1707,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
     inlineState.renderSource === "sse";
   const stripLiveOwned = false;
   const stripState = sessionStripStateRow(ownerState, transportState, liveRun, presentation, liveOwned);
-  dom.sessionStrip.hidden = !sessionConversationId;
+  dom.sessionStrip.hidden = liveOwned ? true : !sessionConversationId;
   dom.sessionStrip.dataset.liveOwned = stripLiveOwned ? "true" : "false";
   dom.sessionStrip.dataset.sessionOwner = stripLiveOwned ? "selected-thread" : "none";
   dom.sessionStrip.dataset.sessionPresentation = presentation;

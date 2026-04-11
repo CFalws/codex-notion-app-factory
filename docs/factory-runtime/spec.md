@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `99`
-- bounded focus: `machine-readable selected-thread restore stage`
+- current iteration: `100`
+- bounded focus: `single live-owned center-pane session surface`
 
 ## Request
 
@@ -13,7 +13,7 @@
 
 ## Problem
 
-Saved selected-thread restore still lacks an explicit machine-readable stage in this proposal worktree. Reload or re-entry can therefore look correct in prose while remaining harder to prove through the intended authoritative SSE attach or resume path.
+The selected-thread restore stage is now canonical, but healthy selected-thread SSE progress still keeps a duplicate composer-adjacent session strip visible above the fixed composer. That leaves the center pane reading like two competing live session surfaces instead of one conversation-first session timeline.
 
 ## Target User
 
@@ -23,12 +23,12 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the existing selected-thread session-status, live-autonomy, and phase-progression helpers in the frontend store.
-- Reuse existing append-stream `attachMode` and `resumeMode` state; do not introduce a new transport or a new polling contract.
-- Keep exactly one live session surface in the transcript timeline during saved selected-thread restore and subsequent healthy SSE ownership.
-- Preserve the bottom-fixed composer, thread-switch clearing, degraded reconnect or polling markers, and rail behavior already established in earlier iterations.
-- Do not suppress `/api/jobs` or `/api/goals` polling in this iteration; make the restore path explicit and machine-readable instead.
+- Reuse the existing selected-thread session-status, live-autonomy, phase-progression, restore-stage, and handoff helpers in the frontend store.
+- Do not introduce a new transport or a new polling contract.
+- Keep exactly one live-owned center-pane session surface during healthy selected-thread SSE progress.
+- Preserve the bottom-fixed composer, restore stage, thread-switch clearing, degraded reconnect or polling markers, and rail behavior already established in earlier iterations.
+- Do not suppress `/api/jobs` or `/api/goals` polling in this iteration; only remove duplicate healthy live-owned presentation in the center pane.
 
 ## Deliverable
 
-Define and verify one canonical selected-thread restore stage contract shared by the store, transcript-tail live item, compact header summary, and composer ownership row so a saved selected conversation can move from explicit restore `ATTACH` or `RESUME` into authoritative SSE ownership without snapshot-ready ambiguity.
+Define and verify one conversation-first selected-thread live surface by keeping the transcript-tail live activity item as the only healthy SSE-owned session surface, while the composer-adjacent strip hides during that healthy path and remains available only for restore, handoff, switching, reconnect, or polling fallback.

@@ -1,21 +1,21 @@
 # Factory Runtime Deploy Plan
 
-## Iteration 99
+## Iteration 100
 
-This deploy plan validates the machine-readable selected-thread restore-stage contract and does not introduce new transport, new polling gates, or new status surfaces beyond that bounded frontend presentation change.
+This deploy plan validates the single healthy selected-thread live-surface contract in the center pane and does not introduce new transport, new polling gates, or new status surfaces beyond that bounded frontend presentation change.
 
 ## Deployment Impact
 
-This iteration changes selected-thread restore continuity and verification surface only. The bounded expectation is that reload or re-entry with a saved selected conversation immediately shows exactly one transcript-tail restore item, the header and composer expose the same machine-readable restore stage without flashing generic snapshot-ready state, degraded reconnect or polling paths stay visibly downgraded, and existing polling behavior remains unchanged.
+This iteration changes healthy selected-thread presentation only. The bounded expectation is that healthy selected-thread SSE progress appears through exactly one transcript-tail live activity item, the composer-adjacent strip hides on that healthy path, restore or degraded states still keep the strip explicit, and existing polling behavior remains unchanged.
 
 ## Rollout Notes
 
 1. Apply the proposal commit onto `main`.
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
 3. Open the operator console on desktop and phone widths with at least one healthy selected-thread conversation and one additional conversation for switching.
-4. Reload the workspace or re-enter with a saved selected conversation and confirm the transcript tail immediately shows exactly one restore `ATTACH` or `RESUME` item for that conversation.
-5. Confirm the compact header summary, composer ownership row, session strip, and thread scroller all expose matching restore stage, path, and provenance datasets while restore is pending.
-6. Confirm no snapshot `READY` or `ATTACHED` label appears before authoritative selected-thread SSE bootstrap succeeds.
-7. Confirm the same selected thread transitions in place to healthy SSE ownership, with no conversation refetch and no `/api/jobs` or `/api/goals` owned success on the healthy path.
-8. Switch threads and confirm the old restore owner clears immediately while the mounted shell and fixed composer continuity still hold.
-9. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible selected-thread restore contract succeeds through the intended authoritative SSE path.
+4. Reload the workspace or re-enter with a saved selected conversation and confirm restore still appears through one transcript-tail `ATTACH` or `RESUME` item before bootstrap settles.
+5. Drive a healthy selected-thread SSE session and confirm the transcript-tail live activity item is the only live-owned session surface in the center pane.
+6. Confirm the composer-adjacent session strip hides on that healthy path, while the fixed composer remains bound to the same conversation.
+7. Confirm restore, handoff, switching, reconnect, or polling fallback still expose the session strip with explicit downgraded or pending context.
+8. Confirm no new `/api/jobs` or `/api/goals` suppression was introduced in this iteration beyond the existing intended-path behavior.
+9. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible selected-thread single-surface contract succeeds through the intended path.

@@ -493,12 +493,8 @@ def assert_browser_runtime_surface(
                     ["live", "paused", "new"].includes(activeSessionRow.dataset.activeSessionFollow || "") &&
                     activeSessionRow.textContent.includes("OWNER") &&
                     sessionStrip &&
-                    !sessionStrip.hidden &&
+                    sessionStrip.hidden &&
                     threadScroller &&
-                    sessionStrip.dataset.composerState === "ready" &&
-                    sessionStrip.dataset.composerTransport === "sse-owner" &&
-                    sessionStrip.dataset.composerTransportSource === "sse" &&
-                    sessionStrip.dataset.composerTransportOwned === "false" &&
                     sessionStrip.dataset.phaseValue === liveActivity.dataset.liveRunPhase &&
                     sessionStrip.dataset.phaseProvenance === liveActivity.dataset.liveRunSource &&
                     threadScroller.dataset.phaseValue === liveActivity.dataset.liveRunPhase &&
@@ -515,8 +511,8 @@ def assert_browser_runtime_surface(
                     !sessionStripDetail.textContent.includes("OWNER") &&
                     !sessionStripDetail.textContent.includes("authoritative") &&
                     composerOwnerRow &&
-                    composerOwnerRow.hidden &&
-                    composerOwnerRow.dataset.composerOwnerMerged === "true" &&
+                    !composerOwnerRow.hidden &&
+                    composerOwnerRow.dataset.composerOwnerMerged === "false" &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     sendRequest &&
@@ -1139,7 +1135,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'const transportState = composerTransportState(currentState, conversation, liveRun, handoffState);', label="composer strip transport helper wiring")
     require(render_js, "const proposalState = proposalChip(liveRun);", label="composer strip proposal chip helper wiring")
     require(render_js, "const liveOwned =", label="composer strip ownership decoupled from strip visibility")
-    require(render_js, 'dom.sessionStrip.hidden = !sessionConversationId;', label="composer strip selected-target visibility")
+    require(render_js, 'dom.sessionStrip.hidden = liveOwned ? true : !sessionConversationId;', label="composer strip selected-target visibility")
     require(render_js, 'dom.sessionStrip.dataset.sessionOwner = stripLiveOwned ? "selected-thread" : "none";', label="composer strip selected-thread owner dataset")
     require(render_js, 'dom.sessionStrip.dataset.followState = transportState.owned ? "owned" : "idle";', label="composer strip follow-state dataset")
     require(render_js, 'dom.sessionStripState.dataset.sessionStripRole = stripState.role;', label="composer strip state role dataset")

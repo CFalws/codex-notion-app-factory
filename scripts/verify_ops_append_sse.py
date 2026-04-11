@@ -495,7 +495,7 @@ def main() -> int:
     require(render_js, 'if (!conversationId && !(threadTransition.active && threadTransition.targetConversationId) && !sessionStatus.conversationId) {', label="composer strip idle clear branch")
     require(render_js, 'const ownerState = composerOwnerState(currentState, conversation);', label="composer strip owner helper wiring")
     require(render_js, 'const transportState = composerTransportState(currentState, conversation, liveRun, handoffState);', label="composer strip transport helper wiring")
-    require(render_js, 'dom.sessionStrip.hidden = !sessionConversationId;', label="composer strip selected-target visibility")
+    require(render_js, 'dom.sessionStrip.hidden = liveOwned ? true : !sessionConversationId;', label="composer strip selected-target visibility")
     require(render_js, 'dom.sessionStrip.dataset.restoreStage = sessionStatus.restoreStage || "none";', label="composer strip restore stage dataset")
     require(render_js, 'dom.sessionStrip.dataset.restorePath = sessionStatus.restorePath || "none";', label="composer strip restore path dataset")
     require(render_js, 'dom.sessionStrip.dataset.restoreProvenance = sessionStatus.restoreProvenance || "none";', label="composer strip restore provenance dataset")
