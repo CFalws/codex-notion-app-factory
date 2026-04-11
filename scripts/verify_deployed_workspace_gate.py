@@ -487,6 +487,8 @@ def assert_browser_runtime_surface(
                     summary.dataset.summaryPath === "session" &&
                     summary.dataset.liveSessionOwned === "true" &&
                     summary.dataset.footerDockOwned === "true" &&
+                    summary.dataset.centerTimelineAuthority === "true" &&
+                    summary.dataset.centerTimelinePresentation === "healthy" &&
                     summary.dataset.summaryState === "attached" &&
                     summaryCopy &&
                     summaryCopy.textContent.trim().length > 0 &&
@@ -543,13 +545,21 @@ def assert_browser_runtime_surface(
                     autonomyDetailCard &&
                     autonomyDetailCard.hidden &&
                     autonomyDetailCard.dataset.autonomySurface === "center-lane" &&
+                    autonomyDetailCard.dataset.centerTimelineAuthority === "true" &&
+                    autonomyDetailCard.dataset.centerTimelinePresentation === "healthy" &&
                     autonomyDetail &&
                     autonomyDetail.dataset.surface === "center-lane" &&
+                    autonomyDetail.dataset.centerTimelineAuthority === "true" &&
+                    autonomyDetail.dataset.centerTimelinePresentation === "healthy" &&
                     executionStatusCard &&
                     executionStatusCard.hidden &&
                     executionStatusCard.dataset.executionSurface === "center-lane" &&
+                    executionStatusCard.dataset.centerTimelineAuthority === "true" &&
+                    executionStatusCard.dataset.centerTimelinePresentation === "healthy" &&
                     statusOutput &&
                     statusOutput.dataset.surface === "center-lane" &&
+                    statusOutput.dataset.centerTimelineAuthority === "true" &&
+                    statusOutput.dataset.centerTimelinePresentation === "healthy" &&
                     !sessionEvent &&
                     follow &&
                     follow.dataset.followOwned !== undefined &&
@@ -726,9 +736,11 @@ def assert_browser_runtime_surface(
                   return (
                     ["retrying", "reconnecting", "polling-fallback", "session-rotation"].includes(reason) &&
                     ["RECONNECT", "POLLING"].includes(phase) &&
-                    !summary.hidden &&
+                    summary.hidden &&
                     summary.dataset.summaryPath === "degraded" &&
                     summary.dataset.liveSessionOwned === "false" &&
+                    summary.dataset.centerTimelineAuthority === "true" &&
+                    summary.dataset.centerTimelinePresentation === "degraded" &&
                     liveIndicator &&
                     liveIndicator.hidden &&
                     ["RECONNECT", "POLLING"].includes(liveIndicator.textContent.trim()) &&
@@ -743,9 +755,13 @@ def assert_browser_runtime_surface(
                     sessionStripState.textContent.trim() === phase &&
                     ["reconnect", "polling"].includes(sessionStrip.dataset.composerTransport || "") &&
                     sessionStrip.dataset.composerTransportOwned === "false" &&
-                    !executionStatusCard.hidden &&
-                    executionStatusCard.dataset.executionSurface === "secondary-detail" &&
-                    statusOutput.dataset.surface === "secondary-detail" &&
+                    executionStatusCard.hidden &&
+                    executionStatusCard.dataset.executionSurface === "center-lane" &&
+                    executionStatusCard.dataset.centerTimelineAuthority === "true" &&
+                    executionStatusCard.dataset.centerTimelinePresentation === "degraded" &&
+                    statusOutput.dataset.surface === "center-lane" &&
+                    statusOutput.dataset.centerTimelineAuthority === "true" &&
+                    statusOutput.dataset.centerTimelinePresentation === "degraded" &&
                     sessionStrip.dataset.composerTransport !== "sse-owner" &&
                     follow.dataset.followOwned !== "selected-thread"
                   );
@@ -1106,14 +1122,25 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "syncExecutionStatusSurface", label="execution status surface helper")
     require(render_js, 'statusCard.hidden = promoteToCenterLane;', label="execution card hidden helper")
     require(render_js, 'statusCard.dataset.executionSurface = promoteToCenterLane ? "center-lane" : "secondary-detail";', label="execution card surface dataset")
+    require(render_js, 'statusCard.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="execution card center-timeline authority dataset")
+    require(render_js, 'statusCard.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="execution card center-timeline presentation dataset")
     require(render_js, 'dom.statusOutput.dataset.surface = promoteToCenterLane ? "center-lane" : "secondary-detail";', label="status output surface dataset")
+    require(render_js, 'dom.statusOutput.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="status output center-timeline authority dataset")
+    require(render_js, 'dom.statusOutput.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="status output center-timeline presentation dataset")
     require(render_js, 'dom.jobEvents.dataset.surface = promoteToCenterLane ? "center-lane" : "secondary-detail";', label="job events surface dataset")
+    require(render_js, 'dom.jobEvents.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="job events center-timeline authority dataset")
+    require(render_js, 'dom.jobEvents.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="job events center-timeline presentation dataset")
     require(render_js, 'dom.jobPhase.dataset.surface = promoteToCenterLane ? "center-lane" : "secondary-detail";', label="job phase surface dataset")
+    require(render_js, 'dom.jobPhase.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="job phase center-timeline authority dataset")
+    require(render_js, 'dom.jobPhase.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="job phase center-timeline presentation dataset")
     require(render_js, 'dom.jobMeta.dataset.surface = promoteToCenterLane ? "center-lane" : "secondary-detail";', label="job meta surface dataset")
+    require(render_js, 'dom.jobMeta.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="job meta center-timeline authority dataset")
+    require(render_js, 'dom.jobMeta.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="job meta center-timeline presentation dataset")
     require(render_js, "if (inlineState.visible) {", label="composer strip suppression guard")
     require(render_js, "renderInlineSessionBlock", label="inline session block helper")
     require(render_js, "INLINE_TERMINAL_RETENTION_MS = 12000", label="inline terminal retention window")
     require(render_js, "shouldRetainInlineTerminalPhase", label="inline terminal retention helper")
+    require(render_js, "selectedThreadTimelineAuthorityModel", label="timeline authority model helper")
     require(render_js, "renderThreadTransition", label="thread transition helper")
     require(render_js, "function renderThreadTransition(currentState, sessionStatus = deriveSelectedThreadSessionStatus(currentState, null))", label="thread transition canonical status signature")
     require(render_js, "pendingHandoffState", label="pending handoff helper")
@@ -1204,7 +1231,9 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.sessionSummaryRow.dataset.restorePath = sessionStatus.restorePath || "none";', label="session summary restore path dataset")
     require(render_js, 'dom.sessionSummaryRow.dataset.restoreProvenance = sessionStatus.restoreProvenance || "none";', label="session summary restore provenance dataset")
     require(render_js, 'dom.sessionSummaryRow.dataset.footerDockOwned = footerDockOwnsLive ? "true" : "false";', label="header footer-dock ownership dataset")
-    require(render_js, 'dom.sessionSummaryRow.hidden = !headerSummaryVisible || footerDockOwnsLive;', label="header summary row visibility")
+    require(render_js, 'dom.sessionSummaryRow.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="header center-timeline authority dataset")
+    require(render_js, 'dom.sessionSummaryRow.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="header center-timeline presentation dataset")
+    require(render_js, 'dom.sessionSummaryRow.hidden = !headerSummaryVisible || timelineAuthority.visible;', label="header summary row visibility")
     require(render_js, 'label: "ATTACH"', label="composer strip attach label")
     require(render_js, 'label: "SNAPSHOT"', label="composer strip snapshot label")
     require(store_js, 'transportLabel = "POLLING";', label="composer strip polling label")
@@ -1238,7 +1267,11 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "deriveSelectedThreadLiveAutonomy", label="selected-thread live autonomy render helper import")
     require(render_js, 'autonomyCard.hidden = hideForSelectedThreadLiveAutonomy;', label="selected-thread live autonomy card suppression")
     require(render_js, 'autonomyCard.dataset.autonomySurface = hideForSelectedThreadLiveAutonomy ? "center-lane" : "secondary-detail";', label="autonomy card surface dataset")
+    require(render_js, 'autonomyCard.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="autonomy card center-timeline authority dataset")
+    require(render_js, 'autonomyCard.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="autonomy card center-timeline presentation dataset")
     require(render_js, 'dom.autonomyDetail.dataset.surface = hideForSelectedThreadLiveAutonomy ? "center-lane" : "secondary-detail";', label="autonomy detail surface dataset")
+    require(render_js, 'dom.autonomyDetail.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="autonomy detail center-timeline authority dataset")
+    require(render_js, 'dom.autonomyDetail.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="autonomy detail center-timeline presentation dataset")
     require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionSource = sessionIndicator.source;', label="header indicator source dataset")
     require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionOwned = sessionIndicator.owned ? "true" : "false";', label="header indicator ownership dataset")
     require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionReason = sessionIndicator.reason;', label="header indicator reason dataset")

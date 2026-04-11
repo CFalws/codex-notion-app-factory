@@ -1,9 +1,9 @@
 # Factory Runtime Tasks
 
-## Iteration 131
+## Iteration 143
 
-- [x] Add one canonical selected-thread session surface helper derived from existing SSE-owned session status, phase progression, live autonomy, and milestone helpers.
-- [x] Route the composer-adjacent session strip footer dock through that shared selected-thread session surface helper.
-- [x] Route the transcript-tail live activity item through the same shared helper for phase, verifier, blocker, and milestone authority.
-- [x] Preserve reconnect, polling fallback, restore, switch, and deselection downgrade or clear behavior without stale healthy selected-thread ownership.
-- [x] Align focused verifiers and proposal artifacts with the iteration-131 shared selected-thread session-surface contract.
+- [x] Add one render-owned selected-thread timeline authority helper derived from the existing session surface and inline-session state.
+- [x] Hide the selected-thread header summary row whenever the center timeline owns selected-thread session authority.
+- [x] Demote the selected-thread autonomy detail and execution status cards off the authoritative path while the center timeline item is active.
+- [x] Publish machine-readable center-timeline authority datasets for healthy and degraded states on the demoted surfaces.
+- [x] Align focused static and deployed verifiers plus proposal artifacts with the iteration-143 center-timeline authority contract.

@@ -1,12 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 131
+## Iteration 143
 
-Unify the transcript-tail live activity item and composer-adjacent session strip behind one canonical selected-thread session surface model.
+Make the center-timeline live-session item the primary selected-thread authority and demote duplicate center-lane status prose.
 
-1. Keep the selected-thread SSE authority, verifier-evidence projection, shell-phase vocabulary, and transcript-primary center-lane contracts unchanged.
-2. Add one store-owned selected-thread session surface helper that derives phase label, verifier acceptability, blocker reason, milestones, and degraded-state visibility from existing authoritative helpers.
-3. Route the composer-adjacent footer dock through that shared session surface helper instead of re-deriving live phase and milestone authority locally.
-4. Route the transcript-tail live activity item through the same helper for phase label, verifier acceptability, blocker reason, and milestone provenance.
-5. Preserve immediate downgrade or clear behavior on reconnect, polling fallback, restore, switch, deselection, and non-owned paths.
-6. Extend the focused verifier layer and proposal artifacts so iteration 131 proves the transcript-tail live activity item and composer-adjacent strip now share one canonical selected-thread session projection.
+1. Add one render-layer selected-thread timeline authority helper derived from the existing selected-thread session surface and inline-session helpers.
+2. Use that helper to decide when the header summary row should hide instead of competing with the timeline item.
+3. Use the same helper to demote the autonomy detail and execution status cards into non-authoritative center-lane surfaces while the timeline item is active.
+4. Publish machine-readable datasets on those demoted surfaces so verification can prove healthy and degraded authority paths explicitly.
+5. Preserve existing transport, polling suppression, restore, handoff, switch, and composer behavior.
+6. Extend focused static and deployed verification so iteration 143 proves the timeline item owns selected-thread authority and stale duplicate prose does not survive degraded or cleared paths.

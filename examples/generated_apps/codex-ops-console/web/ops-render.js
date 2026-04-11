@@ -477,6 +477,7 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
   const liveAutonomy = deriveSelectedThreadLiveAutonomy(currentState, conversation);
   const phaseProgression = deriveSelectedThreadPhaseProgression(currentState, conversation);
+  const timelineAuthority = selectedThreadTimelineAuthorityModel(conversation, currentState, liveRun, handoffState);
   const conversationId = String(conversation?.conversation_id || sessionStatus.conversationId || "");
   const switchingSelectedThread = Boolean(threadTransition.active && threadTransition.targetConversationId);
   const headerSummaryVisible = !switchingSelectedThread && Boolean(conversationId || sessionStatus.conversationId);
@@ -540,7 +541,9 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   dom.sessionSummaryRow.dataset.liveSessionReason = sessionIndicator.reason;
   dom.sessionSummaryRow.dataset.liveSessionOwned = sessionIndicator.owned ? "true" : "false";
   dom.sessionSummaryRow.dataset.footerDockOwned = footerDockOwnsLive ? "true" : "false";
-  dom.sessionSummaryRow.hidden = !headerSummaryVisible || footerDockOwnsLive;
+  dom.sessionSummaryRow.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
+  dom.sessionSummaryRow.dataset.centerTimelinePresentation = timelineAuthority.presentation;
+  dom.sessionSummaryRow.hidden = !headerSummaryVisible || timelineAuthority.visible;
   dom.sessionSummaryScope.textContent = compactTargetLabel(
     conversation?.title || sessionStatus.conversationTitle || threadTransition.targetTitle || "",
     "SELECTED",
@@ -884,6 +887,28 @@ function shouldShowComposerLiveStrip(conversation, currentState, liveRun, handof
   }
 
   return inlineState.renderSource === "sse";
+}
+
+function selectedThreadTimelineAuthorityModel(conversation, currentState, liveRun, handoffState = { stage: "idle" }) {
+  const sessionSurface = deriveSelectedThreadSessionSurfaceModel(currentState, conversation);
+  const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
+  const restoreVisible = !conversation && sessionSurface.restoreVisible;
+  const visible = Boolean(inlineState.visible || restoreVisible);
+  const presentation = restoreVisible
+    ? "restore"
+    : inlineState.handoffVisible
+      ? "handoff"
+      : inlineState.degradedVisible
+        ? "degraded"
+        : inlineState.liveVisible
+          ? "healthy"
+          : "hidden";
+  return {
+    visible,
+    presentation,
+    sessionSurface,
+    inlineState,
+  };
 }
 
 function renderInlineSessionBlock(conversation, currentState, liveRun, handoffState) {
@@ -2076,11 +2101,15 @@ function syncAutonomyDetailSurface(dom, currentState, conversation, liveRun, han
   if (!autonomyCard || !dom.autonomyDetail) {
     return;
   }
-  const liveAutonomy = conversation ? deriveSelectedThreadLiveAutonomy(currentState, conversation) : { visible: false };
-  const hideForSelectedThreadLiveAutonomy = Boolean(liveAutonomy.owned);
+  const timelineAuthority = selectedThreadTimelineAuthorityModel(conversation, currentState, liveRun, handoffState);
+  const hideForSelectedThreadLiveAutonomy = timelineAuthority.visible;
   autonomyCard.hidden = hideForSelectedThreadLiveAutonomy;
   autonomyCard.dataset.autonomySurface = hideForSelectedThreadLiveAutonomy ? "center-lane" : "secondary-detail";
+  autonomyCard.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
+  autonomyCard.dataset.centerTimelinePresentation = timelineAuthority.presentation;
   dom.autonomyDetail.dataset.surface = hideForSelectedThreadLiveAutonomy ? "center-lane" : "secondary-detail";
+  dom.autonomyDetail.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
+  dom.autonomyDetail.dataset.centerTimelinePresentation = timelineAuthority.presentation;
 }
 
 function phaseLabel(status, eventType = "") {
@@ -2111,20 +2140,24 @@ function syncExecutionStatusSurface(dom, currentState, conversation, liveRun, se
   if (!statusCard || !dom.statusOutput || !dom.jobEvents || !dom.jobPhase || !dom.jobMeta) {
     return;
   }
-  const promoteToCenterLane =
-    Boolean(currentState) &&
-    Boolean(conversation?.conversation_id) &&
-    selectedThreadSseOwned &&
-    liveRun?.visible &&
-    !liveRun?.terminal &&
-    Boolean(liveRun?.phase) &&
-    liveRun.phase !== "IDLE";
+  const timelineAuthority = selectedThreadTimelineAuthorityModel(conversation, currentState, liveRun, pendingHandoffState(conversation, currentState));
+  const promoteToCenterLane = timelineAuthority.visible;
   statusCard.hidden = promoteToCenterLane;
   statusCard.dataset.executionSurface = promoteToCenterLane ? "center-lane" : "secondary-detail";
+  statusCard.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
+  statusCard.dataset.centerTimelinePresentation = timelineAuthority.presentation;
   dom.statusOutput.dataset.surface = promoteToCenterLane ? "center-lane" : "secondary-detail";
+  dom.statusOutput.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
+  dom.statusOutput.dataset.centerTimelinePresentation = timelineAuthority.presentation;
   dom.jobEvents.dataset.surface = promoteToCenterLane ? "center-lane" : "secondary-detail";
+  dom.jobEvents.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
+  dom.jobEvents.dataset.centerTimelinePresentation = timelineAuthority.presentation;
   dom.jobPhase.dataset.surface = promoteToCenterLane ? "center-lane" : "secondary-detail";
+  dom.jobPhase.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
+  dom.jobPhase.dataset.centerTimelinePresentation = timelineAuthority.presentation;
   dom.jobMeta.dataset.surface = promoteToCenterLane ? "center-lane" : "secondary-detail";
+  dom.jobMeta.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
+  dom.jobMeta.dataset.centerTimelinePresentation = timelineAuthority.presentation;
 }
 
 export function renderJobActivity(dom, conversation, currentJobId, jobPayload = null, currentState = null) {
