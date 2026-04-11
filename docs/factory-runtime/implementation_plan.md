@@ -1,11 +1,11 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 118
+## Iteration 119
 
-Move transcript-bottom follow ownership onto the selected-thread session model so the off-tail follow control is deterministic and healthy-path only.
+Converge the footer session strip and detached follow affordance into one bottom-fixed session bar above the composer.
 
-1. Reuse `deriveSelectedThreadSessionStatus(...)` and `currentState.liveFollow` as the only inputs to a canonical selected-thread follow-control model in `ops-store.js`.
-2. Keep the transcript-bottom control as the only detached follow surface, but wire it to that store-owned model instead of render-local transport checks.
-3. Preserve existing switch, reconnect, polling fallback, terminal, and non-selected clearing behavior by letting the store model return hidden state on every degraded path.
-4. Keep jump-to-latest and scroll re-engagement as the only ways to clear the control on the healthy path.
-5. Extend the focused verifier layer and proposal artifacts so iteration 118 proves the bottom follow control is owned by selected-thread SSE state instead of polling or stale render datasets.
+1. Reuse the existing selected-thread footer dock and follow-control models as the only footer state inputs.
+2. Keep the session strip visible as the single live-owned footer surface on the healthy selected-thread SSE path.
+3. Route detached follow action through the same footer bar by turning the session-strip toggle into the jump-to-latest action when follow state is visible.
+4. Keep the old transcript-bottom follow button hidden so no second footer follow surface remains.
+5. Extend the focused verifier layer and proposal artifacts so iteration 119 proves the footer bar owns detached follow behavior without reintroducing stale or duplicate live-owned cues.

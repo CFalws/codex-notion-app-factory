@@ -1230,23 +1230,16 @@ function syncJumpToLatest(dom, currentState, conversationId, renderSource) {
     return;
   }
   const footerFollow = selectedThreadFooterFollowState(dom, currentState, conversationId, renderSource);
-  const isVisible = footerFollow.visible;
-  const stateLabel = footerFollow.stateLabel;
-  const detailLabel = footerFollow.detailLabel;
-  dom.jumpToLatestButton.hidden = !isVisible;
-  dom.jumpToLatestButton.dataset.followConversationId = isVisible ? footerFollow.conversationId || conversationId || "" : "";
-  dom.jumpToLatestButton.dataset.followOwned = footerFollow.liveOwned ? "selected-thread" : "none";
-  dom.jumpToLatestButton.dataset.followMode = isVisible ? footerFollow.followState : "hidden";
-  dom.jumpToLatestButton.dataset.followState = isVisible ? footerFollow.followState : "hidden";
-  dom.jumpToLatestButton.dataset.followCount = String(isVisible ? footerFollow.unseenCount : 0);
+  dom.jumpToLatestButton.hidden = true;
+  dom.jumpToLatestButton.dataset.followConversationId = "";
+  dom.jumpToLatestButton.dataset.followOwned = "none";
+  dom.jumpToLatestButton.dataset.followMode = "hidden";
+  dom.jumpToLatestButton.dataset.followState = "hidden";
+  dom.jumpToLatestButton.dataset.followCount = "0";
   dom.jumpToLatestButton.dataset.followRenderSource = footerFollow.renderSource || renderSource || "snapshot";
-  dom.jumpToLatestButton.setAttribute(
-    "aria-label",
-    isVisible ? `${stateLabel}. ${detailLabel}. 최신 응답으로 이동` : "최신 응답으로 이동",
-  );
-  dom.jumpToLatestButton.innerHTML = isVisible
-    ? `<span class="jump-to-latest-chip">${stateLabel}</span><span class="jump-to-latest-copy">${detailLabel}</span>`
-    : '<span class="jump-to-latest-chip">NEW</span><span class="jump-to-latest-copy">최신 응답으로 이동</span>';
+  dom.jumpToLatestButton.setAttribute("aria-label", "최신 응답으로 이동");
+  dom.jumpToLatestButton.innerHTML =
+    '<span class="jump-to-latest-chip">NEW</span><span class="jump-to-latest-copy">최신 응답으로 이동</span>';
 }
 
 function selectedThreadFooterFollowState(dom, currentState, conversationId, renderSource) {

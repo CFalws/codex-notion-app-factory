@@ -564,30 +564,41 @@ def assert_browser_runtime_surface(
             page.wait_for_function(
                 """conversationId => {
                   const follow = document.querySelector("#jump-to-latest");
-                  return Boolean(
-                    follow &&
-                    !follow.hidden &&
-                    follow.dataset.followOwned === "selected-thread" &&
-                    follow.dataset.followConversationId === conversationId &&
-                    ["new", "paused"].includes(follow.dataset.followState || "") &&
-                    Number(follow.dataset.followCount || "0") >= 0 &&
-                    follow.dataset.followRenderSource === "sse"
-                  );
-                }""",
-                conversation_id,
-                timeout=30000,
-            )
-            page.click("#jump-to-latest")
-            page.wait_for_function(
-                """() => {
-                  const follow = document.querySelector("#jump-to-latest");
+                  const sessionStripToggle = document.querySelector("#session-strip-toggle");
                   return Boolean(
                     follow &&
                     follow.hidden &&
                     follow.dataset.followOwned === "none" &&
                     follow.dataset.followState === "hidden" &&
                     follow.dataset.followCount === "0" &&
-                    follow.dataset.followConversationId === ""
+                    sessionStripToggle &&
+                    !sessionStripToggle.hidden &&
+                    sessionStripToggle.dataset.sessionAction === "jump-latest" &&
+                    ["new", "paused"].includes(sessionStripToggle.dataset.followState || "") &&
+                    Number(sessionStripToggle.dataset.followCount || "0") >= 0 &&
+                    sessionStripToggle.textContent.trim().length > 0
+                  );
+                }""",
+                conversation_id,
+                timeout=30000,
+            )
+            page.click("#session-strip-toggle")
+            page.wait_for_function(
+                """() => {
+                  const follow = document.querySelector("#jump-to-latest");
+                  const sessionStripToggle = document.querySelector("#session-strip-toggle");
+                  return Boolean(
+                    follow &&
+                    follow.hidden &&
+                    follow.dataset.followOwned === "none" &&
+                    follow.dataset.followState === "hidden" &&
+                    follow.dataset.followCount === "0" &&
+                    follow.dataset.followConversationId === "" &&
+                    sessionStripToggle &&
+                    sessionStripToggle.hidden &&
+                    sessionStripToggle.dataset.sessionAction === "toggle-session-rail" &&
+                    sessionStripToggle.dataset.followState === "idle" &&
+                    sessionStripToggle.dataset.followCount === "0"
                   );
                 }""",
                 timeout=30000,
@@ -1308,16 +1319,17 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "selectedThreadFooterFollowState", label="footer follow state helper")
     require(render_js, "pendingAppendCount", label="follow control unseen append state")
     require(render_js, 'const footerFollow = selectedThreadFooterFollowState(dom, currentState, conversationId, renderSource);', label="follow control footer follow source")
-    require(render_js, 'const isVisible = footerFollow.visible;', label="follow control visibility mapping")
-    require(render_js, 'dom.jumpToLatestButton.dataset.followOwned = footerFollow.liveOwned ? "selected-thread" : "none";', label="follow control owner dataset")
-    require(render_js, 'dom.jumpToLatestButton.dataset.followState = isVisible ? footerFollow.followState : "hidden";', label="follow control state dataset")
-    require(render_js, 'dom.jumpToLatestButton.dataset.followCount = String(isVisible ? footerFollow.unseenCount : 0);', label="follow control count dataset")
-    require(render_js, 'dom.jumpToLatestButton.dataset.followConversationId = isVisible ? footerFollow.conversationId || conversationId || "" : "";', label="follow control conversation dataset")
+    require(render_js, 'dom.jumpToLatestButton.hidden = true;', label="follow button hidden when footer bar owns control")
+    require(render_js, 'dom.jumpToLatestButton.dataset.followOwned = "none";', label="follow button owner cleared")
+    require(render_js, 'dom.jumpToLatestButton.dataset.followState = "hidden";', label="follow button state cleared")
+    require(render_js, 'dom.jumpToLatestButton.dataset.followCount = "0";', label="follow button count cleared")
+    require(render_js, 'dom.jumpToLatestButton.dataset.followConversationId = "";', label="follow button conversation cleared")
     require(render_js, 'dom.jumpToLatestButton.dataset.followRenderSource = footerFollow.renderSource || renderSource || "snapshot";', label="follow control render source dataset")
     require(store_js, 'followState === "new"', label="follow control new-state derivation")
     require(store_js, 'followState === "paused"', label="follow control paused-state derivation")
     require(store_js, "새 live append", label="follow control new copy")
     require(store_js, "live follow paused · unseen", label="follow control paused copy")
+    require(render_js, 'dom.sessionStripToggle.hidden = !footerFollow.visible;', label="footer bar follow action visibility")
     require(render_js, 'dom.sessionStripToggle.dataset.sessionAction = footerFollow.visible ? "jump-latest" : "toggle-session-rail";', label="session strip toggle action dataset")
     require(render_js, 'phase: "PROPOSAL"', label="proposal phase mapping")
     require(render_js, 'phase: "REVIEW"', label="review phase mapping")
