@@ -1,11 +1,11 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 81
+## Iteration 85
 
-Tighten the composer-adjacent session strip into one authoritative selected-thread phase row without widening transport or layout scope.
+Record the selected-thread switch continuity contract for this proposal branch without widening the already-correct runtime implementation.
 
-1. Reuse the existing selected-thread SSE ownership, `liveRun`, `sessionPhase`, and degraded-path datasets.
-2. Collapse the healthy selected-thread strip state row to one compact phase chip instead of multiple owner and transport chips.
-3. Keep degraded reconnect and polling paths explicit by relabeling that same row to `RECONNECT` or `POLLING`.
-4. Clear stale healthy phase copy immediately on thread switch or idle by moving the strip state row to transition or cleared state.
-5. Extend focused browser-proof and static verifiers so the strip proves a single-chip phase-first contract with no healthy `/api/goals` fallback after submit.
+1. Reuse the existing selected-thread switch datasets instead of inventing a second continuity model.
+2. Keep the center shell mounted through intentional switches with exactly one transition placeholder instead of a generic empty state.
+3. Keep the bottom-fixed composer and the active-session rail mirror on the same switching target while stale old-thread ownership clears immediately.
+4. Keep degraded reconnect, polling fallback, terminal idle, and true idle behavior explicit by clearing or relabeling through the existing canonical selected-thread state.
+5. Reconfirm the focused browser-proof and static verifiers around the bounded switch continuity contract.
