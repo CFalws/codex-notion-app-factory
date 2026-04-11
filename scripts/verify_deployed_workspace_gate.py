@@ -656,21 +656,21 @@ def assert_browser_runtime_surface(
                     secondarySessionFacts.dataset.secondaryFactsVerifier === liveActivity.dataset.liveVerifierAcceptability &&
                     secondarySessionFacts.dataset.secondaryFactsBlocker === liveActivity.dataset.liveBlockerReason &&
                     autonomyDetailCard &&
-                    !autonomyDetailCard.hidden &&
-                    autonomyDetailCard.dataset.autonomySurface === "secondary-detail" &&
+                    autonomyDetailCard.hidden &&
+                    autonomyDetailCard.dataset.autonomySurface === "suppressed" &&
                     autonomyDetailCard.dataset.centerTimelineAuthority === "true" &&
                     autonomyDetailCard.dataset.centerTimelinePresentation === "healthy" &&
                     autonomyDetail &&
-                    autonomyDetail.dataset.surface === "secondary-detail" &&
+                    autonomyDetail.dataset.surface === "suppressed" &&
                     autonomyDetail.dataset.centerTimelineAuthority === "true" &&
                     autonomyDetail.dataset.centerTimelinePresentation === "healthy" &&
                     executionStatusCard &&
-                    !executionStatusCard.hidden &&
-                    executionStatusCard.dataset.executionSurface === "secondary-detail" &&
+                    executionStatusCard.hidden &&
+                    executionStatusCard.dataset.executionSurface === "suppressed" &&
                     executionStatusCard.dataset.centerTimelineAuthority === "true" &&
                     executionStatusCard.dataset.centerTimelinePresentation === "healthy" &&
                     statusOutput &&
-                    statusOutput.dataset.surface === "secondary-detail" &&
+                    statusOutput.dataset.surface === "suppressed" &&
                     statusOutput.dataset.centerTimelineAuthority === "true" &&
                     statusOutput.dataset.centerTimelinePresentation === "healthy" &&
                     sessionEvents.length === 0 &&
@@ -701,11 +701,11 @@ def assert_browser_runtime_surface(
                     secondarySessionFacts.dataset.secondaryFactsOwned === "false" &&
                     secondarySessionFacts.dataset.secondaryFactsTransport === "SUPPRESSED" &&
                     autonomyDetailCard &&
-                    !autonomyDetailCard.hidden &&
-                    autonomyDetailCard.dataset.autonomySurface === "secondary-detail" &&
+                    autonomyDetailCard.hidden &&
+                    autonomyDetailCard.dataset.autonomySurface === "suppressed" &&
                     executionStatusCard &&
-                    !executionStatusCard.hidden &&
-                    executionStatusCard.dataset.executionSurface === "secondary-detail"
+                    executionStatusCard.hidden &&
+                    executionStatusCard.dataset.executionSurface === "suppressed"
                   );
                 }""",
                 timeout=30000,
@@ -1363,20 +1363,20 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.secondarySessionFacts.dataset.secondaryFactsBlocker = facts.blocker;', label="secondary panel facts blocker dataset")
     require(render_js, 'dom.secondarySessionFacts.dataset.secondaryFactsFollow = facts.follow;', label="secondary panel facts follow dataset")
     require(render_js, "syncExecutionStatusSurface", label="execution status surface helper")
-    require(render_js, 'statusCard.hidden = false;', label="execution card hidden helper")
-    require(render_js, 'statusCard.dataset.executionSurface = "secondary-detail";', label="execution card surface dataset")
+    require(render_js, 'statusCard.hidden = suppressed;', label="execution card hidden helper")
+    require(render_js, 'statusCard.dataset.executionSurface = suppressed ? "suppressed" : "secondary-detail";', label="execution card surface dataset")
     require(render_js, 'statusCard.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="execution card center-timeline authority dataset")
     require(render_js, 'statusCard.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="execution card center-timeline presentation dataset")
-    require(render_js, 'dom.statusOutput.dataset.surface = "secondary-detail";', label="status output surface dataset")
+    require(render_js, 'dom.statusOutput.dataset.surface = suppressed ? "suppressed" : "secondary-detail";', label="status output surface dataset")
     require(render_js, 'dom.statusOutput.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="status output center-timeline authority dataset")
     require(render_js, 'dom.statusOutput.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="status output center-timeline presentation dataset")
-    require(render_js, 'dom.jobEvents.dataset.surface = "secondary-detail";', label="job events surface dataset")
+    require(render_js, 'dom.jobEvents.dataset.surface = suppressed ? "suppressed" : "secondary-detail";', label="job events surface dataset")
     require(render_js, 'dom.jobEvents.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="job events center-timeline authority dataset")
     require(render_js, 'dom.jobEvents.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="job events center-timeline presentation dataset")
-    require(render_js, 'dom.jobPhase.dataset.surface = "secondary-detail";', label="job phase surface dataset")
+    require(render_js, 'dom.jobPhase.dataset.surface = suppressed ? "suppressed" : "secondary-detail";', label="job phase surface dataset")
     require(render_js, 'dom.jobPhase.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="job phase center-timeline authority dataset")
     require(render_js, 'dom.jobPhase.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="job phase center-timeline presentation dataset")
-    require(render_js, 'dom.jobMeta.dataset.surface = "secondary-detail";', label="job meta surface dataset")
+    require(render_js, 'dom.jobMeta.dataset.surface = suppressed ? "suppressed" : "secondary-detail";', label="job meta surface dataset")
     require(render_js, 'dom.jobMeta.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="job meta center-timeline authority dataset")
     require(render_js, 'dom.jobMeta.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="job meta center-timeline presentation dataset")
     require(render_js, "if (inlineState.visible) {", label="composer strip suppression guard")
@@ -1528,10 +1528,10 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "syncAutonomyDetailSurface", label="secondary autonomy surface sync helper")
     require(render_js, "deriveSelectedThreadLiveAutonomy", label="selected-thread live autonomy render helper import")
     require(render_js, 'autonomyCard.hidden = false;', label="selected-thread live autonomy card suppression")
-    require(render_js, 'autonomyCard.dataset.autonomySurface = "secondary-detail";', label="autonomy card surface dataset")
+    require(render_js, 'autonomyCard.dataset.autonomySurface = suppressed ? "suppressed" : "secondary-detail";', label="autonomy card surface dataset")
     require(render_js, 'autonomyCard.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="autonomy card center-timeline authority dataset")
     require(render_js, 'autonomyCard.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="autonomy card center-timeline presentation dataset")
-    require(render_js, 'dom.autonomyDetail.dataset.surface = "secondary-detail";', label="autonomy detail surface dataset")
+    require(render_js, 'dom.autonomyDetail.dataset.surface = suppressed ? "suppressed" : "secondary-detail";', label="autonomy detail surface dataset")
     require(render_js, 'dom.autonomyDetail.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="autonomy detail center-timeline authority dataset")
     require(render_js, 'dom.autonomyDetail.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="autonomy detail center-timeline presentation dataset")
     require(render_js, 'dom.threadPhaseChip.dataset.liveSessionSource = badgeSource;', label="header badge live source dataset")

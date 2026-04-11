@@ -1,12 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 206
+## Iteration 207
 
-Tighten the selected-thread healthy-path transport boundary so append SSE session state is the sole live authority for job, phase, proposal, verifier, and apply state.
+Collapse healthy-path autonomy and execution state into the existing center session surface and hide duplicate secondary-detail cards while that surface is authoritative.
 
-1. Keep the change bounded to the selected-thread append SSE path, its session-status projection, and verifier expectations.
-2. Prefer append SSE session-status job identity over snapshot or polling-owned `currentJobId/latest_job_id` while healthy selected-thread authority is active.
-3. Preserve apply readiness from the selected-thread session strip model instead of live-run or polling-only fallbacks.
-4. Suppress polling-owned `syncLatestJob` and goals refresh mutations during healthy selected-thread attach.
-5. Preserve reconnect, switch, deselection, restore-gap, and terminal-clear fallback behavior unchanged.
-6. Align static checks, browser checks, and proposal artifacts with the tightened healthy-path authority contract.
+1. Keep the change bounded to the healthy selected-thread presentation seam and verifier expectations.
+2. Reuse the existing selected-thread timeline authority and session strip models as the only healthy-path execution and autonomy source.
+3. Hide the secondary autonomy and execution cards only when the center timeline is healthy and authoritative.
+4. Preserve degraded, reconnect, switch, deselection, restore-gap, and terminal-clear paths as explicit fail-open detail routes.
+5. Keep the mounted conversation shell, milestone lane, and bottom-fixed composer unchanged.
+6. Align static checks, browser checks, and proposal artifacts with the healthy-path secondary-card suppression contract.

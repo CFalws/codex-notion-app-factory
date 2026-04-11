@@ -1,10 +1,10 @@
 # Factory Runtime Tasks
 
-## Iteration 206
+## Iteration 207
 
-- [x] Keep the change bounded to the selected-thread healthy append SSE path and existing fallback gate.
-- [x] Prefer selected-thread append SSE session status for healthy-path authority job identity.
-- [x] Preserve apply readiness from the selected-thread session strip model on the healthy path.
-- [x] Suppress bootstrap polling-owned `syncLatestJob` and goals refresh mutations while healthy selected-thread authority is active.
-- [x] Preserve reconnect, switch, deselection, restore-gap, and terminal-clear fallback behavior.
-- [x] Align static checks, browser checks, and proposal artifacts with the tightened healthy-path authority contract.
+- [x] Keep the change bounded to the selected-thread healthy presentation seam and existing timeline authority helpers.
+- [x] Preserve the center timeline and session strip as the healthy-path authority source.
+- [x] Suppress duplicate secondary autonomy detail on the healthy selected-thread path.
+- [x] Suppress duplicate secondary execution detail on the healthy selected-thread path.
+- [x] Preserve degraded, reconnect, switch, deselection, restore-gap, and terminal-clear fail-open detail behavior.
+- [x] Align static checks, browser checks, and proposal artifacts with the healthy-path secondary-card suppression contract.

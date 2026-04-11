@@ -2361,11 +2361,12 @@ function syncAutonomyDetailSurface(dom, currentState, conversation, liveRun, han
     return;
   }
   const timelineAuthority = selectedThreadTimelineAuthorityModel(conversation, currentState, liveRun, handoffState);
-  autonomyCard.hidden = false;
-  autonomyCard.dataset.autonomySurface = "secondary-detail";
+  const suppressed = timelineAuthority.visible && timelineAuthority.presentation === "healthy";
+  autonomyCard.hidden = suppressed;
+  autonomyCard.dataset.autonomySurface = suppressed ? "suppressed" : "secondary-detail";
   autonomyCard.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
   autonomyCard.dataset.centerTimelinePresentation = timelineAuthority.presentation;
-  dom.autonomyDetail.dataset.surface = "secondary-detail";
+  dom.autonomyDetail.dataset.surface = suppressed ? "suppressed" : "secondary-detail";
   dom.autonomyDetail.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
   dom.autonomyDetail.dataset.centerTimelinePresentation = timelineAuthority.presentation;
 }
@@ -2399,20 +2400,21 @@ function syncExecutionStatusSurface(dom, currentState, conversation, liveRun, se
     return;
   }
   const timelineAuthority = selectedThreadTimelineAuthorityModel(conversation, currentState, liveRun, pendingHandoffState(conversation, currentState));
-  statusCard.hidden = false;
-  statusCard.dataset.executionSurface = "secondary-detail";
+  const suppressed = timelineAuthority.visible && timelineAuthority.presentation === "healthy";
+  statusCard.hidden = suppressed;
+  statusCard.dataset.executionSurface = suppressed ? "suppressed" : "secondary-detail";
   statusCard.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
   statusCard.dataset.centerTimelinePresentation = timelineAuthority.presentation;
-  dom.statusOutput.dataset.surface = "secondary-detail";
+  dom.statusOutput.dataset.surface = suppressed ? "suppressed" : "secondary-detail";
   dom.statusOutput.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
   dom.statusOutput.dataset.centerTimelinePresentation = timelineAuthority.presentation;
-  dom.jobEvents.dataset.surface = "secondary-detail";
+  dom.jobEvents.dataset.surface = suppressed ? "suppressed" : "secondary-detail";
   dom.jobEvents.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
   dom.jobEvents.dataset.centerTimelinePresentation = timelineAuthority.presentation;
-  dom.jobPhase.dataset.surface = "secondary-detail";
+  dom.jobPhase.dataset.surface = suppressed ? "suppressed" : "secondary-detail";
   dom.jobPhase.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
   dom.jobPhase.dataset.centerTimelinePresentation = timelineAuthority.presentation;
-  dom.jobMeta.dataset.surface = "secondary-detail";
+  dom.jobMeta.dataset.surface = suppressed ? "suppressed" : "secondary-detail";
   dom.jobMeta.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
   dom.jobMeta.dataset.centerTimelinePresentation = timelineAuthority.presentation;
 }
