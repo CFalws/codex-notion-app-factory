@@ -35,7 +35,17 @@ import {
   updateProposalButton,
   updateSelectedAppCard,
 } from "./ops-render.js";
-import { getDraft, isAppendStreamAuthoritative, isAppendStreamConnected, loadSettings, normalizeBaseUrl, saveSettings, setDraft, state } from "./ops-store.js";
+import {
+  getDraft,
+  isAppendStreamAuthoritative,
+  isAppendStreamConnected,
+  isSelectedThreadSessionOwned,
+  loadSettings,
+  normalizeBaseUrl,
+  saveSettings,
+  setDraft,
+  state,
+} from "./ops-store.js";
 
 function persistSettings() {
   saveSettings(dom, state);
@@ -262,10 +272,12 @@ async function sendMessage() {
     );
     setJobMeta(dom, `QUEUED · ${payload.job.job_id}`);
 
-    if (!isAppendStreamAuthoritative(state, conversationId)) {
+    if (!isSelectedThreadSessionOwned(state, conversationId)) {
       jobController.stopPolling();
       await jobController.pollCurrentState();
       jobController.ensurePollingForJob();
+    } else {
+      jobController.stopPolling();
     }
   } catch (error) {
     conversationController.clearPendingOutgoing();
@@ -438,6 +450,7 @@ function initControllers() {
     state,
     isAppendStreamAuthoritative,
     isAppendStreamConnected,
+    isSelectedThreadSessionOwned,
     updateProposalButton,
   });
 

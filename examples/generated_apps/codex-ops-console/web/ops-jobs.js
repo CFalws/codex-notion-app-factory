@@ -14,6 +14,7 @@ export function createJobController(deps) {
     describeJob,
     isAppendStreamConnected,
     isAppendStreamAuthoritative,
+    isSelectedThreadSessionOwned,
   } = deps;
 
   async function syncLatestJob() {
@@ -45,7 +46,7 @@ export function createJobController(deps) {
     if (
       !state.currentJobId ||
       state.pollingTimer ||
-      (state.currentConversationId && isAppendStreamAuthoritative(state, state.currentConversationId))
+      (state.currentConversationId && isSelectedThreadSessionOwned(state, state.currentConversationId))
     ) {
       return;
     }
@@ -63,6 +64,10 @@ export function createJobController(deps) {
   }
 
   async function pollCurrentState() {
+    if (state.currentConversationId && isSelectedThreadSessionOwned(state, state.currentConversationId)) {
+      stopPolling();
+      return;
+    }
     try {
       const payload = await syncLatestJob();
 

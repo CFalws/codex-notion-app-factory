@@ -107,6 +107,44 @@ export function isAppendStreamAuthoritative(currentState, conversationId = "") {
   );
 }
 
+export function isSelectedThreadSessionOwned(currentState, conversationId = "") {
+  const appendStream = currentState.appendStream || {};
+  const pendingOutgoing = currentState.pendingOutgoing || {};
+  const sessionPhase = appendStream.sessionPhase || {};
+  const pendingStatus = String(pendingOutgoing.status || "idle");
+  const phaseValue = String(sessionPhase.value || "UNKNOWN").toUpperCase();
+  const phaseSource = String(sessionPhase.source || "none").toLowerCase();
+  const ownedTransport =
+    Boolean(conversationId) &&
+    currentState.currentConversationId === conversationId &&
+    appendStream.conversationId === conversationId &&
+    appendStream.transport === "sse" &&
+    (appendStream.status === "connecting" || appendStream.status === "live");
+  if (!ownedTransport) {
+    return false;
+  }
+  if (
+    pendingOutgoing.conversationId === conversationId &&
+    (pendingStatus === "sending-user" || pendingStatus === "awaiting-assistant")
+  ) {
+    return true;
+  }
+  if (appendStream.lastRenderSource !== "sse" && phaseSource !== "sse") {
+    return false;
+  }
+  return (
+    phaseValue === "LIVE" ||
+    (Boolean(sessionPhase.authoritative) &&
+      (
+        phaseValue === "PROPOSAL" ||
+        phaseValue === "REVIEW" ||
+        phaseValue === "VERIFY" ||
+        phaseValue === "READY" ||
+        phaseValue === "APPLIED"
+      ))
+  );
+}
+
 export function draftKey(appId, conversationId = "") {
   return `${appId || "no-app"}::${conversationId || "new-conversation"}`;
 }

@@ -342,7 +342,7 @@ def assert_browser_runtime_surface(
             page.evaluate("() => { window.__verifyFetchMark = window.__verifyFetchLog.length; window.__verifySseMark = window.__verifySseEvents.length; }")
             page.click(f'[data-conversation-id="{conversation_id}"]')
             page.wait_for_function(
-                """conversationId => {
+                """([appId, conversationId]) => {
                   const summary = document.querySelector("#session-summary-row");
                   const sendRequest = document.querySelector("#send-request");
                   const sessionStrip = document.querySelector("#session-strip");
@@ -356,6 +356,9 @@ def assert_browser_runtime_surface(
                   );
                   const conversationFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
                     entry => String(entry.url || "").includes(`/api/conversations/${conversationId}`)
+                  );
+                  const jobFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
+                    entry => String(entry.url || "").includes("/api/jobs/")
                   );
                   const goalsFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
                     entry => String(entry.url || "").includes(`/api/apps/${appId}/goals`)
@@ -378,6 +381,7 @@ def assert_browser_runtime_surface(
                     document.querySelector(`[data-conversation-id="${conversationId}"]`) &&
                     bootstrapEvents.length >= 1 &&
                     conversationFetches.length === 0 &&
+                    jobFetches.length === 0 &&
                     goalsFetches.length === 0 &&
                     !emptyState
                   );
@@ -387,6 +391,7 @@ def assert_browser_runtime_surface(
             )
 
             page.fill("#request-text", request_text)
+            page.evaluate("() => { window.__verifyFetchMark = window.__verifyFetchLog.length; }")
             page.click("#send-request")
 
             deadline = time.monotonic() + 60
@@ -401,7 +406,7 @@ def assert_browser_runtime_surface(
                 raise RuntimeError("browser runtime verifier could not observe latest_job_id after composer submit")
 
             page.wait_for_function(
-                """([appId, conversationId]) => {
+                """conversationId => {
                   const healthyBlock = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-block-owner="selected-thread"][data-live-owned="true"]');
                   const liveActivity = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
                   const summary = document.querySelector("#session-summary-row");
@@ -418,6 +423,10 @@ def assert_browser_runtime_surface(
                   const autonomyDetailCard = document.querySelector(".autonomy-detail-card");
                   const autonomyDetail = document.querySelector("#autonomy-detail");
                   const follow = document.querySelector("#jump-to-latest");
+                  const fetchMark = Number(window.__verifyFetchMark || 0);
+                  const jobFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
+                    entry => String(entry.url || "").includes("/api/jobs/")
+                  );
                   return Boolean(
                     healthyBlock &&
                     !liveActivity &&
@@ -485,7 +494,8 @@ def assert_browser_runtime_surface(
                     autonomyDetail &&
                     autonomyDetail.dataset.surface === "center-lane" &&
                     follow &&
-                    follow.dataset.followOwned !== undefined
+                    follow.dataset.followOwned !== undefined &&
+                    jobFetches.length === 0
                   );
                 }""",
                 conversation_id,
@@ -1042,9 +1052,18 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, "transitionAppendStreamToFallback", label="explicit reconnect fallback helper")
     require(conversations_js, 'state.appendStream.transport = "sse"', label="selected-thread sse transport")
     require(store_js, "export function isAppendStreamAuthoritative", label="append stream authoritative helper")
+    require(store_js, "export function isSelectedThreadSessionOwned", label="selected-thread session ownership helper")
+    require(store_js, 'phaseValue === "LIVE"', label="selected-thread session live phase guard")
+    require(store_js, 'phaseValue === "PROPOSAL"', label="selected-thread session proposal phase guard")
+    require(store_js, 'phaseValue === "REVIEW"', label="selected-thread session review phase guard")
+    require(store_js, 'phaseValue === "VERIFY"', label="selected-thread session verify phase guard")
+    require(store_js, 'phaseValue === "READY"', label="selected-thread session ready phase guard")
+    require(store_js, 'phaseValue === "APPLIED"', label="selected-thread session applied phase guard")
     require(store_js, 'appendStream.status === "connecting" || appendStream.status === "live"', label="append stream authoritative connecting-or-live guard")
     require(jobs_js, "isAppendStreamAuthoritative", label="job polling authoritative helper wiring")
-    require(jobs_js, "state.currentConversationId && isAppendStreamAuthoritative(state, state.currentConversationId)", label="polling suppression while selected-thread stream is authoritative")
+    require(jobs_js, "isSelectedThreadSessionOwned", label="job polling selected-thread session ownership helper wiring")
+    require(jobs_js, "state.currentConversationId && isSelectedThreadSessionOwned(state, state.currentConversationId)", label="polling suppression while selected-thread session is sse-owned")
+    require(jobs_js, "stopPolling();\n      return;", label="polling early exit while selected-thread session is sse-owned")
     require(jobs_js, "!isAppendStreamAuthoritative(state, state.currentConversationId)", label="polling refetch skip while append stream is authoritative")
     require(styles, ".conversation-card-live-owner-row", label="selected card live owner row CSS")
     require(styles, ".active-session-row", label="active session row CSS")
