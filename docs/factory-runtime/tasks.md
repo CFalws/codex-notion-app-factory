@@ -1,10 +1,10 @@
 # Factory Runtime Tasks
 
-## Iteration 167
+## Iteration 169
 
-- [x] Keep the sticky active-session row read-only over the existing selected-thread session and follow seam.
-- [x] Make the row visible for healthy live, handoff, paused or unseen follow, and bounded switching states only.
-- [x] Keep the row selected-thread-only and prevent non-selected rows from appearing live-owned.
-- [x] Clear the row on reconnect downgrade, polling fallback, terminal completion, deselection, lost authority, and switch resolution.
-- [x] Add machine-readable row datasets for switching and clear-reason verification.
-- [x] Align focused docs and verification with the iteration-167 sticky active-session contract.
+- [x] Keep the header change read-only over the existing selected-thread SSE authority and transcript-tail live activity seam.
+- [x] Add one compact chip-first summary row above the transcript for healthy selected-thread ownership only.
+- [x] Hide the header phase chip on the healthy selected-thread path while preserving it for degraded, restore, or switching states.
+- [x] Remove live-phase prose from `conversation-meta` so the transcript remains the dominant realtime session surface.
+- [x] Clear the summary row on switching, reconnect downgrade, polling fallback, terminal completion, deselection, and lost authority.
+- [x] Align focused docs and verification with the iteration-169 compact header-summary contract.

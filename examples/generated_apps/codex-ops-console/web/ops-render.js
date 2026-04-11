@@ -681,11 +681,35 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
       : sessionIndicator.state === "reconnecting"
         ? `${healthyPhaseLabel} VIA SSE RECONNECT`
         : sessionIndicator.state === "polling"
-          ? `${healthyPhaseLabel} VIA POLLING FALLBACK`
-          : sessionIndicator.state === "handoff"
+        ? `${healthyPhaseLabel} VIA POLLING FALLBACK`
+        : sessionIndicator.state === "handoff"
             ? `${healthyPhaseLabel} VIA HANDOFF`
             : `${healthyPhaseLabel} VIA ${String(sessionStatus.transportLabel || "SESSION").toUpperCase()}`;
-  dom.threadPhaseChip.hidden = !badgeVisible;
+  const summaryVisible =
+    Boolean(conversationId) &&
+    !switchingSelectedThread &&
+    !sessionStatus.selectedThreadRestore &&
+    !Boolean(liveRun?.terminal) &&
+    sessionIndicator.owned &&
+    badgePresentation === "healthy";
+  if (dom.threadSessionSummary && dom.threadSessionSummaryScope && dom.threadSessionSummaryPath && dom.threadSessionSummaryPhase) {
+    const summaryScope = "SELECTED";
+    const summaryPath = String(sessionStatus.pathVerdict || "EXPECTED").toUpperCase();
+    dom.threadSessionSummary.hidden = !summaryVisible;
+    dom.threadSessionSummary.dataset.threadSummaryVisible = summaryVisible ? "true" : "false";
+    dom.threadSessionSummary.dataset.threadSummaryPresentation = summaryVisible ? "healthy" : "cleared";
+    dom.threadSessionSummary.dataset.threadSummaryScope = summaryVisible ? "selected-thread" : "";
+    dom.threadSessionSummary.dataset.threadSummaryPath = summaryVisible ? summaryPath : "";
+    dom.threadSessionSummary.dataset.threadSummaryPhase = summaryVisible ? healthyPhaseLabel : "";
+    dom.threadSessionSummary.dataset.threadSummarySource = summaryVisible ? badgeSource : "none";
+    dom.threadSessionSummary.dataset.threadSummaryOwned = summaryVisible ? "true" : "false";
+    dom.threadSessionSummary.dataset.threadSummaryConversationId = summaryVisible ? conversationId : "";
+    dom.threadSessionSummary.dataset.threadSummaryReason = summaryVisible ? "selected-thread-sse" : badgeReason;
+    dom.threadSessionSummaryScope.textContent = summaryScope;
+    dom.threadSessionSummaryPath.textContent = summaryPath;
+    dom.threadSessionSummaryPhase.textContent = healthyPhaseLabel;
+  }
+  dom.threadPhaseChip.hidden = summaryVisible ? true : !badgeVisible;
   dom.threadPhaseChip.textContent = badgeLabel;
   dom.threadPhaseChip.dataset.tone = badgeTone;
   dom.threadPhaseChip.dataset.threadPhase = badgeLabel;
@@ -1848,10 +1872,6 @@ function composerActionHint(status, presentation, liveRun) {
 
 function threadMetaSummary(conversation, liveRun, messageCount, eventCount) {
   const parts = [conversation.updated_at ? new Date(conversation.updated_at).toLocaleString() : ""];
-  if (liveRun?.visible && liveRun.phase && liveRun.phase !== "IDLE") {
-    parts.push(compactPhaseDetailCopy(liveRun, String(liveRun.phase || "LIVE").toUpperCase()));
-    return parts.filter(Boolean).join(" · ");
-  }
   parts.push(`${messageCount} messages`);
   parts.push(`${eventCount} events`);
   return parts.filter(Boolean).join(" · ");

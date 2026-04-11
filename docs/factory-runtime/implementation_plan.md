@@ -1,12 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 167
+## Iteration 169
 
-Mirror the canonical selected-thread session into one sticky active-session row above the conversation list.
+Collapse the selected-thread center-pane live header into one compact summary row and keep the transcript-tail live activity primary.
 
-1. Keep the change read-only over the existing selected-thread session and follow seam.
-2. Reuse the sticky active-session row above the conversation list instead of adding a new navigator surface.
-3. Make the row visible for healthy live, handoff, paused or unseen follow, and bounded switching states only.
-4. Keep the row selected-thread-only and clear it immediately on reconnect downgrade, polling fallback, terminal completion, deselection, lost authority, or switch resolution.
-5. Make the row machine-readable so verification can distinguish healthy selected-thread ownership from switching or cleared states.
-6. Align focused verification and proposal artifacts with the iteration-167 sticky active-session contract.
+1. Keep the change read-only over the existing selected-thread SSE authority and transcript-tail live activity seam.
+2. Add one compact chip-first header summary row for healthy selected-thread ownership using scope, path, and phase only.
+3. Hide the older header phase chip on the healthy selected-thread path so it remains available only for degraded, restore, switching, or cleared states.
+4. Remove live-phase prose from the plain thread metadata copy so the transcript stays the dominant live session surface.
+5. Keep the summary row selected-thread-only and clear it immediately on switching, reconnect downgrade, polling fallback, deselection, lost authority, or terminal completion.
+6. Align focused verification and proposal artifacts with the iteration-169 compact header-summary contract.

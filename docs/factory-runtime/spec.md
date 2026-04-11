@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `167`
-- bounded focus: `mirror the canonical selected-thread session into one sticky active-session row above the conversation list`
+- current iteration: `169`
+- bounded focus: `collapse the selected-thread center-pane live header into one compact machine-readable session summary row`
 
 ## Request
 
@@ -13,21 +13,21 @@
 
 ## Problem
 
-The center-pane and composer surfaces now expose selected-thread session ownership more clearly, but the left navigator still does not keep a persistent sticky active-session row during switching or handoff. Operators can still lose at-a-glance session context while scanning the conversation list.
+The center pane still shows too much selected-thread live-status chrome above the transcript. Operators can see the transcript-tail live activity, but they still have to reconcile a second live-owner surface in the header instead of reading the conversation as one realtime session timeline.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the left rail to keep a persistent selected-thread session marker that agrees with the center pane.
+The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the selected-thread transcript to remain the dominant realtime surface without duplicate status chrome above it.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the iteration bounded to the sticky active-session row above the conversation list.
-- Reuse the existing selected-thread canonical session seam; do not add a new authority source or make non-selected threads look live-owned.
-- Keep the row chip-first, selected-thread-only, and fail closed on idle, terminal completion, reconnect downgrade, polling fallback, deselection, lost authority, or switch resolution.
-- Keep switching visible only while the intentional selected-thread switch is active.
+- Keep the iteration bounded to the selected-thread center-pane header summary and live-status rendering.
+- Reuse the existing selected-thread SSE authority and transcript-tail live item; do not add a new authority source.
+- Keep the header surface chip-first, compact, and fail closed on switching, reconnect downgrade, polling fallback, deselection, lost authority, or terminal resolution.
+- Keep the transcript-tail live activity as the only primary live session item on the healthy selected-thread path.
 
 ## Deliverable
 
-Render one sticky active-session row above the conversation list that mirrors only the selected-thread session state with compact owner, state, and follow cues, including bounded switching visibility and immediate clearing on degraded or idle paths.
+Render at most one compact selected-thread session summary row above the transcript on the healthy path, suppress duplicate live-owner chrome there, and leave the transcript-tail live activity as the only primary live session surface.
