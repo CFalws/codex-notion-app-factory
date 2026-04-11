@@ -992,14 +992,34 @@ export function createConversationController(deps) {
     dom.activeSessionMeta.textContent = visible ? meta : "selected thread";
   }
 
-  function clearThreadTransition() {
+  function clearThreadTransition(options = {}) {
+    const { force = false, conversationId = "", requestId = 0 } = options;
+    const threadTransition = state.threadTransition || {};
+    if (!force && threadTransition.active) {
+      if (conversationId && String(threadTransition.targetConversationId || "") !== String(conversationId || "")) {
+        return;
+      }
+      if (requestId && Number(threadTransition.requestId || 0) !== Number(requestId || 0)) {
+        return;
+      }
+    }
     state.threadTransition = {
       active: false,
       targetConversationId: "",
       targetTitle: "",
       sourceConversationId: "",
       startedAt: "",
+      requestId: 0,
     };
+  }
+
+  function isCurrentThreadTransition(conversationId = "", requestId = 0) {
+    const threadTransition = state.threadTransition || {};
+    return (
+      Boolean(threadTransition.active) &&
+      String(threadTransition.targetConversationId || "") === String(conversationId || "") &&
+      Number(threadTransition.requestId || 0) === Number(requestId || 0)
+    );
   }
 
   function syncSelectedAppSession({ detectRotation }) {
@@ -1042,13 +1062,17 @@ export function createConversationController(deps) {
   }
 
   function startThreadTransition(conversationId) {
+    const nextRequestId = Math.max(Number(state.threadTransitionRequestId || 0), 0) + 1;
+    state.threadTransitionRequestId = nextRequestId;
     state.threadTransition = {
       active: Boolean(conversationId),
       targetConversationId: conversationId || "",
       targetTitle: threadTitleForConversation(conversationId) || "대화",
       sourceConversationId: state.currentConversationId || "",
       startedAt: new Date().toISOString(),
+      requestId: nextRequestId,
     };
+    return nextRequestId;
   }
 
   function truncatePreview(value, maxLength = 72) {
@@ -1435,7 +1459,7 @@ export function createConversationController(deps) {
     const app = selectedAppData(dom);
     const preferredConversationId = state.currentConversationId || state.savedConversationId || "";
     state.conversationCache = null;
-    clearThreadTransition();
+    clearThreadTransition({ force: true });
     closeAppendStream();
 
     if (!app) {
@@ -1475,7 +1499,7 @@ export function createConversationController(deps) {
       state.currentConversationId = "";
       state.savedConversationId = "";
       state.currentJobId = "";
-      clearThreadTransition();
+      clearThreadTransition({ force: true });
       clearPendingOutgoing();
       renderConversation(dom, state, null, persistSettings);
       syncConversationCardState();
@@ -1491,7 +1515,7 @@ export function createConversationController(deps) {
       clearPendingOutgoing();
       state.currentConversationId = "";
       state.currentJobId = "";
-      clearThreadTransition();
+      clearThreadTransition({ force: true });
       renderConversation(dom, state, null, persistSettings);
       syncConversationCardState();
       updateHeroState(dom, {
@@ -1509,7 +1533,7 @@ export function createConversationController(deps) {
   async function fetchConversation(conversationId, options = {}) {
     const { syncJob = true } = options;
     if (!conversationId) {
-      clearThreadTransition();
+      clearThreadTransition({ force: true });
       clearPendingOutgoing();
       closeAppendStream();
       renderConversation(dom, state, null, persistSettings);
@@ -1517,12 +1541,18 @@ export function createConversationController(deps) {
       return;
     }
 
-    if (state.currentConversationId && state.currentConversationId !== conversationId) {
+    const activeTransition = state.threadTransition || {};
+    const replacingTransition =
+      Boolean(activeTransition.active) &&
+      String(activeTransition.targetConversationId || "") !== String(conversationId || "");
+    let transitionRequestId = 0;
+
+    if ((state.currentConversationId && state.currentConversationId !== conversationId) || replacingTransition) {
       if (dom.threadScroller) {
         dom.threadScroller.dataset.pendingConversationId = conversationId;
       }
       state.savedConversationId = conversationId;
-      startThreadTransition(conversationId);
+      transitionRequestId = startThreadTransition(conversationId);
       clearPendingOutgoing();
       closeAppendStream();
       state.currentConversationId = "";
@@ -1530,6 +1560,11 @@ export function createConversationController(deps) {
       state.conversationCache = null;
       renderConversation(dom, state, null, persistSettings);
       syncConversationCardState();
+    } else if (
+      Boolean(activeTransition.active) &&
+      String(activeTransition.targetConversationId || "") === String(conversationId || "")
+    ) {
+      transitionRequestId = Number(activeTransition.requestId || 0);
     }
 
     let conversation;
@@ -1548,14 +1583,20 @@ export function createConversationController(deps) {
         connectAppendStream(conversationId);
       }
     } catch (error) {
-      clearThreadTransition();
+      if (transitionRequestId && !isCurrentThreadTransition(conversationId, transitionRequestId)) {
+        return;
+      }
+      clearThreadTransition({ conversationId, requestId: transitionRequestId });
       renderConversation(dom, state, null, persistSettings);
       syncConversationCardState();
       restoreDraft();
       syncDraftStatus();
       throw error;
     }
-    clearThreadTransition();
+    if (transitionRequestId && !isCurrentThreadTransition(conversationId, transitionRequestId)) {
+      return;
+    }
+    clearThreadTransition({ conversationId, requestId: transitionRequestId });
     if (shouldClearPendingOutgoing(conversation)) {
       clearPendingOutgoing(conversation.conversation_id);
     }

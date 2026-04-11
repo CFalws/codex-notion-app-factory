@@ -8,23 +8,23 @@
 
 ## Problem
 
-Healthy selected-thread execution visibility now stays on the intended central SSE-owned surface, but the remaining session chrome still uses helper-style summary text that makes the operator read prose instead of fixed session vocabulary.
+Healthy selected-thread session ownership and chrome vocabulary are now bounded, but intentional thread switches can still let an older in-flight fetch clear or render over the newer target, which breaks the feeling of one continuous live workspace.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly workspace and expecting the active conversation to read like one live Codex desktop session.
+The primary user is the operator or developer using the phone-friendly workspace and expecting the active conversation to behave like one live Codex desktop session even while changing threads.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the existing selected-thread SSE ownership signals and server-authored session phase datasets.
-- Keep the change bounded to the session summary row, composer owner row, and composer-adjacent session strip.
-- Replace healthy-path helper copy with fixed chip-first, target-first vocabulary for owner, path, phase, follow, and proposal readiness.
-- Preserve explicit short degraded copy for reconnect, polling fallback, session rotation, and thread-switch states.
-- Keep existing machine-readable datasets available for browser-proof assertions.
-- Do not introduce new transport, new status surfaces, or new polling dependencies.
+- Reuse the existing selected-thread switch placeholder, mounted composer shell, and SSE ownership datasets.
+- Keep the change bounded to selected-thread switch handling in the controller and existing browser-proof verifier.
+- Clear old-thread live ownership immediately on intentional switch and keep it cleared until the new target attaches or degrades.
+- Ensure rapid follow-up thread selection cancels the earlier switch path instead of letting stale async results retake the workspace.
+- Keep the generic empty state limited to true no-conversation idle only.
+- Do not introduce new transport, polling, or layout surfaces.
 
 ## Deliverable
 
-Use the existing selected-thread SSE ownership and phase signals so healthy attach, resume, send, proposal, review, verify, ready, and applied flows read through fixed session tokens in the center chrome, while degraded and switching states remain explicit through short downgrade vocabulary.
+Use request-scoped selected-thread transitions so the mounted conversation shell and composer stay continuous across intentional switches, exactly one bounded switching placeholder remains visible, and stale switch results cannot clear or render over the newer target.

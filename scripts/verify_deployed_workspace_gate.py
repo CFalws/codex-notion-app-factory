@@ -258,12 +258,28 @@ def assert_browser_runtime_surface(
   window.__verifySseEvents = [];
   window.__verifySseUrls = [];
   window.__verifyAppendLog = [];
+  window.__verifyDelayedConversationId = "";
+  window.__verifyDelayedConversationConsumed = false;
+  window.__verifyConversationDelayMs = 0;
   if (nativeFetch) {
     window.fetch = (...args) => {
       const request = args[0];
       const url = typeof request === "string" ? request : request?.url || "";
       const method = typeof request === "object" && request?.method ? request.method : (args[1]?.method || "GET");
       window.__verifyFetchLog.push({ url, method });
+      const delayedConversationId = String(window.__verifyDelayedConversationId || "");
+      const shouldDelay =
+        delayedConversationId &&
+        !window.__verifyDelayedConversationConsumed &&
+        url.includes(`/api/conversations/${delayedConversationId}`);
+      if (shouldDelay) {
+        window.__verifyDelayedConversationConsumed = true;
+        return new Promise((resolve, reject) => {
+          window.setTimeout(() => {
+            nativeFetch(...args).then(resolve).catch(reject);
+          }, Number(window.__verifyConversationDelayMs || 0));
+        });
+      }
       return nativeFetch(...args);
     };
   }
@@ -721,12 +737,101 @@ def assert_browser_runtime_surface(
                 timeout=30000,
             )
             switch_snapshot = page.evaluate(browser_snapshot_script())
+
+            page.evaluate(
+                """switchConversationId => {
+                  window.__verifyDelayedConversationId = String(switchConversationId || "");
+                  window.__verifyDelayedConversationConsumed = false;
+                  window.__verifyConversationDelayMs = 800;
+                  window.__verifyFetchMark = window.__verifyFetchLog.length;
+                }""",
+                switch_conversation_id,
+            )
+            page.click(f'[data-conversation-id="{switch_conversation_id}"]')
+            page.wait_for_function(
+                """targetConversationId => {
+                  const transition = document.querySelector('[data-thread-transition="loading"]');
+                  const sessionStrip = document.querySelector("#session-strip");
+                  const threadScroller = document.querySelector("#thread-scroller");
+                  const empty = document.querySelector(".timeline-empty");
+                  return Boolean(
+                    transition &&
+                    document.querySelectorAll('[data-thread-transition="loading"]').length === 1 &&
+                    transition.dataset.threadTransitionConversationId === targetConversationId &&
+                    sessionStrip &&
+                    sessionStrip.dataset.composerState === "switching" &&
+                    sessionStrip.dataset.composerTargetConversationId === targetConversationId &&
+                    threadScroller &&
+                    threadScroller.dataset.threadTransitionState === "loading" &&
+                    threadScroller.dataset.threadTransitionConversationId === targetConversationId &&
+                    !empty
+                  );
+                }""",
+                switch_conversation_id,
+                timeout=30000,
+            )
+            page.evaluate("() => { window.__verifyFetchMark = window.__verifyFetchLog.length; }")
+            page.click(f'[data-conversation-id="{conversation_id}"]')
+            page.wait_for_function(
+                """([appId, targetConversationId]) => {
+                  const transition = document.querySelector('[data-thread-transition="loading"]');
+                  const sessionStrip = document.querySelector("#session-strip");
+                  const threadScroller = document.querySelector("#thread-scroller");
+                  const composerDock = document.querySelector("#conversation-footer-dock");
+                  const summary = document.querySelector("#session-summary-row");
+                  const activeSessionRow = document.querySelector("#active-session-row");
+                  const follow = document.querySelector("#jump-to-latest");
+                  const empty = document.querySelector(".timeline-empty");
+                  const healthyBlock = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-owned="true"]');
+                  const degraded = document.querySelector('.session-inline-block[data-selected-thread-degraded-block="true"]');
+                  const fetchMark = Number(window.__verifyFetchMark || 0);
+                  const jobFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
+                    entry => String(entry.url || "").includes("/api/jobs/")
+                  );
+                  const goalsFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
+                    entry => String(entry.url || "").includes(`/api/apps/${appId}/goals`)
+                  );
+                  return Boolean(
+                    transition &&
+                    document.querySelectorAll('[data-thread-transition="loading"]').length === 1 &&
+                    transition.dataset.threadTransitionConversationId === targetConversationId &&
+                    sessionStrip &&
+                    !sessionStrip.hidden &&
+                    sessionStrip.dataset.composerState === "switching" &&
+                    sessionStrip.dataset.composerTargetConversationId === targetConversationId &&
+                    sessionStrip.dataset.phaseValue === "UNKNOWN" &&
+                    sessionStrip.dataset.phaseAuthoritative === "false" &&
+                    sessionStrip.dataset.phaseProvenance === "thread-transition" &&
+                    threadScroller &&
+                    threadScroller.dataset.threadTransitionState === "loading" &&
+                    threadScroller.dataset.threadTransitionConversationId === targetConversationId &&
+                    threadScroller.dataset.sessionOwner !== "selected-thread" &&
+                    summary &&
+                    summary.dataset.liveSessionOwned === "false" &&
+                    activeSessionRow &&
+                    activeSessionRow.dataset.activeSessionOwned === "false" &&
+                    composerDock &&
+                    ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
+                    follow &&
+                    follow.dataset.followOwned !== "selected-thread" &&
+                    !healthyBlock &&
+                    !degraded &&
+                    !empty &&
+                    jobFetches.length === 0 &&
+                    goalsFetches.length === 0
+                  );
+                }""",
+                [app_id, conversation_id],
+                timeout=30000,
+            )
+            cancelled_switch_snapshot = page.evaluate(browser_snapshot_script())
             return {
                 "job_id": job_id,
                 "healthy": healthy_snapshot,
                 "resume": resume_snapshot,
                 "degraded": degraded_snapshot,
                 "switch": switch_snapshot,
+                "switch_cancelled": cancelled_switch_snapshot,
             }
         except playwright_timeout as exc:
             raise RuntimeError(f"browser runtime verification timed out: {exc}") from exc

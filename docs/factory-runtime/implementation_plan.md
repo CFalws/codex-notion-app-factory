@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Reuse the existing selected-thread SSE-owned session chrome datasets instead of introducing a new state model.
-2. Add one bounded token-join path in `ops-render.js` for healthy session summary copy and session-strip detail copy.
-3. Tighten the composer owner row vocabulary so healthy selected-thread ownership reads through fixed values like `OWNER`, `SEND`, `FIRST`, and `SELECT`.
-4. Keep degraded and switching clarity explicit through short tokenized copy such as `DEGRADED`, `RECONNECT`, and `ATTACH`, without reopening a second live-status surface.
-5. Extend focused browser-proof verifiers and iteration artifacts around the bounded chip-first, target-first session chrome contract.
+1. Reuse the existing thread transition placeholder and mounted composer shell instead of introducing a new switch UI.
+2. Add one request-scoped transition guard in `ops-conversations.js` so stale async switch results cannot clear or render over a newer selected-thread target.
+3. Start a new thread transition not only from an active selected conversation, but also when a second intentional click replaces an already-pending switch target.
+4. Keep degraded and attach behavior unchanged except for scoped clearing, so the transition placeholder still resolves through the existing attach or fallback path.
+5. Extend focused browser-proof verifiers and iteration artifacts around the bounded switch-cancellation continuity contract.
