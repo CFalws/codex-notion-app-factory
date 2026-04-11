@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `180`
-- bounded focus: `make the transcript live rail the only healthy selected-thread readable session surface`
+- current iteration: `181`
+- bounded focus: `keep the selected-thread conversation shell and composer mounted through intentional switches`
 
 ## Request
 
@@ -13,22 +13,22 @@
 
 ## Problem
 
-The selected-thread center pane already has healthy transcript, header, and footer session surfaces. That leaves the operator cross-reading multiple regions to understand the same live session instead of reading one canonical conversation-first rail.
+The healthy selected-thread path is already conversation-first, but the switch boundary is where continuity is still easiest to misread. If the workspace flashes generic empty state or leaves stale old-thread ownership behind during attach, the operator has to infer whether the session is still live.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the active conversation flow itself to explain the current live session without needing header or footer mirrors.
+The primary user is the operator or developer using the phone-friendly realtime workspace and expecting intentional thread switches to feel like one continuous live session instead of a drop to idle.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the iteration bounded to the healthy selected-thread presentation seam across transcript, header, and footer surfaces in the operator console.
-- Reuse the existing selected-thread SSE and session model already driving transcript, header, and footer surfaces; do not change transport ownership rules.
-- Render exactly one compact chip-first readable session rail in the transcript on the healthy selected-thread path.
-- Keep header and footer surfaces as degraded, reconnect, restore, switch, and non-authoritative fallback only.
+- Keep the iteration bounded to selected-thread switch state mapping and rendering over the existing selected-thread authority model in the operator console.
+- Reuse the existing selected-thread SSE and session model already driving workspace placeholder, transition, and composer surfaces; do not change transport ownership rules.
+- Keep the transcript shell and bottom-fixed composer mounted during intentional thread switches.
+- Render exactly one compact switching placeholder while the incoming selected thread snapshot attaches.
 - Fail closed on degraded, reconnect, polling fallback, restore-gap, deselected, switched, and no-selection states.
 
 ## Deliverable
 
-Expose one compact authoritative transcript-local session rail so the operator can read selected-thread scope, ownership, phase, path, and autonomy progression without relying on healthy header or footer mirrors.
+Expose one continuous conversation-first switch path where old-thread live ownership clears immediately, the generic empty workspace never flashes during intentional switches, and the incoming selected thread stays visible through one compact transition placeholder until attach completes.
