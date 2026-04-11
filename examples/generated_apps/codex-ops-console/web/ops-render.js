@@ -3,6 +3,7 @@ import {
   deriveSelectedThreadLiveAutonomy,
   deriveSelectedThreadPhaseProgression,
   deriveSelectedThreadSessionStatus,
+  deriveSelectedThreadTimelineMilestones,
   maxConversationAppendId,
 } from "./ops-store.js";
 
@@ -882,6 +883,34 @@ function summarizeInlineAutonomy(currentState, conversation) {
   `;
 }
 
+function renderTranscriptMilestones(currentState, conversation) {
+  const milestoneModel = deriveSelectedThreadTimelineMilestones(currentState, conversation);
+  const liveAutonomy = deriveSelectedThreadLiveAutonomy(currentState, conversation);
+  const autonomySummary = liveAutonomy.summary;
+  if (!milestoneModel.visible || !autonomySummary) {
+    return "";
+  }
+  const blockerReason = String(autonomySummary.blockerReason || "none").toUpperCase();
+  return `
+    <div class="session-inline-autonomy" data-live-milestones="true" data-live-milestones-source="${escapeHtml(String(milestoneModel.source || "none"))}" data-live-milestones-phase="${escapeHtml(String(milestoneModel.currentLabel || "UNKNOWN"))}">
+      <div class="autonomy-chip-row autonomy-chip-row-compact">
+        ${milestoneModel.items
+          .map(
+            (item) => `<span class="autonomy-chip ${
+              item.state === "complete" ? "healthy" : item.state === "active" ? "neutral" : item.state === "blocked" ? "blocked" : ""
+            }" data-milestone-key="${escapeHtml(item.key)}" data-milestone-state="${escapeHtml(item.state)}">${escapeHtml(item.label)}</span>`,
+          )
+          .join("")}
+      </div>
+      <div class="session-inline-autonomy-meta">
+        <p class="session-inline-autonomy-item"><span>Path</span>${escapeHtml(String(autonomySummary.pathVerdict || "UNKNOWN"))}</p>
+        <p class="session-inline-autonomy-item"><span>Verifier</span>${escapeHtml(String(autonomySummary.verifierAcceptability || "PENDING"))}</p>
+        <p class="session-inline-autonomy-item"><span>Blocker</span>${escapeHtml(blockerReason)}</p>
+      </div>
+    </div>
+  `;
+}
+
 function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
   const handoffState = pendingHandoffState(conversation, currentState);
   const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
@@ -911,7 +940,7 @@ function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
       : simplifyText(phaseDetailHint(liveRun) || liveRun.detail || "");
   const appendStream = currentState.appendStream || {};
   const appendId = Number(appendStream.lastLiveAppendId || appendStream.lastAppendId || 0);
-  const autonomySummary = degradedVisible ? "" : summarizeInlineAutonomy(currentState, conversation);
+  const autonomySummary = degradedVisible ? "" : liveOwned ? renderTranscriptMilestones(currentState, conversation) : summarizeInlineAutonomy(currentState, conversation);
   const provenanceLabel = degradedVisible
     ? String(sessionIndicator.label || "POLLING")
     : handoffVisible
@@ -1912,7 +1941,7 @@ function syncAutonomyDetailSurface(dom, currentState, conversation, liveRun, han
     return;
   }
   const liveAutonomy = conversation ? deriveSelectedThreadLiveAutonomy(currentState, conversation) : { visible: false };
-  const hideForSelectedThreadLiveAutonomy = Boolean(liveAutonomy.visible);
+  const hideForSelectedThreadLiveAutonomy = Boolean(liveAutonomy.owned);
   autonomyCard.hidden = hideForSelectedThreadLiveAutonomy;
   autonomyCard.dataset.autonomySurface = hideForSelectedThreadLiveAutonomy ? "center-lane" : "secondary-detail";
   dom.autonomyDetail.dataset.surface = hideForSelectedThreadLiveAutonomy ? "center-lane" : "secondary-detail";

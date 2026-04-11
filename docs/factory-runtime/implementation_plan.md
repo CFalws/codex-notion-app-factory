@@ -1,11 +1,11 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 102
+## Iteration 103
 
-Make intentional selected-thread switching read as one continuous session workspace without changing transport or introducing a new render surface.
+Make healthy selected-thread autonomy progression read as one canonical timeline surface without changing transport or introducing a new status panel.
 
-1. Reuse the existing `threadTransition` and selected-thread session-status helpers instead of introducing another switch state model.
-2. Keep the center conversation shell mounted and render exactly one compact transition placeholder while `threadTransition` is active.
-3. Make the composer strip show an explicit `SWITCHING` target state during attach instead of a generic target label.
-4. Clear switch mirrors from the recent-thread rail so the transition is owned by the center pane and fixed composer only.
-5. Extend the focused verifier layer and proposal artifacts so the switch path proves no empty-state flash, no stale old-thread ownership, and no polling-owned success presentation.
+1. Reuse the existing selected-thread live-autonomy and phase-progression helpers instead of adding a second autonomy view model.
+2. Derive a store-owned selected-thread timeline milestone model for proposal, review, verify, ready, and applied progression on the healthy SSE-owned path.
+3. Render that milestone model only inside the transcript live activity item so the center conversation becomes the primary progression surface.
+4. Keep degraded, reconnect, restore, and polling provenance explicit, and stop hiding the sidecar autonomy surface when the selected-thread session is not healthy-owned.
+5. Extend the focused verifier layer and proposal artifacts so the healthy path proves timeline-owned progression and the degraded path proves visible non-healthy provenance.

@@ -1,9 +1,9 @@
 # Factory Runtime Tasks
 
-## Iteration 102
+## Iteration 103
 
-- [x] Use canonical selected-thread switch state from `threadTransition` plus `deriveSelectedThreadSessionStatus(...)` instead of ad hoc switching mirrors.
-- [x] Keep the center conversation shell mounted and render exactly one compact switching placeholder while the new thread attaches.
-- [x] Make the composer strip show `SWITCHING` instead of generic `TARGET` during intentional thread attach.
-- [x] Clear switching mirrors from the recent-thread rail so old-thread live ownership does not compete during the switch.
-- [x] Align focused verifiers and proposal artifacts with the iteration-102 switch-continuity contract.
+- [x] Add a canonical selected-thread timeline milestone model for proposal, review, verify, ready, and applied progression on the healthy SSE-owned path.
+- [x] Render that milestone model inside the transcript live activity item instead of relying on separate summary inference.
+- [x] Keep degraded, reconnect, restore, and polling provenance explicit while avoiding healthy-path duplication outside the timeline.
+- [x] Stop hiding the sidecar autonomy surface when the selected-thread session is visible but not healthy-owned.
+- [x] Align focused verifiers and proposal artifacts with the iteration-103 unified timeline-progression contract.

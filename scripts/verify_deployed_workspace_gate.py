@@ -436,6 +436,8 @@ def assert_browser_runtime_surface(
                 """conversationId => {
                   const healthyBlock = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-block-owner="selected-thread"][data-live-owned="true"]');
                   const liveActivity = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
+                  const liveMilestones = liveActivity ? liveActivity.querySelector('[data-live-milestones="true"]') : null;
+                  const activeMilestone = liveActivity ? liveActivity.querySelector('[data-milestone-state="active"]') : null;
                   const summary = document.querySelector("#session-summary-row");
                   const liveIndicator = document.querySelector("#session-live-indicator");
                   const summaryCopy = document.querySelector("#session-summary-copy");
@@ -461,10 +463,14 @@ def assert_browser_runtime_surface(
                   return Boolean(
                     !healthyBlock &&
                     liveActivity &&
+                    liveMilestones &&
+                    activeMilestone &&
                     liveActivity.dataset.liveRunSource === "sse" &&
                     liveActivity.dataset.liveReason === "healthy" &&
                     liveActivity.dataset.liveRunPhase &&
                     liveActivity.dataset.liveRunPhase !== "IDLE" &&
+                    liveMilestones.dataset.liveMilestonesSource === "sse" &&
+                    liveMilestones.dataset.liveMilestonesPhase === liveActivity.dataset.liveRunPhase &&
                     summary &&
                     !summary.hidden &&
                     summary.dataset.summaryPath === "session" &&
@@ -1170,8 +1176,12 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require_absent(render_js, 'const handoffVisible = handoffState.stage === "pending-assistant" && selectedThreadSseOwned;', label="legacy inline handoff visibility guard")
     require(render_js, "sessionTimelineEventModel", label="session timeline event model helper")
     require(render_js, "renderSessionTimelineEvent", label="session timeline event render helper")
+    require(render_js, "renderTranscriptMilestones", label="transcript live milestone helper")
     require(render_js, "const transcriptLiveActivity = renderTranscriptLiveActivity(conversation, currentState, liveRun);", label="transcript live activity wiring")
     require(render_js, "if (inlineState.visible) {", label="transcript live activity suppression guard")
+    require(render_js, 'data-live-milestones="true"', label="transcript live milestone dataset")
+    require(render_js, 'data-milestone-key="${escapeHtml(item.key)}"', label="transcript milestone key dataset")
+    require(render_js, 'data-milestone-state="${escapeHtml(item.state)}"', label="transcript milestone state dataset")
     require(render_js, 'data-session-event="true"', label="session timeline event DOM")
     require(render_js, 'data-session-phase="${escapeHtml(model.phase)}"', label="session timeline event phase dataset")
     require(render_js, 'data-session-milestone="${escapeHtml(model.milestone)}"', label="session timeline event milestone dataset")
@@ -1308,6 +1318,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(store_js, 'presentation = "restore";', label="selected-thread restore presentation")
     require(store_js, "export function deriveSelectedThreadLiveAutonomy", label="canonical selected-thread live autonomy helper")
     require(store_js, "export function deriveSelectedThreadPhaseProgression", label="canonical selected-thread phase progression helper")
+    require(store_js, "export function deriveSelectedThreadTimelineMilestones", label="canonical selected-thread timeline milestones helper")
     require(store_js, "export function isSelectedThreadSessionOwned", label="selected-thread session ownership helper")
     require(store_js, 'phaseValue === "LIVE"', label="selected-thread session live phase guard")
     require(store_js, 'phaseValue === "PROPOSAL"', label="selected-thread session proposal phase guard")

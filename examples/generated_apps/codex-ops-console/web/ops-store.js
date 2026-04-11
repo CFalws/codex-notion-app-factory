@@ -483,6 +483,57 @@ export function deriveSelectedThreadPhaseProgression(currentState, conversation 
   };
 }
 
+export function deriveSelectedThreadTimelineMilestones(currentState, conversation = null) {
+  const liveAutonomy = deriveSelectedThreadLiveAutonomy(currentState, conversation);
+  const phaseProgression = deriveSelectedThreadPhaseProgression(currentState, conversation);
+  const summary = liveAutonomy.summary;
+  if (!liveAutonomy.owned || !summary || !phaseProgression.visible) {
+    return {
+      visible: false,
+      currentLabel: String(phaseProgression.label || "").toUpperCase(),
+      source: String(phaseProgression.source || liveAutonomy.source || "none").toLowerCase(),
+      items: [],
+    };
+  }
+
+  const currentPhase = String(phaseProgression.label || "LIVE").toUpperCase();
+  const phaseRank =
+    currentPhase === "PROPOSAL"
+      ? 0
+      : currentPhase === "REVIEW"
+        ? 1
+        : currentPhase === "VERIFY"
+          ? 2
+          : currentPhase === "AUTO APPLY"
+            ? 3
+            : currentPhase === "READY"
+              ? 4
+              : currentPhase === "APPLIED"
+                ? 5
+                : 0;
+  const items = [
+    { key: "proposal", label: "PROPOSAL", state: phaseRank > 0 ? "complete" : currentPhase === "PROPOSAL" ? "active" : "active" },
+    { key: "review", label: "REVIEW", state: phaseRank > 1 ? "complete" : currentPhase === "REVIEW" ? "active" : "pending" },
+    { key: "verify", label: "VERIFY", state: phaseRank > 2 ? "complete" : currentPhase === "VERIFY" ? "active" : "pending" },
+    { key: "ready", label: "READY", state: phaseRank > 4 ? "complete" : currentPhase === "AUTO APPLY" || currentPhase === "READY" ? "active" : "pending" },
+    { key: "applied", label: "APPLIED", state: currentPhase === "APPLIED" ? "active" : "pending" },
+  ];
+
+  if (String(summary.pathVerdict || "").toUpperCase() === "DEGRADED") {
+    const activeItem = items.find((item) => item.state === "active") || items[0];
+    if (activeItem) {
+      activeItem.state = "blocked";
+    }
+  }
+
+  return {
+    visible: true,
+    currentLabel: currentPhase,
+    source: String(phaseProgression.source || liveAutonomy.source || "sse").toLowerCase(),
+    items,
+  };
+}
+
 export function isSelectedThreadSessionOwned(currentState, conversationId = "") {
   const selectedThreadStatus = deriveSelectedThreadSessionStatus(currentState, { conversation_id: conversationId });
   return Boolean(selectedThreadStatus.authoritative);

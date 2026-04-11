@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `102`
-- bounded focus: `selected-thread switch continuity through one transition owner`
+- current iteration: `103`
+- bounded focus: `selected-thread autonomy progression as one canonical timeline surface`
 
 ## Request
 
@@ -13,7 +13,7 @@
 
 ## Problem
 
-The selected-thread restore stage, healthy live surface, and autonomy authority are now canonical, but the intentional thread-switch moment can still look split across surfaces. The remaining UX gap is that switching still relies on mixed cues instead of one explicit transition owner across the center pane and fixed composer.
+The selected-thread restore stage, healthy live surface, autonomy authority, and switch continuity are now canonical, but bounded autonomy progress still reads as scattered status cues instead of one explicit session timeline progression. The remaining gap is to make proposal, review, verify, ready, and applied state first-class in the selected-thread timeline itself.
 
 ## Target User
 
@@ -28,10 +28,10 @@ The primary user is the operator or developer using the phone-friendly workspace
 - Keep exactly one live-owned center-pane session surface during healthy selected-thread SSE progress.
 - Preserve the bottom-fixed composer, restore stage, thread-switch clearing, degraded reconnect or polling markers, and rail behavior already established in earlier iterations.
 - Do not change transport contracts or add new polling behavior in this iteration.
-- Keep the center conversation shell and bottom-fixed composer mounted during intentional thread changes.
-- Clear stale old-thread live or polling-owned markers immediately when thread transition starts.
-- Let the thread transition state own switch presentation instead of introducing separate switching mirrors elsewhere.
+- Reuse the existing selected-thread SSE authority, autonomy, and phase-progression contract instead of adding another status source.
+- Keep degraded, reconnect, restore, and polling provenance explicit instead of letting them resemble healthy session ownership.
+- Suppress duplicate healthy-path autonomy or execution presentation outside the center timeline when the timeline already owns the session progression.
 
 ## Deliverable
 
-Define and verify one selected-thread switch continuity contract where intentional thread changes keep one compact switching placeholder in the center pane, one switching composer target state, no generic empty-state flash, and immediate clearing of old-thread ownership until the new thread snapshot or SSE attach becomes authoritative.
+Define and verify one selected-thread timeline progression contract where healthy SSE-owned proposal, review, verify, ready, and applied state appears in one canonical center-timeline surface, while degraded and fallback provenance remains explicit and non-healthy.
