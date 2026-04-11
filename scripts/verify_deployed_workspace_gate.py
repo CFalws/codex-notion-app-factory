@@ -699,8 +699,16 @@ def assert_browser_runtime_surface(
                     threadTitle.textContent.trim().length > 0 &&
                     threadTitle.textContent.trim() !== "새 대화를 시작하세요" &&
                     activeSessionRow &&
-                    activeSessionRow.hidden &&
+                    !activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
+                    activeSessionRow.dataset.activeSessionSource === "transition" &&
+                    activeSessionRow.dataset.activeSessionState === "switching" &&
+                    activeSessionRow.dataset.activeSessionPhase === "UNKNOWN" &&
+                    activeSessionRow.dataset.activeSessionConversationId === targetConversationId &&
+                    activeSessionRow.dataset.activeSessionFollow === "attach" &&
+                    activeSessionRow.textContent.includes("TARGET") &&
+                    activeSessionRow.textContent.includes("SWITCHING") &&
+                    activeSessionRow.textContent.includes("ATTACH") &&
                     sessionStrip &&
                     !sessionStrip.hidden &&
                     sessionStrip.dataset.composerState === "switching" &&
@@ -751,6 +759,7 @@ def assert_browser_runtime_surface(
             page.wait_for_function(
                 """targetConversationId => {
                   const transition = document.querySelector('[data-thread-transition="loading"]');
+                  const activeSessionRow = document.querySelector("#active-session-row");
                   const sessionStrip = document.querySelector("#session-strip");
                   const threadScroller = document.querySelector("#thread-scroller");
                   const empty = document.querySelector(".timeline-empty");
@@ -758,6 +767,14 @@ def assert_browser_runtime_surface(
                     transition &&
                     document.querySelectorAll('[data-thread-transition="loading"]').length === 1 &&
                     transition.dataset.threadTransitionConversationId === targetConversationId &&
+                    activeSessionRow &&
+                    !activeSessionRow.hidden &&
+                    activeSessionRow.dataset.activeSessionOwned === "false" &&
+                    activeSessionRow.dataset.activeSessionSource === "transition" &&
+                    activeSessionRow.dataset.activeSessionState === "switching" &&
+                    activeSessionRow.dataset.activeSessionPhase === "UNKNOWN" &&
+                    activeSessionRow.dataset.activeSessionConversationId === targetConversationId &&
+                    activeSessionRow.dataset.activeSessionFollow === "attach" &&
                     sessionStrip &&
                     sessionStrip.dataset.composerState === "switching" &&
                     sessionStrip.dataset.composerTargetConversationId === targetConversationId &&
@@ -809,7 +826,13 @@ def assert_browser_runtime_surface(
                     summary &&
                     summary.dataset.liveSessionOwned === "false" &&
                     activeSessionRow &&
+                    !activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
+                    activeSessionRow.dataset.activeSessionSource === "transition" &&
+                    activeSessionRow.dataset.activeSessionState === "switching" &&
+                    activeSessionRow.dataset.activeSessionPhase === "UNKNOWN" &&
+                    activeSessionRow.dataset.activeSessionConversationId === targetConversationId &&
+                    activeSessionRow.dataset.activeSessionFollow === "attach" &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     follow &&
@@ -1183,6 +1206,14 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, '`selected thread · ${stateLabel.toLowerCase()} · ${rowUnseenCount} new`', label="active session unseen meta copy")
     require(conversations_js, '`selected thread · ${stateLabel.toLowerCase()} · follow paused`', label="active session paused meta copy")
     require(conversations_js, '`selected thread · ${stateLabel.toLowerCase()} · sse owner`', label="active session healthy meta copy")
+    require(conversations_js, 'const switchingTargetId = String(threadTransition.targetConversationId || "");', label="active session switching target id")
+    require(conversations_js, "} else if (threadTransition.active && switchingTargetId) {", label="active session switching branch")
+    require(conversations_js, 'ownerLabel = "TARGET";', label="active session switching owner label")
+    require(conversations_js, 'stateLabel = "SWITCHING";', label="active session switching state label")
+    require(conversations_js, 'followLabel = "ATTACH";', label="active session switching follow label")
+    require(conversations_js, 'rowSource = "transition";', label="active session switching source")
+    require(conversations_js, 'rowPhase = "UNKNOWN";', label="active session switching phase")
+    require(conversations_js, 'meta = "selected thread · switching · attach";', label="active session switching meta copy")
     require_absent(conversations_js, 'rowSource = "thread-transition";', label="legacy active session switching source")
     require_absent(conversations_js, 'selected-thread-handoff', label="legacy active session handoff source")
     require(conversations_js, "syncSelectedSessionFromLiveAppend", label="selected-thread live append sync helper")
@@ -1224,6 +1255,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(styles, ".active-session-chip", label="active session chip CSS")
     require(styles, '.active-session-row[data-active-session-state="paused"] .active-session-chip[data-active-chip="state"]', label="active session paused chip CSS")
     require(styles, '.active-session-row[data-active-session-follow="live"] .active-session-chip[data-active-chip="follow"]', label="active session live chip CSS")
+    require(styles, '.active-session-row[data-active-session-follow="attach"] .active-session-chip[data-active-chip="follow"]', label="active session attach chip CSS")
     require(styles, '.conversation-card[data-live-owner-state="handoff"] .conversation-card-marker', label="selected handoff owner marker CSS")
     require(styles, '.conversation-card[data-live-owner-state="new"] .conversation-card-marker', label="selected new owner marker CSS")
     require(styles, '.conversation-card[data-live-owner-state="paused"] .conversation-card-marker', label="selected paused owner marker CSS")

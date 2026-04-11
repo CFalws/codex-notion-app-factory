@@ -1,7 +1,7 @@
 # Factory Runtime Tasks
 
-- [x] Reuse the existing selected-thread transition placeholder and mounted composer shell as the only switch-continuity surface.
-- [x] Add request-scoped transition guards so stale async switch results cannot clear or render over a newer target.
-- [x] Treat replacement switches as first-class transitions even when a previous switch is already pending.
-- [x] Keep generic empty-state rendering limited to true no-conversation idle while the switch placeholder remains active.
-- [x] Align focused browser-proof verifiers and iteration artifacts with the bounded switch-cancellation continuity contract.
+- [x] Reuse the existing selected-thread session and thread-transition datasets for the sticky active-session row.
+- [x] Keep the row visible for healthy selected-thread `OWNER` plus phase and `LIVE` or `NEW` or `PAUSED` state without making non-selected rows live-owned.
+- [x] Add one non-owned `SWITCHING` row state that retargets immediately to the latest pending conversation during intentional switches.
+- [x] Clear the row immediately on reconnect downgrade, polling fallback, terminal idle, and true no-conversation idle.
+- [x] Align focused browser-proof verifiers and iteration artifacts with the bounded active-session-row continuity contract.

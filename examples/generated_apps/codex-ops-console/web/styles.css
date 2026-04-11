@@ -337,6 +337,7 @@ body[data-secondary-panel-open="true"] .desktop-shell {
 
 .active-session-row[data-active-session-state="switching"] .active-session-chip[data-active-chip="state"],
 .active-session-row[data-active-session-state="handoff"] .active-session-chip[data-active-chip="state"],
+.active-session-row[data-active-session-follow="attach"] .active-session-chip[data-active-chip="follow"],
 .active-session-row[data-active-session-follow="handoff"] .active-session-chip[data-active-chip="follow"],
 .active-session-row[data-active-session-state="paused"] .active-session-chip[data-active-chip="state"],
 .active-session-row[data-active-session-follow="paused"] .active-session-chip[data-active-chip="follow"] {

@@ -953,6 +953,7 @@ export function createConversationController(deps) {
     let rowSource = "none";
     let rowPhase = "IDLE";
     let rowUnseenCount = 0;
+    const switchingTargetId = String(threadTransition.targetConversationId || "");
 
     if (healthySelectedSessionMirror) {
       visible = true;
@@ -974,6 +975,22 @@ export function createConversationController(deps) {
           : summaryLiveReason === "selected-thread-follow-paused"
             ? `selected thread · ${stateLabel.toLowerCase()} · follow paused`
             : `selected thread · ${stateLabel.toLowerCase()} · sse owner`;
+    } else if (threadTransition.active && switchingTargetId) {
+      visible = true;
+      conversationId = switchingTargetId;
+      rowState = "switching";
+      ownerLabel = "TARGET";
+      stateLabel = "SWITCHING";
+      followLabel = "ATTACH";
+      rowOwned = false;
+      rowSource = "transition";
+      rowPhase = "UNKNOWN";
+      rowUnseenCount = 0;
+      title =
+        threadTitleForConversation(switchingTargetId) ||
+        String(threadTransition.targetTitle || "").trim() ||
+        "대화 전환 중";
+      meta = "selected thread · switching · attach";
     }
 
     dom.activeSessionRow.hidden = !visible;
