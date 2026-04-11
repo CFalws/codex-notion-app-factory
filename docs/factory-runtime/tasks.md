@@ -1,11 +1,11 @@
 # Factory Runtime Tasks
 
-## Iteration 212
+## Iteration 214
 
-- [x] Keep the change bounded to the inline selected-thread session block and existing center transcript ownership.
-- [x] Reuse the existing selected-thread authority, handoff, autonomy, and phase datasets.
-- [x] Render exactly one compact inline session block for healthy selected-thread SSE ownership or pending assistant handoff.
-- [x] Suppress the older healthy live-activity row while the inline block is present.
-- [x] Clear the inline block immediately on reconnect downgrade, polling fallback, switch, deselection, or terminal completion.
-- [x] Keep degraded fallback, switch placeholders, and restore behavior on the existing fail-open path.
-- [x] Align static checks, browser checks, and proposal artifacts with the inline session-block contract.
+- [x] Keep the change bounded to the sticky rail active-session row and existing selected-thread session authority.
+- [x] Reuse the existing selected-thread authority, inline transcript block, and composer dock datasets.
+- [x] Keep exactly one compact sticky rail row for healthy selected-thread SSE and intentional switch states.
+- [x] Keep the rail row non-authoritative and chip-first.
+- [x] Suppress the selected-card live-owner marker whenever the sticky rail row is present.
+- [x] Clear or downgrade the rail row immediately on reconnect, polling fallback, deselection, or terminal completion.
+- [x] Align static checks, browser checks, and proposal artifacts with the strict rail-mirroring contract.
