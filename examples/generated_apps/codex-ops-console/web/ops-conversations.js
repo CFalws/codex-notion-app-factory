@@ -52,6 +52,50 @@ export function createConversationController(deps) {
     };
   }
 
+  function normalizeSessionStatus(payload = {}, overrides = {}) {
+    const transportPayload = payload?.transport && typeof payload.transport === "object" ? payload.transport : {};
+    const phasePayload = payload?.phase && typeof payload.phase === "object" ? payload.phase : {};
+    return {
+      version: Number(payload?.version || 0),
+      conversationId: String(payload?.conversation_id || payload?.conversationId || ""),
+      phase: {
+        value: String(phasePayload?.value || "UNKNOWN").toUpperCase(),
+        authoritative: Boolean(phasePayload?.authoritative),
+        reason: String(phasePayload?.reason || "missing-phase"),
+        eventType: String(phasePayload?.event_type || phasePayload?.eventType || ""),
+        status: String(phasePayload?.status || "").toLowerCase(),
+        jobId: String(phasePayload?.job_id || phasePayload?.jobId || ""),
+        appendId: Math.max(Number(phasePayload?.append_id || phasePayload?.appendId || 0), 0),
+        createdAt: String(phasePayload?.created_at || phasePayload?.createdAt || ""),
+        source: String(phasePayload?.source || "none").toLowerCase(),
+      },
+      transport: {
+        channel: String(transportPayload?.channel || "append-sse").toLowerCase(),
+        state: String(transportPayload?.state || overrides.transportState || "idle").toLowerCase(),
+        attachMode: String(transportPayload?.attach_mode || transportPayload?.attachMode || overrides.attachMode || "idle").toLowerCase(),
+        source: String(transportPayload?.source || "none").toLowerCase(),
+      },
+      transportState: String(transportPayload?.state || overrides.transportState || "idle").toLowerCase(),
+      attachMode: String(transportPayload?.attach_mode || transportPayload?.attachMode || overrides.attachMode || "idle").toLowerCase(),
+      pathVerdict: String(payload?.path_verdict || payload?.pathVerdict || "UNKNOWN").toUpperCase(),
+      verifierAcceptability: String(payload?.verifier_acceptability || payload?.verifierAcceptability || "PENDING").toUpperCase(),
+      blockerReason: String(payload?.blocker_reason || payload?.blockerReason || "none"),
+      expectedPath: String(payload?.expected_path || payload?.expectedPath || "unknown"),
+      degradedSignals: Array.isArray(payload?.degraded_signals || payload?.degradedSignals)
+        ? (payload.degraded_signals || payload.degradedSignals)
+        : [],
+      proposalReady: Boolean(payload?.proposal_ready ?? payload?.proposalReady ?? false),
+      proposalStatus: String(payload?.proposal_status || payload?.proposalStatus || ""),
+      proposalJobId: String(payload?.proposal_job_id || payload?.proposalJobId || ""),
+      latestJobId: String(payload?.latest_job_id || payload?.latestJobId || ""),
+      eventType: String(payload?.event_type || payload?.eventType || phasePayload?.event_type || phasePayload?.eventType || ""),
+      status: String(payload?.status || phasePayload?.status || "").toLowerCase(),
+      appendId: Math.max(Number(payload?.append_id || payload?.appendId || phasePayload?.append_id || phasePayload?.appendId || 0), 0),
+      createdAt: String(payload?.created_at || payload?.createdAt || phasePayload?.created_at || phasePayload?.createdAt || ""),
+      source: String(payload?.source || "append-sse").toLowerCase(),
+    };
+  }
+
   function normalizeAutonomySummary(payload = {}, fallback = {}) {
     const degradedSignals = payload?.degraded_signals ?? payload?.degradedSignals ?? fallback?.degradedSignals;
     const goalTitle = String(payload?.goal_title || payload?.goalTitle || fallback?.goalTitle || "Autonomy Goal");
@@ -129,6 +173,10 @@ export function createConversationController(deps) {
 
   function resetSessionPhase() {
     state.appendStream.sessionPhase = normalizeSessionPhase({}, "none");
+  }
+
+  function resetSessionStatus() {
+    state.appendStream.sessionStatus = null;
   }
 
   function clearPendingOutgoing(conversationId = "") {
@@ -237,6 +285,7 @@ export function createConversationController(deps) {
     state.appendStream.reconnectAttempt = 0;
     state.appendStream.reconnectTimerId = 0;
     resetSessionPhase();
+    resetSessionStatus();
     if (!conversationId) {
       state.appendStream.lastAppendId = 0;
     }
@@ -282,6 +331,18 @@ export function createConversationController(deps) {
           ? "sse"
           : "snapshot"
         : state.appendStream.lastRenderSource || "snapshot";
+    if (state.appendStream.sessionStatus) {
+      state.appendStream.sessionStatus = {
+        ...state.appendStream.sessionStatus,
+        transportState: "polling-fallback",
+        attachMode: "snapshot-fallback",
+        transport: {
+          ...(state.appendStream.sessionStatus.transport || {}),
+          state: "polling-fallback",
+          attachMode: "snapshot-fallback",
+        },
+      };
+    }
     ensurePollingForJob();
     renderSessionStrip(dom, state, state.conversationCache);
     syncConversationCardState();
@@ -302,6 +363,18 @@ export function createConversationController(deps) {
     state.appendStream.resumeMode = "scheduled";
     state.appendStream.resumeCursor = Math.max(Number(state.appendStream.lastAppendId || 0), 0);
     state.appendStream.reconnectAttempt = attempt;
+    if (state.appendStream.sessionStatus) {
+      state.appendStream.sessionStatus = {
+        ...state.appendStream.sessionStatus,
+        transportState: "reconnecting",
+        attachMode: "sse-resume",
+        transport: {
+          ...(state.appendStream.sessionStatus.transport || {}),
+          state: "reconnecting",
+          attachMode: "sse-resume",
+        },
+      };
+    }
     renderSessionStrip(dom, state, state.conversationCache);
     syncConversationCardState();
     state.appendStream.reconnectTimerId = window.setTimeout(() => {
@@ -396,6 +469,10 @@ export function createConversationController(deps) {
     state.appendStream.status = "live";
     state.appendStream.lastRenderSource = "sse";
     state.appendStream.sessionPhase = normalizeSessionPhase(appendEnvelope.session_phase || {}, "sse");
+    state.appendStream.sessionStatus = normalizeSessionStatus(appendEnvelope.session_status || {}, {
+      transportState: "sse-live",
+      attachMode: "live",
+    });
     stopPolling();
     renderConversation(dom, state, conversation, persistSettings);
     syncConversationCardState();
@@ -658,6 +735,10 @@ export function createConversationController(deps) {
         state.appendStream.resumeCursor = Math.max(Number(payload.resume_from_append_id || resumeCursor || 0), 0);
         state.appendStream.reconnectAttempt = reconnectAttempt;
         state.appendStream.sessionPhase = normalizeSessionPhase(payload.session_phase || {}, "sse");
+        state.appendStream.sessionStatus = normalizeSessionStatus(payload.session_status || {}, {
+          transportState: String(payload.attach_mode || (isResumeAttempt ? "sse-resume" : "sse-bootstrap")),
+          attachMode: String(payload.attach_mode || (isResumeAttempt ? "sse-resume" : "sse-bootstrap")),
+        });
         const bootstrapAutonomy = bootstrapAutonomySummary(payload);
         hydrateAutonomySummary(bootstrapAutonomy, {
           source: "session-bootstrap",
@@ -703,6 +784,18 @@ export function createConversationController(deps) {
       state.appendStream.attachMode = "sse-resume";
       state.appendStream.resumeMode = "awaiting-resume";
       state.appendStream.resumeCursor = Math.max(Number(state.appendStream.lastAppendId || 0), 0);
+      if (state.appendStream.sessionStatus) {
+        state.appendStream.sessionStatus = {
+          ...state.appendStream.sessionStatus,
+          transportState: "reconnecting",
+          attachMode: "sse-resume",
+          transport: {
+            ...(state.appendStream.sessionStatus.transport || {}),
+            state: "reconnecting",
+            attachMode: "sse-resume",
+          },
+        };
+      }
       closeAppendStream({ preserveSelection: true });
       scheduleAppendStreamResume(conversationId, Math.max(reconnectAttempt, 0) + 1);
       renderSessionStrip(dom, state, state.conversationCache);
@@ -1508,6 +1601,18 @@ export function createConversationController(deps) {
         : state.appendStream.bootstrapVersion || "";
     state.appendStream.resumeCursor = Math.max(Number(bootstrap?.resume_from_append_id || 0), 0);
     state.appendStream.sessionPhase = normalizeSessionPhase(bootstrap?.session_phase || {}, "sse");
+    state.appendStream.sessionStatus = normalizeSessionStatus(bootstrap?.session_status || {}, {
+      transportState: String(
+        bootstrap?.attach_mode ||
+          state.appendStream.attachMode ||
+          "snapshot-fallback",
+      ),
+      attachMode: String(
+        bootstrap?.attach_mode ||
+          state.appendStream.attachMode ||
+          "snapshot-fallback",
+      ),
+    });
     if (shouldAllowGoalsPollingFallback({ conversationId: conversation.conversation_id })) {
       await refreshGoalSummary({ conversationId: conversation.conversation_id });
     }

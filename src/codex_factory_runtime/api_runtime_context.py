@@ -51,6 +51,7 @@ class RuntimeApiContext:
                         "append_id": append_id,
                         "payload": payload,
                         "session_phase": self.conversation_session_phase(payload, kind=kind),
+                        "session_status": self.conversation_session_status(conversation_id, payload, kind=kind),
                     }
                 )
         items.sort(key=lambda item: int(item["append_id"]))
@@ -109,6 +110,59 @@ class RuntimeApiContext:
             "source": "sse",
         }
 
+    def conversation_session_status(self, conversation_id: str, payload: dict[str, Any] | None, *, kind: str) -> dict[str, Any]:
+        conversation = self.require_conversation(conversation_id)
+        phase = self.conversation_session_phase(payload, kind=kind)
+        autonomy_summary = dict(conversation.get("autonomy_summary") or {})
+        latest_job_id = str(conversation.get("latest_job_id") or phase.get("job_id") or "")
+        latest_payload = payload if isinstance(payload, dict) else {}
+        proposal_status = str(conversation.get("proposal_status") or "")
+        proposal_ready = bool(
+            proposal_status.lower() == "ready_to_apply"
+            or latest_payload.get("type") == "proposal.ready"
+            or autonomy_summary.get("blocker_reason") == "none"
+            or autonomy_summary.get("blockerReason") == "none"
+        )
+        return {
+            "version": 1,
+            "conversation_id": conversation_id,
+            "phase": phase,
+            "transport": {
+                "channel": "append-sse",
+                "state": "sse-live",
+                "attach_mode": "live",
+                "source": "runtime-api-context",
+            },
+            "path_verdict": str(autonomy_summary.get("path_verdict") or autonomy_summary.get("pathVerdict") or "UNKNOWN"),
+            "verifier_acceptability": str(
+                autonomy_summary.get("verifier_acceptability")
+                or autonomy_summary.get("verifierAcceptability")
+                or "PENDING"
+            ),
+            "blocker_reason": str(
+                autonomy_summary.get("blocker_reason")
+                or autonomy_summary.get("blockerReason")
+                or "none"
+            ),
+            "expected_path": str(autonomy_summary.get("expected_path") or autonomy_summary.get("expectedPath") or "unknown"),
+            "degraded_signals": list(
+                autonomy_summary.get("degraded_signals")
+                if isinstance(autonomy_summary.get("degraded_signals"), list)
+                else autonomy_summary.get("degradedSignals")
+                if isinstance(autonomy_summary.get("degradedSignals"), list)
+                else []
+            ),
+            "proposal_ready": bool(proposal_ready),
+            "proposal_status": proposal_status,
+            "proposal_job_id": str(conversation.get("proposal_job_id") or ""),
+            "latest_job_id": latest_job_id,
+            "event_type": str(latest_payload.get("type") or ""),
+            "status": str(latest_payload.get("status") or ""),
+            "append_id": int(latest_payload.get("append_id") or 0),
+            "created_at": str(latest_payload.get("created_at") or ""),
+            "source": "append-sse",
+        }
+
     def conversation_session_bootstrap(
         self,
         conversation_id: str,
@@ -149,6 +203,15 @@ class RuntimeApiContext:
             "autonomy_summary": dict(conversation.get("autonomy_summary") or {}),
             "latest_job_id": str(conversation.get("latest_job_id") or ""),
             "session_phase": self.conversation_session_phase(latest_payload, kind=latest_kind),
+            "session_status": {
+                **self.conversation_session_status(conversation_id, latest_payload, kind=latest_kind),
+                "transport": {
+                    "channel": "append-sse",
+                    "state": attach_mode,
+                    "attach_mode": attach_mode,
+                    "source": "runtime-api-context",
+                },
+            },
             "live_phase_summary": {
                 "event_type": str((latest_event or {}).get("type") or ""),
                 "status": str((latest_event or {}).get("status") or ""),
@@ -287,6 +350,7 @@ class RuntimeApiContext:
             "append_id": int(payload.get("append_id") or 0),
             "payload": payload,
             "session_phase": self.conversation_session_phase(payload, kind=kind),
+            "session_status": self.conversation_session_status(conversation_id, payload, kind=kind),
         }
         stale: list[asyncio.Queue[dict[str, Any]]] = []
         for queue in subscribers:

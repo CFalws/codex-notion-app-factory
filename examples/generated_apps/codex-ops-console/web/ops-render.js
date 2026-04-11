@@ -6,6 +6,7 @@ import {
   deriveSelectedThreadSessionSurfaceModel,
   deriveSelectedThreadShellPhaseLabel,
   deriveSelectedThreadSessionStatus,
+  deriveSelectedThreadSessionStripModel,
   deriveSelectedThreadTimelineMilestones,
   maxConversationAppendId,
 } from "./ops-store.js";
@@ -1052,9 +1053,12 @@ function shouldShowComposerLiveStrip(conversation, currentState, liveRun, handof
 function selectedThreadTimelineAuthorityModel(conversation, currentState, liveRun, handoffState = { stage: "idle" }) {
   const sessionSurface = deriveSelectedThreadSessionSurfaceModel(currentState, conversation);
   const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
+  const sessionStrip = deriveSelectedThreadSessionStripModel(currentState, conversation, liveRun);
   const restoreVisible = !conversation && sessionSurface.restoreVisible;
-  const visible = Boolean(inlineState.visible || restoreVisible);
-  const presentation = restoreVisible
+  const visible = Boolean(sessionStrip.visible || inlineState.visible || restoreVisible);
+  const presentation = sessionStrip.visible
+    ? sessionStrip.presentation
+    : restoreVisible
     ? "restore"
     : inlineState.handoffVisible
       ? "handoff"
@@ -1068,11 +1072,32 @@ function selectedThreadTimelineAuthorityModel(conversation, currentState, liveRu
     presentation,
     sessionSurface,
     inlineState,
+    sessionStrip,
   };
 }
 
 function renderInlineSessionBlock(conversation, currentState, liveRun, handoffState) {
-  return "";
+  const sessionStrip = deriveSelectedThreadSessionStripModel(currentState, conversation, liveRun);
+  if (!sessionStrip.visible) {
+    return "";
+  }
+  const pathVerdict = String(sessionStrip.pathVerdict || "UNKNOWN").toUpperCase();
+  const verifierAcceptability = String(sessionStrip.verifierAcceptability || "PENDING").toUpperCase();
+  const blockerReason = String(sessionStrip.blockerReason || "NONE").toUpperCase();
+  return `
+    <article class="timeline-item timeline-session-strip" data-live-session-strip="true" data-live-session-strip-owned="${sessionStrip.owned ? "true" : "false"}" data-live-session-strip-presentation="${escapeHtml(sessionStrip.presentation)}" data-live-session-strip-conversation-id="${escapeHtml(sessionStrip.conversationId)}" data-live-session-strip-phase="${escapeHtml(sessionStrip.phaseLabel)}" data-live-session-strip-state="${escapeHtml(sessionStrip.stateLabel)}" data-live-session-strip-transport="${escapeHtml(sessionStrip.transportState)}" data-live-session-strip-attach-mode="${escapeHtml(sessionStrip.attachMode)}" data-live-session-strip-path-verdict="${escapeHtml(pathVerdict)}" data-live-session-strip-verifier="${escapeHtml(verifierAcceptability)}" data-live-session-strip-blocker="${escapeHtml(blockerReason)}" data-live-session-strip-proposal-ready="${sessionStrip.proposalReady ? "true" : "false"}" data-live-session-strip-clear-reason="${escapeHtml(sessionStrip.clearReason || "none")}">
+      <p class="timeline-kind">세션 상태</p>
+      <div class="timeline-live-row">
+        <span class="timeline-live-chip" data-tone="${escapeHtml(sessionStrip.tone)}">${escapeHtml(sessionStrip.stateLabel)}</span>
+        <span class="timeline-live-chip" data-tone="${escapeHtml(sessionStrip.tone)}">${escapeHtml(sessionStrip.phaseLabel)}</span>
+        <span class="timeline-live-chip" data-tone="${escapeHtml(autonomyChipTone(pathVerdict))}">${escapeHtml(pathVerdict)}</span>
+        <span class="timeline-live-chip" data-tone="${escapeHtml(autonomyChipTone(verifierAcceptability))}">${escapeHtml(verifierAcceptability)}</span>
+        <span class="timeline-live-chip" data-tone="${escapeHtml(blockerTone(blockerReason.toLowerCase()))}">BLOCKER ${escapeHtml(blockerReason)}</span>
+      </div>
+      <p class="timeline-body">${escapeHtml(sessionStrip.detail)}</p>
+      <p class="timeline-meta">selected thread · ${escapeHtml(sessionStrip.phaseLabel)} · <span class="timeline-provenance">${escapeHtml(sessionStrip.stateLabel)}</span></p>
+    </article>
+  `;
 }
 
 function autonomyChipTone(value) {
@@ -1160,20 +1185,26 @@ function selectedThreadPrimaryTimelineSessionModel(conversation, currentState, l
   const handoffState = pendingHandoffState(conversation, currentState);
   const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
   const sessionSurface = deriveSelectedThreadSessionSurfaceModel(currentState, conversation);
+  const sessionStrip = deriveSelectedThreadSessionStripModel(currentState, conversation, liveRun);
   const liveOwned = !inlineState.handoffVisible && !inlineState.degradedVisible && sessionSurface.liveOwned;
   return {
     handoffState,
     inlineState,
     sessionSurface,
+    sessionStrip,
     liveOwned,
-    visible: inlineState.visible,
-    collapseSessionEvents: inlineState.visible,
+    visible: inlineState.visible || sessionStrip.visible,
+    collapseSessionEvents: inlineState.visible || sessionStrip.visible,
   };
 }
 
 function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
   const timelineSession = selectedThreadPrimaryTimelineSessionModel(conversation, currentState, liveRun);
   const { handoffState, inlineState, sessionSurface, liveOwned, collapseSessionEvents } = timelineSession;
+  const sessionStrip = deriveSelectedThreadSessionStripModel(currentState, conversation, liveRun);
+  if (sessionStrip.visible) {
+    return "";
+  }
   const { liveAutonomy, phaseProgression, milestoneModel } = sessionSurface;
   const { handoffVisible, degradedVisible, sessionIndicator } = inlineState;
   if (!handoffVisible && !degradedVisible && (!phaseProgression.visible || !liveAutonomy.visible)) {

@@ -52,6 +52,7 @@ export const state = {
       status: "",
       jobId: "",
     },
+    sessionStatus: null,
   },
   liveFollow: {
     conversationId: "",
@@ -701,6 +702,121 @@ export function deriveSelectedThreadSessionSurfaceModel(currentState, conversati
           ? phaseProgression.source || liveAutonomy.source || "sse"
           : phaseProgression.source || liveAutonomy.source || "none",
     ).toLowerCase(),
+  };
+}
+
+function canonicalPhaseLabelFromStatus(sessionStatusPayload = {}, fallback = "UNKNOWN") {
+  const phase = String(sessionStatusPayload?.phase?.value || fallback).toUpperCase();
+  const eventType = String(sessionStatusPayload?.eventType || sessionStatusPayload?.event_type || sessionStatusPayload?.phase?.eventType || sessionStatusPayload?.phase?.event_type || "");
+  if (eventType === "goal.proposal.auto_apply.started") {
+    return "AUTO APPLY";
+  }
+  return phase || fallback;
+}
+
+export function deriveSelectedThreadSessionStripModel(currentState, conversation = null, liveRun = null) {
+  const selectedThreadStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
+  const appendStream = currentState.appendStream || {};
+  const sessionStatusPayload = appendStream.sessionStatus || null;
+  const conversationId = String(conversation?.conversation_id || selectedThreadStatus.conversationId || "");
+  const currentConversationId = String(currentState.currentConversationId || "");
+  const payloadConversationId = String(sessionStatusPayload?.conversationId || sessionStatusPayload?.conversation_id || "");
+  const selectedPayload =
+    Boolean(conversationId) &&
+    Boolean(payloadConversationId) &&
+    conversationId === currentConversationId &&
+    payloadConversationId === conversationId;
+  const transportState = String(
+    sessionStatusPayload?.transportState ||
+      sessionStatusPayload?.transport?.state ||
+      "idle",
+  ).toLowerCase();
+  const attachMode = String(
+    sessionStatusPayload?.attachMode ||
+      sessionStatusPayload?.transport?.attachMode ||
+      sessionStatusPayload?.transport?.attach_mode ||
+      "idle",
+  ).toLowerCase();
+  const pathVerdict = String(sessionStatusPayload?.pathVerdict || sessionStatusPayload?.path_verdict || "UNKNOWN").toUpperCase();
+  const verifierAcceptability = String(
+    sessionStatusPayload?.verifierAcceptability || sessionStatusPayload?.verifier_acceptability || "PENDING",
+  ).toUpperCase();
+  const blockerReason = String(sessionStatusPayload?.blockerReason || sessionStatusPayload?.blocker_reason || "none").toUpperCase();
+  const proposalReady = Boolean(sessionStatusPayload?.proposalReady ?? sessionStatusPayload?.proposal_ready ?? false);
+  const degradedSignals = Array.isArray(sessionStatusPayload?.degradedSignals || sessionStatusPayload?.degraded_signals)
+    ? (sessionStatusPayload.degradedSignals || sessionStatusPayload.degraded_signals)
+    : [];
+
+  if (
+    !selectedPayload ||
+    !conversationId ||
+    selectedThreadStatus.switchActive ||
+    !sessionStatusPayload ||
+    liveRun?.terminal
+  ) {
+    return {
+      visible: false,
+      presentation: "cleared",
+      conversationId,
+      phaseLabel: "",
+      stateLabel: "",
+      detail: "",
+      transportState: "idle",
+      attachMode: "idle",
+      tone: "muted",
+      pathVerdict: "",
+      verifierAcceptability: "",
+      blockerReason: "",
+      proposalReady: false,
+      degradedSignals: [],
+      owned: false,
+      source: "none",
+      clearReason: selectedThreadStatus.switchActive ? "thread-switch" : liveRun?.terminal ? "terminal" : "idle",
+    };
+  }
+
+  const phaseLabel = canonicalPhaseLabelFromStatus(sessionStatusPayload, "UNKNOWN");
+  const pathStateLabel =
+    transportState === "sse-live"
+      ? "SSE OWNER"
+      : transportState === "reconnecting"
+        ? "RECONNECT"
+        : transportState === "polling-fallback"
+          ? "POLLING"
+          : attachMode === "sse-resume"
+            ? "RESUME"
+            : attachMode === "sse-bootstrap"
+              ? "ATTACH"
+              : "SESSION";
+  const owned = transportState === "sse-live";
+  const degraded = transportState === "reconnecting" || transportState === "polling-fallback";
+  const restore = attachMode === "sse-resume" || attachMode === "sse-bootstrap";
+  const tone = owned ? "healthy" : degraded ? "warning" : restore ? "neutral" : "muted";
+  const presentation = owned ? "healthy" : degraded ? "degraded" : restore ? "restore" : "cleared";
+  const detail = degraded
+    ? `selected thread ${pathStateLabel.toLowerCase()} · ${selectedThreadStatus.transportReason || "fallback"}`
+    : restore
+      ? `selected thread ${pathStateLabel.toLowerCase()} · bootstrap pending`
+      : `selected thread ${phaseLabel.toLowerCase()} · live session`;
+
+  return {
+    visible: owned || degraded || restore,
+    presentation,
+    conversationId,
+    phaseLabel,
+    stateLabel: pathStateLabel,
+    detail,
+    transportState,
+    attachMode,
+    tone,
+    pathVerdict,
+    verifierAcceptability,
+    blockerReason,
+    proposalReady,
+    degradedSignals,
+    owned,
+    source: String(sessionStatusPayload?.source || sessionStatusPayload?.transport?.channel || "append-sse").toLowerCase(),
+    clearReason: "none",
   };
 }
 

@@ -1,12 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 156
+## Iteration 159
 
-Refine the selected-thread header badge so it carries both phase and live path state.
+Promote canonical selected-thread `session_status` into one compact center-pane live session strip.
 
-1. Reuse the existing selected-thread session ownership, transport, phase, and timeline-authority models to keep `#thread-phase-chip` as the only compact header badge.
-2. Change the badge label so it combines current phase with selected-thread path state such as healthy SSE, reconnect, polling fallback, restore attach, or switching.
-3. Preserve the title row as identity-first and keep the badge as the only status chrome above the transcript.
-4. Mirror healthy, degraded, switching, restore, and idle selected-thread states through the same canonical badge datasets without introducing new state or transport sources.
-5. Extend focused static and deployed verification so the badge must show both phase and path state while the removed summary strip stays absent.
-6. Align proposal artifacts with the iteration-156 combined-phase-and-path badge contract.
+1. Restore the missing canonical `session_status` payload in the append-SSE bootstrap, replay, and live append envelopes inside `api_runtime_context.py`.
+2. Hydrate `appendStream.sessionStatus` in `ops-conversations.js` and keep reconnect or polling fallback explicit there without changing other UI ownership.
+3. Add one store-owned selected-thread session strip model in `ops-store.js` that reads from `appendStream.sessionStatus` and fails closed on switch, terminal, deselection, or lost authority.
+4. Render one compact inline session strip above the transcript in `ops-render.js` and suppress the older transcript live card whenever that strip is visible.
+5. Extend focused runtime-contract, static, and deployed verification so the canonical `session_status` seam and the single center-pane strip are both required.
+6. Align proposal artifacts with the iteration-159 session-status strip contract.
