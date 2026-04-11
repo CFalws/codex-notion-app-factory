@@ -1,13 +1,13 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 215
+## Iteration 216
 
-Preserve one continuous center session workspace during intentional selected-thread switches.
+Preserve one continuous center session workspace during selected-thread restore or resume.
 
-1. Keep the change bounded to the selected-thread switch path, workspace placeholder behavior, and verifier expectations.
-2. Reuse the existing selected-thread session authority, switch monitor, workspace placeholder, and composer dock datasets instead of adding new transport or polling logic.
-3. Keep the center conversation shell and bottom-fixed composer mounted during intentional selected-thread switches.
-4. Show at most one compact switching placeholder until the new selected-thread snapshot attaches.
-5. Clear stale live-owner treatment immediately when the switch starts.
-6. Reserve the generic empty workspace for true no-selection idle only.
-7. Align static checks, browser checks, and proposal artifacts with the switch-continuity contract.
+1. Keep the change bounded to the selected-thread restore or resume path, restore placeholder behavior, and verifier expectations.
+2. Reuse the existing selected-thread session authority, restore transition, active-session row, and composer dock datasets instead of adding new transport or polling logic.
+3. Keep the center conversation shell and bottom-fixed composer mounted during saved-session restore or resume.
+4. Show exactly one compact restore or attach placeholder until authoritative SSE ownership returns.
+5. Clear stale live-owner treatment immediately before fallback or degraded rendering appears.
+6. Keep switch, degraded reconnect or polling fallback, and terminal paths on their existing clear or fail-open behavior.
+7. Align static checks, browser checks, and proposal artifacts with the restore or resume continuity contract.

@@ -1,11 +1,11 @@
 # Factory Runtime Tasks
 
-## Iteration 215
+## Iteration 216
 
-- [x] Keep the change bounded to the selected-thread switch path and existing workspace placeholder behavior.
-- [x] Reuse the existing selected-thread session authority, switch monitor, workspace placeholder, and composer dock datasets.
-- [x] Keep the center conversation shell and bottom-fixed composer mounted during intentional selected-thread switches.
-- [x] Show at most one compact switching placeholder until the new selected-thread snapshot attaches.
-- [x] Clear stale live-owner treatment immediately when the switch starts.
-- [x] Reserve the generic empty workspace for true no-selection idle only.
-- [x] Align static checks, browser checks, and proposal artifacts with the switch-continuity contract.
+- [x] Keep the change bounded to the selected-thread restore or resume path and existing restore placeholder behavior.
+- [x] Reuse the existing selected-thread session authority, restore transition, active-session row, and composer dock datasets.
+- [x] Keep the center conversation shell and bottom-fixed composer mounted during saved-session restore or resume.
+- [x] Show exactly one compact restore or attach placeholder until authoritative SSE ownership returns.
+- [x] Clear stale live-owner treatment immediately before fallback or degraded rendering appears.
+- [x] Keep switch, degraded reconnect or polling fallback, and terminal paths on the existing clear or fail-open behavior.
+- [x] Align static checks, browser checks, and proposal artifacts with the restore or resume continuity contract.
