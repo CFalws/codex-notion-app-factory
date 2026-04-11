@@ -459,19 +459,18 @@ def assert_browser_runtime_surface(
                     entry => String(entry.url || "").includes("/api/jobs/")
                   );
                   return Boolean(
-                    healthyBlock &&
-                    !liveActivity &&
-                    healthyBlock.dataset.liveBlockSource === "sse" &&
-                    healthyBlock.dataset.liveBlockReason === "healthy" &&
-                    healthyBlock.dataset.liveBlockPhase &&
-                    healthyBlock.dataset.liveBlockPhase !== "IDLE" &&
-                    ["true", "false"].includes(healthyBlock.dataset.liveBlockPhaseAuthoritative || "") &&
+                    !healthyBlock &&
+                    liveActivity &&
+                    liveActivity.dataset.liveRunSource === "sse" &&
+                    liveActivity.dataset.liveReason === "healthy" &&
+                    liveActivity.dataset.liveRunPhase &&
+                    liveActivity.dataset.liveRunPhase !== "IDLE" &&
                     summary &&
                     !summary.hidden &&
                     summary.dataset.summaryPath === "session" &&
                     summary.dataset.liveSessionOwned === "true" &&
                     summary.dataset.summaryState === "attached" &&
-                    summary.dataset.summaryPhase === healthyBlock.dataset.liveBlockPhase &&
+                    summary.dataset.summaryPhase === liveActivity.dataset.liveRunPhase &&
                     summaryCopy &&
                     summaryCopy.textContent.trim().length > 0 &&
                     !summaryCopy.textContent.includes("OWNER") &&
@@ -482,7 +481,7 @@ def assert_browser_runtime_surface(
                     liveIndicator.dataset.liveSessionSource === "sse" &&
                     threadPhase &&
                     threadPhase.hidden &&
-                    threadPhase.dataset.threadPhase === healthyBlock.dataset.liveBlockPhase &&
+                    threadPhase.dataset.threadPhase === liveActivity.dataset.liveRunPhase &&
                     threadPhase.dataset.threadPhaseDetail &&
                     threadPhase.dataset.threadPhaseDetail !== "idle" &&
                     activeSessionRow &&
@@ -490,7 +489,7 @@ def assert_browser_runtime_surface(
                     activeSessionRow.dataset.activeSessionOwned === "true" &&
                     activeSessionRow.dataset.activeSessionSource === "sse" &&
                     ["live", "paused", "new"].includes(activeSessionRow.dataset.activeSessionState || "") &&
-                    activeSessionRow.dataset.activeSessionPhase === healthyBlock.dataset.liveBlockPhase &&
+                    activeSessionRow.dataset.activeSessionPhase === liveActivity.dataset.liveRunPhase &&
                     ["live", "paused", "new"].includes(activeSessionRow.dataset.activeSessionFollow || "") &&
                     activeSessionRow.textContent.includes("OWNER") &&
                     sessionStrip &&
@@ -500,27 +499,16 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.composerTransport === "sse-owner" &&
                     sessionStrip.dataset.composerTransportSource === "sse" &&
                     sessionStrip.dataset.composerTransportOwned === "false" &&
-                    sessionStrip.dataset.phaseValue === healthyBlock.dataset.liveBlockPhase &&
-                    sessionStrip.dataset.phaseProvenance === healthyBlock.dataset.liveBlockPhaseProvenance &&
-                    sessionStrip.dataset.phaseAuthoritative === healthyBlock.dataset.liveBlockPhaseAuthoritative &&
-                    threadScroller.dataset.phaseValue === healthyBlock.dataset.liveBlockPhase &&
-                    threadScroller.dataset.phaseProvenance === healthyBlock.dataset.liveBlockPhaseProvenance &&
-                    threadScroller.dataset.phaseAuthoritative === healthyBlock.dataset.liveBlockPhaseAuthoritative &&
+                    sessionStrip.dataset.phaseValue === liveActivity.dataset.liveRunPhase &&
+                    sessionStrip.dataset.phaseProvenance === liveActivity.dataset.liveRunSource &&
+                    threadScroller.dataset.phaseValue === liveActivity.dataset.liveRunPhase &&
+                    threadScroller.dataset.phaseProvenance === liveActivity.dataset.liveRunSource &&
                     sessionStripState &&
                     stripChips.length === 1 &&
                     sessionStripState.dataset.sessionStripRole === "context" &&
                     sessionStripState.dataset.sessionStripLabel === "TARGET" &&
                     sessionStripState.textContent.trim() === "TARGET" &&
-                    (
-                      (
-                        healthyBlock.dataset.liveBlockPhaseAuthoritative === "true" &&
-                        ["PROPOSAL", "REVIEW", "VERIFY", "READY", "APPLIED", "FAILED"].includes(healthyBlock.dataset.liveBlockPhase || "")
-                      ) ||
-                      (
-                        healthyBlock.dataset.liveBlockPhaseAuthoritative === "false" &&
-                        ["LIVE", "UNKNOWN"].includes(healthyBlock.dataset.liveBlockPhase || "")
-                      )
-                    ) &&
+                    ["HANDOFF", "PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED", "FAILED", "LIVE", "UNKNOWN"].includes(liveActivity.dataset.liveRunPhase || "") &&
                     sessionStripDetail &&
                     sessionStripDetail.textContent.trim().length > 0 &&
                     !sessionStripDetail.textContent.includes("FOLLOW") &&
@@ -603,16 +591,16 @@ def assert_browser_runtime_surface(
                     threadScroller.dataset.bootstrapVersion === "2" &&
                     threadScroller.dataset.resumeMode === "resumed" &&
                     Number(threadScroller.dataset.resumeCursor || "0") > 0 &&
-                    healthyBlock &&
+                    liveActivity &&
                     executionStatusCard &&
                     executionStatusCard.hidden &&
                     executionStatusCard.dataset.executionSurface === "center-lane" &&
                     statusOutput &&
                     statusOutput.dataset.surface === "center-lane" &&
-                    sessionStrip.dataset.phaseValue === healthyBlock.dataset.liveBlockPhase &&
-                    sessionStrip.dataset.phaseProvenance === healthyBlock.dataset.liveBlockPhaseProvenance &&
-                    threadScroller.dataset.phaseValue === healthyBlock.dataset.liveBlockPhase &&
-                    threadScroller.dataset.phaseProvenance === healthyBlock.dataset.liveBlockPhaseProvenance &&
+                    sessionStrip.dataset.phaseValue === liveActivity.dataset.liveRunPhase &&
+                    sessionStrip.dataset.phaseProvenance === liveActivity.dataset.liveRunSource &&
+                    threadScroller.dataset.phaseValue === liveActivity.dataset.liveRunPhase &&
+                    threadScroller.dataset.phaseProvenance === liveActivity.dataset.liveRunSource &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     resumeEvents.length >= 1 &&
@@ -633,7 +621,7 @@ def assert_browser_runtime_surface(
             page.evaluate("() => { window.__verifyForceDegrade = true; window.__verifyTriggerDisconnect(); }")
             page.wait_for_function(
                 """() => {
-                  const degraded = document.querySelector('.session-inline-block[data-selected-thread-degraded-block="true"][data-live-owned="false"]');
+                  const degraded = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="false"]');
                   const healthy = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
                   const healthyBlock = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-owned="true"]');
                   const summary = document.querySelector("#session-summary-row");
@@ -648,8 +636,8 @@ def assert_browser_runtime_surface(
                   if (!degraded || healthy || healthyBlock || !summary || !follow || !activeSessionRow || !sessionStrip || !sessionStripState || !executionStatusCard || !statusOutput) {
                     return false;
                   }
-                  const reason = degraded.dataset.liveBlockReason || "";
-                  const phase = degraded.dataset.liveBlockPhase || "";
+                  const reason = degraded.dataset.liveReason || "";
+                  const phase = degraded.dataset.liveRunPhase || "";
                   return (
                     ["retrying", "reconnecting", "polling-fallback", "session-rotation"].includes(reason) &&
                     ["RECONNECT", "POLLING"].includes(phase) &&
@@ -1024,14 +1012,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "dataset.threadTransitionState", label="thread transition state dataset")
     require(render_js, 'renderSessionStrip(dom, currentState, null);', label="thread transition composer shell render path")
     require(render_js, 'syncComposerOwnership(dom, currentState, null);', label="thread transition composer owner switching path")
-    require(render_js, "const { handoffVisible, degradedVisible, liveVisible, status, sessionIndicator } = inlineState;", label="inline session live visibility wiring")
-    require(render_js, "if (!inlineState.visible) {", label="inline session unified visibility guard")
-    require(render_js, 'data-selected-thread-live-block="${degradedVisible ? "false" : "true"}"', label="inline session block DOM")
-    require(render_js, 'data-selected-thread-degraded-block="${degradedVisible ? "true" : "false"}"', label="inline degraded session block DOM")
-    require(render_js, 'data-live-block-owner="selected-thread"', label="inline session block owner DOM")
-    require(render_js, 'data-live-owned="${degradedVisible ? "false" : "true"}"', label="inline session block ownership DOM")
-    require(render_js, 'data-live-block-phase="', label="inline session block phase DOM")
-    require(render_js, 'data-live-block-reason="${escapeHtml(degradedVisible ? String(sessionIndicator.reason || "polling-fallback") : "healthy")}"', label="inline degraded session reason DOM")
+    require(render_js, "const { handoffVisible, degradedVisible, sessionIndicator } = inlineState;", label="transcript live state wiring")
+    require(render_js, 'return "";', label="inline session block removed as primary live surface")
     require(render_js, 'data-live-autonomy="true"', label="inline autonomy DOM")
     require(render_js, 'data-autonomy-path-verdict="', label="inline autonomy path verdict dataset")
     require(render_js, 'data-autonomy-verifier-acceptability="', label="inline autonomy verifier dataset")
@@ -1041,13 +1023,9 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'data-autonomy-freshness-state="', label="inline autonomy freshness dataset")
     require(render_js, 'data-autonomy-fallback-allowed="', label="inline autonomy fallback dataset")
     require(render_js, 'data-autonomy-generated-at="', label="inline autonomy generated-at dataset")
-    require(render_js, 'data-live-block-terminal="', label="inline session block terminal DOM")
-    require(render_js, 'sessionIndicator.reason === "session-rotation"', label="inline session rotation degraded copy")
-    require(render_js, 'sessionIndicator.reason === "retrying"', label="inline retrying degraded copy")
-    require(render_js, '${autonomySummary}', label="inline autonomy projection on owned and degraded paths")
+    require(render_js, 'data-live-reason="${escapeHtml(', label="transcript live reason dataset")
     require(render_js, 'const retainedTerminalVisible = shouldRetainInlineTerminalPhase(', label="inline terminal retention wiring")
     require(render_js, '(!liveRun.terminal || retainedTerminalVisible);', label="inline terminal visibility guard")
-    require(render_js, 'liveRun.terminal ? "terminal" : String(liveRun.state || "live")', label="inline terminal stage mapping")
     require(render_js, 'Date.now() - createdAtMs <= INLINE_TERMINAL_RETENTION_MS;', label="inline terminal retention deadline")
     require(render_js, "(liveRun.phase !== \"READY\" && liveRun.phase !== \"APPLIED\")", label="inline terminal phase scope")
     require(render_js, "latestAppendId > terminalAppendId", label="inline terminal next-append clear guard")
@@ -1146,6 +1124,9 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'return { label: transportState.label, tone: transportState.tone, role: "degraded" };', label="composer strip degraded phase row")
     require(render_js, 'dom.sessionStripState.innerHTML = sessionStripStateChipMarkup(stripState);', label="composer strip single-chip render")
     require(render_js, 'dom.sessionStripDetail.textContent = sessionStripDetailCopy(', label="composer strip live phase detail copy")
+    require(render_js, '!handoffVisible && !degradedVisible && (!phaseProgression.visible || !liveAutonomy.visible)', label="transcript live activity unified visibility guard")
+    require(render_js, 'const phaseLabel = degradedVisible', label="transcript live activity unified phase label")
+    require(render_js, 'const provenanceLabel = degradedVisible', label="transcript live activity unified provenance label")
     require(render_js, 'const mergedStripVisible = Boolean(dom.sessionStrip && !dom.sessionStrip.hidden);', label="composer owner row merged strip visibility")
     require(render_js, 'dom.composerOwnerRow.dataset.composerOwnerMerged = mergedStripVisible ? "true" : "false";', label="composer owner merged dataset")
     require(render_js, 'dom.composerOwnerRow.hidden = mergedStripVisible;', label="composer owner row hidden when strip active")

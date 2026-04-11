@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `95`
-- bounded focus: `single selected-thread center-lane session surface`
+- current iteration: `96`
+- bounded focus: `transcript-tail selected-thread live session item`
 
 ## Request
 
@@ -13,7 +13,7 @@
 
 ## Problem
 
-Selected-thread session ownership and phase progression are now canonical, but the operator still reads one active session through multiple live-owned center-lane surfaces. The header, inline block, transcript card, and composer-adjacent strip still duplicate ownership cues enough to make the session feel split instead of conversation-first.
+Selected-thread session ownership, phase progression, and compact context are now canonical, but the active session still arrives through a separate center-lane live block instead of reading as the tail of the conversation itself. That leaves a final gap between prior transcript history and the currently generating session.
 
 ## Target User
 
@@ -25,10 +25,10 @@ The primary user is the operator or developer using the phone-friendly workspace
 - Keep the change inside the allowed proposal paths.
 - Reuse the existing selected-thread session-status, live-autonomy, and phase-progression helpers in the frontend store.
 - Reuse existing append-stream, pending-handoff, session-phase, autonomy summary, and thread-transition state; do not introduce a new transport or a new polling contract.
-- Keep exactly one live-owned selected-thread session block in the center lane during handoff or healthy SSE progress.
+- Keep exactly one live session surface in the transcript timeline during handoff, healthy SSE progress, or degraded reconnect or polling states.
 - Preserve the bottom-fixed composer, thread-switch clearing, degraded reconnect or polling markers, and rail behavior already established in earlier iterations.
 - Do not suppress `/api/jobs` or `/api/goals` polling in this iteration; only collapse duplicate live-owned presentation in the selected-thread workspace.
 
 ## Deliverable
 
-Define and verify one primary selected-thread session surface in the center lane by reusing the existing canonical helpers, demoting the header and composer strip to compact supporting context, and preserving explicit degraded or cleared markers without transport or polling changes.
+Define and verify one primary selected-thread session surface as a transcript-tail live timeline item by reusing the existing canonical helpers, retiring the separate inline live block as an owning surface, and preserving explicit degraded or cleared markers without transport or polling changes.

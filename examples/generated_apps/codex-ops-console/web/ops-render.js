@@ -779,66 +779,7 @@ function shouldShowComposerLiveStrip(conversation, currentState, liveRun, handof
 }
 
 function renderInlineSessionBlock(conversation, currentState, liveRun, handoffState) {
-  const appendStream = currentState.appendStream || {};
-  const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
-  const phaseModel = selectedThreadSessionPhase(conversation, currentState);
-  const { handoffVisible, degradedVisible, liveVisible, status, sessionIndicator } = inlineState;
-
-  if (!inlineState.visible) {
-    return "";
-  }
-
-  const appendId = Number(appendStream.lastLiveAppendId || appendStream.lastAppendId || 0);
-  const liveStage = liveRun.terminal ? "terminal" : String(liveRun.state || "live");
-  const stage = degradedVisible
-    ? `degraded-${String(sessionIndicator.state || "polling")}`
-    : handoffVisible
-      ? "handoff"
-      : liveStage;
-  const phaseLabel = degradedVisible
-    ? String(sessionIndicator.label || "POLLING").toUpperCase()
-    : handoffVisible
-      ? "HANDOFF"
-      : String(liveRun.phase || "LIVE").toUpperCase();
-  const sourceLabel = degradedVisible ? String(sessionIndicator.source || "polling") : handoffVisible ? "handoff" : "sse";
-  const tone = degradedVisible
-    ? sessionIndicator.reason === "session-rotation"
-      ? "danger"
-      : "warning"
-    : handoffVisible
-      ? "neutral"
-      : liveVisible
-        ? transcriptLiveTone(liveRun)
-        : transcriptLiveTone(liveRun);
-  const detail = degradedVisible
-    ? sessionIndicator.reason === "session-rotation"
-      ? "세션 회전이 감지되어 선택된 대화의 live SSE 소유권이 끊겼습니다. fallback 경로로 상태를 복구하는 중입니다."
-      : sessionIndicator.reason === "retrying"
-        ? "선택된 대화의 live SSE 연결이 재시도 중입니다. fallback 경로로 현재 상태를 이어받는 중입니다."
-        : sessionIndicator.state === "reconnecting"
-          ? "선택된 대화의 append stream을 다시 붙이는 중입니다. 복구가 끝나면 live SSE 소유권으로 되돌아갑니다."
-          : "선택된 대화의 live SSE 소유권이 약화되어 polling fallback으로 상태를 유지하는 중입니다."
-    : handoffVisible
-      ? "서버 handoff가 확인되어 첫 live assistant append를 기다리는 중입니다."
-      : simplifyText(phaseDetailHint(liveRun) || liveRun.detail || "");
-  const autonomySummary = summarizeInlineAutonomy(currentState, inlineState);
-  const meta = degradedVisible
-    ? `selected thread · ${escapeHtml(String(sessionIndicator.label || "POLLING").toUpperCase())} · ${escapeHtml(String(sessionIndicator.reason || "polling-fallback").toUpperCase())}${liveRun.jobId ? ` · ${escapeHtml(liveRun.jobId)}` : ""}`
-    : handoffVisible
-      ? `selected thread · SSE · HANDOFF${liveRun.jobId ? ` · ${escapeHtml(liveRun.jobId)}` : ""}`
-      : `selected thread · SSE · ${escapeHtml(status.toUpperCase())} · append #${appendId || 0}${liveRun.jobId ? ` · ${escapeHtml(liveRun.jobId)}` : ""}`;
-  return `
-    <section class="session-inline-block" data-selected-thread-live-block="${degradedVisible ? "false" : "true"}" data-selected-thread-degraded-block="${degradedVisible ? "true" : "false"}" data-live-block-owner="selected-thread" data-live-owned="${degradedVisible ? "false" : "true"}" data-live-block-stage="${escapeHtml(stage)}" data-live-block-phase="${escapeHtml(phaseLabel)}" data-live-block-source="${escapeHtml(sourceLabel)}" data-live-block-phase-provenance="${escapeHtml(degradedVisible ? String(sessionIndicator.source || "polling") : String(phaseModel.source || liveRun.source || "none"))}" data-live-block-phase-authoritative="${degradedVisible ? "false" : phaseModel.authoritative ? "true" : "false"}" data-live-block-reason="${escapeHtml(degradedVisible ? String(sessionIndicator.reason || "polling-fallback") : "healthy")}" data-live-block-terminal="${handoffVisible || degradedVisible ? "false" : liveRun.terminal ? "true" : "false"}">
-      <p class="session-inline-kicker">Selected Thread Session</p>
-      <div class="session-inline-row">
-        <span class="session-inline-chip" data-tone="${degradedVisible ? "warning" : "neutral"}">${degradedVisible ? "DEGRADED" : handoffVisible ? "HANDOFF" : "LIVE"}</span>
-        <span class="session-inline-chip" data-tone="${escapeHtml(tone)}">${escapeHtml(phaseLabel)}</span>
-      </div>
-      <p class="session-inline-body">${escapeHtml(detail || "선택된 대화의 최신 live 진행 상태를 표시하는 중입니다.")}</p>
-      ${degradedVisible ? "" : autonomySummary}
-      <p class="session-inline-meta">${meta}</p>
-    </section>
-  `;
+  return "";
 }
 
 function autonomyChipTone(value) {
@@ -909,31 +850,50 @@ function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
   const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
   const liveAutonomy = deriveSelectedThreadLiveAutonomy(currentState, conversation);
   const phaseProgression = deriveSelectedThreadPhaseProgression(currentState, conversation);
-  if (inlineState.visible) {
+  const { handoffVisible, degradedVisible, sessionIndicator } = inlineState;
+  if (!handoffVisible && !degradedVisible && (!phaseProgression.visible || !liveAutonomy.visible)) {
     return "";
   }
-  if (
-    !phaseProgression.visible ||
-    !liveAutonomy.visible ||
-    inlineState.handoffVisible
-  ) {
-    return "";
-  }
-  const tone = liveAutonomy.owned ? transcriptLiveTone(liveRun) : "warning";
-  const detail = simplifyText(phaseDetailHint(liveRun) || liveRun.detail || "");
+  const liveOwned = !handoffVisible && !degradedVisible && liveAutonomy.owned;
+  const phaseLabel = degradedVisible
+    ? String(sessionIndicator.label || "POLLING").toUpperCase()
+    : handoffVisible
+      ? "HANDOFF"
+      : String(phaseProgression.label || liveRun.phase || "LIVE").toUpperCase();
+  const tone = degradedVisible ? "warning" : handoffVisible ? "neutral" : liveOwned ? transcriptLiveTone(liveRun) : "warning";
+  const detail = degradedVisible
+    ? sessionIndicator.reason === "session-rotation"
+      ? "세션 회전이 감지되어 선택된 대화의 live SSE 소유권이 끊겼습니다. fallback 경로로 상태를 복구하는 중입니다."
+      : sessionIndicator.reason === "retrying"
+        ? "선택된 대화의 live SSE 연결이 재시도 중입니다. fallback 경로로 현재 상태를 이어받는 중입니다."
+        : sessionIndicator.state === "reconnecting"
+          ? "선택된 대화의 append stream을 다시 붙이는 중입니다. 복구가 끝나면 live SSE 소유권으로 되돌아갑니다."
+          : "선택된 대화의 live SSE 소유권이 약화되어 polling fallback으로 상태를 유지하는 중입니다."
+    : handoffVisible
+      ? "서버 handoff가 확인되어 첫 live assistant append를 기다리는 중입니다."
+      : simplifyText(phaseDetailHint(liveRun) || liveRun.detail || "");
   const appendStream = currentState.appendStream || {};
   const appendId = Number(appendStream.lastLiveAppendId || appendStream.lastAppendId || 0);
-  const autonomySummary = summarizeInlineAutonomy(currentState, conversation);
+  const autonomySummary = degradedVisible ? "" : summarizeInlineAutonomy(currentState, conversation);
+  const provenanceLabel = degradedVisible
+    ? String(sessionIndicator.label || "POLLING")
+    : handoffVisible
+      ? "HANDOFF"
+      : liveOwned
+        ? "SSE LIVE"
+        : String(liveAutonomy.label || "FALLBACK");
+  const metaPhase = degradedVisible ? phaseLabel : handoffVisible ? "HANDOFF" : String(phaseProgression.label || "LIVE");
+  const metaReason = degradedVisible ? String(sessionIndicator.reason || "polling-fallback").toUpperCase() : "";
   return `
-    <article class="timeline-item live-activity" data-live-activity-turn="true" data-live-run-state="${escapeHtml(phaseProgression.state || liveRun.state)}" data-live-run-phase="${escapeHtml(phaseProgression.label || liveRun.phase)}" data-live-run-source="${escapeHtml(phaseProgression.source || liveRun.source)}" data-live-owned="${liveAutonomy.owned ? "true" : "false"}" data-live-autonomy-presentation="${escapeHtml(liveAutonomy.presentation)}" data-append-id="${appendId}" data-append-source="sse-live-activity">
+    <article class="timeline-item live-activity" data-live-activity-turn="true" data-live-run-state="${escapeHtml(handoffVisible ? "handoff" : degradedVisible ? String(sessionIndicator.state || "polling") : phaseProgression.state || liveRun.state)}" data-live-run-phase="${escapeHtml(phaseLabel)}" data-live-run-source="${escapeHtml(degradedVisible ? String(sessionIndicator.source || "polling") : handoffVisible ? "handoff" : phaseProgression.source || liveRun.source)}" data-live-owned="${liveOwned ? "true" : "false"}" data-live-autonomy-presentation="${escapeHtml(degradedVisible ? "degraded" : handoffVisible ? "handoff" : liveAutonomy.presentation)}" data-live-reason="${escapeHtml(degradedVisible ? String(sessionIndicator.reason || "polling-fallback") : handoffVisible ? "handoff" : String(liveAutonomy.reason || "healthy"))}" data-append-id="${appendId}" data-append-source="sse-live-activity">
       <p class="timeline-kind">실시간 진행</p>
       <div class="timeline-live-row">
-        <span class="timeline-live-chip" data-tone="${liveAutonomy.owned ? "neutral" : "warning"}">${escapeHtml(String(liveAutonomy.label || "LIVE"))}</span>
-        <span class="timeline-live-chip" data-tone="${escapeHtml(tone)}">${escapeHtml(String(phaseProgression.label || liveRun.phase || "LIVE").toUpperCase())}</span>
+        <span class="timeline-live-chip" data-tone="${degradedVisible ? "warning" : handoffVisible ? "neutral" : liveOwned ? "neutral" : "warning"}">${escapeHtml(degradedVisible ? "DEGRADED" : handoffVisible ? "HANDOFF" : String(liveAutonomy.label || "LIVE"))}</span>
+        <span class="timeline-live-chip" data-tone="${escapeHtml(tone)}">${escapeHtml(phaseLabel)}</span>
       </div>
       <p class="timeline-body">${escapeHtml(detail || "선택된 대화의 최신 live 진행 상태를 반영하는 중입니다.")}</p>
       ${autonomySummary}
-      <p class="timeline-meta">selected thread · ${escapeHtml(String(phaseProgression.label || "LIVE"))}${phaseProgression.jobId || liveRun.jobId ? ` · ${escapeHtml(String(phaseProgression.jobId || liveRun.jobId || ""))}` : ""} · <span class="timeline-provenance">${escapeHtml(String(liveAutonomy.owned ? "SSE LIVE" : liveAutonomy.label || "FALLBACK"))}</span></p>
+      <p class="timeline-meta">selected thread · ${escapeHtml(metaPhase)}${phaseProgression.jobId || liveRun.jobId ? ` · ${escapeHtml(String(phaseProgression.jobId || liveRun.jobId || ""))}` : ""}${metaReason ? ` · ${escapeHtml(metaReason)}` : ""} · <span class="timeline-provenance">${escapeHtml(provenanceLabel)}</span></p>
     </article>
   `;
 }

@@ -1,9 +1,9 @@
 # Factory Runtime Tasks
 
-## Iteration 95
+## Iteration 96
 
-- [x] Keep the iteration-94 selected-thread session-status, live-autonomy, and phase-progression helpers as the only ownership source.
-- [x] Reduce the center header to compact selected-thread context while preserving the machine-readable datasets needed by the rail and verifiers.
-- [x] Reduce the composer-adjacent strip to compact target context on healthy and handoff paths while preserving explicit degraded reconnect or polling markers.
-- [x] Keep exactly one live-owned selected-thread session block visible in the center lane during handoff or healthy SSE progress.
-- [x] Align focused verifiers and proposal artifacts with the iteration-95 unified session-surface contract.
+- [x] Keep the iteration-95 selected-thread session-status, live-autonomy, and phase-progression helpers as the only ownership source.
+- [x] Retire the separate inline live block as an owning selected-thread surface.
+- [x] Make the transcript-tail live item render handoff, healthy SSE phase progression, and degraded reconnect or polling states through one bounded session surface.
+- [x] Keep the header and composer strip as compact supporting context only.
+- [x] Align focused verifiers and proposal artifacts with the iteration-96 transcript-tail session contract.
