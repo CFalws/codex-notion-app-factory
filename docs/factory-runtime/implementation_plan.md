@@ -1,11 +1,11 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 123
+## Iteration 124
 
-Tighten healthy selected-thread authority so poll-driven job and goals refresh cannot reclaim visible state after SSE becomes authoritative.
+Collapse healthy selected-thread rich phase detail into the transcript live activity item and keep the header and footer compact.
 
-1. Reuse `isSelectedThreadSessionOwned(...)` as the single poll-fallback gate in the job controller.
-2. Prevent late poll ticks from updating visible job meta, proposal readiness, conversation refetch, or goal-summary refresh once the selected-thread SSE path is authoritative.
-3. Preserve reconnect and polling fallback behavior by allowing poll-driven updates only when selected-thread SSE ownership is no longer healthy.
-4. Leave the timeline, header, and footer render surfaces unchanged so they continue projecting the same selected-thread live append state.
-5. Extend the focused verifier layer and proposal artifacts so iteration 123 proves healthy selected-thread SSE authority suppresses poll-driven visible state updates.
+1. Keep the existing selected-thread SSE authority contract unchanged.
+2. Reduce healthy-path footer session rendering to a compact phase or follow chip plus minimal ownership detail instead of milestone or verifier or blocker copy.
+3. Keep the transcript live activity item as the only rich healthy-path surface for phase progression, milestones, and autonomy path detail.
+4. Preserve reconnect, polling fallback, switching, deselection, and terminal clearing behavior in the same render cycle.
+5. Extend the focused verifier layer and proposal artifacts so iteration 124 proves the transcript owns rich live detail while the footer remains compact.

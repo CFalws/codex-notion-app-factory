@@ -245,47 +245,27 @@ function selectedThreadFooterDockModel(currentState, conversation, liveRun, foot
   const phaseProgression = deriveSelectedThreadPhaseProgression(currentState, conversation);
   const liveAutonomy = deriveSelectedThreadLiveAutonomy(currentState, conversation);
   const milestoneModel = deriveSelectedThreadTimelineMilestones(currentState, conversation);
-  const summary = liveAutonomy.summary || null;
   const liveOwned = Boolean(
     sessionStatus.liveOwned &&
       phaseProgression.visible &&
       String(phaseProgression.source || "none").toLowerCase() === "sse",
   );
   const phaseLabel = String(phaseProgression.label || liveRun?.phase || "LIVE").toUpperCase();
-  const milestoneChips = milestoneModel.visible
-    ? milestoneModel.items.map((item) => ({
-        label: item.label,
-        tone: item.state === "complete" ? "healthy" : item.state === "active" ? "neutral" : item.state === "blocked" ? "warning" : "muted",
-        role: item.state === "active" ? "live-phase" : item.state === "complete" ? "live-complete" : item.state === "blocked" ? "live-blocked" : "live-pending",
-      }))
-    : [{ label: phaseLabel, tone: "neutral", role: "live-phase" }];
-  const chips = [];
-  if (footerFollow?.visible) {
-    chips.push({
-      label: footerFollow.stateLabel,
-      tone: footerFollow.followState === "new" ? "warning" : "neutral",
-      role: "live-follow",
-    });
-  }
-  chips.push(...milestoneChips);
-  const detailTokens = [];
-  if (footerFollow?.visible) {
-    detailTokens.push(footerFollow.detailLabel);
-  }
-  if (summary) {
-    detailTokens.push(String(summary.pathVerdict || "UNKNOWN").toUpperCase());
-    detailTokens.push(String(summary.verifierAcceptability || "PENDING").toUpperCase());
-    detailTokens.push(`BLOCKER ${String(summary.blockerReason || "none").toUpperCase()}`);
-  } else {
-    detailTokens.push(phaseLabel);
-  }
+  const chips = [
+    footerFollow?.visible
+      ? {
+          label: footerFollow.stateLabel,
+          tone: footerFollow.followState === "new" ? "warning" : "neutral",
+          role: "live-follow",
+        }
+      : { label: phaseLabel, tone: "neutral", role: "live-phase" },
+  ];
   return {
     visible: liveOwned,
     phaseLabel,
     chips,
-    detail: detailTokens.filter(Boolean).join(" · "),
+    detail: footerFollow?.visible ? footerFollow.detailLabel : "SSE LIVE",
     source: String(milestoneModel.source || phaseProgression.source || "sse").toLowerCase(),
-    summary,
     liveOwned,
   };
 }
@@ -1910,7 +1890,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStrip.dataset.footerDockOwned = stripLiveOwned ? "true" : "false";
   dom.sessionStrip.dataset.footerDockPhase = footerDock.phaseLabel || "IDLE";
   dom.sessionStrip.dataset.footerDockSource = footerDock.source || "none";
-  dom.sessionStrip.dataset.footerDockMilestones = footerDock.visible ? "true" : "false";
+  dom.sessionStrip.dataset.footerDockMilestones = footerDock.visible && footerDock.chips.length > 1 ? "true" : "false";
   dom.sessionStrip.dataset.composerState = ownerState.state;
   dom.sessionStrip.dataset.composerTransport = transportState.key;
   dom.sessionStrip.dataset.composerTransportSource = transportState.source;

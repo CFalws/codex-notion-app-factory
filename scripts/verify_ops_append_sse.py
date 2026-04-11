@@ -547,7 +547,7 @@ def main() -> int:
     require(render_js, 'dom.sessionStrip.dataset.footerDockOwned = stripLiveOwned ? "true" : "false";', label="composer strip footer-dock ownership dataset")
     require(render_js, 'dom.sessionStrip.dataset.footerDockPhase = footerDock.phaseLabel || "IDLE";', label="composer strip footer-dock phase dataset")
     require(render_js, 'dom.sessionStrip.dataset.footerDockSource = footerDock.source || "none";', label="composer strip footer-dock source dataset")
-    require(render_js, 'dom.sessionStrip.dataset.footerDockMilestones = footerDock.visible ? "true" : "false";', label="composer strip footer-dock milestone dataset")
+    require(render_js, 'dom.sessionStrip.dataset.footerDockMilestones = footerDock.visible && footerDock.chips.length > 1 ? "true" : "false";', label="composer strip footer-dock milestone dataset")
     require(render_js, 'dom.threadScroller.dataset.sessionOwner = liveOwned ? "selected-thread" : "none";', label="thread scroller selected-thread owner dataset")
     require(render_js, 'dom.sessionStripState.dataset.sessionStripRole = stripState.role;', label="composer strip state role dataset")
     require(render_js, 'dom.sessionStripState.dataset.sessionStripLabel = stripState.label;', label="composer strip state label dataset")

@@ -508,14 +508,14 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.liveOwned === "true" &&
                     sessionStrip.dataset.sessionOwner === "selected-thread" &&
                     sessionStrip.dataset.footerDockOwned === "true" &&
-                    sessionStrip.dataset.footerDockMilestones === "true" &&
+                    sessionStrip.dataset.footerDockMilestones === "false" &&
                     sessionStrip.dataset.footerDockPhase === summary.dataset.summaryPhase &&
                     sessionStrip.dataset.footerDockSource === "sse" &&
                     threadScroller &&
                     sessionStrip.dataset.phaseValue === summary.dataset.summaryPhase &&
                     threadScroller.dataset.phaseValue === summary.dataset.summaryPhase &&
                     sessionStripState &&
-                    stripChips.length >= 1 &&
+                    stripChips.length === 1 &&
                     sessionStripState.dataset.sessionStripRole === "live-dock" &&
                     ["PROPOSAL", "REVIEW", "VERIFY", "READY", "APPLIED", "NEW", "PAUSED"].includes(sessionStripState.dataset.sessionStripLabel || "") &&
                     sessionStripState.textContent.trim().length > 0 &&
@@ -1275,7 +1275,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.sessionStrip.dataset.footerDockOwned = stripLiveOwned ? "true" : "false";', label="composer strip footer-dock ownership dataset")
     require(render_js, 'dom.sessionStrip.dataset.footerDockPhase = footerDock.phaseLabel || "IDLE";', label="composer strip footer-dock phase dataset")
     require(render_js, 'dom.sessionStrip.dataset.footerDockSource = footerDock.source || "none";', label="composer strip footer-dock source dataset")
-    require(render_js, 'dom.sessionStrip.dataset.footerDockMilestones = footerDock.visible ? "true" : "false";', label="composer strip footer-dock milestone dataset")
+    require(render_js, 'dom.sessionStrip.dataset.footerDockMilestones = footerDock.visible && footerDock.chips.length > 1 ? "true" : "false";', label="composer strip footer-dock milestone dataset")
     require(render_js, 'dom.sessionStripState.dataset.sessionStripRole = stripState.role;', label="composer strip state role dataset")
     require(render_js, 'dom.sessionStripState.dataset.sessionStripLabel = stripState.label;', label="composer strip state label dataset")
     require(render_js, 'dom.sessionStripState.dataset.sessionStripTone = stripState.tone;', label="composer strip state tone dataset")
