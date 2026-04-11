@@ -1,20 +1,20 @@
 # Factory Runtime Deploy Plan
 
-## Iteration 153
+## Iteration 154
 
-This deploy plan validates the selected-thread center-pane session convergence contract and does not introduce a new transport or backend protocol.
+This deploy plan validates the selected-thread secondary-panel detail-drawer contract and does not introduce a new transport or backend protocol.
 
 ## Deployment Impact
 
-This iteration changes center-pane selected-thread session presentation and verification only. The bounded expectation is that the transcript-native live activity becomes the sole selected-thread session item across healthy, handoff, degraded, and restore states while duplicate inline ownership surfaces clear immediately on degraded and switching paths.
+This iteration changes selected-thread secondary-panel presentation and verification only. The bounded expectation is that the transcript and footer composer remain authoritative while the optional secondary panel exposes compact selected-thread facts and drill-down detail without looking like a parallel live dashboard.
 
 ## Rollout Notes
 
 1. Apply the proposal commit onto `main`.
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
 3. Open the operator console on desktop and phone widths with at least one selected-thread conversation.
-4. Start a healthy selected-thread SSE run and confirm the center timeline shows exactly one selected-thread live session item with the current phase plus path, verifier, and blocker chips, with no separate inline session block.
-5. Trigger a bounded pending handoff and confirm the same transcript-native session item flips to `HANDOFF` without rendering a second inline handoff block.
-6. Trigger reconnect downgrade or polling fallback and confirm the same center item downgrades in place while no inline selected-thread session block remains visible.
-7. Trigger restore attach, terminal idle, deselection, and thread switch and confirm the center pane shows at most one selected-thread session item and clears duplicate ownership surfaces immediately.
-8. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible center-pane convergence contract succeeds through the intended selected-thread session path.
+4. Start a healthy selected-thread SSE run and confirm the transcript remains the primary session surface while the secondary panel stays closed by default.
+5. Open the secondary panel and confirm the compact facts header shows selected-thread scope, transport, phase, path, verifier, and blocker facts that match the healthy selected-thread session datasets.
+6. Confirm the autonomy and execution cards remain visible only as detail drill-down content inside the panel and do not replace the transcript-native session surface.
+7. Trigger reconnect downgrade, polling fallback, switch, restore, terminal idle, and deselection and confirm the panel facts update or clear immediately without preserving stale selected-thread ownership.
+8. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible secondary-panel detail-drawer contract succeeds through the intended selected-thread session path.

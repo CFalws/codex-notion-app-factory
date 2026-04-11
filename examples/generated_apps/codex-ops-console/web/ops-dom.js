@@ -33,6 +33,7 @@ export const dom = {
   composerOwnerCopy: document.getElementById("composer-owner-copy"),
   autonomyDetailMeta: document.getElementById("autonomy-detail-meta"),
   autonomyDetail: document.getElementById("autonomy-detail"),
+  secondarySessionFacts: document.getElementById("secondary-session-facts"),
   workspaceSummaryText: document.getElementById("workspace-summary-text"),
   draftStatus: document.getElementById("draft-status"),
   activeSessionRow: document.getElementById("active-session-row"),

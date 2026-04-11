@@ -141,6 +141,174 @@ export function renderWorkspaceSummary(dom, summary) {
   dom.workspaceSummaryText.textContent = summary;
 }
 
+function secondaryFactsChip(label, tone = "muted") {
+  return `<span class="session-summary-chip" data-secondary-fact-tone="${escapeHtml(tone)}">${escapeHtml(label)}</span>`;
+}
+
+function secondaryPanelSessionFactsModel(currentState, conversation, liveRun, handoffState = { stage: "idle" }) {
+  const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
+  const sessionSurface = deriveSelectedThreadSessionSurfaceModel(currentState, conversation);
+  const followControl = deriveSelectedThreadFollowControlModel(currentState);
+  const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
+  const title = compactTargetLabel(
+    conversation?.title || sessionStatus.conversationTitle || sessionStatus.switchTargetTitle || "NO TARGET",
+    "NO TARGET",
+  );
+
+  if (sessionStatus.switchActive) {
+    return {
+      presentation: "switching",
+      conversationId: String(sessionStatus.switchConversationId || ""),
+      title,
+      owned: false,
+      transport: "ATTACH",
+      phase: "SWITCHING",
+      path: "SWITCH",
+      verifier: "PENDING",
+      blocker: "NONE",
+      follow: "IDLE",
+      detail: "selected thread switching · target snapshot attach pending",
+      meta: joinSessionChromeTokens("selected thread", "switching", "attach pending"),
+    };
+  }
+
+  if (sessionSurface.restoreVisible) {
+    return {
+      presentation: "restore",
+      conversationId: String(sessionStatus.conversationId || ""),
+      title,
+      owned: false,
+      transport: "SSE RESTORE",
+      phase: String(sessionSurface.phaseLabel || "ATTACH"),
+      path: "RESTORE",
+      verifier: "PENDING",
+      blocker: "NONE",
+      follow: "IDLE",
+      detail: sessionStatus.restoreResume
+        ? "saved restore resume · transcript session reattach"
+        : "saved restore attach · transcript session bootstrap",
+      meta: joinSessionChromeTokens("selected thread", "restore", String(sessionStatus.restorePath || "attach")),
+    };
+  }
+
+  if (sessionSurface.liveOwned) {
+    return {
+      presentation: "healthy",
+      conversationId: String(sessionStatus.conversationId || ""),
+      title,
+      owned: true,
+      transport: "SSE OWNER",
+      phase: String(sessionSurface.phaseLabel || "LIVE"),
+      path: String(sessionSurface.pathVerdict || "EXPECTED"),
+      verifier: String(sessionSurface.verifierAcceptability || "PENDING"),
+      blocker: String(sessionSurface.blockerReason || "NONE"),
+      follow: followControl.visible ? String(followControl.stateLabel || "FOLLOW") : "FOLLOW",
+      detail: joinSessionChromeTokens(
+        "selected thread",
+        sessionSurface.source || "sse",
+        followControl.visible ? followControl.detailLabel : "follow attached",
+      ),
+      meta: joinSessionChromeTokens("selected thread", "sse owner", sessionSurface.phaseLabel || "live"),
+    };
+  }
+
+  if (inlineState.handoffVisible || sessionSurface.handoffVisible) {
+    return {
+      presentation: "handoff",
+      conversationId: String(sessionStatus.conversationId || ""),
+      title,
+      owned: false,
+      transport: "HANDOFF",
+      phase: "HANDOFF",
+      path: "EXPECTED",
+      verifier: "PENDING",
+      blocker: "NONE",
+      follow: "HANDOFF",
+      detail: "selected thread handoff confirmed · waiting for first assistant append",
+      meta: joinSessionChromeTokens("selected thread", "handoff", "append pending"),
+    };
+  }
+
+  if (sessionSurface.degradedVisible || inlineState.degradedVisible) {
+    const degradedTransport = String(sessionStatus.transportLabel || "POLLING").toUpperCase();
+    return {
+      presentation: "degraded",
+      conversationId: String(sessionStatus.conversationId || ""),
+      title,
+      owned: false,
+      transport: degradedTransport,
+      phase: String(sessionSurface.phaseLabel || degradedTransport),
+      path: "DEGRADED",
+      verifier: "PENDING",
+      blocker: "NONE",
+      follow: "IDLE",
+      detail: joinSessionChromeTokens("selected thread", degradedTransport.toLowerCase(), sessionStatus.transportReason || "fallback"),
+      meta: joinSessionChromeTokens("selected thread", degradedTransport.toLowerCase(), "detail only"),
+    };
+  }
+
+  if (conversation) {
+    return {
+      presentation: "snapshot",
+      conversationId: String(sessionStatus.conversationId || ""),
+      title,
+      owned: false,
+      transport: String(sessionStatus.renderSource || "snapshot").toUpperCase(),
+      phase: String(sessionSurface.phaseLabel || "IDLE"),
+      path: "SNAPSHOT",
+      verifier: "PENDING",
+      blocker: "NONE",
+      follow: "IDLE",
+      detail: joinSessionChromeTokens("selected thread", `${(conversation.messages || []).length} messages`, `${(conversation.events || []).length} events`),
+      meta: joinSessionChromeTokens("selected thread", "snapshot", "detail only"),
+    };
+  }
+
+  return {
+    presentation: "idle",
+    conversationId: "",
+    title: "NO TARGET",
+    owned: false,
+    transport: "IDLE",
+    phase: "IDLE",
+    path: "SNAPSHOT",
+    verifier: "PENDING",
+    blocker: "NONE",
+    follow: "IDLE",
+    detail: "선택된 대화가 없으면 세부 사실이 여기에 표시됩니다.",
+    meta: "selected thread detail drawer",
+  };
+}
+
+export function renderSecondaryPanelSessionFacts(dom, currentState, conversation, liveRun, handoffState = { stage: "idle" }) {
+  if (!dom.secondarySessionFacts) {
+    return;
+  }
+  const facts = secondaryPanelSessionFactsModel(currentState, conversation, liveRun, handoffState);
+  dom.secondarySessionFacts.dataset.secondaryFactsPresentation = facts.presentation;
+  dom.secondarySessionFacts.dataset.secondaryFactsConversationId = facts.conversationId;
+  dom.secondarySessionFacts.dataset.secondaryFactsOwned = facts.owned ? "true" : "false";
+  dom.secondarySessionFacts.dataset.secondaryFactsTransport = facts.transport;
+  dom.secondarySessionFacts.dataset.secondaryFactsPhase = facts.phase;
+  dom.secondarySessionFacts.dataset.secondaryFactsPath = facts.path;
+  dom.secondarySessionFacts.dataset.secondaryFactsVerifier = facts.verifier;
+  dom.secondarySessionFacts.dataset.secondaryFactsBlocker = facts.blocker;
+  dom.secondarySessionFacts.dataset.secondaryFactsFollow = facts.follow;
+  dom.secondarySessionFacts.innerHTML = `
+    <div class="secondary-session-chip-row">
+      ${secondaryFactsChip("SELECTED", "muted")}
+      ${secondaryFactsChip(facts.transport, facts.owned ? "healthy" : facts.presentation === "degraded" ? "warning" : "neutral")}
+      ${secondaryFactsChip(facts.phase, facts.owned ? "healthy" : facts.presentation === "degraded" ? "warning" : "neutral")}
+      ${secondaryFactsChip(facts.path, autonomyChipTone(facts.path))}
+      ${secondaryFactsChip(facts.verifier, autonomyChipTone(facts.verifier))}
+      ${secondaryFactsChip(`BLOCKER ${facts.blocker}`, blockerTone(String(facts.blocker || "").toLowerCase()))}
+    </div>
+    <p class="secondary-session-title">${escapeHtml(facts.title)}</p>
+    <p class="secondary-session-meta">${escapeHtml(facts.meta)}</p>
+  `;
+  renderWorkspaceSummary(dom, facts.detail);
+}
+
 export function renderDraftStatus(dom, message) {
   dom.draftStatus.textContent = message;
 }
@@ -2178,12 +2346,11 @@ function syncAutonomyDetailSurface(dom, currentState, conversation, liveRun, han
     return;
   }
   const timelineAuthority = selectedThreadTimelineAuthorityModel(conversation, currentState, liveRun, handoffState);
-  const hideForSelectedThreadLiveAutonomy = timelineAuthority.visible;
-  autonomyCard.hidden = hideForSelectedThreadLiveAutonomy;
-  autonomyCard.dataset.autonomySurface = hideForSelectedThreadLiveAutonomy ? "center-lane" : "secondary-detail";
+  autonomyCard.hidden = false;
+  autonomyCard.dataset.autonomySurface = "secondary-detail";
   autonomyCard.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
   autonomyCard.dataset.centerTimelinePresentation = timelineAuthority.presentation;
-  dom.autonomyDetail.dataset.surface = hideForSelectedThreadLiveAutonomy ? "center-lane" : "secondary-detail";
+  dom.autonomyDetail.dataset.surface = "secondary-detail";
   dom.autonomyDetail.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
   dom.autonomyDetail.dataset.centerTimelinePresentation = timelineAuthority.presentation;
 }
@@ -2217,21 +2384,20 @@ function syncExecutionStatusSurface(dom, currentState, conversation, liveRun, se
     return;
   }
   const timelineAuthority = selectedThreadTimelineAuthorityModel(conversation, currentState, liveRun, pendingHandoffState(conversation, currentState));
-  const promoteToCenterLane = timelineAuthority.visible;
-  statusCard.hidden = promoteToCenterLane;
-  statusCard.dataset.executionSurface = promoteToCenterLane ? "center-lane" : "secondary-detail";
+  statusCard.hidden = false;
+  statusCard.dataset.executionSurface = "secondary-detail";
   statusCard.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
   statusCard.dataset.centerTimelinePresentation = timelineAuthority.presentation;
-  dom.statusOutput.dataset.surface = promoteToCenterLane ? "center-lane" : "secondary-detail";
+  dom.statusOutput.dataset.surface = "secondary-detail";
   dom.statusOutput.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
   dom.statusOutput.dataset.centerTimelinePresentation = timelineAuthority.presentation;
-  dom.jobEvents.dataset.surface = promoteToCenterLane ? "center-lane" : "secondary-detail";
+  dom.jobEvents.dataset.surface = "secondary-detail";
   dom.jobEvents.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
   dom.jobEvents.dataset.centerTimelinePresentation = timelineAuthority.presentation;
-  dom.jobPhase.dataset.surface = promoteToCenterLane ? "center-lane" : "secondary-detail";
+  dom.jobPhase.dataset.surface = "secondary-detail";
   dom.jobPhase.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
   dom.jobPhase.dataset.centerTimelinePresentation = timelineAuthority.presentation;
-  dom.jobMeta.dataset.surface = promoteToCenterLane ? "center-lane" : "secondary-detail";
+  dom.jobMeta.dataset.surface = "secondary-detail";
   dom.jobMeta.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
   dom.jobMeta.dataset.centerTimelinePresentation = timelineAuthority.presentation;
 }
@@ -2442,6 +2608,18 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
       liveRun: workspacePlaceholder.liveRun,
     });
     renderWorkspaceSummary(dom, workspacePlaceholder.workspaceSummary);
+    renderSecondaryPanelSessionFacts(
+      dom,
+      currentState,
+      null,
+      runStateSnapshot({
+        visible: false,
+        phase: "IDLE",
+        source: "none",
+        tone: "idle",
+      }),
+      { stage: "idle" },
+    );
     renderSessionSummary(
       dom,
       currentState,
@@ -2541,6 +2719,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
       events.length ? `이벤트 ${events.length}` : "이벤트 0",
     ].join(" · "),
   );
+  renderSecondaryPanelSessionFacts(dom, currentState, conversation, liveRun, handoffState);
 
   if (!items.length && !inlineSessionBlock && !transcriptLiveActivity) {
     dom.conversationTimeline.innerHTML = '<p class="timeline-empty">아직 메시지가 없습니다.</p>';

@@ -1,9 +1,9 @@
 # Factory Runtime Tasks
 
-## Iteration 153
+## Iteration 154
 
-- [x] Reuse the selected-thread primary timeline session contract as the only center-pane session surface.
-- [x] Remove the standalone inline selected-thread session block from healthy and handoff rendering.
-- [x] Keep degraded and restore session visibility transcript-native while failing closed on switch, terminal, deselection, and lost-authority paths.
-- [x] Enforce exactly one selected-thread center session item and zero duplicate inline blocks in focused static and deployed verification.
-- [x] Align proposal artifacts with the iteration-153 center-pane convergence contract.
+- [x] Render compact selected-thread scope, path, phase, verifier, blocker, and follow facts at the top of the secondary panel from existing session models.
+- [x] Keep the transcript and bottom composer authoritative while the secondary panel stays detail-only.
+- [x] Keep autonomy and execution detail visible in the panel without treating them as primary live status surfaces.
+- [x] Mirror healthy, degraded, switching, restore, and idle selected-thread states into the panel facts header and clear stale ownership immediately.
+- [x] Align focused static verification and proposal artifacts with the iteration-154 secondary-panel detail-drawer contract.

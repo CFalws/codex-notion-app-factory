@@ -25,6 +25,7 @@ import {
   renderLearningSummary,
   renderConversation,
   renderAutonomySummary,
+  renderSecondaryPanelSessionFacts,
   jumpToLatest,
   renderWorkspaceSummary,
   setJobMeta,
@@ -522,6 +523,7 @@ function init() {
     conversationState: "대화 준비 전",
   });
   renderWorkspaceSummary(dom, "앱 목록과 최근 대화를 불러오면 현재 세션 맥락이 여기에 정리됩니다.");
+  renderSecondaryPanelSessionFacts(dom, state, null, { visible: false, phase: "IDLE", source: "none", tone: "idle" }, { stage: "idle" });
   clearAutonomySummary(dom);
   clearLearningSummary(dom);
   syncNavOpsSection();

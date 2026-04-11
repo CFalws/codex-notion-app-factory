@@ -229,13 +229,21 @@
         <div class="secondary-panel-head">
           <div>
             <p class="sidebar-kicker">Secondary Panel</p>
-            <h2>작업 상태와 학습</h2>
+            <h2>세부 사실과 학습</h2>
           </div>
           <button id="secondary-panel-close" class="secondary small" type="button">닫기</button>
         </div>
 
         <section class="sidebar-section secondary-summary">
-          <p class="label">현재 작업 맥락</p>
+          <p class="label">Selected Thread Facts</p>
+          <div id="secondary-session-facts" class="secondary-session-facts" data-secondary-facts-presentation="idle">
+            <div class="secondary-session-chip-row">
+              <span class="session-summary-chip">SELECTED</span>
+              <span class="session-summary-chip">IDLE</span>
+            </div>
+            <p class="secondary-session-title">NO TARGET</p>
+            <p class="secondary-session-meta">selected thread detail drawer</p>
+          </div>
           <p id="workspace-summary-text" class="workspace-summary-text">세부 맥락은 이 패널에서만 확인합니다.</p>
         </section>
 
@@ -252,11 +260,11 @@
         <div class="inspector-grid secondary-panel-grid">
           <section class="inspector-card">
             <div class="section-head compact">
-              <h3>실행 상태</h3>
+              <h3>실행 드릴다운</h3>
               <div class="thread-status">
-                <p class="activity-label">현재 단계</p>
+                <p class="activity-label">detail only</p>
                 <p id="job-phase" class="activity-phase idle">IDLE</p>
-                <p id="job-meta" class="meta">아직 실행 중인 작업이 없습니다.</p>
+                <p id="job-meta" class="meta">선택된 대화의 drill-down detail이 여기에 표시됩니다.</p>
               </div>
             </div>
             <pre id="status-output">Tailscale 런타임에 연결해 앱 목록을 불러오는 중입니다.</pre>

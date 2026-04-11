@@ -137,6 +137,9 @@ def browser_snapshot_script() -> str:
   const summary = document.querySelector("#session-summary-row");
   const inlineBlocks = Array.from(document.querySelectorAll('.session-inline-block[data-selected-thread-live-block="true"], .session-inline-block[data-selected-thread-degraded-block="true"]'));
   const liveActivity = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
+  const secondaryPanel = document.querySelector("#secondary-panel");
+  const secondaryPanelToggle = document.querySelector("#secondary-panel-toggle");
+  const secondarySessionFacts = document.querySelector("#secondary-session-facts");
   const follow = document.querySelector("#jump-to-latest");
   const activeSessionRow = document.querySelector("#active-session-row");
   const sessionStrip = document.querySelector("#session-strip");
@@ -163,6 +166,18 @@ def browser_snapshot_script() -> str:
     liveActivity: liveActivity ? {
       dataset: { ...liveActivity.dataset },
       text: (liveActivity.textContent || "").trim(),
+    } : null,
+    secondaryPanel: secondaryPanel ? {
+      dataset: { ...secondaryPanel.dataset },
+      text: (secondaryPanel.textContent || "").trim(),
+    } : null,
+    secondaryPanelToggle: secondaryPanelToggle ? {
+      expanded: secondaryPanelToggle.getAttribute("aria-expanded"),
+      text: (secondaryPanelToggle.textContent || "").trim(),
+    } : null,
+    secondarySessionFacts: secondarySessionFacts ? {
+      dataset: { ...secondarySessionFacts.dataset },
+      text: (secondarySessionFacts.textContent || "").trim(),
     } : null,
     follow: follow ? {
       hidden: !!follow.hidden,
@@ -518,6 +533,8 @@ def assert_browser_runtime_surface(
                   const composerOwnerRow = document.querySelector("#composer-owner-row");
                   const composerDock = document.querySelector("#conversation-footer-dock");
                   const sendRequest = document.querySelector("#send-request");
+                  const secondaryPanelToggle = document.querySelector("#secondary-panel-toggle");
+                  const secondarySessionFacts = document.querySelector("#secondary-session-facts");
                   const autonomyDetailCard = document.querySelector(".autonomy-detail-card");
                   const autonomyDetail = document.querySelector("#autonomy-detail");
                   const statusOutput = document.querySelector("#status-output");
@@ -616,22 +633,33 @@ def assert_browser_runtime_surface(
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     sendRequest &&
                     sendRequest.dataset.composerOwnerState &&
+                    secondaryPanelToggle &&
+                    secondaryPanelToggle.getAttribute("aria-expanded") === "false" &&
+                    document.body.dataset.secondaryPanelOpen !== "true" &&
+                    secondarySessionFacts &&
+                    secondarySessionFacts.dataset.secondaryFactsPresentation === "healthy" &&
+                    secondarySessionFacts.dataset.secondaryFactsOwned === "true" &&
+                    secondarySessionFacts.dataset.secondaryFactsTransport === "SSE OWNER" &&
+                    secondarySessionFacts.dataset.secondaryFactsPhase === liveActivity.dataset.liveRunPhase &&
+                    secondarySessionFacts.dataset.secondaryFactsPath === liveActivity.dataset.livePathVerdict &&
+                    secondarySessionFacts.dataset.secondaryFactsVerifier === liveActivity.dataset.liveVerifierAcceptability &&
+                    secondarySessionFacts.dataset.secondaryFactsBlocker === liveActivity.dataset.liveBlockerReason &&
                     autonomyDetailCard &&
-                    autonomyDetailCard.hidden &&
-                    autonomyDetailCard.dataset.autonomySurface === "center-lane" &&
+                    !autonomyDetailCard.hidden &&
+                    autonomyDetailCard.dataset.autonomySurface === "secondary-detail" &&
                     autonomyDetailCard.dataset.centerTimelineAuthority === "true" &&
                     autonomyDetailCard.dataset.centerTimelinePresentation === "healthy" &&
                     autonomyDetail &&
-                    autonomyDetail.dataset.surface === "center-lane" &&
+                    autonomyDetail.dataset.surface === "secondary-detail" &&
                     autonomyDetail.dataset.centerTimelineAuthority === "true" &&
                     autonomyDetail.dataset.centerTimelinePresentation === "healthy" &&
                     executionStatusCard &&
-                    executionStatusCard.hidden &&
-                    executionStatusCard.dataset.executionSurface === "center-lane" &&
+                    !executionStatusCard.hidden &&
+                    executionStatusCard.dataset.executionSurface === "secondary-detail" &&
                     executionStatusCard.dataset.centerTimelineAuthority === "true" &&
                     executionStatusCard.dataset.centerTimelinePresentation === "healthy" &&
                     statusOutput &&
-                    statusOutput.dataset.surface === "center-lane" &&
+                    statusOutput.dataset.surface === "secondary-detail" &&
                     statusOutput.dataset.centerTimelineAuthority === "true" &&
                     statusOutput.dataset.centerTimelinePresentation === "healthy" &&
                     sessionEvents.length === 0 &&
@@ -644,6 +672,44 @@ def assert_browser_runtime_surface(
                 timeout=120000,
             )
             healthy_snapshot = page.evaluate(browser_snapshot_script())
+
+            page.click("#secondary-panel-toggle")
+            page.wait_for_function(
+                """() => {
+                  const secondaryPanelToggle = document.querySelector("#secondary-panel-toggle");
+                  const secondarySessionFacts = document.querySelector("#secondary-session-facts");
+                  const autonomyDetailCard = document.querySelector(".autonomy-detail-card");
+                  const executionStatusCard = document.querySelector("#status-output")?.closest(".inspector-card");
+                  return Boolean(
+                    secondaryPanelToggle &&
+                    secondaryPanelToggle.getAttribute("aria-expanded") === "true" &&
+                    document.body.dataset.secondaryPanelOpen === "true" &&
+                    secondarySessionFacts &&
+                    secondarySessionFacts.dataset.secondaryFactsPresentation === "healthy" &&
+                    secondarySessionFacts.dataset.secondaryFactsOwned === "true" &&
+                    secondarySessionFacts.dataset.secondaryFactsTransport === "SSE OWNER" &&
+                    autonomyDetailCard &&
+                    !autonomyDetailCard.hidden &&
+                    autonomyDetailCard.dataset.autonomySurface === "secondary-detail" &&
+                    executionStatusCard &&
+                    !executionStatusCard.hidden &&
+                    executionStatusCard.dataset.executionSurface === "secondary-detail"
+                  );
+                }""",
+                timeout=30000,
+            )
+            page.click("#secondary-panel-close")
+            page.wait_for_function(
+                """() => {
+                  const secondaryPanelToggle = document.querySelector("#secondary-panel-toggle");
+                  return Boolean(
+                    secondaryPanelToggle &&
+                    secondaryPanelToggle.getAttribute("aria-expanded") === "false" &&
+                    document.body.dataset.secondaryPanelOpen !== "true"
+                  );
+                }""",
+                timeout=30000,
+            )
 
             page.evaluate(
                 """() => {
@@ -801,6 +867,7 @@ def assert_browser_runtime_surface(
                   const activeSessionRow = document.querySelector("#active-session-row");
                   const sessionStrip = document.querySelector("#session-strip");
                   const sessionStripState = document.querySelector("#session-strip-state");
+                  const secondarySessionFacts = document.querySelector("#secondary-session-facts");
                   const statusOutput = document.querySelector("#status-output");
                   const executionStatusCard = statusOutput ? statusOutput.closest(".inspector-card") : null;
                   const follow = document.querySelector("#jump-to-latest");
@@ -815,6 +882,11 @@ def assert_browser_runtime_surface(
                     ["RECONNECT", "POLLING"].includes(phase) &&
                     ["RECONNECT", "POLLING"].includes(degraded.dataset.liveTransport || "") &&
                     degraded.dataset.liveTransportOwned === "false" &&
+                    secondarySessionFacts &&
+                    secondarySessionFacts.dataset.secondaryFactsPresentation === "degraded" &&
+                    secondarySessionFacts.dataset.secondaryFactsOwned === "false" &&
+                    secondarySessionFacts.dataset.secondaryFactsTransport === degraded.dataset.liveTransport &&
+                    secondarySessionFacts.dataset.secondaryFactsPhase === phase &&
                     !summary.hidden &&
                     summary.dataset.summaryPath === "degraded" &&
                     summary.dataset.liveSessionOwned === "false" &&
@@ -839,11 +911,11 @@ def assert_browser_runtime_surface(
                     sessionStripState.textContent.trim() === phase &&
                     ["reconnect", "polling"].includes(sessionStrip.dataset.composerTransport || "") &&
                     sessionStrip.dataset.composerTransportOwned === "false" &&
-                    executionStatusCard.hidden &&
-                    executionStatusCard.dataset.executionSurface === "center-lane" &&
+                    !executionStatusCard.hidden &&
+                    executionStatusCard.dataset.executionSurface === "secondary-detail" &&
                     executionStatusCard.dataset.centerTimelineAuthority === "true" &&
                     executionStatusCard.dataset.centerTimelinePresentation === "degraded" &&
-                    statusOutput.dataset.surface === "center-lane" &&
+                    statusOutput.dataset.surface === "secondary-detail" &&
                     statusOutput.dataset.centerTimelineAuthority === "true" &&
                     statusOutput.dataset.centerTimelinePresentation === "degraded" &&
                     sessionStrip.dataset.composerTransport !== "sse-owner" &&
@@ -871,6 +943,7 @@ def assert_browser_runtime_surface(
                   const activeSessionRow = document.querySelector("#active-session-row");
                   const sessionStrip = document.querySelector("#session-strip");
                   const sessionStripState = document.querySelector("#session-strip-state");
+                  const secondarySessionFacts = document.querySelector("#secondary-session-facts");
                   const composerDock = document.querySelector("#conversation-footer-dock");
                   const sendRequest = document.querySelector("#send-request");
                   const composerOwnerRow = document.querySelector("#composer-owner-row");
@@ -923,6 +996,11 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.composerState === "switching" &&
                     sessionStrip.dataset.composerTransport === "attach" &&
                     sessionStrip.dataset.composerTargetConversationId === targetConversationId &&
+                    secondarySessionFacts &&
+                    secondarySessionFacts.dataset.secondaryFactsPresentation === "switching" &&
+                    secondarySessionFacts.dataset.secondaryFactsOwned === "false" &&
+                    secondarySessionFacts.dataset.secondaryFactsTransport === "ATTACH" &&
+                    secondarySessionFacts.dataset.secondaryFactsPhase === "SWITCHING" &&
                     sessionStrip.dataset.phaseValue === "UNKNOWN" &&
                     sessionStrip.dataset.phaseAuthoritative === "false" &&
                     sessionStrip.dataset.phaseProvenance === "thread-transition" &&
@@ -1043,6 +1121,7 @@ def assert_browser_runtime_surface(
                   const composerDock = document.querySelector("#conversation-footer-dock");
                   const summary = document.querySelector("#session-summary-row");
                   const activeSessionRow = document.querySelector("#active-session-row");
+                  const secondarySessionFacts = document.querySelector("#secondary-session-facts");
                   const follow = document.querySelector("#jump-to-latest");
                   const empty = document.querySelector(".timeline-empty");
                   const inlineBlocks = document.querySelectorAll('.session-inline-block[data-selected-thread-live-block="true"], .session-inline-block[data-selected-thread-degraded-block="true"]');
@@ -1091,6 +1170,9 @@ def assert_browser_runtime_surface(
                     activeSessionRow.dataset.activeSessionPhase === "IDLE" &&
                     activeSessionRow.dataset.activeSessionConversationId === "" &&
                     activeSessionRow.dataset.activeSessionFollow === "idle" &&
+                    secondarySessionFacts &&
+                    secondarySessionFacts.dataset.secondaryFactsPresentation === "switching" &&
+                    secondarySessionFacts.dataset.secondaryFactsOwned === "false" &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     follow &&
@@ -1173,6 +1255,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(html, 'data-composer-layout="chat-first"', label="chat-first composer footer")
     require(html, 'id="secondary-panel"', label="secondary panel")
     require(html, 'data-secondary-panel-mode="compact-sidecar"', label="compact side panel mode")
+    require(html, 'id="secondary-session-facts"', label="secondary panel session facts")
     require_absent(html, 'id="hero-conversation-state"', label="legacy header conversation state")
     require_absent(html, 'id="autonomy-context-strip"', label="legacy autonomy context strip")
 
@@ -1212,6 +1295,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(styles, ".composer-owner-row", label="composer owner row CSS")
     require(styles, ".composer-owner-chip", label="composer owner chip CSS")
     require(styles, ".autonomy-detail-card", label="secondary panel autonomy detail card CSS")
+    require(styles, ".secondary-session-facts", label="secondary panel session facts CSS")
+    require(styles, ".secondary-session-chip-row", label="secondary panel session chip row CSS")
     require(styles, ".session-inline-autonomy", label="inline autonomy row CSS")
     require(styles, ".timeline-item.session-event", label="session timeline event CSS")
     require(styles, '.timeline-item.session-event[data-session-verdict="disqualifying"]', label="session timeline disqualifying CSS")
@@ -1241,21 +1326,31 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'sessionIndicator.state === "reconnecting" || sessionIndicator.state === "polling"', label="inline degraded state scope")
     require(render_js, "summarizeInlineAutonomy", label="inline autonomy summary helper")
     require(render_js, "buildAutonomySummary", label="shared autonomy summary builder")
+    require(render_js, "renderSecondaryPanelSessionFacts", label="secondary panel session facts helper")
+    require(render_js, "secondaryPanelSessionFactsModel", label="secondary panel session facts model")
+    require(render_js, 'dom.secondarySessionFacts.dataset.secondaryFactsPresentation = facts.presentation;', label="secondary panel facts presentation dataset")
+    require(render_js, 'dom.secondarySessionFacts.dataset.secondaryFactsOwned = facts.owned ? "true" : "false";', label="secondary panel facts ownership dataset")
+    require(render_js, 'dom.secondarySessionFacts.dataset.secondaryFactsTransport = facts.transport;', label="secondary panel facts transport dataset")
+    require(render_js, 'dom.secondarySessionFacts.dataset.secondaryFactsPhase = facts.phase;', label="secondary panel facts phase dataset")
+    require(render_js, 'dom.secondarySessionFacts.dataset.secondaryFactsPath = facts.path;', label="secondary panel facts path dataset")
+    require(render_js, 'dom.secondarySessionFacts.dataset.secondaryFactsVerifier = facts.verifier;', label="secondary panel facts verifier dataset")
+    require(render_js, 'dom.secondarySessionFacts.dataset.secondaryFactsBlocker = facts.blocker;', label="secondary panel facts blocker dataset")
+    require(render_js, 'dom.secondarySessionFacts.dataset.secondaryFactsFollow = facts.follow;', label="secondary panel facts follow dataset")
     require(render_js, "syncExecutionStatusSurface", label="execution status surface helper")
-    require(render_js, 'statusCard.hidden = promoteToCenterLane;', label="execution card hidden helper")
-    require(render_js, 'statusCard.dataset.executionSurface = promoteToCenterLane ? "center-lane" : "secondary-detail";', label="execution card surface dataset")
+    require(render_js, 'statusCard.hidden = false;', label="execution card hidden helper")
+    require(render_js, 'statusCard.dataset.executionSurface = "secondary-detail";', label="execution card surface dataset")
     require(render_js, 'statusCard.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="execution card center-timeline authority dataset")
     require(render_js, 'statusCard.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="execution card center-timeline presentation dataset")
-    require(render_js, 'dom.statusOutput.dataset.surface = promoteToCenterLane ? "center-lane" : "secondary-detail";', label="status output surface dataset")
+    require(render_js, 'dom.statusOutput.dataset.surface = "secondary-detail";', label="status output surface dataset")
     require(render_js, 'dom.statusOutput.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="status output center-timeline authority dataset")
     require(render_js, 'dom.statusOutput.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="status output center-timeline presentation dataset")
-    require(render_js, 'dom.jobEvents.dataset.surface = promoteToCenterLane ? "center-lane" : "secondary-detail";', label="job events surface dataset")
+    require(render_js, 'dom.jobEvents.dataset.surface = "secondary-detail";', label="job events surface dataset")
     require(render_js, 'dom.jobEvents.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="job events center-timeline authority dataset")
     require(render_js, 'dom.jobEvents.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="job events center-timeline presentation dataset")
-    require(render_js, 'dom.jobPhase.dataset.surface = promoteToCenterLane ? "center-lane" : "secondary-detail";', label="job phase surface dataset")
+    require(render_js, 'dom.jobPhase.dataset.surface = "secondary-detail";', label="job phase surface dataset")
     require(render_js, 'dom.jobPhase.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="job phase center-timeline authority dataset")
     require(render_js, 'dom.jobPhase.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="job phase center-timeline presentation dataset")
-    require(render_js, 'dom.jobMeta.dataset.surface = promoteToCenterLane ? "center-lane" : "secondary-detail";', label="job meta surface dataset")
+    require(render_js, 'dom.jobMeta.dataset.surface = "secondary-detail";', label="job meta surface dataset")
     require(render_js, 'dom.jobMeta.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="job meta center-timeline authority dataset")
     require(render_js, 'dom.jobMeta.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="job meta center-timeline presentation dataset")
     require(render_js, "if (inlineState.visible) {", label="composer strip suppression guard")
@@ -1399,11 +1494,11 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'data-live-restore-provenance="${escapeHtml(String(sessionStatus.restoreProvenance || "none"))}"', label="restore transcript provenance dataset")
     require(render_js, "syncAutonomyDetailSurface", label="secondary autonomy surface sync helper")
     require(render_js, "deriveSelectedThreadLiveAutonomy", label="selected-thread live autonomy render helper import")
-    require(render_js, 'autonomyCard.hidden = hideForSelectedThreadLiveAutonomy;', label="selected-thread live autonomy card suppression")
-    require(render_js, 'autonomyCard.dataset.autonomySurface = hideForSelectedThreadLiveAutonomy ? "center-lane" : "secondary-detail";', label="autonomy card surface dataset")
+    require(render_js, 'autonomyCard.hidden = false;', label="selected-thread live autonomy card suppression")
+    require(render_js, 'autonomyCard.dataset.autonomySurface = "secondary-detail";', label="autonomy card surface dataset")
     require(render_js, 'autonomyCard.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="autonomy card center-timeline authority dataset")
     require(render_js, 'autonomyCard.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="autonomy card center-timeline presentation dataset")
-    require(render_js, 'dom.autonomyDetail.dataset.surface = hideForSelectedThreadLiveAutonomy ? "center-lane" : "secondary-detail";', label="autonomy detail surface dataset")
+    require(render_js, 'dom.autonomyDetail.dataset.surface = "secondary-detail";', label="autonomy detail surface dataset")
     require(render_js, 'dom.autonomyDetail.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="autonomy detail center-timeline authority dataset")
     require(render_js, 'dom.autonomyDetail.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="autonomy detail center-timeline presentation dataset")
     require(render_js, 'dom.sessionSummaryScope.hidden = indicatorOnlySummary;', label="header scope demotion")
