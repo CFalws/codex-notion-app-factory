@@ -548,6 +548,8 @@ def assert_browser_runtime_surface(
                 """conversationId => {
                   const sessionStrip = document.querySelector("#session-strip");
                   const threadScroller = document.querySelector("#thread-scroller");
+                  const summary = document.querySelector("#session-summary-row");
+                  const composerOwnerRow = document.querySelector("#composer-owner-row");
                   const healthyBlock = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-block-owner="selected-thread"]');
                   const composerDock = document.querySelector("#conversation-footer-dock");
                   const statusOutput = document.querySelector("#status-output");
@@ -585,12 +587,23 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.attachMode === "sse-resume" &&
                     sessionStrip.dataset.bootstrapVersion === "2" &&
                     sessionStrip.dataset.resumeMode === "resumed" &&
+                    sessionStrip.dataset.restorePath === "resume" &&
+                    sessionStrip.dataset.restoreProvenance === "sse-bootstrap" &&
                     Number(sessionStrip.dataset.resumeCursor || "0") > 0 &&
                     threadScroller &&
                     threadScroller.dataset.attachMode === "sse-resume" &&
                     threadScroller.dataset.bootstrapVersion === "2" &&
                     threadScroller.dataset.resumeMode === "resumed" &&
+                    threadScroller.dataset.restorePath === "resume" &&
+                    threadScroller.dataset.restoreProvenance === "sse-bootstrap" &&
                     Number(threadScroller.dataset.resumeCursor || "0") > 0 &&
+                    summary &&
+                    !summary.hidden &&
+                    summary.dataset.restorePath === "resume" &&
+                    summary.dataset.restoreProvenance === "sse-bootstrap" &&
+                    summary.dataset.restoreStage === "none" &&
+                    composerOwnerRow &&
+                    composerOwnerRow.dataset.composerRestoreStage === "none" &&
                     liveActivity &&
                     executionStatusCard &&
                     executionStatusCard.hidden &&
@@ -1000,15 +1013,13 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'data-thread-transition-phase="switching"', label="thread transition phase dataset")
     require(render_js, 'dom.conversationTimeline.innerHTML = isThreadTransition', label="thread transition placeholder render branch")
     require(render_js, '? renderThreadTransition(currentState)', label="thread transition placeholder render path")
-    require(
-        render_js,
-        ": '<p class=\"timeline-empty\">새 대화를 만들면 요청과 이벤트가 여기 쌓입니다.</p>';",
-        label="generic empty state fallback path",
-    )
-    require(render_js, 'conversationState: isThreadTransition ? "새 대화 스냅샷을 연결하는 중입니다." : "아직 대화 세션이 없습니다.",', label="thread transition conversation state copy")
-    require(render_js, 'threadTitle: isThreadTransition ? String(threadTransition.targetTitle || "대화 전환 중") : "새 대화를 시작하세요",', label="thread transition title copy")
-    require(render_js, 'phase: isThreadTransition ? "UNKNOWN" : currentState.currentJobId ? "RUNNING" : "IDLE",', label="thread transition neutral phase")
-    require(render_js, 'source: isThreadTransition ? "thread-transition" : "none",', label="thread transition neutral phase source")
+    require(render_js, 'const isSavedRestore = !isThreadTransition && restoreSessionStatus.presentation === "restore";', label="saved restore timeline guard")
+    require(render_js, 'const restoreTimeline = isSavedRestore ? renderRestoreSessionTimeline(currentState) : "";', label="saved restore timeline render branch")
+    require(render_js, ': restoreTimeline || \'<p class="timeline-empty">새 대화를 만들면 요청과 이벤트가 여기 쌓입니다.</p>\';', label="empty state limited to non-transition path")
+    require(render_js, 'conversationState: isThreadTransition', label="thread transition or restore conversation state copy")
+    require(render_js, 'threadTitle: isThreadTransition', label="thread transition or restore title copy")
+    require(render_js, 'phase: isThreadTransition ? "UNKNOWN" : isSavedRestore ? (restoreSessionStatus.restoreResume ? "RESUME" : "ATTACH") : currentState.currentJobId ? "RUNNING" : "IDLE",', label="thread transition or restore neutral phase")
+    require(render_js, 'source: isThreadTransition ? "thread-transition" : isSavedRestore ? "sse" : "none",', label="thread transition or restore neutral phase source")
     require(render_js, "dataset.threadTransitionState", label="thread transition state dataset")
     require(render_js, 'renderSessionStrip(dom, currentState, null);', label="thread transition composer shell render path")
     require(render_js, 'syncComposerOwnership(dom, currentState, null);', label="thread transition composer owner switching path")
@@ -1050,6 +1061,16 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.sessionStrip.dataset.composerTransportOwned = stripLiveOwned ? "true" : "false";', label="composer strip transport ownership dataset")
     require(render_js, 'dom.sessionStrip.dataset.composerTransportReason = transportState.reason;', label="composer strip transport reason dataset")
     require(render_js, 'dom.sessionStrip.dataset.composerTargetConversationId = ownerState.conversationId;', label="composer strip target dataset")
+    require(render_js, 'dom.sessionStrip.dataset.restoreStage = sessionStatus.restoreStage || "none";', label="composer strip restore stage dataset")
+    require(render_js, 'dom.sessionStrip.dataset.restorePath = sessionStatus.restorePath || "none";', label="composer strip restore path dataset")
+    require(render_js, 'dom.sessionStrip.dataset.restoreProvenance = sessionStatus.restoreProvenance || "none";', label="composer strip restore provenance dataset")
+    require(render_js, 'dom.threadScroller.dataset.restoreStage = sessionStatus.restoreStage || "none";', label="thread scroller restore stage dataset")
+    require(render_js, 'dom.threadScroller.dataset.restorePath = sessionStatus.restorePath || "none";', label="thread scroller restore path dataset")
+    require(render_js, 'dom.threadScroller.dataset.restoreProvenance = sessionStatus.restoreProvenance || "none";', label="thread scroller restore provenance dataset")
+    require(render_js, 'dom.composerOwnerRow.dataset.composerRestoreStage = owner.state === "restore" ? (owner.label === "RESUME" ? "resume-pending" : "attach-pending") : "none";', label="composer owner restore stage dataset")
+    require(render_js, 'dom.sessionSummaryRow.dataset.restoreStage = sessionStatus.restoreStage || "none";', label="session summary restore stage dataset")
+    require(render_js, 'dom.sessionSummaryRow.dataset.restorePath = sessionStatus.restorePath || "none";', label="session summary restore path dataset")
+    require(render_js, 'dom.sessionSummaryRow.dataset.restoreProvenance = sessionStatus.restoreProvenance || "none";', label="session summary restore provenance dataset")
     require(render_js, 'label: "ATTACH"', label="composer strip attach label")
     require(render_js, 'label: "SNAPSHOT"', label="composer strip snapshot label")
     require(store_js, 'transportLabel = "POLLING";', label="composer strip polling label")
@@ -1074,6 +1095,11 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "dataset.liveSessionSource", label="live-session source dataset")
     require(render_js, "dataset.liveSessionReason", label="live-session reason dataset")
     require(render_js, "dataset.liveSessionOwned", label="live-session owned dataset")
+    require(render_js, "renderRestoreSessionTimeline", label="restore transcript timeline helper")
+    require(render_js, 'data-live-restore="true"', label="restore transcript marker dataset")
+    require(render_js, 'data-live-restore-stage="${escapeHtml(String(sessionStatus.restoreStage || "none"))}"', label="restore transcript stage dataset")
+    require(render_js, 'data-live-restore-path="${escapeHtml(String(sessionStatus.restorePath || "none"))}"', label="restore transcript path dataset")
+    require(render_js, 'data-live-restore-provenance="${escapeHtml(String(sessionStatus.restoreProvenance || "none"))}"', label="restore transcript provenance dataset")
     require(render_js, "syncAutonomyDetailSurface", label="secondary autonomy surface sync helper")
     require(render_js, "deriveSelectedThreadLiveAutonomy", label="selected-thread live autonomy render helper import")
     require(render_js, 'autonomyCard.hidden = hideForSelectedThreadLiveAutonomy;', label="selected-thread live autonomy card suppression")
@@ -1268,6 +1294,11 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, 'state.appendStream.transport = "sse"', label="selected-thread sse transport")
     require(store_js, "export function isAppendStreamAuthoritative", label="append stream authoritative helper")
     require(store_js, "export function deriveSelectedThreadSessionStatus", label="canonical selected-thread session status helper")
+    require(store_js, "selectedThreadRestore", label="selected-thread restore state")
+    require(store_js, "restoreResume", label="selected-thread restore resume state")
+    require(store_js, "restoreStage", label="selected-thread restore stage")
+    require(store_js, 'transportReason = restoreResume ? "saved-restore-resume" : "saved-restore-attach";', label="selected-thread restore transport reason")
+    require(store_js, 'presentation = "restore";', label="selected-thread restore presentation")
     require(store_js, "export function deriveSelectedThreadLiveAutonomy", label="canonical selected-thread live autonomy helper")
     require(store_js, "export function deriveSelectedThreadPhaseProgression", label="canonical selected-thread phase progression helper")
     require(store_js, "export function isSelectedThreadSessionOwned", label="selected-thread session ownership helper")

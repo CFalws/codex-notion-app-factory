@@ -115,9 +115,12 @@ export function deriveSelectedThreadSessionStatus(currentState, conversation = n
   const liveFollow = currentState.liveFollow || {};
   const sessionPhase = appendStream.sessionPhase || {};
   const events = Array.isArray(conversation?.events) ? conversation.events : [];
-  const conversationId = String(conversation?.conversation_id || currentState.currentConversationId || "");
+  const savedConversationId = String(currentState.savedConversationId || "");
+  const attachMode = String(appendStream.attachMode || "idle").toLowerCase();
+  const resumeMode = String(appendStream.resumeMode || "idle").toLowerCase();
+  const conversationId = String(conversation?.conversation_id || currentState.currentConversationId || savedConversationId || "");
   const conversationTitle = String(conversation?.title || "현재 대화").trim() || "현재 대화";
-  const currentConversationId = String(currentState.currentConversationId || "");
+  const currentConversationId = String(currentState.currentConversationId || savedConversationId || "");
   const streamConversationId = String(appendStream.conversationId || "");
   const transport = String(appendStream.transport || "polling").toLowerCase();
   const renderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
@@ -148,6 +151,17 @@ export function deriveSelectedThreadSessionStatus(currentState, conversation = n
     Boolean(conversationId) &&
     pendingOutgoing.conversationId === conversationId &&
     (pendingStatus === "sending-user" || pendingStatus === "awaiting-assistant");
+  const selectedThreadRestore =
+    Boolean(savedConversationId) &&
+    conversationId === savedConversationId &&
+    !threadTransition.active &&
+    (
+      (!selectedThreadStream && transport === "sse" && (attachMode === "awaiting-bootstrap" || attachMode === "sse-resume")) ||
+      (selectedThreadStream && renderSource !== "sse" && streamStatus === "connecting")
+    );
+  const restoreResume =
+    selectedThreadRestore &&
+    (resumeMode === "resuming" || resumeMode === "resumed" || attachMode === "sse-resume");
   const phaseOwned =
     phaseValue === "LIVE" ||
     (Boolean(sessionPhase.authoritative) &&
@@ -183,6 +197,11 @@ export function deriveSelectedThreadSessionStatus(currentState, conversation = n
     transportLabel = "SSE OWNER";
     transportTone = "healthy";
     transportReason = followPaused ? "selected-thread-follow-paused" : "selected-thread-following";
+  } else if (selectedThreadRestore) {
+    transportState = restoreResume ? "resume" : "attach";
+    transportLabel = restoreResume ? "RESUME" : "ATTACH";
+    transportTone = restoreResume ? "warning" : "neutral";
+    transportReason = restoreResume ? "saved-restore-resume" : "saved-restore-attach";
   } else if (threadTransition.active && targetConversationId) {
     transportState = "attach";
     transportLabel = "ATTACH";
@@ -203,10 +222,20 @@ export function deriveSelectedThreadSessionStatus(currentState, conversation = n
   let handoffVisible = false;
   let followState = "idle";
   let railLabel = "";
+  let restoreStage = "none";
+  let restorePath = "none";
+  let restoreProvenance = "none";
 
   if (threadTransition.active && targetConversationId) {
     presentation = "attach";
     clearReason = "thread-switch";
+  } else if (selectedThreadRestore) {
+    presentation = "restore";
+    clearReason = "none";
+    liveIndicatorVisible = true;
+    restoreStage = restoreResume ? "resume-pending" : "attach-pending";
+    restorePath = restoreResume ? "resume" : "attach";
+    restoreProvenance = "sse-bootstrap";
   } else if (pendingHandoff && selectedThreadSse) {
     presentation = "handoff";
     clearReason = "none";
@@ -237,6 +266,11 @@ export function deriveSelectedThreadSessionStatus(currentState, conversation = n
     conversationTitle,
     targetConversationId,
     targetTitle,
+    selectedThreadRestore,
+    restoreResume,
+    restoreStage,
+    restorePath,
+    restoreProvenance,
     selectedThreadStream,
     selectedThreadSse,
     selectedThreadSseAuthoritative,
@@ -271,6 +305,19 @@ export function deriveSelectedThreadSessionStatus(currentState, conversation = n
 export function deriveSelectedThreadLiveAutonomy(currentState, conversation = null) {
   const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
   const autonomySummary = currentState.autonomySummary;
+  if (sessionStatus.presentation === "restore") {
+    return {
+      visible: true,
+      owned: false,
+      presentation: "restore",
+      label: sessionStatus.transportLabel || "ATTACH",
+      reason: sessionStatus.transportReason,
+      source: sessionStatus.transport || "sse",
+      freshnessState: String(autonomySummary?.freshnessState || "stale-or-missing").toLowerCase(),
+      fallbackAllowed: false,
+      summary: autonomySummary || null,
+    };
+  }
   if (!autonomySummary || typeof autonomySummary !== "object") {
     return {
       visible: false,
@@ -344,6 +391,19 @@ export function deriveSelectedThreadPhaseProgression(currentState, conversation 
   const eventType = String(sessionPhase.eventType || sessionPhase.event_type || "");
   const phaseSource = String(sessionPhase.source || "none").toLowerCase();
 
+  if (sessionStatus.presentation === "restore") {
+    return {
+      visible: true,
+      label: sessionStatus.restoreResume ? "RESUME" : "ATTACH",
+      state: sessionStatus.restoreResume ? "resume" : "attach",
+      source: "sse",
+      authoritative: false,
+      owned: false,
+      reason: sessionStatus.transportReason,
+      appendId: 0,
+      jobId: "",
+    };
+  }
   if (sessionStatus.presentation === "attach" || !sessionStatus.conversationId) {
     return {
       visible: false,

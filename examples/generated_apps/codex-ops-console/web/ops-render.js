@@ -269,6 +269,19 @@ function composerOwnerState(currentState, conversation) {
     };
   }
 
+  if (sessionStatus.presentation === "restore" && sessionStatus.conversationId) {
+    return {
+      state: "restore",
+      label: sessionStatus.restoreResume ? "RESUME" : "ATTACH",
+      tone: sessionStatus.restoreResume ? "warning" : "neutral",
+      conversationId: sessionStatus.conversationId,
+      target: compactTargetLabel(sessionStatus.conversationTitle, "CURRENT THREAD"),
+      copy: "RESTORE",
+      blocked: false,
+      blockedReason: "",
+    };
+  }
+
   if (sessionStatus.conversationId) {
     return {
       state: "ready",
@@ -302,6 +315,7 @@ function syncComposerOwnership(dom, currentState, conversation) {
   const mergedStripVisible = Boolean(dom.sessionStrip && !dom.sessionStrip.hidden);
   dom.composerOwnerRow.dataset.composerOwner = owner.state;
   dom.composerOwnerRow.dataset.composerOwnerConversationId = owner.conversationId;
+  dom.composerOwnerRow.dataset.composerRestoreStage = owner.state === "restore" ? (owner.label === "RESUME" ? "resume-pending" : "attach-pending") : "none";
   dom.composerOwnerRow.dataset.composerOwnerMerged = mergedStripVisible ? "true" : "false";
   dom.composerOwnerRow.hidden = mergedStripVisible;
   dom.composerOwnerState.textContent = owner.label;
@@ -321,6 +335,17 @@ function syncComposerOwnership(dom, currentState, conversation) {
 function composerTransportState(currentState, conversation, liveRun, handoffState = { stage: "idle" }) {
   const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
   const sessionIndicator = selectedThreadLiveSessionIndicator(currentState, conversation, liveRun, handoffState);
+
+  if (sessionStatus.presentation === "restore" && sessionStatus.conversationId) {
+    return {
+      label: sessionStatus.restoreResume ? "RESUME" : "ATTACH",
+      key: sessionStatus.restoreResume ? "resume" : "attach",
+      tone: sessionStatus.transportTone,
+      source: sessionStatus.restoreProvenance || sessionStatus.transport || "sse",
+      owned: false,
+      reason: sessionStatus.transportReason,
+    };
+  }
 
   if (!sessionStatus.conversationId && sessionStatus.presentation === "attach" && sessionStatus.targetConversationId) {
     return {
@@ -381,8 +406,8 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
   const liveAutonomy = deriveSelectedThreadLiveAutonomy(currentState, conversation);
   const phaseProgression = deriveSelectedThreadPhaseProgression(currentState, conversation);
-  const conversationId = String(conversation?.conversation_id || "");
-  const headerSummaryVisible = Boolean(conversationId || threadTransition.targetConversationId);
+  const conversationId = String(conversation?.conversation_id || sessionStatus.conversationId || "");
+  const headerSummaryVisible = Boolean(conversationId || threadTransition.targetConversationId || sessionStatus.conversationId);
   const sessionIndicator = selectedThreadLiveSessionIndicator(currentState, conversation, liveRun, handoffState);
   const proposalState = proposalChip(liveRun);
 
@@ -401,6 +426,9 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   if (threadTransition.active && threadTransition.targetConversationId) {
     pathLabel = "SWITCHING";
     stateLabel = "ATTACH";
+  } else if (sessionStatus.presentation === "restore" && sessionStatus.conversationId) {
+    pathLabel = "RESTORE";
+    stateLabel = sessionStatus.restoreResume ? "RESUME" : "ATTACH";
   } else if (handoffState.stage === "pending-user") {
     pathLabel = "SESSION";
     stateLabel = "ATTACHED";
@@ -430,13 +458,19 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   dom.sessionSummaryRow.dataset.summaryPath = pathLabel.toLowerCase();
   dom.sessionSummaryRow.dataset.summaryState = stateLabel.toLowerCase();
   dom.sessionSummaryRow.dataset.summaryPhase = String(phaseProgression.label || liveRun?.phase || "IDLE").toUpperCase();
+  dom.sessionSummaryRow.dataset.restoreStage = sessionStatus.restoreStage || "none";
+  dom.sessionSummaryRow.dataset.restorePath = sessionStatus.restorePath || "none";
+  dom.sessionSummaryRow.dataset.restoreProvenance = sessionStatus.restoreProvenance || "none";
   dom.sessionSummaryRow.dataset.followState = sessionIndicator.state;
   dom.sessionSummaryRow.dataset.liveSessionState = sessionIndicator.state;
   dom.sessionSummaryRow.dataset.liveSessionSource = sessionIndicator.source;
   dom.sessionSummaryRow.dataset.liveSessionReason = sessionIndicator.reason;
   dom.sessionSummaryRow.dataset.liveSessionOwned = sessionIndicator.owned ? "true" : "false";
   dom.sessionSummaryRow.hidden = !headerSummaryVisible;
-  dom.sessionSummaryScope.textContent = compactTargetLabel(conversation?.title || threadTransition.targetTitle || "", "SELECTED");
+  dom.sessionSummaryScope.textContent = compactTargetLabel(
+    conversation?.title || sessionStatus.conversationTitle || threadTransition.targetTitle || "",
+    "SELECTED",
+  );
   dom.sessionSummaryPath.textContent = pathLabel;
   dom.sessionSummaryState.textContent = stateLabel;
   dom.sessionLiveIndicator.hidden = true;
@@ -894,6 +928,31 @@ function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
       <p class="timeline-body">${escapeHtml(detail || "선택된 대화의 최신 live 진행 상태를 반영하는 중입니다.")}</p>
       ${autonomySummary}
       <p class="timeline-meta">selected thread · ${escapeHtml(metaPhase)}${phaseProgression.jobId || liveRun.jobId ? ` · ${escapeHtml(String(phaseProgression.jobId || liveRun.jobId || ""))}` : ""}${metaReason ? ` · ${escapeHtml(metaReason)}` : ""} · <span class="timeline-provenance">${escapeHtml(provenanceLabel)}</span></p>
+    </article>
+  `;
+}
+
+function renderRestoreSessionTimeline(currentState) {
+  const liveAutonomy = deriveSelectedThreadLiveAutonomy(currentState, null);
+  const phaseProgression = deriveSelectedThreadPhaseProgression(currentState, null);
+  const sessionStatus = deriveSelectedThreadSessionStatus(currentState, null);
+  if (!liveAutonomy.visible || liveAutonomy.presentation !== "restore" || !phaseProgression.visible) {
+    return "";
+  }
+  const phaseLabel = String(phaseProgression.label || liveAutonomy.label || "ATTACH").toUpperCase();
+  const detail =
+    phaseLabel === "RESUME"
+      ? "저장된 선택 대화에 다시 연결하는 중입니다. append SSE 복구가 완료되면 같은 세션이 이어집니다."
+      : "저장된 선택 대화에 attach 중입니다. 첫 bootstrap이 완료되면 같은 세션이 live 상태로 이어집니다.";
+  return `
+    <article class="timeline-item live-activity" data-live-activity-turn="true" data-live-run-state="${escapeHtml(String(phaseProgression.state || "attach"))}" data-live-run-phase="${escapeHtml(phaseLabel)}" data-live-run-source="sse" data-live-owned="false" data-live-autonomy-presentation="restore" data-live-reason="${escapeHtml(String(liveAutonomy.reason || "saved-restore-attach"))}" data-live-restore="true" data-live-restore-stage="${escapeHtml(String(sessionStatus.restoreStage || "none"))}" data-live-restore-path="${escapeHtml(String(sessionStatus.restorePath || "none"))}" data-live-restore-provenance="${escapeHtml(String(sessionStatus.restoreProvenance || "none"))}" data-append-id="0" data-append-source="sse-live-activity">
+      <p class="timeline-kind">실시간 진행</p>
+      <div class="timeline-live-row">
+        <span class="timeline-live-chip" data-tone="neutral">RESTORE</span>
+        <span class="timeline-live-chip" data-tone="${phaseLabel === "RESUME" ? "warning" : "neutral"}">${escapeHtml(phaseLabel)}</span>
+      </div>
+      <p class="timeline-body">${escapeHtml(detail)}</p>
+      <p class="timeline-meta">selected thread · ${escapeHtml(phaseLabel)} · <span class="timeline-provenance">SSE RESTORE</span></p>
     </article>
   `;
 }
@@ -1544,9 +1603,10 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const transportState = composerTransportState(currentState, conversation, liveRun, handoffState);
   const sessionIndicator = selectedThreadLiveSessionIndicator(currentState, conversation, liveRun, handoffState);
   const proposalState = proposalChip(liveRun);
+  const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
   currentState.sessionRail ||= { conversationId: "", expanded: false };
 
-  if (!conversationId && !(threadTransition.active && threadTransition.targetConversationId)) {
+  if (!conversationId && !(threadTransition.active && threadTransition.targetConversationId) && !sessionStatus.conversationId) {
     dom.sessionStrip.hidden = true;
     dom.sessionStrip.dataset.sessionPresentation = "cleared";
     dom.sessionStrip.dataset.sessionTerminal = "false";
@@ -1606,7 +1666,8 @@ export function renderSessionStrip(dom, currentState, conversation) {
     return;
   }
 
-  const sessionConversationId = conversationId || String(threadTransition.targetConversationId || "");
+  const sessionConversationId =
+    conversationId || String(threadTransition.targetConversationId || sessionStatus.conversationId || "");
   if (currentState.sessionRail.conversationId !== sessionConversationId) {
     currentState.sessionRail = {
       conversationId: sessionConversationId,
@@ -1621,6 +1682,8 @@ export function renderSessionStrip(dom, currentState, conversation) {
       ? "reconnecting"
       : status === "connecting"
         ? "connecting"
+        : sessionStatus.presentation === "restore"
+          ? "restore"
         : liveRun.state === "sending"
           ? "sending"
         : liveRun.state === "generating"
@@ -1674,6 +1737,9 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStrip.dataset.composerTransportOwned = stripLiveOwned ? "true" : "false";
   dom.sessionStrip.dataset.composerTransportReason = transportState.reason;
   dom.sessionStrip.dataset.composerTargetConversationId = ownerState.conversationId;
+  dom.sessionStrip.dataset.restoreStage = sessionStatus.restoreStage || "none";
+  dom.sessionStrip.dataset.restorePath = sessionStatus.restorePath || "none";
+  dom.sessionStrip.dataset.restoreProvenance = sessionStatus.restoreProvenance || "none";
   dom.sessionStripState.dataset.sessionStripRole = stripState.role;
   dom.sessionStripState.dataset.sessionStripLabel = stripState.label;
   dom.sessionStripState.dataset.sessionStripTone = stripState.tone;
@@ -1722,6 +1788,9 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.threadScroller.dataset.liveRunSource = liveRun.source;
   dom.threadScroller.dataset.liveRunJob = liveRun.jobId || "";
   dom.threadScroller.dataset.sessionCollapsed = shouldCollapse ? "true" : "false";
+  dom.threadScroller.dataset.restoreStage = sessionStatus.restoreStage || "none";
+  dom.threadScroller.dataset.restorePath = sessionStatus.restorePath || "none";
+  dom.threadScroller.dataset.restoreProvenance = sessionStatus.restoreProvenance || "none";
 }
 
 export function renderComposerMeta(dom, { hint = "", count = 0 }) {
@@ -2038,7 +2107,10 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   const wasNearBottom = isThreadNearBottom(dom.threadScroller);
   const threadTransition = currentState.threadTransition || {};
   currentState.conversationCache = conversation;
-  currentState.currentConversationId = conversation ? conversation.conversation_id : "";
+  const appendStream = currentState.appendStream || {};
+  currentState.currentConversationId = conversation
+    ? conversation.conversation_id
+    : String(currentState.currentConversationId || currentState.savedConversationId || appendStream.conversationId || "");
   if (conversation) {
     currentState.appendStream ||= {};
     currentState.appendStream.lastAppendId = Math.max(
@@ -2050,13 +2122,18 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
 
   if (!conversation) {
     const isThreadTransition = Boolean(threadTransition.active && threadTransition.targetConversationId);
+    const restoreSessionStatus = deriveSelectedThreadSessionStatus(currentState, null);
+    const isSavedRestore = !isThreadTransition && restoreSessionStatus.presentation === "restore";
+    const restoreTimeline = isSavedRestore ? renderRestoreSessionTimeline(currentState) : "";
     dom.conversationTimeline.innerHTML = isThreadTransition
       ? renderThreadTransition(currentState)
-      : '<p class="timeline-empty">새 대화를 만들면 요청과 이벤트가 여기 쌓입니다.</p>';
+      : restoreTimeline || '<p class="timeline-empty">새 대화를 만들면 요청과 이벤트가 여기 쌓입니다.</p>';
     if (dom.threadScroller) {
       dom.threadScroller.dataset.pendingConversationId = isThreadTransition
         ? String(threadTransition.targetConversationId || "")
-        : "";
+        : isSavedRestore
+          ? String(restoreSessionStatus.conversationId || "")
+          : "";
       dom.threadScroller.dataset.pendingHandoffStage = "idle";
       dom.threadScroller.dataset.pendingUserCount = "0";
       dom.threadScroller.dataset.pendingAssistantCount = "0";
@@ -2067,7 +2144,11 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
     }
     renderSessionStrip(dom, currentState, null);
     currentState.liveFollow = {
-      conversationId: isThreadTransition ? String(threadTransition.targetConversationId || "") : "",
+      conversationId: isThreadTransition
+        ? String(threadTransition.targetConversationId || "")
+        : isSavedRestore
+          ? String(restoreSessionStatus.conversationId || "")
+          : "",
       isFollowing: true,
       jumpVisible: false,
       lastAppendId: 0,
@@ -2076,14 +2157,24 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
     };
     syncJumpToLatest(dom, currentState, currentState.liveFollow.conversationId, "snapshot");
     updateHeroState(dom, {
-      threadTitle: isThreadTransition ? String(threadTransition.targetTitle || "대화 전환 중") : "새 대화를 시작하세요",
+      threadTitle: isThreadTransition
+        ? String(threadTransition.targetTitle || "대화 전환 중")
+        : isSavedRestore
+          ? String(restoreSessionStatus.conversationTitle || "저장된 대화 복구 중")
+          : "새 대화를 시작하세요",
       threadKicker: "선택된 대화",
-      conversationState: isThreadTransition ? "새 대화 스냅샷을 연결하는 중입니다." : "아직 대화 세션이 없습니다.",
+      conversationState: isThreadTransition
+        ? "새 대화 스냅샷을 연결하는 중입니다."
+        : isSavedRestore
+          ? restoreSessionStatus.restoreResume
+            ? "저장된 대화를 authoritative SSE resume으로 복구하는 중입니다."
+            : "저장된 대화를 authoritative SSE attach로 복구하는 중입니다."
+          : "아직 대화 세션이 없습니다.",
       liveRun: runStateSnapshot({
         visible: true,
-        phase: isThreadTransition ? "UNKNOWN" : currentState.currentJobId ? "RUNNING" : "IDLE",
-        source: isThreadTransition ? "thread-transition" : "none",
-        tone: isThreadTransition ? "neutral" : currentState.currentJobId ? "running" : "idle",
+        phase: isThreadTransition ? "UNKNOWN" : isSavedRestore ? (restoreSessionStatus.restoreResume ? "RESUME" : "ATTACH") : currentState.currentJobId ? "RUNNING" : "IDLE",
+        source: isThreadTransition ? "thread-transition" : isSavedRestore ? "sse" : "none",
+        tone: isThreadTransition ? "neutral" : isSavedRestore ? "neutral" : currentState.currentJobId ? "running" : "idle",
       }),
     });
     renderWorkspaceSummary(

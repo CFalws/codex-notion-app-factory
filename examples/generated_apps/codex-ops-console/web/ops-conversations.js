@@ -1574,6 +1574,10 @@ export function createConversationController(deps) {
     const replacingTransition =
       Boolean(activeTransition.active) &&
       String(activeTransition.targetConversationId || "") !== String(conversationId || "");
+    const restoreSelection =
+      !state.currentConversationId &&
+      String(state.savedConversationId || "") === String(conversationId || "") &&
+      !replacingTransition;
     let transitionRequestId = 0;
 
     if ((state.currentConversationId && state.currentConversationId !== conversationId) || replacingTransition) {
@@ -1598,6 +1602,17 @@ export function createConversationController(deps) {
 
     let conversation;
     let bootstrap = null;
+    if (restoreSelection) {
+      state.currentConversationId = conversationId;
+      state.appendStream.conversationId = conversationId;
+      state.appendStream.transport = "sse";
+      state.appendStream.status = Number(state.appendStream.lastAppendId || 0) > 0 ? "reconnecting" : "connecting";
+      state.appendStream.lastRenderSource = "snapshot";
+      state.appendStream.attachMode = Number(state.appendStream.lastAppendId || 0) > 0 ? "sse-resume" : "awaiting-bootstrap";
+      state.appendStream.resumeMode = Number(state.appendStream.lastAppendId || 0) > 0 ? "resuming" : "bootstrap";
+      renderConversation(dom, state, null, persistSettings);
+      syncConversationCardState();
+    }
     try {
       bootstrap = await connectAppendStream(conversationId, { awaitBootstrap: true });
       if (
