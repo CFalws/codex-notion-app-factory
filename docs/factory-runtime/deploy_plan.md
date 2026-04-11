@@ -1,21 +1,21 @@
 # Factory Runtime Deploy Plan
 
-## Iteration 113
+## Iteration 116
 
-This deploy plan validates the selected-thread switch continuity contract and does not introduce new transport, polling behavior, or a backend switch protocol.
+This deploy plan validates the selected-thread active-session rail mirroring contract and does not introduce new transport, polling behavior, or a backend switch protocol.
 
 ## Deployment Impact
 
-This iteration changes selected-thread switch presentation only. The bounded expectation is that intentional switches stay on one compact workspace placeholder with explicit summary and scroller datasets until the new snapshot or SSE session attaches, while true no-selection idle keeps the generic empty workspace path.
+This iteration changes left-rail selected-thread session mirroring only. The bounded expectation is that the sticky active-session row mirrors switching or attach, handoff, and healthy live follow states for the selected thread only, while degraded, polling, reconnect, terminal, and non-selected paths clear that mirror immediately.
 
 ## Rollout Notes
 
 1. Apply the proposal commit onto `main`.
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
 3. Open the operator console on desktop and phone widths with at least one selected-thread conversation and one additional conversation for switching.
-4. Start from a healthy selected-thread conversation and intentionally switch to another thread.
-5. Confirm the center workspace never flashes the generic empty timeline during that transition.
-6. Confirm exactly one compact switching placeholder appears, the thread scroller reports switching placeholder datasets, and the workspace summary copy describes selected-thread attach pending.
-7. Confirm the bottom-fixed composer stays mounted throughout the transition and resolves in place when the target snapshot or SSE session attaches.
-8. Confirm restore, reconnect, polling fallback, terminal, and true no-selection idle still use their own explicit downgrade or empty paths and do not inherit switching treatment.
-9. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible selected-thread switch continuity contract succeeds through the intended path.
+4. Start from a healthy selected-thread conversation and confirm the sticky active-session row shows one selected-thread mirror above the list with `SSE OWNER` plus `LIVE`, `PAUSED`, or `NEW`.
+5. Scroll off tail if needed and confirm the row mirrors unseen-count state only for the selected thread.
+6. Intentionally switch to another thread and confirm the active-session row stays visible as a non-owned `SWITCHING` and `ATTACH` mirror for the target conversation instead of clearing to idle.
+7. Confirm reconnect downgrade, polling fallback, terminal completion, and deselection clear the active-session row immediately.
+8. Confirm non-selected conversation rows remain snapshot-only and the center workspace and composer contracts from earlier iterations remain unchanged.
+9. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible selected-thread active-session rail contract succeeds through the intended path.

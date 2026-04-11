@@ -1,11 +1,11 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 113
+## Iteration 116
 
-Tighten intentional selected-thread switch continuity so the center workspace publishes switching state explicitly instead of resembling generic empty idle.
+Extend the sticky active-session row so the left rail mirrors the selected thread's switching or attach, handoff, and healthy live follow state without creating a new authority source.
 
-1. Reuse `selectedThreadWorkspacePlaceholder(...)` as the only null-conversation presentation model for switch, restore, and true empty states.
-2. Add explicit workspace summary copy for switching, restore, and true empty modes.
-3. Publish the current placeholder mode and conversation id on the thread scroller as well as the conversation timeline.
-4. Reset those placeholder datasets immediately when the target conversation attaches.
-5. Extend the focused verifier layer and proposal artifacts so iteration 113 proves switching continuity is distinguishable from no-selection idle.
+1. Reuse `deriveSelectedThreadSessionStatus(...)`, selected-thread summary datasets, and existing follow-state fields as the only active-session row inputs.
+2. Add an explicit switching branch that mirrors the target conversation id and title while marking the row as non-owned transition state.
+3. Preserve the existing handoff and healthy live follow mirrors, including unseen-count projection for `NEW`.
+4. Keep the active-session row hidden for reconnect downgrade, polling fallback, terminal idle, and non-selected contexts.
+5. Extend the focused verifier layer and proposal artifacts so iteration 116 proves the rail mirrors selected-thread switching instead of clearing to generic idle.

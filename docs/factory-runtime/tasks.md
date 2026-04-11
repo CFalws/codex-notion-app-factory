@@ -1,8 +1,8 @@
 # Factory Runtime Tasks
 
-## Iteration 113
+## Iteration 116
 
-- [x] Keep intentional selected-thread switches on one explicit placeholder model instead of generic empty idle.
-- [x] Add explicit switching, restore, and empty workspace summary copy.
-- [x] Publish placeholder mode and conversation id on the thread scroller and reset them on attach.
-- [x] Align focused verifiers and proposal artifacts with the iteration-113 switch-continuity contract.
+- [x] Mirror intentional selected-thread switching through the sticky active-session row instead of clearing the row to generic idle.
+- [x] Preserve the existing handoff and healthy live follow mirrors from the selected-thread session datasets.
+- [x] Keep reconnect downgrade, polling fallback, terminal idle, and non-selected contexts cleared immediately.
+- [x] Align focused verifiers and proposal artifacts with the iteration-116 active-session rail contract.

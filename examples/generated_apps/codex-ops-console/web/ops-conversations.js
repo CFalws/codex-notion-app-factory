@@ -945,6 +945,9 @@ export function createConversationController(deps) {
     const summaryPhaseLabel = String(dom.sessionSummaryRow?.dataset.summaryPhase || "").trim().toUpperCase();
     const summaryStateLabel = String(dom.sessionSummaryState?.textContent || "").trim().toUpperCase();
     const sessionIndicatorLabel = String(dom.sessionLiveIndicator?.textContent || "").trim().toUpperCase();
+    const switchingActive =
+      Boolean(sessionStatus.switchActive && sessionStatus.switchConversationId) &&
+      !sessionTerminal;
     const handoffActive =
       Boolean(selectedConversationId) &&
       !sessionTerminal &&
@@ -974,7 +977,24 @@ export function createConversationController(deps) {
     let rowUnseenCount = 0;
     const livePhaseLabel = summaryPhaseLabel || liveRunPhase || summaryStateLabel || "LIVE";
 
-    if (handoffActive) {
+    if (switchingActive) {
+      visible = true;
+      conversationId = String(sessionStatus.switchConversationId || sessionStatus.targetConversationId || "");
+      rowState = "switching";
+      stateLabel = "SWITCHING";
+      followLabel = "ATTACH";
+      rowOwned = false;
+      rowSource = "transition";
+      rowPhase = "ATTACH";
+      rowUnseenCount = 0;
+      title =
+        sessionStatus.switchTargetTitle ||
+        sessionStatus.targetTitle ||
+        threadTitleForConversation(conversationId) ||
+        String(dom.threadTitle?.textContent || "").trim() ||
+        "선택한 대화";
+      meta = "selected thread · switching · attach";
+    } else if (handoffActive) {
       visible = true;
       conversationId = selectedConversationId;
       rowState = "handoff";
