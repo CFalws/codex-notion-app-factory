@@ -1066,6 +1066,7 @@ export function createConversationController(deps) {
       title,
       meta,
       rowOwned,
+      canonical,
       rowSource,
       rowPhase,
       rowUnseenCount,
@@ -1078,6 +1079,7 @@ export function createConversationController(deps) {
     dom.activeSessionRow.dataset.activeSessionPresentation = visible ? presentation : "cleared";
     dom.activeSessionRow.dataset.activeSessionFollow = visible ? followLabel.toLowerCase() : "idle";
     dom.activeSessionRow.dataset.activeSessionOwned = visible ? String(rowOwned) : "false";
+    dom.activeSessionRow.dataset.activeSessionCanonical = visible ? String(Boolean(canonical)) : "false";
     dom.activeSessionRow.dataset.activeSessionSource = visible ? rowSource : "none";
     dom.activeSessionRow.dataset.activeSessionPhase = visible ? rowPhase : "IDLE";
     dom.activeSessionRow.dataset.activeSessionUnseenCount = String(visible ? rowUnseenCount : 0);
@@ -1326,6 +1328,7 @@ export function createConversationController(deps) {
     const threadTransition = state.threadTransition || {};
     const jumpVisible = Boolean(liveFollow.jumpVisible);
     const isFollowing = Boolean(liveFollow.isFollowing);
+    const activeRowModel = deriveSelectedThreadActiveSessionRowModel(state, state.conversationCache);
     const selectedRowModel = deriveSelectedThreadConversationRowLiveModel(state, state.conversationCache);
 
     let liveLabel = "";
@@ -1367,7 +1370,8 @@ export function createConversationController(deps) {
       const showSelectedRowLiveMarker =
         isSelected &&
         selectedRowModel.visible &&
-        selectedRowModel.conversationId === selectedConversationId;
+        selectedRowModel.conversationId === selectedConversationId &&
+        !Boolean(activeRowModel.visible && activeRowModel.canonical);
       card.classList.toggle("active", isSelected);
       card.dataset.selected = isSelected ? "true" : "false";
       card.dataset.threadState = isSelected ? (liveThreadState || "active") : snapshotState;

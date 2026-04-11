@@ -599,24 +599,25 @@ def assert_browser_runtime_surface(
                     activeSessionRow &&
                     !activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "true" &&
+                    activeSessionRow.dataset.activeSessionCanonical === "true" &&
                     activeSessionRow.dataset.activeSessionSource === "sse" &&
                     ["live", "paused", "new"].includes(activeSessionRow.dataset.activeSessionState || "") &&
                     activeSessionRow.dataset.activeSessionPhase === liveActivity.dataset.liveRunPhase &&
                     ["live", "paused", "new"].includes(activeSessionRow.dataset.activeSessionFollow || "") &&
                     activeSessionRow.textContent.includes("OWNER") &&
-                    visibleConversationOwnerRows.length === 1 &&
+                    visibleConversationOwnerRows.length === 0 &&
                     selectedCardLiveOwnerRow &&
-                    !selectedCardLiveOwnerRow.hidden &&
-                    selectedCardLiveOwnerRow.dataset.liveOwnerVisible === "true" &&
-                    ["handoff", "live", "new", "paused"].includes(selectedCardLiveOwnerRow.dataset.liveOwnerState || "") &&
-                    selectedCardLiveOwnerRow.dataset.liveOwnerConversationId === selectedCard.dataset.conversationId &&
-                    selectedCardLiveOwnerRow.dataset.liveOwnerSource === "sse" &&
-                    selectedCardLiveOwnerRow.dataset.liveOwnerPhase === liveActivity.dataset.liveRunPhase &&
+                    selectedCardLiveOwnerRow.hidden &&
+                    selectedCardLiveOwnerRow.dataset.liveOwnerVisible === "false" &&
+                    selectedCardLiveOwnerRow.dataset.liveOwnerState === "idle" &&
+                    selectedCardLiveOwnerRow.dataset.liveOwnerConversationId === "" &&
+                    selectedCardLiveOwnerRow.dataset.liveOwnerSource === "none" &&
+                    selectedCardLiveOwnerRow.dataset.liveOwnerPhase === "IDLE" &&
                     selectedCardLiveDetail &&
-                    ["HANDOFF", "LIVE", "NEW", "PAUSED"].includes(selectedCardLiveDetail.textContent.trim()) &&
+                    selectedCardLiveDetail.textContent.trim() === "LIVE" &&
                     selectedCardLiveFollow &&
-                    !selectedCardLiveFollow.hidden &&
-                    selectedCardLiveFollow.textContent.trim().length > 0 &&
+                    selectedCardLiveFollow.hidden &&
+                    (selectedCardLiveFollow.textContent || "").trim() === "" &&
                     !selectedRecentThreadOwner &&
                     !selectedRecentThreadFollow &&
                     sessionStrip &&
@@ -1705,8 +1706,10 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, 'state.currentConversationId = "";', label="thread switch clears current conversation before attach")
     require(conversations_js, 'const selectedThreadSseOwned = selectedConversationId && selectedConversationId === liveConversationId && renderSource === "sse";', label="selected card sse ownership guard")
     require(conversations_js, 'card.dataset.liveOwner = "false";', label="selected live owner dataset")
+    require(conversations_js, 'const activeRowModel = deriveSelectedThreadActiveSessionRowModel(state, state.conversationCache);', label="active row model wiring")
     require(conversations_js, 'const selectedRowModel = deriveSelectedThreadConversationRowLiveModel(state, state.conversationCache);', label="selected row live model wiring")
     require(conversations_js, 'liveOwnerRow.hidden = !showSelectedRowLiveMarker;', label="selected row live owner row visibility")
+    require(conversations_js, '!Boolean(activeRowModel.visible && activeRowModel.canonical);', label="selected row helper suppression behind active row authority")
     require(conversations_js, 'liveOwnerDetail.textContent = showSelectedRowLiveMarker ? selectedRowModel.markerLabel : "LIVE";', label="selected row live owner detail label")
     require(conversations_js, 'liveOwnerFollow.dataset.liveOwnerCue = showSelectedRowLiveMarker ? selectedRowModel.cueKind : "idle";', label="selected row live owner cue dataset")
     require(conversations_js, 'card.dataset.liveOwnerState = "idle";', label="selected live owner state dataset")
@@ -1714,6 +1717,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionConversationId = visible ? conversationId : "";', label="active session row conversation dataset")
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionFollow = visible ? followLabel.toLowerCase() : "idle";', label="active session row follow dataset")
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionOwned = visible ? String(rowOwned) : "false";', label="active session row ownership dataset")
+    require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionCanonical = visible ? String(Boolean(canonical)) : "false";', label="active session row canonical dataset")
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionSource = visible ? rowSource : "none";', label="active session row source dataset")
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionPhase = visible ? rowPhase : "IDLE";', label="active session row phase dataset")
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionUnseenCount = String(visible ? rowUnseenCount : 0);', label="active session row unseen dataset")
@@ -1722,6 +1726,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, "if (authoritativeSelectedAttach) {", label="selected-thread attach authority short circuit")
     require(store_js, "export function deriveSelectedThreadActiveSessionRowModel", label="active session row store helper")
     require(store_js, "export function deriveSelectedThreadConversationRowLiveModel", label="selected row live model store helper")
+    require(store_js, "canonical: true,", label="active session canonical owned state")
+    require(store_js, "canonical: false,", label="active session non-canonical state")
     require(conversations_js, 'const rowModel = deriveSelectedThreadActiveSessionRowModel(state, state.conversationCache);', label="active session row store model wiring")
     require(store_js, 'markerLabel =', label="selected row marker label mapping")
     require(store_js, 'cueLabel =', label="selected row cue label mapping")
