@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `164`
-- bounded focus: `mirror the selected-thread live session onto the selected left-rail conversation row`
+- current iteration: `166`
+- bounded focus: `preserve the selected-thread conversation shell and composer dock through intentional thread switches`
 
 ## Request
 
@@ -13,21 +13,21 @@
 
 ## Problem
 
-The center-pane session surfaces are stronger now, but the selected conversation row in the left rail still looks snapshot-only. Operators still need to infer which thread is actively live instead of reading it directly from the navigator.
+The selected-thread switch path still risks feeling like a reset instead of one continuous live workspace. Operators should keep the center shell and bottom composer dock in place while old-thread ownership clears and the next snapshot attaches.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the left rail and center pane to agree immediately about which selected thread is actively alive.
+The primary user is the operator or developer using the phone-friendly realtime workspace and expecting thread switches to preserve the live session shell instead of flashing through a generic empty reset.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the iteration bounded to the selected conversation-row mirror in the left rail.
-- Do not change transport scope, transcript message ownership, composer docking, recent-thread rail behavior, footer ownership rules, or secondary-panel behavior.
-- Keep the selected-row live marker single-instance and fail closed on switch, deselection, terminal completion, reconnect downgrade, polling fallback, or lost authority.
-- Do not let non-selected rows appear live-owned.
+- Keep the iteration bounded to the selected-thread switch path in the center workspace shell.
+- Do not change transport scope, transcript message ownership, or introduce new multi-thread live ownership surfaces.
+- Preserve the bottom-fixed composer dock and fail-closed clear old-thread ownership immediately on switch, cancellation, deselection, terminal completion, reconnect downgrade, polling fallback, or lost authority.
+- Keep exactly one compact selected-thread transition placeholder visible during intentional switches and fall back to the generic empty view only for true no-selection idle.
 
 ## Deliverable
 
-Render one compact chip-first selected-row live marker plus bounded cue on the selected conversation row only, sourced from the existing selected-thread canonical session and follow state, with immediate fail-closed clearing on degraded or switched paths.
+Keep the selected-thread conversation shell mounted during intentional switches, replace the generic empty reset with one compact transition placeholder, and keep the composer dock visible until the target snapshot attaches or the switch is truly cleared.

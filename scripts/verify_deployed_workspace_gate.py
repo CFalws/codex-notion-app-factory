@@ -628,8 +628,9 @@ def assert_browser_runtime_surface(
                     !sessionStripDetail.textContent.includes("OWNER") &&
                     !sessionStripDetail.textContent.includes("authoritative") &&
                     composerOwnerRow &&
-                    composerOwnerRow.hidden &&
-                    composerOwnerRow.dataset.composerOwnerMerged === "true" &&
+                    !composerOwnerRow.hidden &&
+                    composerOwnerRow.dataset.composerOwnerMerged === "false" &&
+                    composerOwnerRow.dataset.composerOwner === "ready" &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     sendRequest &&
@@ -1006,8 +1007,9 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.phaseAuthoritative === "false" &&
                     sessionStrip.dataset.phaseProvenance === "thread-transition" &&
                     composerOwnerRow &&
-                    composerOwnerRow.hidden &&
-                    composerOwnerRow.dataset.composerOwnerMerged === "true" &&
+                    !composerOwnerRow.hidden &&
+                    composerOwnerRow.dataset.composerOwnerMerged === "false" &&
+                    composerOwnerRow.dataset.composerOwner === "switching" &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     sendRequest &&
@@ -1461,7 +1463,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.threadScroller.dataset.restoreStage = sessionStatus.restoreStage || "none";', label="thread scroller restore stage dataset")
     require(render_js, 'dom.threadScroller.dataset.restorePath = sessionStatus.restorePath || "none";', label="thread scroller restore path dataset")
     require(render_js, 'dom.threadScroller.dataset.restoreProvenance = sessionStatus.restoreProvenance || "none";', label="thread scroller restore provenance dataset")
-    require(render_js, 'dom.composerOwnerRow.dataset.composerRestoreStage = owner.state === "restore" ? (owner.label === "RESUME" ? "resume-pending" : "attach-pending") : "none";', label="composer owner restore stage dataset")
+    require(render_js, 'dom.composerOwnerRow.dataset.composerRestoreStage = "none";', label="composer owner restore stage dataset")
     require(render_js, 'dom.threadPhaseChip.dataset.restoreStage = sessionStatus.restoreStage || "none";', label="header badge restore stage dataset")
     require(render_js, 'dom.threadPhaseChip.dataset.restorePath = sessionStatus.restorePath || "none";', label="header badge restore path dataset")
     require(render_js, 'dom.threadPhaseChip.dataset.restoreProvenance = sessionStatus.restoreProvenance || "none";', label="header badge restore provenance dataset")
@@ -1587,9 +1589,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'const pathVerdict = liveOwned ? sessionSurface.pathVerdict : "";', label="transcript live activity shared path verdict wiring")
     require(render_js, 'const verifierAcceptability = liveOwned ? sessionSurface.verifierAcceptability : "";', label="transcript live activity shared verifier wiring")
     require(render_js, 'const blockerReason = liveOwned ? sessionSurface.blockerReason : "";', label="transcript live activity shared blocker wiring")
-    require(render_js, 'const mergedStripVisible = Boolean(dom.sessionStrip && !dom.sessionStrip.hidden);', label="composer owner row merged strip visibility")
-    require(render_js, 'dom.composerOwnerRow.dataset.composerOwnerMerged = mergedStripVisible ? "true" : "false";', label="composer owner merged dataset")
-    require(render_js, 'dom.composerOwnerRow.hidden = mergedStripVisible;', label="composer owner row hidden when strip active")
+    require(render_js, 'dom.composerOwnerRow.dataset.composerOwnerMerged = "false";', label="composer owner merged dataset")
+    require(render_js, 'dom.composerOwnerRow.hidden = owner.state === "idle";', label="composer owner row hidden only while idle")
     require(render_js, 'return { label: "ACCEPTED", tone: "neutral" };', label="accepted handoff chip")
     require(render_js, '"RECONNECT"', label="reconnecting provenance label")
     require(render_js, '"OPEN"', label="connecting provenance label")

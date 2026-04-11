@@ -511,20 +511,7 @@ function composerOwnerState(currentState, conversation) {
     };
   }
 
-  if (sessionStatus.presentation === "restore" && sessionStatus.conversationId) {
-    return {
-      state: "restore",
-      label: sessionStatus.restoreResume ? "RESUME" : "ATTACH",
-      tone: sessionStatus.restoreResume ? "warning" : "neutral",
-      conversationId: sessionStatus.conversationId,
-      target: compactTargetLabel(sessionStatus.conversationTitle, "CURRENT THREAD"),
-      copy: "RESTORE",
-      blocked: false,
-      blockedReason: "",
-    };
-  }
-
-  if (sessionStatus.conversationId) {
+  if (sessionStatus.liveOwned && sessionStatus.conversationId) {
     return {
       state: "ready",
       label: "READY",
@@ -554,12 +541,11 @@ function syncComposerOwnership(dom, currentState, conversation) {
     return;
   }
   const owner = composerOwnerState(currentState, conversation);
-  const mergedStripVisible = Boolean(dom.sessionStrip && !dom.sessionStrip.hidden);
   dom.composerOwnerRow.dataset.composerOwner = owner.state;
   dom.composerOwnerRow.dataset.composerOwnerConversationId = owner.conversationId;
-  dom.composerOwnerRow.dataset.composerRestoreStage = owner.state === "restore" ? (owner.label === "RESUME" ? "resume-pending" : "attach-pending") : "none";
-  dom.composerOwnerRow.dataset.composerOwnerMerged = mergedStripVisible ? "true" : "false";
-  dom.composerOwnerRow.hidden = mergedStripVisible;
+  dom.composerOwnerRow.dataset.composerRestoreStage = "none";
+  dom.composerOwnerRow.dataset.composerOwnerMerged = "false";
+  dom.composerOwnerRow.hidden = owner.state === "idle";
   dom.composerOwnerState.textContent = owner.label;
   dom.composerOwnerState.dataset.ownerTone = owner.tone;
   dom.composerOwnerTarget.textContent = owner.target;
