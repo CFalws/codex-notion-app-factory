@@ -1371,7 +1371,7 @@ export function createConversationController(deps) {
         isSelected &&
         selectedRowModel.visible &&
         selectedRowModel.conversationId === selectedConversationId &&
-        !Boolean(activeRowModel.visible && activeRowModel.canonical);
+        !Boolean(activeRowModel.visible);
       card.classList.toggle("active", isSelected);
       card.dataset.selected = isSelected ? "true" : "false";
       card.dataset.threadState = isSelected ? (liveThreadState || "active") : snapshotState;

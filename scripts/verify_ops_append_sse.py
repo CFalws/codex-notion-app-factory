@@ -144,7 +144,7 @@ def main() -> int:
     require(conversations_js, 'const activeRowModel = deriveSelectedThreadActiveSessionRowModel(state, state.conversationCache);', label="active row model wiring")
     require(conversations_js, 'const selectedRowModel = deriveSelectedThreadConversationRowLiveModel(state, state.conversationCache);', label="selected row live model wiring")
     require(conversations_js, 'liveOwnerRow.hidden = !showSelectedRowLiveMarker;', label="selected row live owner row visibility")
-    require(conversations_js, '!Boolean(activeRowModel.visible && activeRowModel.canonical);', label="selected row helper suppression behind active row authority")
+    require(conversations_js, '!Boolean(activeRowModel.visible);', label="selected row helper suppression behind sticky active row visibility")
     require(conversations_js, 'liveOwnerDetail.textContent = showSelectedRowLiveMarker ? selectedRowModel.markerLabel : "LIVE";', label="selected row live owner detail label")
     require(conversations_js, 'liveOwnerFollow.dataset.liveOwnerCue = showSelectedRowLiveMarker ? selectedRowModel.cueKind : "idle";', label="selected row live owner cue dataset")
     require(conversations_js, "liveState.hidden = isSelected", label="selected thread snapshot badge hiding")

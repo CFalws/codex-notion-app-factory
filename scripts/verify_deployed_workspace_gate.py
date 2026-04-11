@@ -616,10 +616,13 @@ def assert_browser_runtime_surface(
                     threadPhase.dataset.centerTimelineAuthority === "true" &&
                     threadPhase.dataset.centerTimelinePresentation === "healthy" &&
                     activeSessionRow &&
-                    activeSessionRow.hidden &&
-                    activeSessionRow.dataset.activeSessionOwned === "true" &&
+                    !activeSessionRow.hidden &&
+                    activeSessionRow.dataset.activeSessionOwned === "false" &&
                     activeSessionRow.dataset.activeSessionCanonical === "false" &&
-                    activeSessionRow.dataset.activeSessionSource === "none" &&
+                    activeSessionRow.dataset.activeSessionSource === "sse" &&
+                    activeSessionRow.dataset.activeSessionConversationId === conversationId &&
+                    activeSessionRow.dataset.activeSessionPhase === liveActivity.dataset.liveRunPhase &&
+                    ["live", "new", "paused"].includes(activeSessionRow.dataset.activeSessionState || "") &&
                     visibleConversationOwnerRows.length === 0 &&
                     selectedCardLiveOwnerRow &&
                     selectedCardLiveOwnerRow.hidden &&
