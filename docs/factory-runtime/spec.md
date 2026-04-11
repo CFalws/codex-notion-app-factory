@@ -27,4 +27,4 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 ## Deliverable
 
-Define and verify one compact selected-thread switch continuity contract so intentional thread changes keep the shell mounted, preserve the composer dock, expose one switching placeholder, and explicitly reset phase ownership to non-authoritative `UNKNOWN` until the new selected thread attaches.
+Define and verify one compact selected-thread switch continuity contract so intentional thread changes keep the shell mounted, preserve the composer dock, expose one switching placeholder, explicitly reset phase ownership to non-authoritative `UNKNOWN` until the new selected thread attaches, and avoid hidden `/api/jobs/` takeover on the healthy switch attach path.

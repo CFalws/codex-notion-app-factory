@@ -2066,9 +2066,9 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
       conversationState: isThreadTransition ? "새 대화 스냅샷을 연결하는 중입니다." : "아직 대화 세션이 없습니다.",
       liveRun: runStateSnapshot({
         visible: true,
-        phase: currentState.currentJobId ? "RUNNING" : "IDLE",
-        source: "none",
-        tone: currentState.currentJobId ? "running" : "idle",
+        phase: isThreadTransition ? "UNKNOWN" : currentState.currentJobId ? "RUNNING" : "IDLE",
+        source: isThreadTransition ? "thread-transition" : "none",
+        tone: isThreadTransition ? "neutral" : currentState.currentJobId ? "running" : "idle",
       }),
     });
     renderWorkspaceSummary(

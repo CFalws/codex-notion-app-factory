@@ -14,4 +14,5 @@ This iteration changes selected-thread switching semantics in the existing conve
 6. Confirm the session strip stays mounted with `composerState=switching`, `composerTransport=attach`, and the target conversation id set to the new selected thread.
 7. Confirm the session strip and thread scroller both expose `phaseValue=UNKNOWN`, `phaseAuthoritative=false`, and `phaseProvenance=thread-transition` during the switch.
 8. Confirm old-thread live ownership clears immediately across the inline live block, active-session row, follow control, and thread scroller datasets.
-9. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible switch continuity contract passes on the intended path.
+9. Confirm the switch attach path does not issue hidden `/api/jobs/` fetches before the selected-thread snapshot plus SSE attach settles.
+10. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible switch continuity contract passes on the intended path.

@@ -1497,6 +1497,17 @@ export function createConversationController(deps) {
       return;
     }
 
+    const authoritativeSelectedAttach =
+      state.currentConversationId === conversation.conversation_id &&
+      state.appendStream?.conversationId === conversation.conversation_id &&
+      state.appendStream?.transport === "sse" &&
+      state.appendStream?.lastRenderSource === "sse" &&
+      (state.appendStream?.status === "connecting" || state.appendStream?.status === "live");
+    if (authoritativeSelectedAttach) {
+      stopPolling();
+      return;
+    }
+
     if (conversation.latest_job_id) {
       state.currentJobId = conversation.latest_job_id;
       const payload = await syncLatestJob();

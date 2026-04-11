@@ -587,6 +587,7 @@ def assert_browser_runtime_surface(
             )
             degraded_snapshot = page.evaluate(browser_snapshot_script())
 
+            page.evaluate("() => { window.__verifyFetchMark = window.__verifyFetchLog.length; }")
             page.click(f'[data-conversation-id="{switch_conversation_id}"]')
             page.wait_for_function(
                 """targetConversationId => {
@@ -605,6 +606,10 @@ def assert_browser_runtime_surface(
                   const degraded = document.querySelector('.session-inline-block[data-selected-thread-degraded-block="true"]');
                   const empty = document.querySelector(".timeline-empty");
                   const follow = document.querySelector("#jump-to-latest");
+                  const fetchMark = Number(window.__verifyFetchMark || 0);
+                  const jobFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
+                    entry => String(entry.url || "").includes("/api/jobs/")
+                  );
                   return Boolean(
                     transition &&
                     document.querySelectorAll('[data-thread-transition="loading"]').length === 1 &&
@@ -647,6 +652,7 @@ def assert_browser_runtime_surface(
                     threadScroller.dataset.sessionOwner !== "selected-thread" &&
                     follow &&
                     follow.dataset.followOwned !== "selected-thread" &&
+                    jobFetches.length === 0 &&
                     !healthyBlock &&
                     !healthy &&
                     !degraded &&
@@ -781,6 +787,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     )
     require(render_js, 'conversationState: isThreadTransition ? "새 대화 스냅샷을 연결하는 중입니다." : "아직 대화 세션이 없습니다.",', label="thread transition conversation state copy")
     require(render_js, 'threadTitle: isThreadTransition ? String(threadTransition.targetTitle || "대화 전환 중") : "새 대화를 시작하세요",', label="thread transition title copy")
+    require(render_js, 'phase: isThreadTransition ? "UNKNOWN" : currentState.currentJobId ? "RUNNING" : "IDLE",', label="thread transition neutral phase")
+    require(render_js, 'source: isThreadTransition ? "thread-transition" : "none",', label="thread transition neutral phase source")
     require(render_js, "dataset.threadTransitionState", label="thread transition state dataset")
     require(render_js, 'renderSessionStrip(dom, currentState, null);', label="thread transition composer shell render path")
     require(render_js, 'syncComposerOwnership(dom, currentState, null);', label="thread transition composer owner switching path")
@@ -976,6 +984,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionSource = visible ? rowSource : "none";', label="active session row source dataset")
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionPhase = visible ? rowPhase : "IDLE";', label="active session row phase dataset")
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionUnseenCount = String(visible ? rowUnseenCount : 0);', label="active session row unseen dataset")
+    require(conversations_js, "const authoritativeSelectedAttach =", label="selected-thread attach authority gate")
+    require(conversations_js, "if (authoritativeSelectedAttach) {", label="selected-thread attach authority short circuit")
     require(conversations_js, 'const summaryLiveOwned = String(dom.sessionSummaryRow?.dataset.liveSessionOwned || "false") === "true";', label="active session canonical ownership source")
     require(conversations_js, 'const summaryLiveSource = String(dom.sessionSummaryRow?.dataset.liveSessionSource || "none");', label="active session canonical source dataset")
     require(conversations_js, 'const summaryLiveState = String(dom.sessionSummaryRow?.dataset.liveSessionState || "idle");', label="active session canonical state dataset")
