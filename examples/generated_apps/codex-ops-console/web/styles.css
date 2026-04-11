@@ -559,6 +559,12 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   background: rgba(178, 114, 24, 0.1);
 }
 
+.conversation-card-live-owner-row[data-live-owner-state="handoff"] .conversation-card-live-detail {
+  color: var(--warning);
+  border-color: rgba(178, 114, 24, 0.24);
+  background: rgba(178, 114, 24, 0.1);
+}
+
 .conversation-card-live-owner-row[data-live-owner-state="new"] .conversation-card-live-follow,
 .conversation-card-live-follow[data-live-owner-state="new"] {
   color: #fff;
@@ -566,8 +572,20 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   background: linear-gradient(135deg, rgba(31, 120, 224, 0.94), rgba(18, 83, 163, 0.94));
 }
 
+.conversation-card-live-owner-row[data-live-owner-state="new"] .conversation-card-live-detail {
+  color: #fff;
+  border-color: rgba(31, 120, 224, 0.36);
+  background: linear-gradient(135deg, rgba(31, 120, 224, 0.94), rgba(18, 83, 163, 0.94));
+}
+
 .conversation-card-live-owner-row[data-live-owner-state="paused"] .conversation-card-live-follow,
 .conversation-card-live-follow[data-live-owner-state="paused"] {
+  color: var(--warning);
+  border-color: rgba(178, 114, 24, 0.24);
+  background: rgba(178, 114, 24, 0.1);
+}
+
+.conversation-card-live-owner-row[data-live-owner-state="paused"] .conversation-card-live-detail {
   color: var(--warning);
   border-color: rgba(178, 114, 24, 0.24);
   background: rgba(178, 114, 24, 0.1);

@@ -1,5 +1,6 @@
 import {
   deriveSelectedThreadActiveSessionRowModel,
+  deriveSelectedThreadConversationRowLiveModel,
   deriveSelectedThreadShellPhaseLabel,
 } from "./ops-store.js";
 
@@ -1233,6 +1234,7 @@ export function createConversationController(deps) {
     const threadTransition = state.threadTransition || {};
     const jumpVisible = Boolean(liveFollow.jumpVisible);
     const isFollowing = Boolean(liveFollow.isFollowing);
+    const selectedRowModel = deriveSelectedThreadConversationRowLiveModel(state, state.conversationCache);
 
     let liveLabel = "";
     let liveThreadState = "";
@@ -1265,13 +1267,30 @@ export function createConversationController(deps) {
       const marker = card.querySelector("[data-conversation-marker]");
       const sessionMarker = card.querySelector("[data-conversation-session]");
       const liveState = card.querySelector("[data-conversation-live-state]");
+      const liveOwnerRow = card.querySelector("[data-conversation-live-owner-row]");
+      const liveOwnerDetail = card.querySelector("[data-conversation-live-detail]");
+      const liveOwnerFollow = card.querySelector("[data-conversation-live-follow]");
       const snapshotLabel = String(card.dataset.snapshotStateLabel || "IDLE");
       const snapshotState = String(card.dataset.snapshotThreadState || "idle");
+      const showSelectedRowLiveMarker =
+        isSelected &&
+        selectedRowModel.visible &&
+        selectedRowModel.conversationId === selectedConversationId;
       card.classList.toggle("active", isSelected);
       card.dataset.selected = isSelected ? "true" : "false";
       card.dataset.threadState = isSelected ? (liveThreadState || "active") : snapshotState;
       card.dataset.liveOwner = "false";
       card.dataset.liveOwnerState = "idle";
+      card.dataset.liveOwnerSource = "none";
+      card.dataset.liveOwnerPhase = "IDLE";
+      card.dataset.liveOwnerUnseenCount = "0";
+      if (showSelectedRowLiveMarker) {
+        card.dataset.liveOwner = "true";
+        card.dataset.liveOwnerState = selectedRowModel.rowState;
+        card.dataset.liveOwnerSource = selectedRowModel.rowSource;
+        card.dataset.liveOwnerPhase = selectedRowModel.rowPhase;
+        card.dataset.liveOwnerUnseenCount = String(selectedRowModel.rowUnseenCount);
+      }
       if (marker) {
         marker.hidden = !isSelected;
         marker.textContent = "NOW";
@@ -1279,6 +1298,20 @@ export function createConversationController(deps) {
       if (sessionMarker) {
         sessionMarker.hidden = !isSelected;
         sessionMarker.textContent = isSelected ? (showLiveMirror ? liveLabel || snapshotLabel : snapshotLabel) : "";
+      }
+      if (liveOwnerRow && liveOwnerDetail && liveOwnerFollow) {
+        liveOwnerRow.hidden = !showSelectedRowLiveMarker;
+        liveOwnerRow.dataset.liveOwnerVisible = showSelectedRowLiveMarker ? "true" : "false";
+        liveOwnerRow.dataset.liveOwnerState = showSelectedRowLiveMarker ? selectedRowModel.rowState : "idle";
+        liveOwnerRow.dataset.liveOwnerConversationId = showSelectedRowLiveMarker ? selectedRowModel.conversationId : "";
+        liveOwnerRow.dataset.liveOwnerSource = showSelectedRowLiveMarker ? selectedRowModel.rowSource : "none";
+        liveOwnerRow.dataset.liveOwnerPhase = showSelectedRowLiveMarker ? selectedRowModel.rowPhase : "IDLE";
+        liveOwnerRow.dataset.liveOwnerUnseenCount = String(showSelectedRowLiveMarker ? selectedRowModel.rowUnseenCount : 0);
+        liveOwnerDetail.textContent = showSelectedRowLiveMarker ? selectedRowModel.markerLabel : "LIVE";
+        liveOwnerFollow.hidden = !showSelectedRowLiveMarker;
+        liveOwnerFollow.textContent = showSelectedRowLiveMarker ? selectedRowModel.cueLabel : "";
+        liveOwnerFollow.dataset.liveOwnerState = showSelectedRowLiveMarker ? selectedRowModel.rowState : "idle";
+        liveOwnerFollow.dataset.liveOwnerCue = showSelectedRowLiveMarker ? selectedRowModel.cueKind : "idle";
       }
       if (liveState) {
         liveState.hidden = isSelected;
@@ -1400,6 +1433,20 @@ export function createConversationController(deps) {
               </span>
             </span>
             <span class="conversation-card-preview" data-preview-lines="1">${escapeHtml(conversationPreview(conversation))}</span>
+            <span
+              class="conversation-card-live-owner-row"
+              data-conversation-live-owner-row
+              data-live-owner-visible="false"
+              data-live-owner-state="idle"
+              data-live-owner-conversation-id=""
+              data-live-owner-source="none"
+              data-live-owner-phase="IDLE"
+              data-live-owner-unseen-count="0"
+              hidden
+            >
+              <span class="conversation-card-live-detail" data-conversation-live-detail>LIVE</span>
+              <span class="conversation-card-live-follow" data-conversation-live-follow data-live-owner-cue="idle" hidden></span>
+            </span>
             <span class="conversation-card-meta-row">
               <span class="conversation-card-meta">${new Date(conversation.updated_at).toLocaleString()}</span>
               <span class="conversation-card-live" data-conversation-live-state ${isActive ? "hidden" : ""}>${snapshotThreadLabel(snapshotState)}</span>

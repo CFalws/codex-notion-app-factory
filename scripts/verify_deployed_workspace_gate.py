@@ -520,6 +520,9 @@ def assert_browser_runtime_surface(
                   const activeSessionRow = document.querySelector("#active-session-row");
                   const selectedCard = document.querySelector('.conversation-card[data-selected="true"]');
                   const selectedCardLiveOwnerRow = selectedCard ? selectedCard.querySelector('[data-conversation-live-owner-row]') : null;
+                  const selectedCardLiveDetail = selectedCard ? selectedCard.querySelector('[data-conversation-live-detail]') : null;
+                  const selectedCardLiveFollow = selectedCard ? selectedCard.querySelector('[data-conversation-live-follow]') : null;
+                  const visibleConversationOwnerRows = document.querySelectorAll('[data-conversation-live-owner-row]:not([hidden])');
                   const selectedRecentThread = document.querySelector('.recent-thread-chip[data-selected="true"]');
                   const selectedRecentThreadOwner = selectedRecentThread ? selectedRecentThread.querySelector('[data-recent-thread-owner]') : null;
                   const selectedRecentThreadFollow = selectedRecentThread ? selectedRecentThread.querySelector('[data-recent-thread-follow]') : null;
@@ -589,7 +592,19 @@ def assert_browser_runtime_surface(
                     activeSessionRow.dataset.activeSessionPhase === liveActivity.dataset.liveRunPhase &&
                     ["live", "paused", "new"].includes(activeSessionRow.dataset.activeSessionFollow || "") &&
                     activeSessionRow.textContent.includes("OWNER") &&
-                    !selectedCardLiveOwnerRow &&
+                    visibleConversationOwnerRows.length === 1 &&
+                    selectedCardLiveOwnerRow &&
+                    !selectedCardLiveOwnerRow.hidden &&
+                    selectedCardLiveOwnerRow.dataset.liveOwnerVisible === "true" &&
+                    ["handoff", "live", "new", "paused"].includes(selectedCardLiveOwnerRow.dataset.liveOwnerState || "") &&
+                    selectedCardLiveOwnerRow.dataset.liveOwnerConversationId === selectedCard.dataset.conversationId &&
+                    selectedCardLiveOwnerRow.dataset.liveOwnerSource === "sse" &&
+                    selectedCardLiveOwnerRow.dataset.liveOwnerPhase === liveActivity.dataset.liveRunPhase &&
+                    selectedCardLiveDetail &&
+                    ["HANDOFF", "LIVE", "NEW", "PAUSED"].includes(selectedCardLiveDetail.textContent.trim()) &&
+                    selectedCardLiveFollow &&
+                    !selectedCardLiveFollow.hidden &&
+                    selectedCardLiveFollow.textContent.trim().length > 0 &&
                     !selectedRecentThreadOwner &&
                     !selectedRecentThreadFollow &&
                     sessionStrip &&
@@ -850,6 +865,9 @@ def assert_browser_runtime_surface(
                   const inlineBlocks = document.querySelectorAll('.session-inline-block[data-selected-thread-live-block="true"], .session-inline-block[data-selected-thread-degraded-block="true"]');
                   const threadPhase = document.querySelector("#thread-phase-chip");
                   const activeSessionRow = document.querySelector("#active-session-row");
+                  const selectedCard = document.querySelector('.conversation-card[data-selected="true"]');
+                  const selectedCardLiveOwnerRow = selectedCard ? selectedCard.querySelector('[data-conversation-live-owner-row]') : null;
+                  const visibleConversationOwnerRows = document.querySelectorAll('[data-conversation-live-owner-row]:not([hidden])');
                   const sessionStrip = document.querySelector("#session-strip");
                   const sessionStripState = document.querySelector("#session-strip-state");
                   const secondarySessionFacts = document.querySelector("#secondary-session-facts");
@@ -880,6 +898,11 @@ def assert_browser_runtime_surface(
                     threadPhase.dataset.liveSessionStateLabel === degraded.dataset.liveTransport &&
                     threadPhase.dataset.centerTimelineAuthority === "true" &&
                     threadPhase.dataset.centerTimelinePresentation === "degraded" &&
+                    visibleConversationOwnerRows.length === 0 &&
+                    selectedCardLiveOwnerRow &&
+                    selectedCardLiveOwnerRow.hidden &&
+                    selectedCardLiveOwnerRow.dataset.liveOwnerVisible === "false" &&
+                    selectedCardLiveOwnerRow.dataset.liveOwnerState === "idle" &&
                     activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
                     activeSessionRow.dataset.activeSessionSource === "none" &&
@@ -919,6 +942,9 @@ def assert_browser_runtime_surface(
                   const threadPhase = document.querySelector("#thread-phase-chip");
                   const threadTitle = document.querySelector("#thread-title");
                   const activeSessionRow = document.querySelector("#active-session-row");
+                  const selectedCard = document.querySelector('.conversation-card[data-selected="true"]');
+                  const selectedCardLiveOwnerRow = selectedCard ? selectedCard.querySelector('[data-conversation-live-owner-row]') : null;
+                  const visibleConversationOwnerRows = document.querySelectorAll('[data-conversation-live-owner-row]:not([hidden])');
                   const sessionStrip = document.querySelector("#session-strip");
                   const sessionStripState = document.querySelector("#session-strip-state");
                   const secondarySessionFacts = document.querySelector("#secondary-session-facts");
@@ -1138,6 +1164,11 @@ def assert_browser_runtime_surface(
                     threadPhase &&
                     threadPhase.hidden &&
                     threadPhase.dataset.liveSessionOwned === "false" &&
+                    visibleConversationOwnerRows.length === 0 &&
+                    selectedCardLiveOwnerRow &&
+                    selectedCardLiveOwnerRow.hidden &&
+                    selectedCardLiveOwnerRow.dataset.liveOwnerVisible === "false" &&
+                    selectedCardLiveOwnerRow.dataset.liveOwnerState === "idle" &&
                     activeSessionRow &&
                     activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
@@ -1636,6 +1667,9 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require_absent(conversations_js, 'follow.textContent = isSwitching ? "ATTACH" : isSelected && showLiveMirror ? liveFollowLabel : "";', label="recent-thread attach follow wiring")
     require(conversations_js, "syncActiveSessionRow", label="active session row helper")
     require(conversations_js, "data-conversation-live-state", label="selected card live dataset")
+    require(conversations_js, "data-conversation-live-owner-row", label="selected card live owner row DOM")
+    require(conversations_js, "data-conversation-live-detail", label="selected card live owner detail DOM")
+    require(conversations_js, "data-conversation-live-follow", label="selected card live owner follow DOM")
     require(conversations_js, 'marker.textContent = "NOW";', label="selected card marker label")
     require(conversations_js, 'card.dataset.liveOwnerState = "idle";', label="selected card owner state")
     require(conversations_js, 'sessionMarker.textContent = isSelected ? (showLiveMirror ? liveLabel || snapshotLabel : snapshotLabel) : "";', label="selected card compact session chip label")
@@ -1650,6 +1684,10 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, 'state.currentConversationId = "";', label="thread switch clears current conversation before attach")
     require(conversations_js, 'const selectedThreadSseOwned = selectedConversationId && selectedConversationId === liveConversationId && renderSource === "sse";', label="selected card sse ownership guard")
     require(conversations_js, 'card.dataset.liveOwner = "false";', label="selected live owner dataset")
+    require(conversations_js, 'const selectedRowModel = deriveSelectedThreadConversationRowLiveModel(state, state.conversationCache);', label="selected row live model wiring")
+    require(conversations_js, 'liveOwnerRow.hidden = !showSelectedRowLiveMarker;', label="selected row live owner row visibility")
+    require(conversations_js, 'liveOwnerDetail.textContent = showSelectedRowLiveMarker ? selectedRowModel.markerLabel : "LIVE";', label="selected row live owner detail label")
+    require(conversations_js, 'liveOwnerFollow.dataset.liveOwnerCue = showSelectedRowLiveMarker ? selectedRowModel.cueKind : "idle";', label="selected row live owner cue dataset")
     require(conversations_js, 'card.dataset.liveOwnerState = "idle";', label="selected live owner state dataset")
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionState = visible ? rowState : "idle";', label="active session row state dataset")
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionConversationId = visible ? conversationId : "";', label="active session row conversation dataset")
@@ -1661,7 +1699,11 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, "const authoritativeSelectedAttach =", label="selected-thread attach authority gate")
     require(conversations_js, "if (authoritativeSelectedAttach) {", label="selected-thread attach authority short circuit")
     require(store_js, "export function deriveSelectedThreadActiveSessionRowModel", label="active session row store helper")
+    require(store_js, "export function deriveSelectedThreadConversationRowLiveModel", label="selected row live model store helper")
     require(conversations_js, 'const rowModel = deriveSelectedThreadActiveSessionRowModel(state, state.conversationCache);', label="active session row store model wiring")
+    require(store_js, 'markerLabel =', label="selected row marker label mapping")
+    require(store_js, 'cueLabel =', label="selected row cue label mapping")
+    require(store_js, 'cueKind =', label="selected row cue kind mapping")
     require(store_js, 'presentation: "cleared",', label="active session switching cleared presentation")
     require(store_js, 'rowState: "idle",', label="active session switching cleared state")
     require(store_js, 'rowSource: "none",', label="active session switching cleared source")

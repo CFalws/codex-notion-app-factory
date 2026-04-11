@@ -1,10 +1,10 @@
 # Factory Runtime Tasks
 
-## Iteration 162
+## Iteration 164
 
-- [x] Keep canonical `appendStream.sessionStatus` as the only selected-thread source for the inline session lane.
-- [x] Expose proposal or apply state and latest job id from canonical `session_status` in that lane.
-- [x] Render the canonical selected-thread status lane inside the conversation timeline instead of as a separate strip surface.
-- [x] Keep the lane single-instance and fail closed on switch, deselection, terminal completion, and lost authority.
-- [x] Keep degraded reconnect and polling fallback visibly demoted rather than silently primary.
-- [x] Align focused docs and verification with the iteration-162 canonical inline timeline-lane contract.
+- [x] Keep the selected-row mirror read-only over the existing selected-thread canonical session and follow seam.
+- [x] Add one finite selected-row live marker model with `HANDOFF`, `LIVE`, `NEW`, and `PAUSED`.
+- [x] Render exactly one selected-card live marker row in the left rail while keeping non-selected cards snapshot-only.
+- [x] Clear the marker on reconnect downgrade, polling fallback, terminal completion, deselection, and thread switch.
+- [x] Keep recent-thread chips snapshot-only in this iteration.
+- [x] Align focused docs and verification with the iteration-164 selected-row live-marker contract.

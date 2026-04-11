@@ -421,6 +421,64 @@ export function deriveSelectedThreadActiveSessionRowModel(currentState, conversa
   };
 }
 
+export function deriveSelectedThreadConversationRowLiveModel(currentState, conversation = null) {
+  const rowModel = deriveSelectedThreadActiveSessionRowModel(currentState, conversation);
+  if (!rowModel.visible) {
+    return {
+      visible: false,
+      conversationId: "",
+      markerLabel: "",
+      cueLabel: "",
+      cueKind: "idle",
+      rowState: "idle",
+      rowPhase: "IDLE",
+      rowSource: "none",
+      rowOwned: false,
+      rowUnseenCount: 0,
+    };
+  }
+
+  const markerLabel =
+    rowModel.rowState === "handoff"
+      ? "HANDOFF"
+      : rowModel.rowState === "new"
+        ? "NEW"
+        : rowModel.rowState === "paused"
+          ? "PAUSED"
+          : "LIVE";
+  const cueLabel =
+    rowModel.rowState === "handoff"
+      ? "FIRST"
+      : rowModel.rowState === "new"
+        ? `+${Math.max(Number(rowModel.rowUnseenCount || 0), 1)}`
+        : rowModel.rowState === "paused"
+          ? Number(rowModel.rowUnseenCount || 0) > 0
+            ? `+${Number(rowModel.rowUnseenCount || 0)}`
+            : "OFF"
+          : "FOLLOW";
+  const cueKind =
+    rowModel.rowState === "handoff"
+      ? "handoff"
+      : rowModel.rowState === "new"
+        ? "unread"
+        : rowModel.rowState === "paused"
+          ? "paused"
+          : "follow";
+
+  return {
+    visible: true,
+    conversationId: String(rowModel.conversationId || ""),
+    markerLabel,
+    cueLabel,
+    cueKind,
+    rowState: String(rowModel.rowState || "live"),
+    rowPhase: String(rowModel.rowPhase || "LIVE"),
+    rowSource: String(rowModel.rowSource || "sse"),
+    rowOwned: Boolean(rowModel.rowOwned),
+    rowUnseenCount: Math.max(Number(rowModel.rowUnseenCount || 0), 0),
+  };
+}
+
 export function deriveSelectedThreadLiveAutonomy(currentState, conversation = null) {
   const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
   const autonomySummary = currentState.autonomySummary;

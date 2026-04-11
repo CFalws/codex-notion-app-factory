@@ -1,12 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 162
+## Iteration 164
 
-Render canonical `session_status` as one inline selected-thread timeline lane.
+Mirror the selected-thread live session onto the selected conversation row.
 
-1. Keep `appendStream.sessionStatus` as the only selected-thread source for the inline session lane.
-2. Expand the selected-thread strip model to expose proposal or apply state and latest job id from canonical `session_status`.
-3. Render that canonical state as one inline timeline lane inside the conversation timeline instead of a visually separate strip.
-4. Keep it single-instance, fail closed on switch, deselection, terminal completion, and lost authority, and keep degraded reconnect or polling explicitly demoted.
-5. Continue collapsing duplicate SSE session-event cards while the canonical inline lane is visible.
-6. Align focused verification and proposal artifacts with the iteration-162 canonical inline timeline-lane contract.
+1. Keep the change read-only over the existing selected-thread canonical session and follow state seam.
+2. Add one store-owned selected-row live marker model with finite labels `HANDOFF`, `LIVE`, `NEW`, and `PAUSED`.
+3. Render exactly one selected-card live marker row in the left rail and keep non-selected cards snapshot-only.
+4. Clear that marker immediately on reconnect downgrade, polling fallback, terminal completion, deselection, or thread switch.
+5. Do not add a recent-thread rail mirror or any new authority source in this iteration.
+6. Align focused verification and proposal artifacts with the iteration-164 selected-row live-marker contract.
