@@ -1,8 +1,8 @@
 # Factory Runtime Tasks
 
-## Iteration 109
+## Iteration 110
 
-- [x] Add one explicit workspace placeholder model for `switching`, `restore`, and true empty states in the null-conversation render path.
-- [x] Keep intentional thread switches on one compact `SWITCHING` center-pane placeholder without flashing the generic empty state.
-- [x] Mirror the same switching source into the composer shell datasets while clearing stale old-thread live ownership immediately.
-- [x] Align focused verifiers and proposal artifacts with the iteration-109 switch-continuity contract.
+- [x] Keep the healthy selected-thread transcript live-activity lane visible instead of suppressing it behind footer-dock ownership.
+- [x] Attach explicit phase and milestone datasets to that live transcript item for proposal, review, verify, ready, and applied progression.
+- [x] Preserve immediate clearing or downgrade on reconnect, polling fallback, restore-only, terminal idle, and thread switch paths.
+- [x] Align focused verifiers and proposal artifacts with the iteration-110 transcript session-event lane contract.

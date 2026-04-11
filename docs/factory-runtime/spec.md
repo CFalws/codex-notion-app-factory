@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `109`
-- bounded focus: `selected-thread switch continuity keeps one compact switching workspace shell`
+- current iteration: `110`
+- bounded focus: `selected-thread SSE phase progression appears as one compact in-timeline session event lane`
 
 ## Request
 
@@ -13,7 +13,7 @@
 
 ## Problem
 
-Healthy selected-thread SSE ownership is now explicit across the footer and rail, but intentional thread switches can still read like the workspace lost state because the center shell is driven through the generic null-conversation branch. The remaining gap is to keep the center shell and composer frame in place through one explicit switching placeholder until the new snapshot attaches.
+Selected-thread ownership and switch continuity are now explicit, but proposal, review, verify, ready, and applied progress still live mostly in footer or rail context. The remaining gap is to project that healthy SSE-owned phase progression into the active conversation timeline itself as one compact in-place session event lane.
 
 ## Target User
 
@@ -30,11 +30,11 @@ The primary user is the operator or developer using the phone-friendly workspace
 - Do not change transport contracts or add new polling behavior in this iteration.
 - Reuse the existing selected-thread SSE ownership, phase, milestone, and follow datasets instead of introducing another state model.
 - Keep degraded, reconnect, restore, and polling provenance explicit instead of letting them resemble healthy session ownership.
-- Reuse the existing selected-thread session-status and thread-transition state instead of adding another switch model.
-- Keep the center pane and bottom-fixed composer mounted during intentional thread switches.
-- Limit the center pane to one compact switching placeholder while the new thread attaches.
-- Keep reconnect, polling fallback, terminal, restore, and true no-selection paths visibly distinct from intentional switching.
+- Reuse the existing selected-thread phase progression and milestone helpers instead of inventing another transcript model.
+- Keep the center conversation to at most one compact healthy selected-thread session event lane.
+- Clear or downgrade that lane immediately on reconnect, polling fallback, restore-only, terminal idle, and thread switch paths.
+- Keep non-selected threads from gaining healthy selected-thread session-event presentation.
 
 ## Deliverable
 
-Define and verify one selected-thread switch continuity contract where the center pane holds one compact `SWITCHING` workspace placeholder and the composer row mirrors that same target state until the new thread attaches, while true empty, restore, reconnect, polling, and terminal paths do not retain switching treatment.
+Define and verify one selected-thread transcript session-event lane contract where healthy SSE-owned proposal, review, verify, ready, and applied progression appears through one compact live timeline item with milestone datasets, while reconnect, polling, restore, empty, and switch paths clear or downgrade that lane immediately.

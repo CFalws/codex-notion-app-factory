@@ -455,13 +455,21 @@ def assert_browser_runtime_surface(
                   const executionStatusCard = statusOutput ? statusOutput.closest(".inspector-card") : null;
                   const follow = document.querySelector("#jump-to-latest");
                   const sessionEvent = document.querySelector('.timeline-item.session-event[data-append-source="sse"]');
+                  const milestoneLane = liveActivity ? liveActivity.querySelector('[data-live-milestones="true"]') : null;
                   const fetchMark = Number(window.__verifyFetchMark || 0);
                   const jobFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
                     entry => String(entry.url || "").includes("/api/jobs/")
                   );
                   return Boolean(
                     !healthyBlock &&
-                    !liveActivity &&
+                    liveActivity &&
+                    liveActivity.dataset.liveOwned === "true" &&
+                    liveActivity.dataset.liveSessionEvent === "true" &&
+                    liveActivity.dataset.liveMilestonesVisible === "true" &&
+                    ["PROPOSAL", "REVIEW", "VERIFY", "READY", "APPLIED"].includes(liveActivity.dataset.liveRunPhase || "") &&
+                    milestoneLane &&
+                    milestoneLane.dataset.liveMilestones === "true" &&
+                    milestoneLane.dataset.liveMilestonesPhase === liveActivity.dataset.liveMilestonesPhase &&
                     summary &&
                     summary.hidden &&
                     summary.dataset.summaryPath === "session" &&
@@ -1197,8 +1205,9 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "renderTranscriptMilestones", label="transcript live milestone helper")
     require(render_js, "const transcriptLiveActivity = renderTranscriptLiveActivity(conversation, currentState, liveRun);", label="transcript live activity wiring")
     require(render_js, "if (inlineState.visible) {", label="transcript live activity suppression guard")
-    require(render_js, "const footerDock = selectedThreadFooterDockModel(currentState, conversation, liveRun);", label="transcript footer-dock helper wiring")
-    require(render_js, "if (footerDock.visible) {", label="healthy footer-dock transcript suppression guard")
+    require(render_js, 'data-live-session-event="${liveOwned ? "true" : "false"}"', label="transcript session event lane dataset")
+    require(render_js, 'data-live-milestones-visible="${liveOwned && milestoneModel.visible ? "true" : "false"}"', label="transcript session event milestone visibility dataset")
+    require(render_js, 'data-live-milestones-phase="${escapeHtml(liveOwned ? String(milestoneModel.currentLabel || phaseLabel) : "")}"', label="transcript session event milestone phase dataset")
     require(render_js, 'data-live-milestones="true"', label="transcript live milestone dataset")
     require(render_js, 'data-milestone-key="${escapeHtml(item.key)}"', label="transcript milestone key dataset")
     require(render_js, 'data-milestone-state="${escapeHtml(item.state)}"', label="transcript milestone state dataset")
@@ -1213,6 +1222,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'if (!items.length && !inlineSessionBlock && !transcriptLiveActivity) {', label="transcript empty-state live activity guard")
     require(render_js, 'dom.conversationTimeline.innerHTML = renderedItems + transcriptLiveActivity + inlineSessionBlock;', label="transcript tail live activity render")
     require_absent(render_js, 'dom.conversationTimeline.innerHTML = inlineSessionBlock + items', label="legacy inline block prepended render")
+    require_absent(render_js, "if (footerDock.visible) {", label="legacy healthy footer-dock transcript suppression guard")
     require_absent(render_js, "In Flight Assistant", label="duplicate accepted status block copy")
     require(render_js, "selectedThreadFooterFollowState", label="footer follow state helper")
     require(render_js, "pendingAppendCount", label="follow control unseen append state")

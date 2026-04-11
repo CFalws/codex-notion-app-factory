@@ -1,11 +1,11 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 109
+## Iteration 110
 
-Keep the selected-thread workspace shell mounted during intentional thread switches without changing transport or adding a new polling path.
+Project healthy selected-thread SSE phase progression into one compact in-timeline session event lane without changing transport or adding a new polling path.
 
-1. Reuse the existing selected-thread session-status and thread-transition helpers instead of creating a separate switch renderer contract.
-2. Make the null-conversation branch resolve through one explicit workspace placeholder model with `switching`, `restore`, and `empty` states.
-3. Keep the center pane limited to one compact `SWITCHING` placeholder while the new thread attaches.
-4. Mirror the same switch state into the existing composer target row or merged session strip without leaving stale live ownership behind.
-5. Extend the focused verifier layer and proposal artifacts so the intended switch path proves no generic empty-state flash and no stale live-owned treatment.
+1. Reuse the existing selected-thread phase progression, milestone, and live-autonomy helpers instead of creating a second transcript model.
+2. Render exactly one healthy selected-thread live session item in the transcript with milestone datasets attached.
+3. Keep the existing session-event collapse guard so healthy SSE authority events do not append duplicate transcript cards beside that item.
+4. Clear or downgrade the transcript lane immediately when the selected thread is no longer healthy SSE-owned.
+5. Extend the focused verifier layer and proposal artifacts so the healthy path proves in-timeline milestone ownership while degraded paths prove immediate fallback visibility.
