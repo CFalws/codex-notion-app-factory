@@ -1716,6 +1716,7 @@ function selectedThreadWorkspacePlaceholder(currentState) {
       conversationId: String(sessionStatus.switchConversationId || sessionStatus.targetConversationId || ""),
       title: String(sessionStatus.switchTargetTitle || sessionStatus.targetTitle || "대화 전환 중"),
       conversationState: "새 대화 스냅샷을 연결하는 중입니다.",
+      workspaceSummary: "selected thread switching · target snapshot attach pending",
       timeline: renderThreadTransition(currentState, sessionStatus),
       liveRun: runStateSnapshot({
         visible: true,
@@ -1733,6 +1734,9 @@ function selectedThreadWorkspacePlaceholder(currentState) {
       conversationState: sessionStatus.restoreResume
         ? "저장된 대화를 authoritative SSE resume으로 복구하는 중입니다."
         : "저장된 대화를 authoritative SSE attach로 복구하는 중입니다.",
+      workspaceSummary: sessionStatus.restoreResume
+        ? "selected thread restore · authoritative sse resume pending"
+        : "selected thread restore · authoritative sse attach pending",
       timeline: renderRestoreSessionTimeline(currentState),
       liveRun: runStateSnapshot({
         visible: true,
@@ -1747,6 +1751,7 @@ function selectedThreadWorkspacePlaceholder(currentState) {
     conversationId: "",
     title: "새 대화를 시작하세요",
     conversationState: "아직 대화 세션이 없습니다.",
+    workspaceSummary: "선택된 대화가 없으면 현재 세션 맥락이 여기에 정리됩니다.",
     timeline: '<p class="timeline-empty">새 대화를 만들면 요청과 이벤트가 여기 쌓입니다.</p>',
     liveRun: runStateSnapshot({
       visible: true,
@@ -2349,6 +2354,8 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
     dom.conversationTimeline.dataset.workspaceConversationId = workspacePlaceholder.conversationId;
     dom.conversationTimeline.innerHTML = workspacePlaceholder.timeline;
     if (dom.threadScroller) {
+      dom.threadScroller.dataset.workspacePlaceholder = workspacePlaceholder.mode;
+      dom.threadScroller.dataset.workspacePlaceholderConversationId = workspacePlaceholder.conversationId;
       dom.threadScroller.dataset.pendingConversationId = isThreadTransition
         ? workspacePlaceholder.conversationId
         : isSavedRestore
@@ -2382,10 +2389,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
       conversationState: workspacePlaceholder.conversationState,
       liveRun: workspacePlaceholder.liveRun,
     });
-    renderWorkspaceSummary(
-      dom,
-      "더 깊은 실행 맥락은 이 패널에서 확인합니다.",
-    );
+    renderWorkspaceSummary(dom, workspacePlaceholder.workspaceSummary);
     renderSessionSummary(
       dom,
       currentState,
@@ -2438,6 +2442,8 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   const inlineSessionBlock = renderInlineSessionBlock(conversation, currentState, liveRun, handoffState);
   const transcriptLiveActivity = renderTranscriptLiveActivity(conversation, currentState, liveRun);
   if (dom.threadScroller) {
+    dom.threadScroller.dataset.workspacePlaceholder = "conversation";
+    dom.threadScroller.dataset.workspacePlaceholderConversationId = String(conversation.conversation_id || "");
     dom.threadScroller.dataset.pendingConversationId = "";
     dom.threadScroller.dataset.pendingHandoffStage = handoffState.stage;
     dom.threadScroller.dataset.pendingUserCount = String(handoffState.pendingUserCount);

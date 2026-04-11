@@ -1,11 +1,11 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 112
+## Iteration 113
 
-Collapse the composer utility controls into one closed-by-default utility affordance without changing selected-thread session authority or footer layout.
+Tighten intentional selected-thread switch continuity so the center workspace publishes switching state explicitly instead of resembling generic empty idle.
 
-1. Reuse `setComposerUtilityOpen(...)` as the only source of truth for utility open or closed datasets, hidden state, and aria state.
-2. Keep the utility controls collapsed by default in markup and on init.
-3. Close the utility affordance on send start, app changes, new conversation creation, and selected-thread changes.
-4. Keep the utility affordance independent from healthy SSE ownership and degraded transport markers so it never reads like session-status chrome.
-5. Extend the focused verifier layer and proposal artifacts so iteration 112 proves collapsed-by-default behavior and close-on-transition wiring.
+1. Reuse `selectedThreadWorkspacePlaceholder(...)` as the only null-conversation presentation model for switch, restore, and true empty states.
+2. Add explicit workspace summary copy for switching, restore, and true empty modes.
+3. Publish the current placeholder mode and conversation id on the thread scroller as well as the conversation timeline.
+4. Reset those placeholder datasets immediately when the target conversation attaches.
+5. Extend the focused verifier layer and proposal artifacts so iteration 113 proves switching continuity is distinguishable from no-selection idle.

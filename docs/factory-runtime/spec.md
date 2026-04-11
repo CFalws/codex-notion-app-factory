@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `112`
-- bounded focus: `composer utility controls collapse into one explicit closed-by-default utility affordance`
+- current iteration: `113`
+- bounded focus: `intentional selected-thread switches preserve one compact transition workspace instead of flashing generic empty state`
 
 ## Request
 
@@ -13,7 +13,7 @@
 
 ## Problem
 
-Healthy selected-thread ownership, switching continuity, and transcript session-lane visibility are already established. The remaining gap is composer ergonomics: apply and auto-open controls still risk reading like a second footer surface instead of a collapsed-by-default utility affordance beneath one always-ready chat composer.
+Healthy selected-thread ownership, transcript session-lane visibility, and composer utility ergonomics are already established. The remaining gap is thread-switch continuity: intentional selected-thread changes still need an explicit continuity contract so operators see a deliberate attach state instead of inferring whether the workspace dropped into generic empty idle.
 
 ## Target User
 
@@ -23,15 +23,15 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the selected-thread session authority, transcript session lane, and composer strip contracts unchanged.
-- Do not introduce a new transport, polling path, or footer status surface.
-- Keep the utility menu collapsed by default on desktop and phone widths.
-- Reuse the existing composer utility controls and footer DOM instead of creating another panel.
-- Keep machine-readable open or closed datasets and aria state in sync from one helper.
-- Close the utility affordance on selected-thread switches, app changes, and send transitions.
-- Prevent live session updates from reopening or restyling the utility affordance as session-status chrome.
-- Preserve degraded, reconnect, restore, switching, terminal, and no-selection selected-thread behavior from earlier iterations.
+- Keep the selected-thread session authority, transcript session lane, composer strip, and utility-menu contracts unchanged.
+- Do not introduce a new transport, polling path, or backend switch protocol.
+- Reuse the existing `threadTransition`, selected-thread session-status, and placeholder helpers instead of creating another switch model.
+- Keep the center conversation shell and bottom-fixed composer mounted during intentional switches.
+- Render exactly one compact selected-thread switching placeholder until snapshot or SSE attach for the target thread becomes authoritative.
+- Distinguish intentional switch continuity from true no-selection idle through explicit datasets and copy.
+- Clear old-thread live ownership immediately and keep non-selected threads from gaining live-owned treatment.
+- Preserve degraded, reconnect, restore, terminal, and no-selection behavior from earlier iterations.
 
 ## Deliverable
 
-Define and verify one composer utility-menu contract where apply and auto-open controls stay collapsed behind a compact toggle by default, expose explicit open or closed datasets and aria state, and close immediately on selected-thread and send transitions without becoming part of the live session status surface.
+Define and verify one selected-thread switch continuity contract where intentional switches keep the conversation shell and composer mounted, expose one compact switching placeholder with explicit datasets and summary copy, and reserve the generic empty workspace only for true no-selection idle.

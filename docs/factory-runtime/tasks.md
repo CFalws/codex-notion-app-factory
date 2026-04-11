@@ -1,8 +1,8 @@
 # Factory Runtime Tasks
 
-## Iteration 112
+## Iteration 113
 
-- [x] Keep the composer utility controls collapsed by default through explicit markup and state datasets.
-- [x] Drive utility open or closed datasets, hidden state, and aria state from one helper.
-- [x] Close the utility affordance on send, app, new-conversation, and selected-thread transitions.
-- [x] Align focused verifiers and proposal artifacts with the iteration-112 composer utility contract.
+- [x] Keep intentional selected-thread switches on one explicit placeholder model instead of generic empty idle.
+- [x] Add explicit switching, restore, and empty workspace summary copy.
+- [x] Publish placeholder mode and conversation id on the thread scroller and reset them on attach.
+- [x] Align focused verifiers and proposal artifacts with the iteration-113 switch-continuity contract.
