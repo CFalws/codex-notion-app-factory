@@ -1,21 +1,21 @@
 # Factory Runtime Deploy Plan
 
-## Iteration 110
+## Iteration 112
 
-This deploy plan validates the selected-thread transcript session-event lane contract and does not introduce new transport, new polling behavior, or a new transcript state model.
+This deploy plan validates the composer utility collapsed-by-default contract and does not introduce new transport, polling behavior, or a second footer status surface.
 
 ## Deployment Impact
 
-This iteration changes healthy selected-thread transcript presentation only. The bounded expectation is that the center timeline shows one compact healthy session event lane with explicit milestone datasets, while reconnect, polling fallback, restore-only, switch, terminal, and true empty paths clear or downgrade that lane immediately.
+This iteration changes composer footer utility behavior only. The bounded expectation is that apply and auto-open stay behind one compact utility toggle, expose explicit open or closed datasets and aria state, and close immediately on send or selected-thread transitions without reappearing as live session chrome.
 
 ## Rollout Notes
 
 1. Apply the proposal commit onto `main`.
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
-3. Open the operator console on desktop and phone widths with at least one healthy selected-thread conversation and one additional conversation for switching.
-4. Reload the workspace or re-enter with a saved selected conversation and confirm restore still appears through one transcript-tail `ATTACH` or `RESUME` item before bootstrap settles.
-5. Start from one healthy selected-thread conversation and drive proposal, review, verify, ready, and applied progression through the intended SSE path.
-6. Confirm the center timeline shows exactly one compact live session event lane with explicit phase and milestone datasets for the selected thread.
-7. Confirm healthy transcript session-event cards for those same authority events do not append beside that lane.
-8. Confirm reconnect, polling fallback, restore-only, terminal idle, switch, and true empty paths clear or downgrade the lane immediately instead of resembling healthy ownership.
-9. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible selected-thread transcript session-event lane contract succeeds through the intended path.
+3. Open the operator console on desktop and phone widths with at least one selected-thread conversation and one additional conversation for switching.
+4. Confirm the composer utility menu is collapsed by default and the textarea plus primary send action remain the dominant footer surface.
+5. Open the utility menu and verify the toggle, menu, and utility cluster all report synchronized open state through datasets and aria state.
+6. Start a send flow and confirm the utility menu closes immediately without reopening during healthy selected-thread SSE updates.
+7. Switch threads, create a new conversation, and change the selected app; confirm the utility menu closes immediately on each transition and does not retain stale open state.
+8. Confirm reconnect, polling fallback, restore-only, switch, terminal, and true empty paths do not restyle the utility affordance as live session status.
+9. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible composer utility contract succeeds through the intended path.

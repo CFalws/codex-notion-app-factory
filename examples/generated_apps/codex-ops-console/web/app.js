@@ -135,14 +135,22 @@ function syncNavOpsSection() {
 }
 
 function setComposerUtilityOpen(isOpen) {
+  const utilityOpen = isOpen ? "true" : "false";
+  const utilityState = isOpen ? "open" : "closed";
   if (dom.composerUtilityMenu) {
-    dom.composerUtilityMenu.dataset.composerUtilityOpen = isOpen ? "true" : "false";
+    dom.composerUtilityMenu.dataset.composerUtilityOpen = utilityOpen;
+    dom.composerUtilityMenu.dataset.composerUtilityState = utilityState;
   }
   if (dom.composerUtilityCluster) {
+    dom.composerUtilityCluster.dataset.composerUtilityOpen = utilityOpen;
+    dom.composerUtilityCluster.dataset.composerUtilityState = utilityState;
     dom.composerUtilityCluster.hidden = !isOpen;
+    dom.composerUtilityCluster.setAttribute("aria-hidden", isOpen ? "false" : "true");
   }
   if (dom.composerUtilityToggle) {
-    dom.composerUtilityToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    dom.composerUtilityToggle.dataset.composerUtilityOpen = utilityOpen;
+    dom.composerUtilityToggle.dataset.composerUtilityState = utilityState;
+    dom.composerUtilityToggle.setAttribute("aria-expanded", utilityOpen);
   }
 }
 
@@ -230,6 +238,7 @@ async function sendMessage() {
   }
 
   persistSettings();
+  setComposerUtilityOpen(false);
   dom.sendRequestButton.dataset.sendBusy = "true";
   syncSendButtonState();
   state.latestProposalJobId = "";
@@ -257,7 +266,6 @@ async function sendMessage() {
     setDraft(state, app.appId, "", "");
     setDraft(state, app.appId, conversationId, "");
     dom.requestTextInput.value = "";
-    setComposerUtilityOpen(false);
     syncComposerMeta();
     syncDraftStatus();
     renderConversation(dom, state, payload.conversation, persistSettings);
@@ -384,6 +392,7 @@ function wireEvents() {
     syncNavOpsSection();
   });
   dom.appSelect.addEventListener("change", async () => {
+    setComposerUtilityOpen(false);
     await conversationController.handleAppChange();
     setNavigationOpen(false);
   });
@@ -393,6 +402,7 @@ function wireEvents() {
     setNavigationOpen(false);
   });
   dom.newConversationButton.addEventListener("click", async () => {
+    setComposerUtilityOpen(false);
     await conversationController.createConversation();
     setNavigationOpen(false);
   });
@@ -427,6 +437,7 @@ function wireEvents() {
     if (!button) {
       return;
     }
+    setComposerUtilityOpen(false);
     state.savedConversationId = button.dataset.conversationId || "";
     await conversationController.handleConversationChange();
     setNavigationOpen(false);
@@ -436,6 +447,7 @@ function wireEvents() {
     if (!button) {
       return;
     }
+    setComposerUtilityOpen(false);
     state.savedConversationId = button.dataset.conversationId || "";
     await conversationController.handleConversationChange();
   });

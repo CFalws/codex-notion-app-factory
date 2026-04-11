@@ -188,15 +188,30 @@
 
               <div class="composer-footer" data-composer-layout="chat-first">
                 <button id="send-request" class="composer-send-primary">메시지 보내기</button>
-                <div id="composer-utility-menu" class="composer-utility-menu" data-composer-utility-open="false">
+                <div
+                  id="composer-utility-menu"
+                  class="composer-utility-menu"
+                  data-composer-utility-open="false"
+                  data-composer-utility-state="closed"
+                >
                   <button
                     id="composer-utility-toggle"
                     class="secondary small composer-utility-toggle-button"
                     type="button"
+                    data-composer-utility-open="false"
+                    data-composer-utility-state="closed"
                     aria-expanded="false"
                     aria-controls="composer-utility-cluster"
                   >도구</button>
-                  <div id="composer-utility-cluster" class="composer-utility-cluster" data-composer-utility-panel="compact" hidden>
+                  <div
+                    id="composer-utility-cluster"
+                    class="composer-utility-cluster"
+                    data-composer-utility-panel="compact"
+                    data-composer-utility-open="false"
+                    data-composer-utility-state="closed"
+                    aria-hidden="true"
+                    hidden
+                  >
                     <button id="apply-proposal" class="secondary composer-secondary-action" disabled>제안 적용</button>
                     <label class="toggle inline composer-utility-toggle">
                       <input id="auto-open-app" type="checkbox" />
