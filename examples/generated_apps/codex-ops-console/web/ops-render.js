@@ -150,6 +150,81 @@ function summaryHint(pathLabel, stateLabel) {
   return `${pathLabel} · ${stateLabel}`;
 }
 
+function joinSessionChromeTokens(...tokens) {
+  return tokens
+    .map((token) => String(token || "").trim())
+    .filter(Boolean)
+    .join(" · ");
+}
+
+function sessionFollowLabel(sessionIndicator, transportState) {
+  if (sessionIndicator.state === "paused") {
+    return "PAUSED";
+  }
+  if (sessionIndicator.state === "new") {
+    return "NEW";
+  }
+  if (sessionIndicator.state === "handoff") {
+    return "HANDOFF";
+  }
+  if (sessionIndicator.state === "live" && transportState.owned) {
+    return "FOLLOW";
+  }
+  return "";
+}
+
+function proposalStatusLabel(proposalState) {
+  if (proposalState.label === "READY") {
+    return "APPLY READY";
+  }
+  if (proposalState.label === "APPLIED") {
+    return "APPLIED";
+  }
+  if (proposalState.label === "BLOCKED") {
+    return "BLOCKED";
+  }
+  return "";
+}
+
+function sessionChromeCopy(ownerState, transportState, sessionIndicator, liveRun, proposalState, pathLabel, stateLabel) {
+  const target = ownerState.target;
+  if (ownerState.state === "switching") {
+    return joinSessionChromeTokens(target, "ATTACH", "PENDING");
+  }
+  if (ownerState.state === "handoff") {
+    return joinSessionChromeTokens(target, ownerState.copy, "SESSION");
+  }
+  if (transportState.owned && sessionIndicator.source === "sse") {
+    return joinSessionChromeTokens(target, "OWNER", sessionFollowLabel(sessionIndicator, transportState), proposalStatusLabel(proposalState));
+  }
+  if (pathLabel === "DEGRADED") {
+    return joinSessionChromeTokens(target, stateLabel, "DEGRADED");
+  }
+  return joinSessionChromeTokens(target, pathLabel, stateLabel);
+}
+
+function sessionStripDetailCopy(ownerState, transportState, sessionIndicator, liveRun, proposalState, liveOwned) {
+  const target = ownerState.target;
+  if (ownerState.state === "switching") {
+    return joinSessionChromeTokens(target, "ATTACH", "PENDING");
+  }
+  if (ownerState.state === "handoff") {
+    return joinSessionChromeTokens(target, ownerState.copy, "PENDING");
+  }
+  if (liveOwned) {
+    return joinSessionChromeTokens(
+      target,
+      phaseDetailHint(liveRun),
+      sessionFollowLabel(sessionIndicator, transportState),
+      proposalStatusLabel(proposalState),
+    );
+  }
+  if (transportState.key === "reconnect" || transportState.key === "polling") {
+    return joinSessionChromeTokens(target, transportState.label, "DEGRADED");
+  }
+  return joinSessionChromeTokens(target, ownerState.copy);
+}
+
 function composerOwnerState(currentState, conversation) {
   const threadTransition = currentState.threadTransition || {};
   const pendingOutgoing = currentState.pendingOutgoing || {};
@@ -191,7 +266,7 @@ function composerOwnerState(currentState, conversation) {
       copy:
         pendingOutgoing.status === "sending-user"
           ? "SEND"
-          : "ACCEPTED",
+          : "FIRST",
       blocked: false,
       blockedReason: "",
     };
@@ -204,7 +279,7 @@ function composerOwnerState(currentState, conversation) {
       tone: "healthy",
       conversationId,
       target: compactTargetLabel(conversationTitle, "CURRENT THREAD"),
-      copy: "LOCKED",
+      copy: "OWNER",
       blocked: false,
       blockedReason: "",
     };
@@ -338,37 +413,45 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
     renderSource === "sse" &&
     status === "live";
   const sessionIndicator = selectedThreadLiveSessionIndicator(currentState, conversation, liveRun, handoffState);
+  const proposalState = proposalChip(liveRun);
 
   let pathLabel = "SNAPSHOT";
   let stateLabel = conversationId ? "READY" : "IDLE";
-  let copy = conversationId
-    ? summaryHint("ACTIVE", "READY")
-    : summaryHint("NO TARGET", "IDLE");
+  let copy = sessionChromeCopy(
+    composerOwnerState(currentState, conversation),
+    composerTransportState(currentState, conversation, liveRun, handoffState),
+    sessionIndicator,
+    liveRun,
+    proposalState,
+    "SNAPSHOT",
+    conversationId ? "READY" : "IDLE",
+  );
 
   if (threadTransition.active && threadTransition.targetConversationId) {
     pathLabel = "SWITCHING";
     stateLabel = "ATTACH";
-    copy = summaryHint("ATTACH", "PENDING");
   } else if (handoffState.stage === "pending-user") {
     pathLabel = "HANDOFF";
     stateLabel = "SENDING";
-    copy = summaryHint("SEND", "LOCKED");
   } else if (handoffState.stage === "pending-assistant") {
     pathLabel = "HANDOFF";
     stateLabel = "ACCEPTED";
-    copy = summaryHint("FIRST", "APPEND");
   } else if (status === "reconnecting") {
     pathLabel = "DEGRADED";
     stateLabel = "RESUME";
-    copy = summaryHint("RESUME", "PENDING");
   } else if (sseLiveOwner) {
     pathLabel = "SSE";
     stateLabel = String(liveRun?.phase || "LIVE").toUpperCase();
-    copy =
-      sessionIndicator.state === "paused"
-        ? summaryHint("SSE OWNER", "FOLLOW PAUSED")
-        : compactPhaseDetailCopy(liveRun, stateLabel);
   }
+  copy = sessionChromeCopy(
+    composerOwnerState(currentState, conversation),
+    composerTransportState(currentState, conversation, liveRun, handoffState),
+    sessionIndicator,
+    liveRun,
+    proposalState,
+    pathLabel,
+    stateLabel,
+  );
 
   dom.sessionSummaryRow.dataset.summaryPath = pathLabel.toLowerCase();
   dom.sessionSummaryRow.dataset.summaryState = stateLabel.toLowerCase();
@@ -1543,6 +1626,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
   const ownerState = composerOwnerState(currentState, conversation);
   const transportState = composerTransportState(currentState, conversation, liveRun, handoffState);
+  const sessionIndicator = selectedThreadLiveSessionIndicator(currentState, conversation, liveRun, handoffState);
   const proposalState = proposalChip(liveRun);
   currentState.sessionRail ||= { conversationId: "", expanded: false };
 
@@ -1684,7 +1768,14 @@ export function renderSessionStrip(dom, currentState, conversation) {
       : []),
   ].join("");
   dom.sessionStripMeta.textContent = ownerState.target;
-  dom.sessionStripDetail.textContent = liveOwned ? compactPhaseDetailCopy(liveRun, ownerState.copy) : ownerState.copy;
+  dom.sessionStripDetail.textContent = sessionStripDetailCopy(
+    ownerState,
+    transportState,
+    sessionIndicator,
+    liveRun,
+    proposalState,
+    liveOwned,
+  );
   if (dom.sessionStripToggle) {
     dom.sessionStripToggle.hidden = true;
     dom.sessionStripToggle.textContent = "세부 보기";

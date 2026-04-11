@@ -453,7 +453,9 @@ def assert_browser_runtime_surface(
                     summary.dataset.liveSessionOwned === "true" &&
                     summaryCopy &&
                     summaryCopy.textContent.trim().length > 0 &&
+                    summaryCopy.textContent.includes("OWNER") &&
                     !summaryCopy.textContent.includes("SSE OWNER") &&
+                    !summaryCopy.textContent.includes("FOLLOW PAUSED") &&
                     threadPhase &&
                     threadPhase.hidden &&
                     threadPhase.dataset.threadPhase === healthyBlock.dataset.liveBlockPhase &&
@@ -494,6 +496,9 @@ def assert_browser_runtime_surface(
                     ) &&
                     sessionStripDetail &&
                     sessionStripDetail.textContent.trim().length > 0 &&
+                    sessionStripDetail.textContent.includes("FOLLOW") &&
+                    !sessionStripDetail.textContent.includes("SESSION ACTIVE") &&
+                    !sessionStripDetail.textContent.includes("authoritative") &&
                     composerOwnerRow &&
                     composerOwnerRow.hidden &&
                     composerOwnerRow.dataset.composerOwnerMerged === "true" &&
@@ -628,6 +633,7 @@ def assert_browser_runtime_surface(
                     !executionStatusCard.hidden &&
                     executionStatusCard.dataset.executionSurface === "secondary-detail" &&
                     statusOutput.dataset.surface === "secondary-detail" &&
+                    sessionStrip.dataset.composerTransport !== "sse-owner" &&
                     follow.dataset.followOwned !== "selected-thread"
                   );
                 }""",
@@ -933,17 +939,23 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'label: "SSE OWNER"', label="live-session healthy ownership label")
     require(render_js, 'label: "RECONNECT"', label="live-session reconnect label")
     require(render_js, 'label: "POLLING"', label="live-session polling label")
+    require(render_js, "joinSessionChromeTokens", label="session chrome token join helper")
+    require(render_js, "sessionFollowLabel", label="session follow token helper")
+    require(render_js, "proposalStatusLabel", label="session proposal status token helper")
+    require(render_js, "sessionChromeCopy", label="session summary chrome copy helper")
+    require(render_js, "sessionStripDetailCopy", label="session strip detail copy helper")
     require(render_js, 'copy: "ATTACH"', label="composer switching compact copy")
     require(render_js, 'pendingOutgoing.status === "sending-user"', label="composer sending compact copy guard")
     require(render_js, '? "SEND"', label="composer sending compact copy")
-    require(render_js, ': "ACCEPTED"', label="composer accepted compact copy")
-    require(render_js, 'copy: "LOCKED"', label="composer ready compact copy")
+    require(render_js, ': "FIRST"', label="composer accepted compact copy")
+    require(render_js, 'copy: "OWNER"', label="composer ready compact copy")
     require(render_js, 'copy: "SELECT"', label="composer idle compact copy")
     require(render_js, "phaseDetailCopy", label="phase detail copy helper")
     require(render_js, "compactPhaseDetailCopy", label="compact phase detail copy helper")
     require(render_js, 'dom.threadPhaseChip.dataset.threadPhaseDetail = liveRun?.visible ? phaseDetailCopy(liveRun) : "idle";', label="thread phase detail dataset")
     require(render_js, 'dom.threadPhaseChip.title = liveRun?.visible ? phaseDetailCopy(liveRun) : "현재 활성 세션이 없습니다.";', label="thread phase detail title")
-    require(render_js, ': compactPhaseDetailCopy(liveRun, stateLabel);', label="summary live phase compact copy")
+    require(render_js, 'return joinSessionChromeTokens(target, "OWNER", sessionFollowLabel(sessionIndicator, transportState), proposalStatusLabel(proposalState));', label="summary healthy token copy")
+    require(render_js, 'return joinSessionChromeTokens(target, stateLabel, "DEGRADED");', label="summary degraded token copy")
     require(render_js, 'type === "codex.exec.retrying"', label="live-session retry degradation mapping")
     require(render_js, "isAppendStreamAuthoritative(currentState, conversationId)", label="selected-thread authoritative SSE handoff guard")
     require(render_js, "const liveVisible =", label="inline live visibility guard")
@@ -961,7 +973,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'proposalState.label !== "NONE"', label="composer strip proposal chip visibility")
     require(render_js, 'phaseChip(liveRun).tone', label="composer strip live phase chip tone")
     require(render_js, 'phaseChip(liveRun).label', label="composer strip live phase chip label")
-    require(render_js, 'dom.sessionStripDetail.textContent = liveOwned ? compactPhaseDetailCopy(liveRun, ownerState.copy) : ownerState.copy;', label="composer strip live phase detail copy")
+    require(render_js, 'dom.sessionStripDetail.textContent = sessionStripDetailCopy(', label="composer strip live phase detail copy")
     require(render_js, 'const mergedStripVisible = Boolean(dom.sessionStrip && !dom.sessionStrip.hidden);', label="composer owner row merged strip visibility")
     require(render_js, 'dom.composerOwnerRow.dataset.composerOwnerMerged = mergedStripVisible ? "true" : "false";', label="composer owner merged dataset")
     require(render_js, 'dom.composerOwnerRow.hidden = mergedStripVisible;', label="composer owner row hidden when strip active")

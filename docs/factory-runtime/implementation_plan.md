@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Reuse the existing selected-thread SSE-owned live-run model in `ops-render.js` instead of adding a new execution-state source.
-2. Add one render-layer helper that decides whether the secondary execution-status card should stay in the side panel or be promoted into the center-lane contract.
-3. Hide the secondary execution-status card on the healthy selected-thread path and mark its datasets as `center-lane` so the central session strip and transcript remain the only authoritative live session surface.
-4. Preserve explicit degraded behavior by restoring the secondary execution-status card as `secondary-detail` whenever the selected-thread path downgrades, loses ownership, or stops being a live advancing run.
-5. Extend focused browser-proof verifiers and iteration artifacts around the bounded single-surface execution-visibility contract.
+1. Reuse the existing selected-thread SSE-owned session chrome datasets instead of introducing a new state model.
+2. Add one bounded token-join path in `ops-render.js` for healthy session summary copy and session-strip detail copy.
+3. Tighten the composer owner row vocabulary so healthy selected-thread ownership reads through fixed values like `OWNER`, `SEND`, `FIRST`, and `SELECT`.
+4. Keep degraded and switching clarity explicit through short tokenized copy such as `DEGRADED`, `RECONNECT`, and `ATTACH`, without reopening a second live-status surface.
+5. Extend focused browser-proof verifiers and iteration artifacts around the bounded chip-first, target-first session chrome contract.
