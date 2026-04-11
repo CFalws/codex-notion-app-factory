@@ -1,10 +1,10 @@
 # Factory Runtime Tasks
 
-## Iteration 170
+## Iteration 171
 
-- [x] Keep the timeline change read-only over the existing selected-thread SSE authority and transcript-tail live activity seam.
-- [x] Make the transcript-tail live activity the only healthy selected-thread primary session item in the center pane.
-- [x] Collapse selected-thread milestone session-event cards only on the healthy SSE-owned path.
-- [x] Preserve explicit degraded, restore, snapshot, switching, and terminal-cleared rendering outside that healthy path.
-- [x] Keep non-live historical rendering behavior intact when the selected-thread live item is not healthy and SSE-owned.
-- [x] Align focused docs and verification with the iteration-170 unified live-timeline contract.
+- [x] Keep the switch-or-attach change read-only over the existing selected-thread session-status, switch-state, and transport seam.
+- [x] Reuse one compact transition article shape for switching and restore or attach states.
+- [x] Keep the center conversation shell and fixed composer visible through intentional switch or attach boundaries.
+- [x] Clear stale old-thread live ownership immediately while the transition item is active.
+- [x] Preserve the generic empty state only for true no-conversation idle.
+- [x] Align focused docs and verification with the iteration-171 transition continuity contract.

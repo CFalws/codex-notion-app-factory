@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `170`
-- bounded focus: `collapse healthy selected-thread milestone appends into the transcript-tail live activity`
+- current iteration: `171`
+- bounded focus: `keep switch and attach continuity inside one compact session-timeline transition item`
 
 ## Request
 
@@ -13,21 +13,21 @@
 
 ## Problem
 
-The selected-thread center timeline still duplicates milestone progression on the healthy path. Operators can read the transcript-tail live activity, but proposal, review, verify, ready, and applied progress can still appear as separate session-event cards instead of one continuous realtime session item.
+The selected-thread center workspace still breaks continuity at switch and attach boundaries. Operators can keep the live session surface during healthy progression, but switch and restore still split across placeholder modes that feel less like one continuous session timeline.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the selected-thread transcript to read as one authoritative live session timeline instead of a mixed live item plus milestone event feed.
+The primary user is the operator or developer using the phone-friendly realtime workspace and expecting selected-thread switch or attach boundaries to stay inside one continuous conversation shell with a compact transition item instead of dropping toward a generic empty workspace feel.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the iteration bounded to the selected-thread center-pane unified live timeline.
-- Reuse the existing selected-thread SSE authority and transcript-tail live item; do not add a new authority source.
-- Collapse selected-thread milestone session-event cards only on the healthy SSE-owned path.
-- Keep degraded, restore, snapshot, switching, and terminal-cleared paths explicit and fail closed.
+- Keep the iteration bounded to selected-thread switch and attach continuity in the center conversation workspace.
+- Reuse the existing selected-thread session-status, switch-state, and transport datasets; do not add a new authority source.
+- Keep switch and attach inside one compact transcript-bound transition item while the composer dock stays fixed.
+- Fail closed to the generic empty state only when there is truly no selected conversation.
 
 ## Deliverable
 
-Render exactly one healthy selected-thread primary live item in the transcript, move milestone visibility into that item's in-place milestone strip and datasets, and suppress duplicate selected-thread milestone session-event cards only on the healthy SSE-owned path.
+Render exactly one compact transcript-bound transition item during intentional selected-thread switch or attach, keep the conversation shell and composer dock visible, clear stale old-thread ownership immediately, and use the true empty state only when no conversation is selected.

@@ -1287,22 +1287,7 @@ function renderRestoreSessionTimeline(currentState) {
   if (!liveAutonomy.visible || liveAutonomy.presentation !== "restore" || !phaseProgression.visible) {
     return "";
   }
-  const phaseLabel = String(phaseProgression.label || liveAutonomy.label || "ATTACH").toUpperCase();
-  const detail =
-    phaseLabel === "RESUME"
-      ? "저장된 선택 대화에 다시 연결하는 중입니다. append SSE 복구가 완료되면 같은 세션이 이어집니다."
-      : "저장된 선택 대화에 attach 중입니다. 첫 bootstrap이 완료되면 같은 세션이 live 상태로 이어집니다.";
-  return `
-    <article class="timeline-item live-activity" data-live-activity-turn="true" data-live-session-primary="true" data-live-run-state="${escapeHtml(String(phaseProgression.state || "attach"))}" data-live-run-phase="${escapeHtml(phaseLabel)}" data-live-run-source="sse" data-live-transport="SSE RESTORE" data-live-transport-owned="false" data-live-owned="false" data-live-autonomy-presentation="restore" data-live-reason="${escapeHtml(String(liveAutonomy.reason || "saved-restore-attach"))}" data-live-restore="true" data-live-restore-stage="${escapeHtml(String(sessionStatus.restoreStage || "none"))}" data-live-restore-path="${escapeHtml(String(sessionStatus.restorePath || "none"))}" data-live-restore-provenance="${escapeHtml(String(sessionStatus.restoreProvenance || "none"))}" data-append-id="0" data-append-source="sse-live-activity">
-      <p class="timeline-kind">실시간 진행</p>
-      <div class="timeline-live-row">
-        <span class="timeline-live-chip" data-tone="neutral">RESTORE</span>
-        <span class="timeline-live-chip" data-tone="${phaseLabel === "RESUME" ? "warning" : "neutral"}">${escapeHtml(phaseLabel)}</span>
-      </div>
-      <p class="timeline-body">${escapeHtml(detail)}</p>
-      <p class="timeline-meta">selected thread · ${escapeHtml(phaseLabel)} · <span class="timeline-provenance">SSE RESTORE</span></p>
-    </article>
-  `;
+  return renderThreadTransition(currentState, sessionStatus);
 }
 
 function sessionTimelineEventModel(item) {
@@ -1872,16 +1857,47 @@ function threadMetaSummary(conversation, liveRun, messageCount, eventCount) {
 }
 
 function renderThreadTransition(currentState, sessionStatus = deriveSelectedThreadSessionStatus(currentState, null)) {
-  const targetTitle = String(sessionStatus.switchTargetTitle || sessionStatus.targetTitle || "선택한 대화").trim();
+  const restoreMode = sessionStatus.presentation === "restore";
+  const phaseLabel = restoreMode
+    ? String(sessionStatus.restoreResume ? "RESUME" : "ATTACH")
+    : "SWITCHING";
+  const stateLabel = restoreMode ? "RESTORE" : "SWITCHING";
+  const targetTitle = restoreMode
+    ? String(sessionStatus.conversationTitle || "저장된 대화").trim()
+    : String(sessionStatus.switchTargetTitle || sessionStatus.targetTitle || "선택한 대화").trim();
+  const detail = restoreMode
+    ? phaseLabel === "RESUME"
+      ? "저장된 선택 대화에 다시 연결하는 중입니다. append SSE 복구가 완료되면 같은 세션이 이어집니다."
+      : "저장된 선택 대화에 attach 중입니다. 첫 bootstrap이 완료되면 같은 세션이 live 상태로 이어집니다."
+    : "이전 thread의 live 소유권을 정리했고, 새 선택 대화의 snapshot attach를 기다리는 중입니다.";
+  const meta = restoreMode
+    ? `selected thread restore · ${phaseLabel.toLowerCase()} pending`
+    : "selected thread switching · snapshot attach pending";
+  const transportLabel = restoreMode ? "SSE RESTORE" : "ATTACH";
+  if (restoreMode) {
+    return `
+      <article class="timeline-transition" data-thread-transition="attach" data-thread-transition-phase="${escapeHtml(phaseLabel.toLowerCase())}" data-thread-transition-phase-label="${escapeHtml(phaseLabel)}" data-thread-transition-state-label="${escapeHtml(stateLabel)}" data-thread-transition-transport="${escapeHtml(transportLabel)}" data-thread-transition-conversation-id="${escapeHtml(String(sessionStatus.conversationId || ""))}" data-thread-transition-source="selected-thread-session" data-thread-transition-owner-cleared="true" data-thread-transition-live-strip-cleared="true" data-thread-transition-compact="true" data-thread-transition-restore-stage="${escapeHtml(String(sessionStatus.restoreStage || "none"))}" data-thread-transition-restore-path="${escapeHtml(String(sessionStatus.restorePath || "none"))}" data-thread-transition-restore-provenance="${escapeHtml(String(sessionStatus.restoreProvenance || "none"))}">
+        <p class="timeline-kind">세션 연결</p>
+        <div class="timeline-transition-row">
+          <span class="timeline-transition-chip">${escapeHtml(stateLabel)}</span>
+          <span class="timeline-transition-chip">${escapeHtml(phaseLabel)}</span>
+          <span class="timeline-transition-chip">${escapeHtml(targetTitle.toUpperCase())}</span>
+        </div>
+        <p class="timeline-body">${escapeHtml(detail)}</p>
+        <p class="timeline-meta">${escapeHtml(meta)}</p>
+      </article>
+    `;
+  }
   return `
-    <article class="timeline-transition" data-thread-transition="switching" data-thread-transition-phase="switching" data-thread-transition-conversation-id="${escapeHtml(String(sessionStatus.switchConversationId || sessionStatus.targetConversationId || ""))}" data-thread-transition-source="selected-thread-session" data-thread-transition-owner-cleared="true" data-thread-transition-live-strip-cleared="true" data-thread-transition-compact="true">
+    <article class="timeline-transition" data-thread-transition="switching" data-thread-transition-phase="switching" data-thread-transition-phase-label="${escapeHtml(phaseLabel)}" data-thread-transition-state-label="${escapeHtml(stateLabel)}" data-thread-transition-transport="${escapeHtml(transportLabel)}" data-thread-transition-conversation-id="${escapeHtml(String(sessionStatus.switchConversationId || sessionStatus.targetConversationId || ""))}" data-thread-transition-source="selected-thread-session" data-thread-transition-owner-cleared="true" data-thread-transition-live-strip-cleared="true" data-thread-transition-compact="true" data-thread-transition-restore-stage="${escapeHtml(String(sessionStatus.restoreStage || "none"))}" data-thread-transition-restore-path="${escapeHtml(String(sessionStatus.restorePath || "none"))}" data-thread-transition-restore-provenance="${escapeHtml(String(sessionStatus.restoreProvenance || "none"))}">
       <p class="timeline-kind">세션 전환</p>
       <div class="timeline-transition-row">
-        <span class="timeline-transition-chip">SWITCHING</span>
+        <span class="timeline-transition-chip">${escapeHtml(stateLabel)}</span>
+        <span class="timeline-transition-chip">${escapeHtml(phaseLabel)}</span>
         <span class="timeline-transition-chip">${escapeHtml(targetTitle.toUpperCase())}</span>
       </div>
-      <p class="timeline-body">이전 thread의 live 소유권을 정리했고, 새 선택 대화의 snapshot attach를 기다리는 중입니다.</p>
-      <p class="timeline-meta">selected thread switching · snapshot attach pending</p>
+      <p class="timeline-body">${escapeHtml(detail)}</p>
+      <p class="timeline-meta">${escapeHtml(meta)}</p>
     </article>
   `;
 }
@@ -1917,7 +1933,7 @@ function selectedThreadWorkspacePlaceholder(currentState) {
       workspaceSummary: sessionStatus.restoreResume
         ? "selected thread restore · authoritative sse resume pending"
         : "selected thread restore · authoritative sse attach pending",
-      timeline: renderRestoreSessionTimeline(currentState),
+      timeline: renderThreadTransition(currentState, sessionStatus),
       liveRun: runStateSnapshot({
         visible: true,
         phase: sessionStatus.restoreResume ? "RESUME" : "ATTACH",

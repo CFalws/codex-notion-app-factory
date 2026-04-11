@@ -789,7 +789,7 @@ def assert_browser_runtime_surface(
                   const threadScroller = document.querySelector("#thread-scroller");
                   const threadPhase = document.querySelector("#thread-phase-chip");
                   const composerOwnerRow = document.querySelector("#composer-owner-row");
-                  const liveActivity = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-session-primary="true"]');
+                  const transition = document.querySelector('[data-thread-transition="attach"]');
                   const inlineBlocks = document.querySelectorAll('.session-inline-block[data-selected-thread-live-block="true"], .session-inline-block[data-selected-thread-degraded-block="true"]');
                   const composerDock = document.querySelector("#conversation-footer-dock");
                   const statusOutput = document.querySelector("#status-output");
@@ -845,16 +845,23 @@ def assert_browser_runtime_surface(
                     threadPhase.dataset.restoreStage === "none" &&
                     composerOwnerRow &&
                     composerOwnerRow.dataset.composerRestoreStage === "none" &&
-                    liveActivity &&
+                    transition &&
+                    transition.dataset.threadTransitionCompact === "true" &&
+                    transition.dataset.threadTransitionStateLabel === "RESTORE" &&
+                    transition.dataset.threadTransitionPhaseLabel === "RESUME" &&
+                    transition.dataset.threadTransitionTransport === "SSE RESTORE" &&
+                    transition.dataset.threadTransitionConversationId === conversationId &&
+                    transition.dataset.threadTransitionRestorePath === "resume" &&
+                    transition.dataset.threadTransitionRestoreProvenance === "sse-bootstrap" &&
                     executionStatusCard &&
                     executionStatusCard.hidden &&
                     executionStatusCard.dataset.executionSurface === "center-lane" &&
                     statusOutput &&
                     statusOutput.dataset.surface === "center-lane" &&
-                    sessionStrip.dataset.phaseValue === liveActivity.dataset.liveRunPhase &&
-                    sessionStrip.dataset.phaseProvenance === liveActivity.dataset.liveRunSource &&
-                    threadScroller.dataset.phaseValue === liveActivity.dataset.liveRunPhase &&
-                    threadScroller.dataset.phaseProvenance === liveActivity.dataset.liveRunSource &&
+                    sessionStrip.dataset.phaseValue === transition.dataset.threadTransitionPhaseLabel &&
+                    sessionStrip.dataset.phaseProvenance === "sse" &&
+                    threadScroller.dataset.phaseValue === transition.dataset.threadTransitionPhaseLabel &&
+                    threadScroller.dataset.phaseProvenance === "sse" &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     resumeEvents.length >= 1 &&
@@ -1445,7 +1452,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'data-live-reason="${escapeHtml(', label="transcript live reason dataset")
     require(render_js, 'data-live-transport="${escapeHtml(transportLabel)}"', label="transcript live transport dataset")
     require(render_js, 'data-live-transport-owned="${liveOwned ? "true" : "false"}"', label="transcript live transport ownership dataset")
-    require(render_js, 'data-live-transport="SSE RESTORE"', label="restore transcript transport dataset")
+    require(render_js, 'data-thread-transition-transport="${escapeHtml(transportLabel)}"', label="restore transition transport dataset")
     require(render_js, 'const retainedTerminalVisible = shouldRetainInlineTerminalPhase(', label="inline terminal retention wiring")
     require(render_js, '(!liveRun.terminal || retainedTerminalVisible);', label="inline terminal visibility guard")
     require(render_js, 'Date.now() - createdAtMs <= INLINE_TERMINAL_RETENTION_MS;', label="inline terminal retention deadline")
@@ -1516,10 +1523,9 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "dataset.liveSessionReason", label="live-session reason dataset")
     require(render_js, "dataset.liveSessionOwned", label="live-session owned dataset")
     require(render_js, "renderRestoreSessionTimeline", label="restore transcript timeline helper")
-    require(render_js, 'data-live-restore="true"', label="restore transcript marker dataset")
-    require(render_js, 'data-live-restore-stage="${escapeHtml(String(sessionStatus.restoreStage || "none"))}"', label="restore transcript stage dataset")
-    require(render_js, 'data-live-restore-path="${escapeHtml(String(sessionStatus.restorePath || "none"))}"', label="restore transcript path dataset")
-    require(render_js, 'data-live-restore-provenance="${escapeHtml(String(sessionStatus.restoreProvenance || "none"))}"', label="restore transcript provenance dataset")
+    require(render_js, 'data-thread-transition-restore-stage="${escapeHtml(String(sessionStatus.restoreStage || "none"))}"', label="restore transition stage dataset")
+    require(render_js, 'data-thread-transition-restore-path="${escapeHtml(String(sessionStatus.restorePath || "none"))}"', label="restore transition path dataset")
+    require(render_js, 'data-thread-transition-restore-provenance="${escapeHtml(String(sessionStatus.restoreProvenance || "none"))}"', label="restore transition provenance dataset")
     require(render_js, "syncAutonomyDetailSurface", label="secondary autonomy surface sync helper")
     require(render_js, "deriveSelectedThreadLiveAutonomy", label="selected-thread live autonomy render helper import")
     require(render_js, 'autonomyCard.hidden = false;', label="selected-thread live autonomy card suppression")

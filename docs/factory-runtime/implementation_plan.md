@@ -1,12 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 170
+## Iteration 171
 
-Collapse healthy selected-thread milestone appends into the transcript-tail live activity.
+Keep selected-thread switch and attach continuity inside one compact session-timeline transition item.
 
-1. Keep the change read-only over the existing selected-thread SSE authority and transcript-tail live activity seam.
-2. Treat the transcript-tail live activity as the only healthy selected-thread primary session item in the center pane.
-3. Collapse proposal, review, verify, auto-apply, ready, and applied milestone session-event cards only while the selected-thread live item is healthy and SSE-owned.
-4. Leave degraded, restore, snapshot, switching, and terminal-cleared paths explicit so they do not silently inherit healthy milestone ownership.
-5. Keep non-live historical rendering behavior intact outside the healthy selected-thread path.
-6. Align focused verification and proposal artifacts with the iteration-170 unified live-timeline contract.
+1. Keep the change read-only over the existing selected-thread session-status, switch-state, and transport seam.
+2. Reuse the existing compact transition article for switching and extend the same transcript-bound shape to restore or attach states.
+3. Keep the conversation shell and bottom composer dock mounted through intentional switch or attach boundaries.
+4. Clear old-thread live ownership immediately while the transition item is active.
+5. Fail closed to the generic empty state only when there is truly no selected conversation.
+6. Align focused verification and proposal artifacts with the iteration-171 switch-or-attach continuity contract.
