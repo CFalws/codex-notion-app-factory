@@ -777,10 +777,10 @@ def assert_browser_runtime_surface(
                     document.querySelectorAll('[data-thread-transition="switching"]').length === 1 &&
                     transition.dataset.threadTransitionPhase === "switching" &&
                     transition.dataset.threadTransitionSource === "selected-thread-session" &&
+                    transition.dataset.threadTransitionOwnerCleared === "true" &&
                     transition.dataset.threadTransitionConversationId === targetConversationId &&
                     summary &&
-                    !summary.hidden &&
-                    summary.dataset.summaryPath === "switching" &&
+                    summary.hidden &&
                     summary.dataset.liveSessionOwned === "false" &&
                     liveIndicator &&
                     liveIndicator.hidden &&
@@ -821,9 +821,11 @@ def assert_browser_runtime_surface(
                     threadScroller.dataset.threadTransitionConversationId === targetConversationId &&
                     document.querySelector("#conversation-timeline").dataset.workspacePlaceholder === "switching" &&
                     document.querySelector("#conversation-timeline").dataset.workspaceConversationId === targetConversationId &&
+                    document.querySelector("#conversation-timeline").dataset.workspaceOwnerCleared === "true" &&
                     threadScroller.dataset.phaseValue === "UNKNOWN" &&
                     threadScroller.dataset.phaseAuthoritative === "false" &&
                     threadScroller.dataset.phaseProvenance === "thread-transition" &&
+                    threadScroller.dataset.workspaceOwnerCleared === "true" &&
                     threadScroller.dataset.sessionOwner !== "selected-thread" &&
                     follow &&
                     follow.dataset.followOwned !== "selected-thread" &&
@@ -861,6 +863,7 @@ def assert_browser_runtime_surface(
                   return Boolean(
                     transition &&
                     document.querySelectorAll('[data-thread-transition="switching"]').length === 1 &&
+                    transition.dataset.threadTransitionOwnerCleared === "true" &&
                     transition.dataset.threadTransitionConversationId === targetConversationId &&
                     activeSessionRow &&
                     activeSessionRow.hidden &&
@@ -883,6 +886,8 @@ def assert_browser_runtime_surface(
                     threadScroller.dataset.threadTransitionConversationId === targetConversationId &&
                     document.querySelector("#conversation-timeline").dataset.workspacePlaceholder === "switching" &&
                     document.querySelector("#conversation-timeline").dataset.workspaceConversationId === targetConversationId &&
+                    document.querySelector("#conversation-timeline").dataset.workspaceOwnerCleared === "true" &&
+                    threadScroller.dataset.workspaceOwnerCleared === "true" &&
                     !empty
                   );
                 }""",
@@ -914,6 +919,7 @@ def assert_browser_runtime_surface(
                   return Boolean(
                     transition &&
                     document.querySelectorAll('[data-thread-transition="switching"]').length === 1 &&
+                    transition.dataset.threadTransitionOwnerCleared === "true" &&
                     transition.dataset.threadTransitionConversationId === targetConversationId &&
                     sessionStrip &&
                     !sessionStrip.hidden &&
@@ -932,6 +938,8 @@ def assert_browser_runtime_surface(
                     threadScroller.dataset.threadTransitionConversationId === targetConversationId &&
                     document.querySelector("#conversation-timeline").dataset.workspacePlaceholder === "switching" &&
                     document.querySelector("#conversation-timeline").dataset.workspaceConversationId === targetConversationId &&
+                    document.querySelector("#conversation-timeline").dataset.workspaceOwnerCleared === "true" &&
+                    threadScroller.dataset.workspaceOwnerCleared === "true" &&
                     threadScroller.dataset.sessionOwner !== "selected-thread" &&
                     summary &&
                     summary.dataset.liveSessionOwned === "false" &&
@@ -1105,6 +1113,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'data-thread-transition="switching"', label="thread transition DOM")
     require(render_js, 'data-thread-transition-source="selected-thread-session"', label="thread transition source dataset")
     require(render_js, 'data-thread-transition-phase="switching"', label="thread transition phase dataset")
+    require(render_js, 'data-thread-transition-owner-cleared="true"', label="thread transition ownership-cleared dataset")
+    require(render_js, 'data-thread-transition-owner-cleared="true"', label="thread transition ownership-cleared dataset")
     require(render_js, "selectedThreadWorkspacePlaceholder", label="thread transition workspace placeholder helper")
     require(render_js, "const workspacePlaceholder = selectedThreadWorkspacePlaceholder(currentState);", label="thread transition workspace placeholder state")
     require(render_js, 'workspaceSummary: "selected thread switching · target snapshot attach pending",', label="switch workspace summary copy")
@@ -1112,9 +1122,13 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'workspaceSummary: "선택된 대화가 없으면 현재 세션 맥락이 여기에 정리됩니다.",', label="empty workspace summary copy")
     require(render_js, 'dom.conversationTimeline.dataset.workspacePlaceholder = workspacePlaceholder.mode;', label="workspace placeholder mode dataset")
     require(render_js, 'dom.conversationTimeline.dataset.workspaceConversationId = workspacePlaceholder.conversationId;', label="workspace placeholder conversation dataset")
+    require(render_js, 'dom.conversationTimeline.dataset.workspaceOwnerCleared = isThreadTransition ? "true" : "false";', label="workspace placeholder ownership-cleared dataset")
+    require(render_js, 'dom.conversationTimeline.dataset.workspaceOwnerCleared = isThreadTransition ? "true" : "false";', label="workspace placeholder ownership-cleared dataset")
     require(render_js, 'dom.conversationTimeline.innerHTML = workspacePlaceholder.timeline;', label="thread transition placeholder render path")
     require(render_js, 'dom.threadScroller.dataset.workspacePlaceholder = workspacePlaceholder.mode;', label="thread scroller placeholder mode dataset")
     require(render_js, 'dom.threadScroller.dataset.workspacePlaceholderConversationId = workspacePlaceholder.conversationId;', label="thread scroller placeholder conversation dataset")
+    require(render_js, 'dom.threadScroller.dataset.workspaceOwnerCleared = isThreadTransition ? "true" : "false";', label="thread scroller ownership-cleared dataset")
+    require(render_js, 'dom.threadScroller.dataset.workspaceOwnerCleared = isThreadTransition ? "true" : "false";', label="thread scroller ownership-cleared dataset")
     require(render_js, 'data-thread-transition-conversation-id="${escapeHtml(String(sessionStatus.switchConversationId || sessionStatus.targetConversationId || ""))}"', label="thread transition canonical conversation dataset")
     require(render_js, 'mode: "switching"', label="switch workspace placeholder mode")
     require(render_js, 'mode: "restore"', label="restore workspace placeholder mode")
@@ -1130,6 +1144,10 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'syncComposerOwnership(dom, currentState, null);', label="thread transition composer owner switching path")
     require(render_js, 'dom.threadScroller.dataset.workspacePlaceholder = "conversation";', label="conversation scroller placeholder reset")
     require(render_js, 'dom.threadScroller.dataset.workspacePlaceholderConversationId = String(conversation.conversation_id || "");', label="conversation scroller placeholder conversation reset")
+    require(render_js, 'dom.conversationTimeline.dataset.workspaceOwnerCleared = "false";', label="conversation workspace ownership-cleared reset")
+    require(render_js, 'dom.threadScroller.dataset.workspaceOwnerCleared = "false";', label="conversation scroller ownership-cleared reset")
+    require(render_js, 'dom.conversationTimeline.dataset.workspaceOwnerCleared = "false";', label="conversation workspace ownership-cleared reset")
+    require(render_js, 'dom.threadScroller.dataset.workspaceOwnerCleared = "false";', label="conversation scroller ownership-cleared reset")
     require(render_js, "const { handoffVisible, degradedVisible, sessionIndicator } = inlineState;", label="transcript live state wiring")
     require(render_js, 'return "";', label="inline session block removed as primary live surface")
     require(render_js, 'data-live-autonomy="true"', label="inline autonomy DOM")

@@ -1,11 +1,11 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 120
+## Iteration 122
 
-Tighten the sticky left-rail active-session row so it mirrors only the healthy selected-thread SSE session and clears immediately on degraded or non-selected paths.
+Tighten selected-thread switch continuity so the center workspace stays mounted and verifiable through intentional thread changes.
 
-1. Reuse `deriveSelectedThreadSessionStatus(...)` and `deriveSelectedThreadFollowControlModel(...)` as the only active-session row inputs.
-2. Keep the row visible only for the healthy selected-thread SSE-owned path instead of transition or handoff or degraded branches.
-3. Mirror owner, current phase, and `NEW` or `PAUSED` follow state with unseen-count metadata from the canonical selected-thread datasets.
-4. Clear the row on switching, polling fallback, reconnect downgrade, terminal idle, and deselection so no stale live-owned rail surface survives outside the intended path.
-5. Extend the focused verifier layer and proposal artifacts so iteration 120 proves both presence on the healthy path and absence on degraded or switching paths.
+1. Reuse the existing selected-thread switch placeholder and null-conversation render path rather than adding a second transition flow.
+2. Keep the center conversation shell and fixed composer mounted during intentional thread switches and render exactly one compact transition placeholder.
+3. Expose explicit machine-readable ownership-cleared datasets on the transition placeholder and mounted shell so verification can prove prior-thread ownership was cleared in the same render cycle.
+4. Preserve reconnect downgrade, polling fallback, and true no-selection idle behavior without introducing a new transport or polling owner.
+5. Extend the focused verifier layer and proposal artifacts so iteration 122 proves mounted switch continuity, immediate ownership clearing, and absence of generic empty-state flashes on the intended path.

@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `120`
-- bounded focus: `left rail exposes exactly one sticky active-session row from the healthy selected-thread session model`
+- current iteration: `122`
+- bounded focus: `selected-thread switch path keeps one mounted center shell and one compact transition placeholder`
 
 ## Request
 
@@ -13,7 +13,7 @@
 
 ## Problem
 
-Healthy selected-thread ownership, one center live session lane, and one footer session bar are already established. The remaining gap is the left rail: the sticky active-session row still mixes in transition behavior instead of mirroring only the healthy selected-thread SSE session and clearing immediately on degraded or non-selected paths.
+Healthy selected-thread ownership is already explicit in the rail, center lane, footer bar, and header datasets. The remaining gap is transition continuity: intentional thread switches still need a stricter contract proving the center shell stays mounted, old-thread ownership clears immediately, and the workspace does not fall back to the true empty view while the new selected thread attaches.
 
 ## Target User
 
@@ -23,13 +23,13 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the selected-thread SSE ownership, center live-lane, footer session bar, and polling-fallback contracts unchanged.
-- Do not introduce a new transport, polling path, backend protocol, or a second rail live-status surface.
-- Reuse the existing selected-thread session-status and follow-control models instead of adding another rail authority source.
-- Show exactly one sticky active-session row above the left conversation list on the healthy selected-thread SSE path only.
-- Let that row carry owner, current phase, and `NEW` or `PAUSED` follow state with unseen-count metadata from the same selected-thread datasets as the center and footer surfaces.
-- Clear that row immediately on jump-to-latest follow re-engagement, idle, terminal, reconnect downgrade, polling fallback, deselection, and thread switch.
+- Keep the selected-thread SSE ownership, center live-lane, footer session bar, header ownership surface, and polling-fallback contracts unchanged.
+- Do not introduce a new transport, polling path, backend protocol, persistence layer, or a second transition surface.
+- Reuse the existing selected-thread switch placeholder and mounted composer path instead of adding another transition controller.
+- Keep the center conversation shell and bottom-fixed composer mounted during intentional thread switches and show exactly one compact transition placeholder until the target thread attaches.
+- Clear prior-thread live ownership immediately on switch and expose machine-readable evidence that the switch placeholder owns the workspace while old ownership is cleared.
+- Preserve the true empty-state path only for genuine no-selection idle, not for intentional thread switches.
 
 ## Deliverable
 
-Define and verify one active-session rail contract where the left navigation exposes exactly one sticky row for the healthy selected-thread SSE session with owner, phase, and detached follow state, while degraded and non-selected paths clear it immediately.
+Define and verify one selected-thread switch continuity contract where intentional thread switches keep the center shell mounted, show exactly one compact transition placeholder, clear old ownership immediately, and avoid the true empty path until the new selected thread attaches.

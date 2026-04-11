@@ -503,7 +503,8 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   const liveAutonomy = deriveSelectedThreadLiveAutonomy(currentState, conversation);
   const phaseProgression = deriveSelectedThreadPhaseProgression(currentState, conversation);
   const conversationId = String(conversation?.conversation_id || sessionStatus.conversationId || "");
-  const headerSummaryVisible = Boolean(conversationId || threadTransition.targetConversationId || sessionStatus.conversationId);
+  const switchingSelectedThread = Boolean(threadTransition.active && threadTransition.targetConversationId);
+  const headerSummaryVisible = !switchingSelectedThread && Boolean(conversationId || sessionStatus.conversationId);
   const footerDockOwnsLive = Boolean(sessionStatus.liveOwned && phaseProgression.visible && liveAutonomy.owned);
   const sessionIndicator = selectedThreadLiveSessionIndicator(currentState, conversation, liveRun, handoffState);
   const proposalState = proposalChip(liveRun);
@@ -579,7 +580,7 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   dom.sessionLiveIndicator.dataset.liveSessionReason = sessionIndicator.reason;
   dom.sessionSummaryCopy.textContent = copy;
   if (dom.threadPhaseChip) {
-    dom.threadPhaseChip.hidden = headerSummaryVisible;
+    dom.threadPhaseChip.hidden = headerSummaryVisible || switchingSelectedThread;
   }
 }
 
@@ -1653,7 +1654,7 @@ function threadMetaSummary(conversation, liveRun, messageCount, eventCount) {
 function renderThreadTransition(currentState, sessionStatus = deriveSelectedThreadSessionStatus(currentState, null)) {
   const targetTitle = String(sessionStatus.switchTargetTitle || sessionStatus.targetTitle || "선택한 대화").trim();
   return `
-    <article class="timeline-transition" data-thread-transition="switching" data-thread-transition-phase="switching" data-thread-transition-conversation-id="${escapeHtml(String(sessionStatus.switchConversationId || sessionStatus.targetConversationId || ""))}" data-thread-transition-source="selected-thread-session">
+    <article class="timeline-transition" data-thread-transition="switching" data-thread-transition-phase="switching" data-thread-transition-conversation-id="${escapeHtml(String(sessionStatus.switchConversationId || sessionStatus.targetConversationId || ""))}" data-thread-transition-source="selected-thread-session" data-thread-transition-owner-cleared="true">
       <p class="timeline-kind">세션 전환</p>
       <div class="timeline-transition-row">
         <span class="timeline-transition-chip">SWITCHING</span>
@@ -2311,10 +2312,12 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
     const isSavedRestore = workspacePlaceholder.mode === "restore";
     dom.conversationTimeline.dataset.workspacePlaceholder = workspacePlaceholder.mode;
     dom.conversationTimeline.dataset.workspaceConversationId = workspacePlaceholder.conversationId;
+    dom.conversationTimeline.dataset.workspaceOwnerCleared = isThreadTransition ? "true" : "false";
     dom.conversationTimeline.innerHTML = workspacePlaceholder.timeline;
     if (dom.threadScroller) {
       dom.threadScroller.dataset.workspacePlaceholder = workspacePlaceholder.mode;
       dom.threadScroller.dataset.workspacePlaceholderConversationId = workspacePlaceholder.conversationId;
+      dom.threadScroller.dataset.workspaceOwnerCleared = isThreadTransition ? "true" : "false";
       dom.threadScroller.dataset.pendingConversationId = isThreadTransition
         ? workspacePlaceholder.conversationId
         : isSavedRestore
@@ -2380,6 +2383,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
 
   dom.conversationTimeline.dataset.workspacePlaceholder = "conversation";
   dom.conversationTimeline.dataset.workspaceConversationId = String(conversation.conversation_id || "");
+  dom.conversationTimeline.dataset.workspaceOwnerCleared = "false";
 
   const messages = Array.isArray(conversation.messages) ? conversation.messages : [];
   const events = Array.isArray(conversation.events) ? conversation.events : [];
@@ -2403,6 +2407,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   if (dom.threadScroller) {
     dom.threadScroller.dataset.workspacePlaceholder = "conversation";
     dom.threadScroller.dataset.workspacePlaceholderConversationId = String(conversation.conversation_id || "");
+    dom.threadScroller.dataset.workspaceOwnerCleared = "false";
     dom.threadScroller.dataset.pendingConversationId = "";
     dom.threadScroller.dataset.pendingHandoffStage = handoffState.stage;
     dom.threadScroller.dataset.pendingUserCount = String(handoffState.pendingUserCount);
