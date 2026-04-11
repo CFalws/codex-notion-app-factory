@@ -684,12 +684,16 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
             ? `${healthyPhaseLabel} VIA HANDOFF`
             : `${healthyPhaseLabel} VIA ${String(sessionStatus.transportLabel || "SESSION").toUpperCase()}`;
   const summaryVisible =
+    false;
+  const healthyTranscriptAuthority =
     Boolean(conversationId) &&
     !switchingSelectedThread &&
     !sessionStatus.selectedThreadRestore &&
     !Boolean(liveRun?.terminal) &&
     sessionIndicator.owned &&
-    badgePresentation === "healthy";
+    badgePresentation === "healthy" &&
+    timelineAuthority.visible &&
+    timelineAuthority.presentation === "healthy";
   if (
     dom.threadSessionSummary &&
     dom.threadSessionSummaryScope &&
@@ -702,7 +706,7 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
     const summaryOwner = String(sessionStatus.transportLabel || "SSE OWNER").toUpperCase();
     dom.threadSessionSummary.hidden = !summaryVisible;
     dom.threadSessionSummary.dataset.threadSummaryVisible = summaryVisible ? "true" : "false";
-    dom.threadSessionSummary.dataset.threadSummaryPresentation = summaryVisible ? "healthy" : "cleared";
+    dom.threadSessionSummary.dataset.threadSummaryPresentation = healthyTranscriptAuthority ? "suppressed" : "cleared";
     dom.threadSessionSummary.dataset.threadSummaryScope = summaryVisible ? "selected-thread" : "";
     dom.threadSessionSummary.dataset.threadSummaryPath = summaryVisible ? summaryPath : "";
     dom.threadSessionSummary.dataset.threadSummaryOwner = summaryVisible ? summaryOwner : "";
@@ -710,13 +714,13 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
     dom.threadSessionSummary.dataset.threadSummarySource = summaryVisible ? badgeSource : "none";
     dom.threadSessionSummary.dataset.threadSummaryOwned = summaryVisible ? "true" : "false";
     dom.threadSessionSummary.dataset.threadSummaryConversationId = summaryVisible ? conversationId : "";
-    dom.threadSessionSummary.dataset.threadSummaryReason = summaryVisible ? "authoritative-selected-thread" : badgeReason;
+    dom.threadSessionSummary.dataset.threadSummaryReason = healthyTranscriptAuthority ? "center-timeline-authoritative" : badgeReason;
     dom.threadSessionSummaryScope.textContent = summaryScope;
     dom.threadSessionSummaryPath.textContent = summaryPath;
     dom.threadSessionSummaryOwner.textContent = summaryOwner;
     dom.threadSessionSummaryPhase.textContent = healthyPhaseLabel;
   }
-  dom.threadPhaseChip.hidden = summaryVisible ? true : !badgeVisible;
+  dom.threadPhaseChip.hidden = healthyTranscriptAuthority ? true : !badgeVisible;
   dom.threadPhaseChip.textContent = badgeLabel;
   dom.threadPhaseChip.dataset.tone = badgeTone;
   dom.threadPhaseChip.dataset.threadPhase = badgeLabel;
@@ -1251,6 +1255,8 @@ function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
       <div class="timeline-live-row">
         <span class="timeline-live-chip" data-tone="${degradedVisible ? "warning" : handoffVisible ? "neutral" : liveOwned ? "neutral" : "warning"}">${escapeHtml(degradedVisible ? "DEGRADED" : handoffVisible ? "HANDOFF" : String(liveAutonomy.label || "LIVE"))}</span>
         <span class="timeline-live-chip" data-tone="${escapeHtml(tone)}">${escapeHtml(phaseLabel)}</span>
+        ${liveOwned ? '<span class="timeline-live-chip" data-tone="neutral">SELECTED</span>' : ""}
+        ${liveOwned ? `<span class="timeline-live-chip" data-tone="neutral">${escapeHtml(transportLabel)}</span>` : ""}
         ${liveOwned ? `<span class="timeline-live-chip" data-tone="neutral">${escapeHtml(expectedPath)}</span>` : ""}
         ${liveOwned ? `<span class="timeline-live-chip" data-tone="${escapeHtml(autonomyChipTone(pathVerdict))}">${escapeHtml(pathVerdict)}</span>` : ""}
         ${liveOwned ? `<span class="timeline-live-chip" data-tone="${escapeHtml(autonomyChipTone(verifierAcceptability))}">${escapeHtml(verifierAcceptability)}</span>` : ""}
@@ -1995,6 +2001,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
   const footerFollow = selectedThreadFooterFollowState(dom, currentState, conversationId, lastRenderSource);
   const footerDock = selectedThreadFooterDockModel(currentState, conversation, liveRun, footerFollow);
+  const timelineAuthority = selectedThreadTimelineAuthorityModel(conversation, currentState, liveRun, handoffState);
   currentState.sessionRail ||= { conversationId: "", expanded: false };
 
   if (!conversationId && !(threadTransition.active && threadTransition.targetConversationId) && !sessionStatus.conversationId) {
@@ -2100,11 +2107,13 @@ export function renderSessionStrip(dom, currentState, conversation) {
     inlineState.status === "live" &&
     inlineState.renderSource === "sse";
   const stripLiveOwned = Boolean(footerDock.visible);
+  const healthyTranscriptAuthority =
+    stripLiveOwned && timelineAuthority.visible && timelineAuthority.presentation === "healthy";
   const stripState = sessionStripStateRow(ownerState, transportState, liveRun, presentation, liveOwned, footerFollow, footerDock);
-  dom.sessionStrip.hidden = !sessionConversationId ? true : false;
-  dom.sessionStrip.dataset.liveOwned = stripLiveOwned ? "true" : "false";
-  dom.sessionStrip.dataset.sessionOwner = stripLiveOwned ? "selected-thread" : "none";
-  dom.sessionStrip.dataset.sessionPresentation = presentation;
+  dom.sessionStrip.hidden = !sessionConversationId ? true : healthyTranscriptAuthority;
+  dom.sessionStrip.dataset.liveOwned = healthyTranscriptAuthority ? "false" : stripLiveOwned ? "true" : "false";
+  dom.sessionStrip.dataset.sessionOwner = healthyTranscriptAuthority ? "none" : stripLiveOwned ? "selected-thread" : "none";
+  dom.sessionStrip.dataset.sessionPresentation = healthyTranscriptAuthority ? "suppressed" : presentation;
   dom.sessionStrip.dataset.sessionTerminal = liveRun.terminal ? "true" : "false";
   dom.sessionStrip.dataset.sessionCollapsed = shouldCollapse ? "true" : "false";
   dom.sessionStrip.dataset.streamState = status;
@@ -2133,7 +2142,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStrip.dataset.composerState = ownerState.state;
   dom.sessionStrip.dataset.composerTransport = transportState.key;
   dom.sessionStrip.dataset.composerTransportSource = transportState.source;
-  dom.sessionStrip.dataset.composerTransportOwned = stripLiveOwned ? "true" : "false";
+  dom.sessionStrip.dataset.composerTransportOwned = healthyTranscriptAuthority ? "false" : stripLiveOwned ? "true" : "false";
   dom.sessionStrip.dataset.composerTransportReason = transportState.reason;
   dom.sessionStrip.dataset.composerTargetConversationId = ownerState.conversationId;
   dom.sessionStrip.dataset.restoreStage = sessionStatus.restoreStage || "none";
