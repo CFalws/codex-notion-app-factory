@@ -437,6 +437,7 @@ def assert_browser_runtime_surface(
                   const healthyBlock = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-block-owner="selected-thread"][data-live-owned="true"]');
                   const liveActivity = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
                   const summary = document.querySelector("#session-summary-row");
+                  const liveIndicator = document.querySelector("#session-live-indicator");
                   const summaryCopy = document.querySelector("#session-summary-copy");
                   const threadPhase = document.querySelector("#thread-phase-chip");
                   const activeSessionRow = document.querySelector("#active-session-row");
@@ -466,13 +467,19 @@ def assert_browser_runtime_surface(
                     healthyBlock.dataset.liveBlockPhase !== "IDLE" &&
                     ["true", "false"].includes(healthyBlock.dataset.liveBlockPhaseAuthoritative || "") &&
                     summary &&
-                    summary.hidden &&
+                    !summary.hidden &&
+                    summary.dataset.summaryPath === "sse" &&
                     summary.dataset.liveSessionOwned === "true" &&
                     summaryCopy &&
                     summaryCopy.textContent.trim().length > 0 &&
                     summaryCopy.textContent.includes("OWNER") &&
                     !summaryCopy.textContent.includes("SSE OWNER") &&
                     !summaryCopy.textContent.includes("FOLLOW PAUSED") &&
+                    liveIndicator &&
+                    !liveIndicator.hidden &&
+                    liveIndicator.textContent.trim() === "SSE OWNER" &&
+                    liveIndicator.dataset.liveSessionOwned === "true" &&
+                    liveIndicator.dataset.liveSessionSource === "sse" &&
                     threadPhase &&
                     threadPhase.hidden &&
                     threadPhase.dataset.threadPhase === healthyBlock.dataset.liveBlockPhase &&
@@ -630,6 +637,7 @@ def assert_browser_runtime_surface(
                   const healthy = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
                   const healthyBlock = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-owned="true"]');
                   const summary = document.querySelector("#session-summary-row");
+                  const liveIndicator = document.querySelector("#session-live-indicator");
                   const activeSessionRow = document.querySelector("#active-session-row");
                   const sessionStrip = document.querySelector("#session-strip");
                   const sessionStripState = document.querySelector("#session-strip-state");
@@ -645,7 +653,13 @@ def assert_browser_runtime_surface(
                   return (
                     ["retrying", "reconnecting", "polling-fallback", "session-rotation"].includes(reason) &&
                     ["RECONNECT", "POLLING"].includes(phase) &&
+                    !summary.hidden &&
+                    summary.dataset.summaryPath === "degraded" &&
                     summary.dataset.liveSessionOwned === "false" &&
+                    liveIndicator &&
+                    !liveIndicator.hidden &&
+                    ["RECONNECT", "POLLING"].includes(liveIndicator.textContent.trim()) &&
+                    liveIndicator.dataset.liveSessionOwned === "false" &&
                     activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
                     activeSessionRow.dataset.activeSessionSource === "none" &&
@@ -700,7 +714,7 @@ def assert_browser_runtime_surface(
                     transition.dataset.threadTransitionPhase === "switching" &&
                     transition.dataset.threadTransitionConversationId === targetConversationId &&
                     summary &&
-                    summary.hidden &&
+                    !summary.hidden &&
                     summary.dataset.summaryPath === "switching" &&
                     summary.dataset.liveSessionOwned === "false" &&
                     liveIndicator &&
