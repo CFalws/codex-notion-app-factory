@@ -146,6 +146,8 @@ def browser_snapshot_script() -> str:
   const sendRequest = document.querySelector("#send-request");
   const autonomyDetailCard = document.querySelector(".autonomy-detail-card");
   const autonomyDetail = document.querySelector("#autonomy-detail");
+  const statusOutput = document.querySelector("#status-output");
+  const executionStatusCard = statusOutput ? statusOutput.closest(".inspector-card") : null;
   const transition = document.querySelector('[data-thread-transition="loading"]');
   const emptyState = document.querySelector(".timeline-empty");
   const threadScroller = document.querySelector("#thread-scroller");
@@ -203,6 +205,15 @@ def browser_snapshot_script() -> str:
     autonomyDetail: autonomyDetail ? {
       dataset: { ...autonomyDetail.dataset },
       text: (autonomyDetail.textContent || "").trim(),
+    } : null,
+    executionStatusCard: executionStatusCard ? {
+      hidden: !!executionStatusCard.hidden,
+      dataset: { ...executionStatusCard.dataset },
+      text: (executionStatusCard.textContent || "").trim(),
+    } : null,
+    statusOutput: statusOutput ? {
+      dataset: { ...statusOutput.dataset },
+      text: (statusOutput.textContent || "").trim(),
     } : null,
     transition: transition ? {
       dataset: { ...transition.dataset },
@@ -422,6 +433,8 @@ def assert_browser_runtime_surface(
                   const sendRequest = document.querySelector("#send-request");
                   const autonomyDetailCard = document.querySelector(".autonomy-detail-card");
                   const autonomyDetail = document.querySelector("#autonomy-detail");
+                  const statusOutput = document.querySelector("#status-output");
+                  const executionStatusCard = statusOutput ? statusOutput.closest(".inspector-card") : null;
                   const follow = document.querySelector("#jump-to-latest");
                   const fetchMark = Number(window.__verifyFetchMark || 0);
                   const jobFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
@@ -493,6 +506,11 @@ def assert_browser_runtime_surface(
                     autonomyDetailCard.dataset.autonomySurface === "center-lane" &&
                     autonomyDetail &&
                     autonomyDetail.dataset.surface === "center-lane" &&
+                    executionStatusCard &&
+                    executionStatusCard.hidden &&
+                    executionStatusCard.dataset.executionSurface === "center-lane" &&
+                    statusOutput &&
+                    statusOutput.dataset.surface === "center-lane" &&
                     follow &&
                     follow.dataset.followOwned !== undefined &&
                     jobFetches.length === 0
@@ -512,6 +530,8 @@ def assert_browser_runtime_surface(
                   const threadScroller = document.querySelector("#thread-scroller");
                   const healthyBlock = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-block-owner="selected-thread"]');
                   const composerDock = document.querySelector("#conversation-footer-dock");
+                  const statusOutput = document.querySelector("#status-output");
+                  const executionStatusCard = statusOutput ? statusOutput.closest(".inspector-card") : null;
                   const emptyState = document.querySelector(".timeline-empty");
                   const fetchMark = Number(window.__verifyFetchMark || 0);
                   const sseMark = Number(window.__verifySseMark || 0);
@@ -552,6 +572,11 @@ def assert_browser_runtime_surface(
                     threadScroller.dataset.resumeMode === "resumed" &&
                     Number(threadScroller.dataset.resumeCursor || "0") > 0 &&
                     healthyBlock &&
+                    executionStatusCard &&
+                    executionStatusCard.hidden &&
+                    executionStatusCard.dataset.executionSurface === "center-lane" &&
+                    statusOutput &&
+                    statusOutput.dataset.surface === "center-lane" &&
                     sessionStrip.dataset.phaseValue === healthyBlock.dataset.liveBlockPhase &&
                     sessionStrip.dataset.phaseProvenance === healthyBlock.dataset.liveBlockPhaseProvenance &&
                     threadScroller.dataset.phaseValue === healthyBlock.dataset.liveBlockPhase &&
@@ -582,8 +607,10 @@ def assert_browser_runtime_surface(
                   const summary = document.querySelector("#session-summary-row");
                   const activeSessionRow = document.querySelector("#active-session-row");
                   const sessionStrip = document.querySelector("#session-strip");
+                  const statusOutput = document.querySelector("#status-output");
+                  const executionStatusCard = statusOutput ? statusOutput.closest(".inspector-card") : null;
                   const follow = document.querySelector("#jump-to-latest");
-                  if (!degraded || healthy || healthyBlock || !summary || !follow || !activeSessionRow || !sessionStrip) {
+                  if (!degraded || healthy || healthyBlock || !summary || !follow || !activeSessionRow || !sessionStrip || !executionStatusCard || !statusOutput) {
                     return false;
                   }
                   const reason = degraded.dataset.liveBlockReason || "";
@@ -598,6 +625,9 @@ def assert_browser_runtime_surface(
                     !sessionStrip.hidden &&
                     ["reconnect", "polling"].includes(sessionStrip.dataset.composerTransport || "") &&
                     sessionStrip.dataset.composerTransportOwned === "false" &&
+                    !executionStatusCard.hidden &&
+                    executionStatusCard.dataset.executionSurface === "secondary-detail" &&
+                    statusOutput.dataset.surface === "secondary-detail" &&
                     follow.dataset.followOwned !== "selected-thread"
                   );
                 }""",
@@ -792,6 +822,13 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'sessionIndicator.state === "reconnecting" || sessionIndicator.state === "polling"', label="inline degraded state scope")
     require(render_js, "summarizeInlineAutonomy", label="inline autonomy summary helper")
     require(render_js, "buildAutonomySummary", label="shared autonomy summary builder")
+    require(render_js, "syncExecutionStatusSurface", label="execution status surface helper")
+    require(render_js, 'statusCard.hidden = promoteToCenterLane;', label="execution card hidden helper")
+    require(render_js, 'statusCard.dataset.executionSurface = promoteToCenterLane ? "center-lane" : "secondary-detail";', label="execution card surface dataset")
+    require(render_js, 'dom.statusOutput.dataset.surface = promoteToCenterLane ? "center-lane" : "secondary-detail";', label="status output surface dataset")
+    require(render_js, 'dom.jobEvents.dataset.surface = promoteToCenterLane ? "center-lane" : "secondary-detail";', label="job events surface dataset")
+    require(render_js, 'dom.jobPhase.dataset.surface = promoteToCenterLane ? "center-lane" : "secondary-detail";', label="job phase surface dataset")
+    require(render_js, 'dom.jobMeta.dataset.surface = promoteToCenterLane ? "center-lane" : "secondary-detail";', label="job meta surface dataset")
     require(render_js, "if (inlineState.visible) {", label="composer strip suppression guard")
     require(render_js, "renderInlineSessionBlock", label="inline session block helper")
     require(render_js, "INLINE_TERMINAL_RETENTION_MS = 12000", label="inline terminal retention window")

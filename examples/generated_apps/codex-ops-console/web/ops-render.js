@@ -1885,6 +1885,27 @@ function phaseLabel(status, eventType = "") {
   return "IDLE";
 }
 
+function syncExecutionStatusSurface(dom, currentState, conversation, liveRun, selectedThreadSseOwned) {
+  const statusCard = dom.statusOutput?.closest(".inspector-card");
+  if (!statusCard || !dom.statusOutput || !dom.jobEvents || !dom.jobPhase || !dom.jobMeta) {
+    return;
+  }
+  const promoteToCenterLane =
+    Boolean(currentState) &&
+    Boolean(conversation?.conversation_id) &&
+    selectedThreadSseOwned &&
+    liveRun?.visible &&
+    !liveRun?.terminal &&
+    Boolean(liveRun?.phase) &&
+    liveRun.phase !== "IDLE";
+  statusCard.hidden = promoteToCenterLane;
+  statusCard.dataset.executionSurface = promoteToCenterLane ? "center-lane" : "secondary-detail";
+  dom.statusOutput.dataset.surface = promoteToCenterLane ? "center-lane" : "secondary-detail";
+  dom.jobEvents.dataset.surface = promoteToCenterLane ? "center-lane" : "secondary-detail";
+  dom.jobPhase.dataset.surface = promoteToCenterLane ? "center-lane" : "secondary-detail";
+  dom.jobMeta.dataset.surface = promoteToCenterLane ? "center-lane" : "secondary-detail";
+}
+
 export function renderJobActivity(dom, conversation, currentJobId, jobPayload = null, currentState = null) {
   const events = Array.isArray(conversation?.events) ? conversation.events : [];
   const appendStream = currentState?.appendStream || {};
@@ -1899,6 +1920,7 @@ export function renderJobActivity(dom, conversation, currentJobId, jobPayload = 
     String(appendStream.lastRenderSource || "snapshot").toLowerCase() === "sse" &&
     String(appendStream.status || "offline").toLowerCase() === "live";
   const liveRun = currentState ? deriveLiveRunState(conversation, currentState) : runStateSnapshot({ visible: false, phase: "IDLE", source: "none" });
+  syncExecutionStatusSurface(dom, currentState, conversation, liveRun, selectedThreadSseOwned);
   const eventJobId = currentState
     ? String(sessionAuthorityJobId(conversation, currentState) || currentJobId || conversation?.latest_job_id || "")
     : String(liveRun.jobId || currentJobId || conversation?.latest_job_id || "");

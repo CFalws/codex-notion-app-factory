@@ -1,7 +1,7 @@
 # Factory Runtime Implementation Plan
 
-1. Add one shared selected-thread session-ownership helper in the frontend state layer that combines existing SSE authority, pending handoff, and session phase signals.
-2. Use that helper in `ops-jobs.js` to prevent routine polling from starting or continuing while the selected thread remains on the healthy SSE-owned active run.
-3. Use the same helper in `app.js` so submit flows keep the no-job-poll rule after the handoff stage and into the active run.
-4. Preserve existing degraded fallback behavior so reconnect downgrade, ownership loss, stale-or-missing freshness, or off-thread tracking can still reopen polling explicitly.
-5. Align focused browser-proof verifiers and iteration artifacts around the bounded active-run polling-suppression contract.
+1. Reuse the existing selected-thread SSE-owned live-run model in `ops-render.js` instead of adding a new execution-state source.
+2. Add one render-layer helper that decides whether the secondary execution-status card should stay in the side panel or be promoted into the center-lane contract.
+3. Hide the secondary execution-status card on the healthy selected-thread path and mark its datasets as `center-lane` so the central session strip and transcript remain the only authoritative live session surface.
+4. Preserve explicit degraded behavior by restoring the secondary execution-status card as `secondary-detail` whenever the selected-thread path downgrades, loses ownership, or stops being a live advancing run.
+5. Extend focused browser-proof verifiers and iteration artifacts around the bounded single-surface execution-visibility contract.
