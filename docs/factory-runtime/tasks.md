@@ -1,8 +1,8 @@
 # Factory Runtime Tasks
 
-## Iteration 122
+## Iteration 123
 
-- [x] Keep the center conversation shell and fixed composer mounted during intentional thread switches.
-- [x] Preserve exactly one compact transition placeholder and explicit ownership-cleared datasets while switching.
-- [x] Reserve the true empty-state path for genuine no-selection idle and clear prior-thread ownership immediately on switch.
-- [x] Align focused verifiers and proposal artifacts with the iteration-122 switch continuity contract.
+- [x] Gate poll-driven job and goal refresh through healthy selected-thread SSE ownership.
+- [x] Prevent late poll ticks from reclaiming visible job meta, proposal readiness, or autonomy state on the healthy selected-thread path.
+- [x] Preserve reconnect and polling fallback as explicit degraded paths only.
+- [x] Align focused verifiers and proposal artifacts with the iteration-123 selected-thread authority contract.

@@ -17,12 +17,19 @@ export function createJobController(deps) {
     isSelectedThreadSessionOwned,
   } = deps;
 
+  function selectedThreadPollingFallbackAllowed(conversationId = state.currentConversationId || "") {
+    return !(conversationId && isSelectedThreadSessionOwned(state, conversationId));
+  }
+
   async function syncLatestJob() {
     if (!state.currentJobId) {
       return null;
     }
 
     const payload = await fetchJson(dom, jobUrl(state.currentJobId));
+    if (!selectedThreadPollingFallbackAllowed()) {
+      return payload;
+    }
     setStatus(dom, describeJob(payload));
     setJobMeta(dom, `${payload.status.toUpperCase()} · ${payload.job_id}`);
     state.latestProposalJobId = payload.proposal ? payload.proposal.job_id : "";
@@ -46,7 +53,7 @@ export function createJobController(deps) {
     if (
       !state.currentJobId ||
       state.pollingTimer ||
-      (state.currentConversationId && isSelectedThreadSessionOwned(state, state.currentConversationId))
+      !selectedThreadPollingFallbackAllowed()
     ) {
       return;
     }
@@ -64,21 +71,27 @@ export function createJobController(deps) {
   }
 
   async function pollCurrentState() {
-    if (state.currentConversationId && isSelectedThreadSessionOwned(state, state.currentConversationId)) {
+    if (!selectedThreadPollingFallbackAllowed()) {
       stopPolling();
       return;
     }
     try {
       const payload = await syncLatestJob();
+      if (!selectedThreadPollingFallbackAllowed()) {
+        stopPolling();
+        return;
+      }
 
-      if (state.currentConversationId && !isAppendStreamAuthoritative(state, state.currentConversationId)) {
+      if (state.currentConversationId && selectedThreadPollingFallbackAllowed(state.currentConversationId) && !isAppendStreamAuthoritative(state, state.currentConversationId)) {
         try {
           await fetchConversation(state.currentConversationId, { syncJob: false });
         } catch (_) {
           // Keep the last rendered conversation and let the job panel carry the visible error if needed.
         }
       }
-      await refreshGoalSummary();
+      if (selectedThreadPollingFallbackAllowed()) {
+        await refreshGoalSummary();
+      }
 
       if (!payload) {
         return;
@@ -90,10 +103,12 @@ export function createJobController(deps) {
         }
         state.currentJobId = "";
         stopPolling();
-        if (state.currentConversationId && !isAppendStreamAuthoritative(state, state.currentConversationId)) {
+        if (state.currentConversationId && selectedThreadPollingFallbackAllowed(state.currentConversationId) && !isAppendStreamAuthoritative(state, state.currentConversationId)) {
           await fetchConversation(state.currentConversationId, { syncJob: false });
         }
-        await refreshGoalSummary();
+        if (selectedThreadPollingFallbackAllowed()) {
+          await refreshGoalSummary();
+        }
       }
     } catch (error) {
       setStatus(dom, `작업 상태를 가져오지 못했습니다.\n\n${error.message}`);

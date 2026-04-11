@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `122`
-- bounded focus: `selected-thread switch path keeps one mounted center shell and one compact transition placeholder`
+- current iteration: `123`
+- bounded focus: `healthy selected-thread SSE becomes the sole visible authority for live job and autonomy state`
 
 ## Request
 
@@ -13,7 +13,7 @@
 
 ## Problem
 
-Healthy selected-thread ownership is already explicit in the rail, center lane, footer bar, and header datasets. The remaining gap is transition continuity: intentional thread switches still need a stricter contract proving the center shell stays mounted, old-thread ownership clears immediately, and the workspace does not fall back to the true empty view while the new selected thread attaches.
+Healthy selected-thread ownership, transition continuity, and fixed-composer behavior are already established. The remaining gap is state authority: live job and autonomy state can still be reclaimed by poll-driven updates even after the selected-thread SSE path is already authoritative.
 
 ## Target User
 
@@ -23,13 +23,12 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the selected-thread SSE ownership, center live-lane, footer session bar, header ownership surface, and polling-fallback contracts unchanged.
-- Do not introduce a new transport, polling path, backend protocol, persistence layer, or a second transition surface.
-- Reuse the existing selected-thread switch placeholder and mounted composer path instead of adding another transition controller.
-- Keep the center conversation shell and bottom-fixed composer mounted during intentional thread switches and show exactly one compact transition placeholder until the target thread attaches.
-- Clear prior-thread live ownership immediately on switch and expose machine-readable evidence that the switch placeholder owns the workspace while old ownership is cleared.
-- Preserve the true empty-state path only for genuine no-selection idle, not for intentional thread switches.
+- Keep the selected-thread SSE ownership, center live-lane, header ownership surface, footer session bar, and degraded fallback UI contracts unchanged.
+- Do not introduce a new transport, backend protocol, persistence layer, or a second live-status authority.
+- Reuse the existing selected-thread append projection and ownership helpers instead of adding another authority source.
+- On the healthy selected-thread SSE path, keep live job meta, proposal readiness, verifier progress, and autonomy state sourced from append SSE instead of poll-driven jobs or goals refresh.
+- Preserve reconnect and polling fallback only as explicit degraded paths that clear or downgrade healthy ownership in the same render cycle.
 
 ## Deliverable
 
-Define and verify one selected-thread switch continuity contract where intentional thread switches keep the center shell mounted, show exactly one compact transition placeholder, clear old ownership immediately, and avoid the true empty path until the new selected thread attaches.
+Define and verify one authority contract where the healthy selected-thread SSE path is the sole visible source for live job and autonomy state, while degraded and non-selected paths fall back explicitly without stale healthy ownership.
