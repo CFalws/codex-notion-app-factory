@@ -1,5 +1,6 @@
 import { DECISION_FIELDS } from "./ops-constants.js";
 import {
+  deriveSelectedThreadFollowControlModel,
   deriveSelectedThreadLiveAutonomy,
   deriveSelectedThreadPhaseProgression,
   deriveSelectedThreadSessionStatus,
@@ -1229,16 +1230,16 @@ function syncJumpToLatest(dom, currentState, conversationId, renderSource) {
     return;
   }
   const footerFollow = selectedThreadFooterFollowState(dom, currentState, conversationId, renderSource);
-  const isVisible = footerFollow.visible ? false : footerFollow.detached;
+  const isVisible = footerFollow.visible;
   const stateLabel = footerFollow.stateLabel;
   const detailLabel = footerFollow.detailLabel;
   dom.jumpToLatestButton.hidden = !isVisible;
-  dom.jumpToLatestButton.dataset.followConversationId = conversationId || "";
-  dom.jumpToLatestButton.dataset.followOwned = footerFollow.visible ? "none" : footerFollow.liveOwned ? "selected-thread" : "none";
-  dom.jumpToLatestButton.dataset.followMode = footerFollow.isFollowing ? "following" : "paused";
+  dom.jumpToLatestButton.dataset.followConversationId = isVisible ? footerFollow.conversationId || conversationId || "" : "";
+  dom.jumpToLatestButton.dataset.followOwned = footerFollow.liveOwned ? "selected-thread" : "none";
+  dom.jumpToLatestButton.dataset.followMode = isVisible ? footerFollow.followState : "hidden";
   dom.jumpToLatestButton.dataset.followState = isVisible ? footerFollow.followState : "hidden";
   dom.jumpToLatestButton.dataset.followCount = String(isVisible ? footerFollow.unseenCount : 0);
-  dom.jumpToLatestButton.dataset.followRenderSource = renderSource || "snapshot";
+  dom.jumpToLatestButton.dataset.followRenderSource = footerFollow.renderSource || renderSource || "snapshot";
   dom.jumpToLatestButton.setAttribute(
     "aria-label",
     isVisible ? `${stateLabel}. ${detailLabel}. 최신 응답으로 이동` : "최신 응답으로 이동",
@@ -1249,39 +1250,7 @@ function syncJumpToLatest(dom, currentState, conversationId, renderSource) {
 }
 
 function selectedThreadFooterFollowState(dom, currentState, conversationId, renderSource) {
-  const liveFollow = currentState.liveFollow || {};
-  const unseenCount = Math.max(
-    Number(liveFollow.pendingAppendCount || 0),
-    Number(liveFollow.lastAppendId || 0) - Number(liveFollow.lastSeenAppendId || 0),
-  );
-  const streamState = String(dom.threadScroller?.dataset.streamState || "offline").toLowerCase();
-  const terminalIdle = String(dom.threadScroller?.dataset.sessionTerminal || "false") === "true";
-  const liveOwned =
-    Boolean(conversationId) &&
-    String(dom.threadScroller?.dataset.sessionOwner || "none") === "selected-thread" &&
-    renderSource === "sse" &&
-    streamState === "live" &&
-    !terminalIdle;
-  const detached = !Boolean(liveFollow.isFollowing);
-  const hasBacklog = unseenCount > 0;
-  const followState = hasBacklog ? "new" : "paused";
-  const stateLabel = followState === "new" ? "NEW" : "PAUSED";
-  const detailLabel =
-    followState === "new"
-      ? unseenCount > 1
-        ? `새 live append ${unseenCount}개`
-        : "새 live append"
-      : "live follow paused";
-  return {
-    liveOwned,
-    isFollowing: Boolean(liveFollow.isFollowing),
-    detached: Boolean(liveOwned && detached),
-    visible: Boolean(liveOwned && detached),
-    followState,
-    unseenCount,
-    stateLabel,
-    detailLabel,
-  };
+  return deriveSelectedThreadFollowControlModel(currentState);
 }
 
 export function updateLiveFollowFromScroll(dom, currentState) {

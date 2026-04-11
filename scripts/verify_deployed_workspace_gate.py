@@ -553,6 +553,47 @@ def assert_browser_runtime_surface(
             healthy_snapshot = page.evaluate(browser_snapshot_script())
 
             page.evaluate(
+                """() => {
+                  const scroller = document.querySelector("#thread-scroller");
+                  if (scroller) {
+                    scroller.scrollTop = 0;
+                    scroller.dispatchEvent(new Event("scroll", { bubbles: true }));
+                  }
+                }"""
+            )
+            page.wait_for_function(
+                """conversationId => {
+                  const follow = document.querySelector("#jump-to-latest");
+                  return Boolean(
+                    follow &&
+                    !follow.hidden &&
+                    follow.dataset.followOwned === "selected-thread" &&
+                    follow.dataset.followConversationId === conversationId &&
+                    ["new", "paused"].includes(follow.dataset.followState || "") &&
+                    Number(follow.dataset.followCount || "0") >= 0 &&
+                    follow.dataset.followRenderSource === "sse"
+                  );
+                }""",
+                conversation_id,
+                timeout=30000,
+            )
+            page.click("#jump-to-latest")
+            page.wait_for_function(
+                """() => {
+                  const follow = document.querySelector("#jump-to-latest");
+                  return Boolean(
+                    follow &&
+                    follow.hidden &&
+                    follow.dataset.followOwned === "none" &&
+                    follow.dataset.followState === "hidden" &&
+                    follow.dataset.followCount === "0" &&
+                    follow.dataset.followConversationId === ""
+                  );
+                }""",
+                timeout=30000,
+            )
+
+            page.evaluate(
                 "() => { window.__verifyFetchMark = window.__verifyFetchLog.length; window.__verifySseMark = window.__verifySseEvents.length; window.__verifyUrlMark = window.__verifySseUrls.length; window.__verifyAppendMark = window.__verifyAppendLog.length; window.__verifyTriggerDisconnect(); }"
             )
             page.wait_for_function(
@@ -1263,15 +1304,20 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require_absent(render_js, 'dom.conversationTimeline.innerHTML = inlineSessionBlock + items', label="legacy inline block prepended render")
     require_absent(render_js, "if (footerDock.visible) {", label="legacy healthy footer-dock transcript suppression guard")
     require_absent(render_js, "In Flight Assistant", label="duplicate accepted status block copy")
+    require(store_js, "deriveSelectedThreadFollowControlModel", label="selected-thread follow control model helper")
     require(render_js, "selectedThreadFooterFollowState", label="footer follow state helper")
     require(render_js, "pendingAppendCount", label="follow control unseen append state")
     require(render_js, 'const footerFollow = selectedThreadFooterFollowState(dom, currentState, conversationId, renderSource);', label="follow control footer follow source")
-    require(render_js, 'const isVisible = footerFollow.visible ? false : footerFollow.detached;', label="follow control visibility mapping")
-    require(render_js, 'dom.jumpToLatestButton.dataset.followOwned = footerFollow.visible ? "none" : footerFollow.liveOwned ? "selected-thread" : "none";', label="follow control owner dataset")
+    require(render_js, 'const isVisible = footerFollow.visible;', label="follow control visibility mapping")
+    require(render_js, 'dom.jumpToLatestButton.dataset.followOwned = footerFollow.liveOwned ? "selected-thread" : "none";', label="follow control owner dataset")
     require(render_js, 'dom.jumpToLatestButton.dataset.followState = isVisible ? footerFollow.followState : "hidden";', label="follow control state dataset")
     require(render_js, 'dom.jumpToLatestButton.dataset.followCount = String(isVisible ? footerFollow.unseenCount : 0);', label="follow control count dataset")
-    require(render_js, "새 live append", label="follow control new copy")
-    require(render_js, "live follow paused", label="follow control paused copy")
+    require(render_js, 'dom.jumpToLatestButton.dataset.followConversationId = isVisible ? footerFollow.conversationId || conversationId || "" : "";', label="follow control conversation dataset")
+    require(render_js, 'dom.jumpToLatestButton.dataset.followRenderSource = footerFollow.renderSource || renderSource || "snapshot";', label="follow control render source dataset")
+    require(store_js, 'followState === "new"', label="follow control new-state derivation")
+    require(store_js, 'followState === "paused"', label="follow control paused-state derivation")
+    require(store_js, "새 live append", label="follow control new copy")
+    require(store_js, "live follow paused · unseen", label="follow control paused copy")
     require(render_js, 'dom.sessionStripToggle.dataset.sessionAction = footerFollow.visible ? "jump-latest" : "toggle-session-rail";', label="session strip toggle action dataset")
     require(render_js, 'phase: "PROPOSAL"', label="proposal phase mapping")
     require(render_js, 'phase: "REVIEW"', label="review phase mapping")

@@ -306,6 +306,37 @@ export function deriveSelectedThreadSessionStatus(currentState, conversation = n
   };
 }
 
+export function deriveSelectedThreadFollowControlModel(currentState) {
+  const sessionStatus = deriveSelectedThreadSessionStatus(currentState, null);
+  const liveFollow = currentState.liveFollow || {};
+  const detachedHealthyFollow =
+    sessionStatus.transportState === "sse" &&
+    sessionStatus.selectedThreadSseOwned &&
+    (sessionStatus.followState === "new" || sessionStatus.followState === "paused");
+  const unseenCount = detachedHealthyFollow
+    ? Math.max(Number(sessionStatus.unseenCount || liveFollow.pendingAppendCount || 0), 0)
+    : 0;
+  const followState = detachedHealthyFollow ? sessionStatus.followState : "hidden";
+  const stateLabel = followState === "new" ? "NEW" : followState === "paused" ? "PAUSED" : "";
+  const detailLabel =
+    followState === "new"
+      ? `새 live append ${Math.max(unseenCount, 1)}개`
+      : followState === "paused"
+        ? `live follow paused · unseen ${unseenCount}`
+        : "";
+  return {
+    conversationId: String(sessionStatus.conversationId || ""),
+    liveOwned: detachedHealthyFollow,
+    visible: detachedHealthyFollow,
+    followState,
+    unseenCount,
+    stateLabel,
+    detailLabel,
+    renderSource: String(sessionStatus.renderSource || "snapshot"),
+    clearReason: detachedHealthyFollow ? "none" : String(sessionStatus.clearReason || sessionStatus.transportReason || "idle"),
+  };
+}
+
 export function deriveSelectedThreadLiveAutonomy(currentState, conversation = null) {
   const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
   const autonomySummary = currentState.autonomySummary;
