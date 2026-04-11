@@ -2,17 +2,15 @@
 
 ## Deployment Impact
 
-This iteration changes selected-thread switching semantics in the existing conversation-first workspace. The bounded expectation is that intentional thread switches keep the shell and composer mounted, show one switching placeholder, and explicitly clear phase ownership to non-authoritative `UNKNOWN` until the new selected thread attaches or degrades.
+This iteration changes the selected-thread autonomy hydration contract in the existing conversation-first workspace. The bounded expectation is that both conversation snapshot and `session.bootstrap` expose the same minimal server-authored autonomy freshness envelope before any goals fallback runs.
 
 ## Rollout Notes
 
 1. Apply the proposal commit onto `main`.
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
 3. Open the operator console on desktop and phone widths with a selected thread and visible conversation history.
-4. Click from one selected thread to another while the first thread is still visible and confirm the center pane never flashes the generic empty state.
-5. Confirm exactly one `data-thread-transition="loading"` placeholder appears and carries `data-thread-transition-phase="switching"` until the target thread attaches or degrades.
-6. Confirm the session strip stays mounted with `composerState=switching`, `composerTransport=attach`, and the target conversation id set to the new selected thread.
-7. Confirm the session strip and thread scroller both expose `phaseValue=UNKNOWN`, `phaseAuthoritative=false`, and `phaseProvenance=thread-transition` during the switch.
-8. Confirm old-thread live ownership clears immediately across the inline live block, active-session row, follow control, and thread scroller datasets.
-9. Confirm the switch attach path does not issue hidden `/api/jobs/` fetches before the selected-thread snapshot plus SSE attach settles.
-10. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible switch continuity contract passes on the intended path.
+4. Confirm `GET /api/conversations/{id}` returns `autonomy_summary` with `source=conversation-snapshot`, a `generated_at` timestamp, a machine-readable `freshness_state`, and explicit `fallback_allowed`.
+5. Confirm `session.bootstrap` returns top-level `autonomy_summary` plus `conversation.autonomy_summary`, both with the same freshness semantics and generated timestamp.
+6. Confirm healthy bootstrap attach exposes `fallback_allowed=false` while snapshot fallback still exposes `fallback_allowed=true`.
+7. Confirm missing or degraded autonomy freshness uses the canonical `freshness_state=stale-or-missing` marker.
+8. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible selected-thread attach path still works with the new additive autonomy envelope.

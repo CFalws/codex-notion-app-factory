@@ -115,7 +115,11 @@ class RuntimeApiContext:
         *,
         requested_after_append_id: int = 0,
     ) -> dict[str, Any]:
-        conversation = self.require_conversation(conversation_id)
+        conversation = self.conversation_snapshot_payload(
+            conversation_id,
+            source="session-bootstrap",
+            fallback_allowed=False,
+        )
         messages = list(conversation.get("messages", []))
         events = list(conversation.get("events", []))
         append_cursor = 0
@@ -142,6 +146,7 @@ class RuntimeApiContext:
             "append_cursor": append_cursor,
             "resume_from_append_id": resume_cursor,
             "conversation": conversation,
+            "autonomy_summary": dict(conversation.get("autonomy_summary") or {}),
             "latest_job_id": str(conversation.get("latest_job_id") or ""),
             "session_phase": self.conversation_session_phase(latest_payload, kind=latest_kind),
             "live_phase_summary": {
@@ -156,6 +161,108 @@ class RuntimeApiContext:
                 "target_title": str(conversation.get("title") or ""),
             },
         }
+
+    def _pick_relevant_goal(self, app_id: str) -> dict[str, Any] | None:
+        items = list(self.state.list_goals(app_id=app_id))
+        if not items:
+            return None
+        return next(
+            (
+                goal
+                for goal in items
+                if str(goal.get("status") or "").lower() == "running"
+            ),
+            next(
+                (
+                    goal
+                    for goal in items
+                    if str(goal.get("status") or "").lower() == "paused"
+                ),
+                items[0],
+            ),
+        )
+
+    def _latest_goal_iteration(self, goal: dict[str, Any] | None) -> dict[str, Any] | None:
+        iterations = goal.get("iterations") if isinstance(goal, dict) else []
+        if not isinstance(iterations, list) or not iterations:
+            return None
+        return iterations[-1]
+
+    def _summarize_verifier_acceptability(self, iteration: dict[str, Any] | None) -> str:
+        reviews = iteration.get("verification_reviews") if isinstance(iteration, dict) else []
+        if not isinstance(reviews, list) or not reviews:
+            return "PENDING"
+        if any(str(review.get("path_acceptability") or "").lower() == "disqualifying" for review in reviews if isinstance(review, dict)):
+            return "DISQUALIFYING"
+        if any(str(review.get("path_acceptability") or "").lower() == "acceptable" for review in reviews if isinstance(review, dict)):
+            return "ACCEPTABLE"
+        return "PENDING"
+
+    def autonomy_summary_payload(
+        self,
+        app_id: str,
+        *,
+        source: str,
+        fallback_allowed: bool,
+    ) -> dict[str, Any]:
+        goal = self._pick_relevant_goal(app_id)
+        iteration = self._latest_goal_iteration(goal)
+        generated_at = (
+            str((goal or {}).get("updated_at") or (goal or {}).get("completed_at") or (goal or {}).get("created_at") or "")
+            if isinstance(goal, dict)
+            else ""
+        ) or utc_now()
+        if not goal or not iteration:
+            return {
+                "goal_title": "Autonomy Goal",
+                "goal_status": str((goal or {}).get("status") or "unknown") if isinstance(goal, dict) else "unknown",
+                "iteration": "",
+                "path_verdict": "UNKNOWN",
+                "verifier_acceptability": "PENDING",
+                "blocker_reason": "stale-or-missing",
+                "expected_path": "unknown",
+                "degraded_signals": [],
+                "heading": "Autonomy summary unavailable.",
+                "source": source,
+                "generated_at": generated_at,
+                "freshness_state": "stale-or-missing",
+                "fallback_allowed": fallback_allowed,
+            }
+
+        intended_path = iteration.get("intended_path") if isinstance(iteration, dict) else {}
+        if not isinstance(intended_path, dict):
+            intended_path = {}
+        degraded_signals = intended_path.get("degraded_signals")
+        return {
+            "goal_title": str(goal.get("title") or "Autonomy Goal"),
+            "goal_status": str(goal.get("status") or "unknown"),
+            "iteration": str(iteration.get("iteration") or ""),
+            "path_verdict": "EXPECTED" if str(intended_path.get("verdict") or "").lower() == "expected" else "DEGRADED",
+            "verifier_acceptability": self._summarize_verifier_acceptability(iteration),
+            "blocker_reason": str(iteration.get("continuation_blocker_reason") or goal.get("stop_reason") or "none"),
+            "expected_path": str(intended_path.get("expected_path") or "").strip() or "unknown",
+            "degraded_signals": list(degraded_signals) if isinstance(degraded_signals, list) else [],
+            "heading": f"{goal.get('title') or 'Autonomy Goal'} · {goal.get('status') or 'unknown'} · iteration {iteration.get('iteration')}",
+            "source": source,
+            "generated_at": generated_at,
+            "freshness_state": "fresh",
+            "fallback_allowed": fallback_allowed,
+        }
+
+    def conversation_snapshot_payload(
+        self,
+        conversation_id: str,
+        *,
+        source: str = "conversation-snapshot",
+        fallback_allowed: bool = True,
+    ) -> dict[str, Any]:
+        conversation = dict(self.require_conversation(conversation_id))
+        conversation["autonomy_summary"] = self.autonomy_summary_payload(
+            str(conversation.get("app_id") or ""),
+            source=source,
+            fallback_allowed=fallback_allowed,
+        )
+        return conversation
 
     def subscribe_conversation_appends(self, conversation_id: str) -> asyncio.Queue[dict[str, Any]]:
         queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue()

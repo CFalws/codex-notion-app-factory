@@ -8,7 +8,7 @@
 
 ## Problem
 
-Selected-thread attach, reconnect, and phase ownership are now bounded, but intentional thread switches still need explicit continuity evidence. The workspace should keep one mounted shell and composer during switch, clear old-thread live ownership immediately, and carry a single compact switching placeholder without letting stale phase datasets or empty-state fallback leak into the selected-thread experience.
+Selected-thread SSE attach and switch continuity are bounded, but autonomy freshness is still inferred from a separate goals fetch. The client needs one server-authored contract that tells it whether the autonomy summary is fresh, bootstrap-only, or stale-or-missing before it falls back to app-goals polling.
 
 ## Target User
 
@@ -18,13 +18,12 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the existing selected-thread switch, attach, and authoritative phase datasets.
-- Keep the change bounded to intentional selected-thread switching in the existing conversation-first shell.
-- Do not add new inferred phases or parallel status panels.
-- Keep the center conversation shell and bottom-fixed composer mounted through switch.
-- Clear old-thread live ownership immediately and mark switching state as non-authoritative.
-- Use one compact switch placeholder and clear it as soon as the new selected thread attaches or degrades.
+- Reuse the existing selected-thread conversation snapshot and `session.bootstrap` transport contract.
+- Keep the change bounded to one additive autonomy-summary freshness envelope.
+- Do not suppress existing `/api/apps/{app_id}/goals` fallback behavior in this iteration.
+- Keep freshness, source, and fallback semantics server-authored and machine-readable.
+- Use one canonical `stale-or-missing` freshness marker for missing or degraded autonomy hydration cases.
 
 ## Deliverable
 
-Define and verify one compact selected-thread switch continuity contract so intentional thread changes keep the shell mounted, preserve the composer dock, expose one switching placeholder, explicitly reset phase ownership to non-authoritative `UNKNOWN` until the new selected thread attaches, and avoid hidden `/api/jobs/` takeover on the healthy switch attach path.
+Define and verify one minimal `autonomy_summary` envelope on both conversation snapshot and `session.bootstrap`, with shared summary fields plus `source`, `generated_at`, `freshness_state`, and `fallback_allowed`, then hydrate the selected-thread autonomy state from that envelope before the existing goals fallback path runs.

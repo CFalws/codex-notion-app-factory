@@ -55,7 +55,7 @@ def register_routes(app: FastAPI, context: RuntimeApiContext) -> None:
 
     @app.get("/api/conversations/{conversation_id}")
     async def get_conversation(conversation_id: str) -> dict[str, Any]:
-        return context.require_conversation(conversation_id)
+        return context.conversation_snapshot_payload(conversation_id)
 
     @app.get("/api/internal/conversations/{conversation_id}/append-stream")
     async def conversation_append_stream(conversation_id: str, request: Request) -> StreamingResponse:

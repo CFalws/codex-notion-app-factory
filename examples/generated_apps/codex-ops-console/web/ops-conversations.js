@@ -47,6 +47,42 @@ export function createConversationController(deps) {
     };
   }
 
+  function normalizeAutonomySummary(payload = {}, fallback = {}) {
+    const degradedSignals = payload?.degraded_signals ?? payload?.degradedSignals ?? fallback?.degradedSignals;
+    const goalTitle = String(payload?.goal_title || payload?.goalTitle || fallback?.goalTitle || "Autonomy Goal");
+    const goalStatus = String(payload?.goal_status || payload?.goalStatus || fallback?.goalStatus || "unknown");
+    const iteration = String(payload?.iteration || fallback?.iteration || "");
+    return {
+      goalTitle,
+      goalStatus,
+      iteration,
+      pathVerdict: String(payload?.path_verdict || payload?.pathVerdict || fallback?.pathVerdict || "UNKNOWN").toUpperCase(),
+      verifierAcceptability: String(
+        payload?.verifier_acceptability || payload?.verifierAcceptability || fallback?.verifierAcceptability || "PENDING",
+      ).toUpperCase(),
+      blockerReason: String(payload?.blocker_reason || payload?.blockerReason || fallback?.blockerReason || "none"),
+      expectedPath: String(payload?.expected_path || payload?.expectedPath || fallback?.expectedPath || "unknown"),
+      degradedSignals: Array.isArray(degradedSignals) ? degradedSignals : [],
+      heading:
+        String(payload?.heading || fallback?.heading || "").trim() ||
+        `${goalTitle} · ${goalStatus} · iteration ${iteration || "unknown"}`,
+      source: String(payload?.source || fallback?.source || "none").toLowerCase(),
+      generatedAt: String(payload?.generated_at || payload?.generatedAt || fallback?.generatedAt || ""),
+      freshnessState: String(
+        payload?.freshness_state || payload?.freshnessState || fallback?.freshnessState || "stale-or-missing",
+      ).toLowerCase(),
+      fallbackAllowed: Boolean(payload?.fallback_allowed ?? payload?.fallbackAllowed ?? fallback?.fallbackAllowed ?? true),
+    };
+  }
+
+  function hydrateAutonomySummary(payload = null, fallback = {}) {
+    if (!payload || typeof payload !== "object") {
+      return false;
+    }
+    state.autonomySummary = normalizeAutonomySummary(payload, fallback);
+    return true;
+  }
+
   function resetSessionPhase() {
     state.appendStream.sessionPhase = normalizeSessionPhase({}, "none");
   }
@@ -403,6 +439,10 @@ export function createConversationController(deps) {
       heading:
         currentSummary.heading ||
         `${currentSummary.goalTitle || "Autonomy Goal"} · ${currentSummary.goalStatus || "running"} · iteration ${String(currentSummary.iteration || "")}`,
+      source: String(currentSummary.source || "none").toLowerCase(),
+      generatedAt: String(currentSummary.generatedAt || ""),
+      freshnessState: String(currentSummary.freshnessState || "stale-or-missing").toLowerCase(),
+      fallbackAllowed: Boolean(currentSummary.fallbackAllowed ?? true),
     };
     return nextSummary;
   }
@@ -574,6 +614,11 @@ export function createConversationController(deps) {
         state.appendStream.resumeCursor = Math.max(Number(payload.resume_from_append_id || resumeCursor || 0), 0);
         state.appendStream.reconnectAttempt = reconnectAttempt;
         state.appendStream.sessionPhase = normalizeSessionPhase(payload.session_phase || {}, "sse");
+        hydrateAutonomySummary(payload.autonomy_summary || payload.conversation?.autonomy_summary, {
+          source: "session-bootstrap",
+          freshnessState: "stale-or-missing",
+          fallbackAllowed: false,
+        });
         renderSessionStrip(dom, state, state.conversationCache);
         syncConversationCardState();
         settle(payload);
@@ -1281,7 +1326,16 @@ export function createConversationController(deps) {
         }
         return;
       }
-      state.autonomySummary = buildAutonomySummary(goal);
+      state.autonomySummary = normalizeAutonomySummary(
+        {},
+        {
+          ...(buildAutonomySummary(goal) || {}),
+          source: "goals-poll",
+          generatedAt: String(goal.updated_at || goal.completed_at || goal.created_at || ""),
+          freshnessState: "fresh",
+          fallbackAllowed: true,
+        },
+      );
       renderAutonomySummary(dom, goal);
       if (state.conversationCache) {
         renderConversation(dom, state, state.conversationCache, persistSettings);
@@ -1468,6 +1522,11 @@ export function createConversationController(deps) {
     if (shouldClearPendingOutgoing(conversation)) {
       clearPendingOutgoing(conversation.conversation_id);
     }
+    hydrateAutonomySummary(conversation.autonomy_summary, {
+      source: "conversation-snapshot",
+      freshnessState: "stale-or-missing",
+      fallbackAllowed: true,
+    });
     state.currentConversationId = conversation.conversation_id;
     state.savedConversationId = state.currentConversationId;
     for (const card of dom.conversationList.querySelectorAll("[data-conversation-id]")) {

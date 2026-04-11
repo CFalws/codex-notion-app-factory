@@ -858,7 +858,7 @@ function summarizeInlineAutonomy(currentState, inlineState) {
   const blockerReason = String(autonomySummary.blockerReason || "none");
   const degradedSignals = Array.isArray(autonomySummary.degradedSignals) ? autonomySummary.degradedSignals : [];
   return `
-    <div class="session-inline-autonomy" data-live-autonomy="true" data-autonomy-path-verdict="${escapeHtml(String(autonomySummary.pathVerdict || "unknown").toLowerCase())}" data-autonomy-verifier-acceptability="${escapeHtml(String(autonomySummary.verifierAcceptability || "pending").toLowerCase())}" data-autonomy-blocker-reason="${escapeHtml(blockerReason)}" data-autonomy-iteration="${escapeHtml(String(autonomySummary.iteration || ""))}">
+    <div class="session-inline-autonomy" data-live-autonomy="true" data-autonomy-path-verdict="${escapeHtml(String(autonomySummary.pathVerdict || "unknown").toLowerCase())}" data-autonomy-verifier-acceptability="${escapeHtml(String(autonomySummary.verifierAcceptability || "pending").toLowerCase())}" data-autonomy-blocker-reason="${escapeHtml(blockerReason)}" data-autonomy-iteration="${escapeHtml(String(autonomySummary.iteration || ""))}" data-autonomy-source="${escapeHtml(String(autonomySummary.source || "none"))}" data-autonomy-freshness-state="${escapeHtml(String(autonomySummary.freshnessState || "stale-or-missing"))}" data-autonomy-fallback-allowed="${autonomySummary.fallbackAllowed ? "true" : "false"}" data-autonomy-generated-at="${escapeHtml(String(autonomySummary.generatedAt || ""))}">
       <div class="autonomy-chip-row autonomy-chip-row-compact">
         <span class="autonomy-chip ${autonomyChipTone(autonomySummary.pathVerdict)}">${escapeHtml(String(autonomySummary.pathVerdict || "UNKNOWN"))}</span>
         <span class="autonomy-chip ${autonomyChipTone(autonomySummary.verifierAcceptability)}">${escapeHtml(String(autonomySummary.verifierAcceptability || "PENDING"))}</span>
@@ -1776,7 +1776,7 @@ export function clearAutonomySummary(dom, message = "자율 goal이 생기면 co
   }
 }
 
-function setAutonomyDataset(target, { blockerReason, pathVerdict, verifierAcceptability }) {
+function setAutonomyDataset(target, { blockerReason, pathVerdict, verifierAcceptability, source = "none", freshnessState = "stale-or-missing", fallbackAllowed = true, generatedAt = "" }) {
   if (!target) {
     return;
   }
@@ -1784,6 +1784,10 @@ function setAutonomyDataset(target, { blockerReason, pathVerdict, verifierAccept
   target.dataset.blockerReason = blockerReason;
   target.dataset.pathVerdict = pathVerdict.toLowerCase();
   target.dataset.verifierAcceptability = verifierAcceptability.toLowerCase();
+  target.dataset.autonomySource = String(source || "none").toLowerCase();
+  target.dataset.autonomyFreshnessState = String(freshnessState || "stale-or-missing").toLowerCase();
+  target.dataset.autonomyFallbackAllowed = fallbackAllowed ? "true" : "false";
+  target.dataset.autonomyGeneratedAt = String(generatedAt || "");
 }
 
 export function renderAutonomySummary(dom, goal) {
@@ -1808,6 +1812,10 @@ export function renderAutonomySummary(dom, goal) {
       blockerReason: summary.blockerReason,
       pathVerdict: summary.pathVerdict,
       verifierAcceptability: summary.verifierAcceptability,
+      source: summary.source,
+      freshnessState: summary.freshnessState,
+      fallbackAllowed: summary.fallbackAllowed,
+      generatedAt: summary.generatedAt,
     });
     dom.autonomyDetail.innerHTML = `
       <div class="autonomy-chip-row autonomy-chip-row-compact">

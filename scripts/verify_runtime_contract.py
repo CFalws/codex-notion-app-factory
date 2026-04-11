@@ -957,6 +957,12 @@ def verify_conversation_append_stream(client: TestClient) -> None:
         int(first_message.get("append_id") or 0) != int(first_event.get("append_id") or 0),
         "conversation append ids should advance across messages and events",
     )
+    snapshot_autonomy = conversation.get("autonomy_summary") or {}
+    require(isinstance(snapshot_autonomy, dict), f"conversation snapshot should expose autonomy_summary envelope: {conversation}")
+    require(snapshot_autonomy.get("source") == "conversation-snapshot", f"conversation snapshot should mark snapshot autonomy source: {snapshot_autonomy}")
+    require("generated_at" in snapshot_autonomy, f"conversation snapshot autonomy envelope should include generated_at: {snapshot_autonomy}")
+    require("freshness_state" in snapshot_autonomy, f"conversation snapshot autonomy envelope should include freshness_state: {snapshot_autonomy}")
+    require("fallback_allowed" in snapshot_autonomy, f"conversation snapshot autonomy envelope should include fallback_allowed: {snapshot_autonomy}")
     with client.stream(
         "GET",
         f"/api/internal/conversations/{conversation_id}/append-stream",
@@ -981,6 +987,16 @@ def verify_conversation_append_stream(client: TestClient) -> None:
         require("value" in (bootstrap.get("session_phase") or {}), f"session bootstrap phase payload should include value: {bootstrap}")
         require("authoritative" in (bootstrap.get("session_phase") or {}), f"session bootstrap phase payload should include authoritative flag: {bootstrap}")
         require(bootstrap.get("conversation", {}).get("conversation_id") == conversation_id, "session bootstrap should hydrate the selected conversation")
+        bootstrap_autonomy = bootstrap.get("autonomy_summary") or {}
+        require(isinstance(bootstrap_autonomy, dict), f"session bootstrap should expose autonomy_summary envelope: {bootstrap}")
+        require(bootstrap_autonomy.get("source") == "session-bootstrap", f"session bootstrap should mark bootstrap autonomy source: {bootstrap_autonomy}")
+        require(bootstrap_autonomy.get("generated_at") == snapshot_autonomy.get("generated_at"), f"bootstrap autonomy envelope should reuse snapshot freshness timestamp: {bootstrap_autonomy}")
+        require(bootstrap_autonomy.get("freshness_state") == snapshot_autonomy.get("freshness_state"), f"bootstrap autonomy envelope should match snapshot freshness state: {bootstrap_autonomy}")
+        require(bootstrap_autonomy.get("fallback_allowed") is False, f"session bootstrap autonomy envelope should disallow fallback on healthy attach: {bootstrap_autonomy}")
+        require(
+            (bootstrap.get("conversation") or {}).get("autonomy_summary", {}).get("freshness_state") == bootstrap_autonomy.get("freshness_state"),
+            f"bootstrap conversation autonomy envelope should match top-level freshness state: {bootstrap}",
+        )
 
     with client.stream(
         "GET",
@@ -1002,6 +1018,8 @@ def verify_conversation_append_stream(client: TestClient) -> None:
         require(bootstrap.get("attach_mode") == "sse-resume", f"resume bootstrap should mark sse resume mode: {bootstrap}")
         require(int(bootstrap.get("resume_from_append_id") or 0) == 3, f"resume bootstrap should echo requested append cursor: {bootstrap}")
         require(isinstance(bootstrap.get("session_phase"), dict), f"resume bootstrap should expose session_phase payload: {bootstrap}")
+        require(isinstance(bootstrap.get("autonomy_summary"), dict), f"resume bootstrap should expose autonomy_summary envelope: {bootstrap}")
+        require(bootstrap.get("autonomy_summary", {}).get("source") == "session-bootstrap", f"resume bootstrap should keep bootstrap autonomy source: {bootstrap}")
 
 
 def main() -> None:
