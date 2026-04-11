@@ -934,6 +934,7 @@ export function createConversationController(deps) {
     const summaryLiveSource = String(dom.sessionSummaryRow?.dataset.liveSessionSource || "none");
     const summaryLiveState = String(dom.sessionSummaryRow?.dataset.liveSessionState || "idle");
     const summaryLiveReason = String(dom.sessionSummaryRow?.dataset.liveSessionReason || "idle");
+    const summaryPhaseLabel = String(dom.sessionSummaryRow?.dataset.summaryPhase || "").trim().toUpperCase();
     const summaryStateLabel = String(dom.sessionSummaryState?.textContent || "").trim().toUpperCase();
     const sessionIndicatorLabel = String(dom.sessionLiveIndicator?.textContent || "").trim().toUpperCase();
     const handoffActive =
@@ -963,7 +964,7 @@ export function createConversationController(deps) {
     let rowSource = "none";
     let rowPhase = "IDLE";
     let rowUnseenCount = 0;
-    const livePhaseLabel = summaryStateLabel || liveRunPhase || "LIVE";
+    const livePhaseLabel = summaryPhaseLabel || liveRunPhase || summaryStateLabel || "LIVE";
 
     if (handoffActive) {
       visible = true;

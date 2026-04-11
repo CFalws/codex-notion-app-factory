@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `94`
-- bounded focus: `canonical selected-thread phase progression contract`
+- current iteration: `95`
+- bounded focus: `single selected-thread center-lane session surface`
 
 ## Request
 
@@ -13,7 +13,7 @@
 
 ## Problem
 
-Selected-thread session ownership is canonical, but bounded autonomy progress still reads as fragmented cues rather than one explicit realtime phase flow. The active session can show that it is live, yet still force the operator to infer whether the run is in proposal, review, verify, auto-apply, ready, or applied progression.
+Selected-thread session ownership and phase progression are now canonical, but the operator still reads one active session through multiple live-owned center-lane surfaces. The header, inline block, transcript card, and composer-adjacent strip still duplicate ownership cues enough to make the session feel split instead of conversation-first.
 
 ## Target User
 
@@ -23,12 +23,12 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the existing selected-thread session-status boundary and selected-thread live-autonomy boundary in the frontend store.
+- Reuse the existing selected-thread session-status, live-autonomy, and phase-progression helpers in the frontend store.
 - Reuse existing append-stream, pending-handoff, session-phase, autonomy summary, and thread-transition state; do not introduce a new transport or a new polling contract.
-- Make proposal, review, verify, auto-apply, ready, applied, and fallback progression finite and machine-readable on the selected-thread path.
-- Preserve the bottom-fixed composer, center transcript card, and rail behavior already established in earlier iterations.
-- Do not suppress `/api/jobs` or `/api/goals` polling in this iteration; only make the selected-thread SSE phase progression explicit and consistent.
+- Keep exactly one live-owned selected-thread session block in the center lane during handoff or healthy SSE progress.
+- Preserve the bottom-fixed composer, thread-switch clearing, degraded reconnect or polling markers, and rail behavior already established in earlier iterations.
+- Do not suppress `/api/jobs` or `/api/goals` polling in this iteration; only collapse duplicate live-owned presentation in the selected-thread workspace.
 
 ## Deliverable
 
-Define and verify one canonical selected-thread phase progression model on the existing SSE path, then have the center-lane autonomy or session surface and composer-adjacent phase surface consume that model so the active session shows explicit proposal, review, verify, auto-apply, ready, and applied flow without transport or polling changes.
+Define and verify one primary selected-thread session surface in the center lane by reusing the existing canonical helpers, demoting the header and composer strip to compact supporting context, and preserving explicit degraded or cleared markers without transport or polling changes.

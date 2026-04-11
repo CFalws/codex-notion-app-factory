@@ -1,11 +1,11 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 94
+## Iteration 95
 
-Project the selected-thread SSE path into one explicit phase progression model without changing transport or polling behavior.
+Collapse duplicate live-owned selected-thread presentation into one conversation-first session surface without changing transport or polling behavior.
 
-1. Add a canonical selected-thread live-autonomy helper and a canonical selected-thread phase-progression helper in `ops-store.js`.
-2. Mark autonomy summaries projected from healthy selected-thread SSE append events as `source: "sse"`, `freshnessState: "fresh"`, and `fallbackAllowed: false`.
-3. Reuse the canonical phase-progression helper in the transcript live session surface and the inline autonomy or session surface so proposal, review, verify, auto-apply, ready, applied, and fallback states read consistently.
-4. Extend `deriveLiveRunState(...)` to recognize `AUTO APPLY` from the existing `goal.proposal.auto_apply.started` SSE event path so the composer-adjacent strip stays aligned with the center timeline.
-5. Reconfirm the focused verifier layer and record the iteration-94 phase progression contract in the durable proposal artifacts.
+1. Keep the iteration-94 canonical selected-thread helpers intact and reuse them as the only ownership boundary.
+2. Leave exactly one live-owned selected-thread session block in the center lane by keeping the inline block or transcript live card authoritative and mutually exclusive.
+3. Demote the center header to compact selected-thread context, preserving datasets for the rail and verifiers while removing visible live-owner duplication.
+4. Demote the composer-adjacent strip to compact target context and degraded transport markers, so healthy or handoff progress no longer reads as a second live-owned session surface.
+5. Extend the focused verifier layer and proposal artifacts to assert that duplicate live-owned center-workspace surfaces no longer appear.

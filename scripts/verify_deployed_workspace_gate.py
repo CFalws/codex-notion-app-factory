@@ -468,15 +468,15 @@ def assert_browser_runtime_surface(
                     ["true", "false"].includes(healthyBlock.dataset.liveBlockPhaseAuthoritative || "") &&
                     summary &&
                     !summary.hidden &&
-                    summary.dataset.summaryPath === "sse" &&
+                    summary.dataset.summaryPath === "session" &&
                     summary.dataset.liveSessionOwned === "true" &&
+                    summary.dataset.summaryState === "attached" &&
+                    summary.dataset.summaryPhase === healthyBlock.dataset.liveBlockPhase &&
                     summaryCopy &&
                     summaryCopy.textContent.trim().length > 0 &&
-                    summaryCopy.textContent.includes("OWNER") &&
-                    !summaryCopy.textContent.includes("SSE OWNER") &&
-                    !summaryCopy.textContent.includes("FOLLOW PAUSED") &&
+                    !summaryCopy.textContent.includes("OWNER") &&
                     liveIndicator &&
-                    !liveIndicator.hidden &&
+                    liveIndicator.hidden &&
                     liveIndicator.textContent.trim() === "SSE OWNER" &&
                     liveIndicator.dataset.liveSessionOwned === "true" &&
                     liveIndicator.dataset.liveSessionSource === "sse" &&
@@ -499,7 +499,7 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.composerState === "ready" &&
                     sessionStrip.dataset.composerTransport === "sse-owner" &&
                     sessionStrip.dataset.composerTransportSource === "sse" &&
-                    sessionStrip.dataset.composerTransportOwned === "true" &&
+                    sessionStrip.dataset.composerTransportOwned === "false" &&
                     sessionStrip.dataset.phaseValue === healthyBlock.dataset.liveBlockPhase &&
                     sessionStrip.dataset.phaseProvenance === healthyBlock.dataset.liveBlockPhaseProvenance &&
                     sessionStrip.dataset.phaseAuthoritative === healthyBlock.dataset.liveBlockPhaseAuthoritative &&
@@ -508,9 +508,9 @@ def assert_browser_runtime_surface(
                     threadScroller.dataset.phaseAuthoritative === healthyBlock.dataset.liveBlockPhaseAuthoritative &&
                     sessionStripState &&
                     stripChips.length === 1 &&
-                    sessionStripState.dataset.sessionStripRole === "phase" &&
-                    sessionStripState.dataset.sessionStripLabel === (healthyBlock.dataset.liveBlockPhase || "") &&
-                    sessionStripState.textContent.trim() === (healthyBlock.dataset.liveBlockPhase || "") &&
+                    sessionStripState.dataset.sessionStripRole === "context" &&
+                    sessionStripState.dataset.sessionStripLabel === "TARGET" &&
+                    sessionStripState.textContent.trim() === "TARGET" &&
                     (
                       (
                         healthyBlock.dataset.liveBlockPhaseAuthoritative === "true" &&
@@ -523,8 +523,8 @@ def assert_browser_runtime_surface(
                     ) &&
                     sessionStripDetail &&
                     sessionStripDetail.textContent.trim().length > 0 &&
-                    sessionStripDetail.textContent.includes("FOLLOW") &&
-                    !sessionStripDetail.textContent.includes("SESSION ACTIVE") &&
+                    !sessionStripDetail.textContent.includes("FOLLOW") &&
+                    !sessionStripDetail.textContent.includes("OWNER") &&
                     !sessionStripDetail.textContent.includes("authoritative") &&
                     composerOwnerRow &&
                     composerOwnerRow.hidden &&
@@ -657,7 +657,7 @@ def assert_browser_runtime_surface(
                     summary.dataset.summaryPath === "degraded" &&
                     summary.dataset.liveSessionOwned === "false" &&
                     liveIndicator &&
-                    !liveIndicator.hidden &&
+                    liveIndicator.hidden &&
                     ["RECONNECT", "POLLING"].includes(liveIndicator.textContent.trim()) &&
                     liveIndicator.dataset.liveSessionOwned === "false" &&
                     activeSessionRow.hidden &&
@@ -735,9 +735,9 @@ def assert_browser_runtime_surface(
                     !sessionStrip.hidden &&
                     sessionStripState &&
                     sessionStripState.querySelectorAll(".session-chip").length === 1 &&
-                    sessionStripState.dataset.sessionStripRole === "transition" &&
-                    sessionStripState.dataset.sessionStripLabel === "ATTACH" &&
-                    sessionStripState.textContent.trim() === "ATTACH" &&
+                    sessionStripState.dataset.sessionStripRole === "context" &&
+                    sessionStripState.dataset.sessionStripLabel === "TARGET" &&
+                    sessionStripState.textContent.trim() === "TARGET" &&
                     sessionStrip.dataset.composerState === "switching" &&
                     sessionStrip.dataset.composerTransport === "attach" &&
                     sessionStrip.dataset.composerTargetConversationId === targetConversationId &&
@@ -806,9 +806,9 @@ def assert_browser_runtime_surface(
                     sessionStrip &&
                     sessionStripState &&
                     sessionStripState.querySelectorAll(".session-chip").length === 1 &&
-                    sessionStripState.dataset.sessionStripRole === "transition" &&
-                    sessionStripState.dataset.sessionStripLabel === "ATTACH" &&
-                    sessionStripState.textContent.trim() === "ATTACH" &&
+                    sessionStripState.dataset.sessionStripRole === "context" &&
+                    sessionStripState.dataset.sessionStripLabel === "TARGET" &&
+                    sessionStripState.textContent.trim() === "TARGET" &&
                     sessionStrip.dataset.composerState === "switching" &&
                     sessionStrip.dataset.composerTargetConversationId === targetConversationId &&
                     threadScroller &&
@@ -850,9 +850,9 @@ def assert_browser_runtime_surface(
                     !sessionStrip.hidden &&
                     sessionStripState &&
                     sessionStripState.querySelectorAll(".session-chip").length === 1 &&
-                    sessionStripState.dataset.sessionStripRole === "transition" &&
-                    sessionStripState.dataset.sessionStripLabel === "ATTACH" &&
-                    sessionStripState.textContent.trim() === "ATTACH" &&
+                    sessionStripState.dataset.sessionStripRole === "context" &&
+                    sessionStripState.dataset.sessionStripLabel === "TARGET" &&
+                    sessionStripState.textContent.trim() === "TARGET" &&
                     sessionStrip.dataset.composerState === "switching" &&
                     sessionStrip.dataset.composerTargetConversationId === targetConversationId &&
                     sessionStrip.dataset.phaseValue === "UNKNOWN" &&
@@ -1069,7 +1069,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.sessionStrip.dataset.composerState = ownerState.state;', label="composer strip state dataset")
     require(render_js, 'dom.sessionStrip.dataset.composerTransport = transportState.key;', label="composer strip transport dataset")
     require(render_js, 'dom.sessionStrip.dataset.composerTransportSource = transportState.source;', label="composer strip transport source dataset")
-    require(render_js, 'dom.sessionStrip.dataset.composerTransportOwned = transportState.owned ? "true" : "false";', label="composer strip transport ownership dataset")
+    require(render_js, 'dom.sessionStrip.dataset.composerTransportOwned = stripLiveOwned ? "true" : "false";', label="composer strip transport ownership dataset")
     require(render_js, 'dom.sessionStrip.dataset.composerTransportReason = transportState.reason;', label="composer strip transport reason dataset")
     require(render_js, 'dom.sessionStrip.dataset.composerTargetConversationId = ownerState.conversationId;', label="composer strip target dataset")
     require(render_js, 'label: "ATTACH"', label="composer strip attach label")
@@ -1124,7 +1124,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "compactPhaseDetailCopy", label="compact phase detail copy helper")
     require(render_js, 'dom.threadPhaseChip.dataset.threadPhaseDetail = liveRun?.visible ? phaseDetailCopy(liveRun) : "idle";', label="thread phase detail dataset")
     require(render_js, 'dom.threadPhaseChip.title = liveRun?.visible ? phaseDetailCopy(liveRun) : "현재 활성 세션이 없습니다.";', label="thread phase detail title")
-    require(render_js, 'return joinSessionChromeTokens(target, "OWNER", sessionFollowLabel(sessionIndicator, transportState), proposalStatusLabel(proposalState));', label="summary healthy token copy")
+    require(render_js, "return target;", label="summary or composer compact target copy")
     require(render_js, 'return joinSessionChromeTokens(target, stateLabel, "DEGRADED");', label="summary degraded token copy")
     require(render_js, 'type === "codex.exec.retrying"', label="live-session retry degradation mapping")
     require(render_js, "isAppendStreamAuthoritative(currentState, conversationId)", label="selected-thread authoritative SSE handoff guard")
@@ -1136,16 +1136,14 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "const proposalState = proposalChip(liveRun);", label="composer strip proposal chip helper wiring")
     require(render_js, "const liveOwned =", label="composer strip ownership decoupled from strip visibility")
     require(render_js, 'dom.sessionStrip.hidden = !sessionConversationId;', label="composer strip selected-target visibility")
-    require(render_js, 'dom.sessionStrip.dataset.sessionOwner = liveOwned ? "selected-thread" : "none";', label="composer strip selected-thread owner dataset")
+    require(render_js, 'dom.sessionStrip.dataset.sessionOwner = stripLiveOwned ? "selected-thread" : "none";', label="composer strip selected-thread owner dataset")
     require(render_js, 'dom.sessionStrip.dataset.followState = transportState.owned ? "owned" : "idle";', label="composer strip follow-state dataset")
     require(render_js, 'dom.sessionStripState.dataset.sessionStripRole = stripState.role;', label="composer strip state role dataset")
     require(render_js, 'dom.sessionStripState.dataset.sessionStripLabel = stripState.label;', label="composer strip state label dataset")
     require(render_js, 'dom.sessionStripState.dataset.sessionStripTone = stripState.tone;', label="composer strip state tone dataset")
     require(render_js, 'dom.sessionStripMeta.textContent = ownerState.target;', label="composer strip target copy")
-    require(render_js, 'return { label: "ATTACH", tone: "warning", role: "transition" };', label="composer strip transition phase row")
+    require(render_js, 'return { label: "TARGET", tone: "muted", role: "context" };', label="composer strip context row")
     require(render_js, 'return { label: transportState.label, tone: transportState.tone, role: "degraded" };', label="composer strip degraded phase row")
-    require(render_js, 'const phaseState = phaseChip(liveRun, presentation);', label="composer strip live phase row source")
-    require(render_js, 'return { label: phaseState.label, tone: phaseState.tone, role: "phase" };', label="composer strip live phase row")
     require(render_js, 'dom.sessionStripState.innerHTML = sessionStripStateChipMarkup(stripState);', label="composer strip single-chip render")
     require(render_js, 'dom.sessionStripDetail.textContent = sessionStripDetailCopy(', label="composer strip live phase detail copy")
     require(render_js, 'const mergedStripVisible = Boolean(dom.sessionStrip && !dom.sessionStrip.hidden);', label="composer owner row merged strip visibility")
@@ -1240,6 +1238,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, 'const summaryLiveState = String(dom.sessionSummaryRow?.dataset.liveSessionState || "idle");', label="active session canonical state dataset")
     require(conversations_js, 'const summaryLiveReason = String(dom.sessionSummaryRow?.dataset.liveSessionReason || "idle");', label="active session canonical reason dataset")
     require(conversations_js, 'const summaryStateLabel = String(dom.sessionSummaryState?.textContent || "").trim().toUpperCase();', label="active session canonical phase label source")
+    require(conversations_js, 'const summaryPhaseLabel = String(dom.sessionSummaryRow?.dataset.summaryPhase || "").trim().toUpperCase();', label="active session summary phase dataset")
     require(conversations_js, 'const sessionIndicatorLabel = String(dom.sessionLiveIndicator?.textContent || "").trim().toUpperCase();', label="active session canonical label source")
     require(conversations_js, 'const sessionStatus = deriveSelectedThreadSessionStatus(state, state.conversationCache);', label="active session canonical status helper read")
     require(conversations_js, "const handoffActive =", label="active session handoff gate")
@@ -1252,7 +1251,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, 'meta = "selected thread · handoff";', label="active session handoff meta copy")
     require(conversations_js, 'summaryLiveSource === "sse"', label="active session healthy sse source gate")
     require(conversations_js, 'sessionIndicatorLabel === "SSE OWNER"', label="active session healthy label gate")
-    require(conversations_js, 'const livePhaseLabel = summaryStateLabel || liveRunPhase || "LIVE";', label="active session mirrored live phase label")
+    require(conversations_js, 'const livePhaseLabel = summaryPhaseLabel || liveRunPhase || summaryStateLabel || "LIVE";', label="active session mirrored live phase label")
     require(conversations_js, 'rowState = sessionStatus.followState === "new" ? "new" : sessionStatus.followState === "paused" ? "paused" : "live";', label="active session mirrored state mapping")
     require(conversations_js, 'stateLabel = sessionStatus.railLabel || (summaryLiveState === "paused" ? "PAUSED" : "LIVE");', label="active session mirrored finite state label")
     require(conversations_js, 'followLabel = stateLabel;', label="active session mirrored follow label")

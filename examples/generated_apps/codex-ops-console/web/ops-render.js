@@ -194,35 +194,35 @@ function proposalStatusLabel(proposalState) {
 function sessionChromeCopy(ownerState, transportState, sessionIndicator, liveRun, proposalState, pathLabel, stateLabel) {
   const target = ownerState.target;
   if (ownerState.state === "switching") {
-    return joinSessionChromeTokens(target, "ATTACH", "PENDING");
+    return target;
   }
   if (ownerState.state === "handoff") {
-    return joinSessionChromeTokens(target, ownerState.copy, "SESSION");
+    return target;
   }
   if (transportState.owned && sessionIndicator.source === "sse") {
-    return joinSessionChromeTokens(target, "OWNER", sessionFollowLabel(sessionIndicator, transportState), proposalStatusLabel(proposalState));
+    return target;
   }
   if (pathLabel === "DEGRADED") {
     return joinSessionChromeTokens(target, stateLabel, "DEGRADED");
   }
-  return joinSessionChromeTokens(target, pathLabel, stateLabel);
+  return target;
 }
 
 function sessionStripDetailCopy(ownerState, transportState, sessionIndicator, liveRun, proposalState, liveOwned) {
   const target = ownerState.target;
   if (ownerState.state === "switching") {
-    return joinSessionChromeTokens(target, "ATTACH", "PENDING");
+    return target;
   }
   if (ownerState.state === "handoff") {
-    return joinSessionChromeTokens(target, ownerState.copy, "PENDING");
+    return target;
   }
   if (liveOwned) {
-    return joinSessionChromeTokens(target, sessionFollowLabel(sessionIndicator, transportState));
+    return target;
   }
   if (transportState.key === "reconnect" || transportState.key === "polling") {
     return joinSessionChromeTokens(target, transportState.label, "DEGRADED");
   }
-  return joinSessionChromeTokens(target, ownerState.copy);
+  return target;
 }
 
 function sessionStripStateChipMarkup({ label, tone, role }) {
@@ -230,20 +230,10 @@ function sessionStripStateChipMarkup({ label, tone, role }) {
 }
 
 function sessionStripStateRow(ownerState, transportState, liveRun, presentation, liveOwned) {
-  if (ownerState.state === "switching") {
-    return { label: "ATTACH", tone: "warning", role: "transition" };
-  }
   if (transportState.key === "reconnect" || transportState.key === "polling") {
     return { label: transportState.label, tone: transportState.tone, role: "degraded" };
   }
-  if (ownerState.state === "handoff") {
-    return { label: ownerState.label, tone: ownerState.tone, role: "handoff" };
-  }
-  if (liveOwned) {
-    const phaseState = phaseChip(liveRun, presentation);
-    return { label: phaseState.label, tone: phaseState.tone, role: "phase" };
-  }
-  return { label: ownerState.label, tone: ownerState.tone, role: "idle" };
+  return { label: "TARGET", tone: "muted", role: "context" };
 }
 
 function composerOwnerState(currentState, conversation) {
@@ -389,6 +379,8 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
 
   const threadTransition = currentState.threadTransition || {};
   const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
+  const liveAutonomy = deriveSelectedThreadLiveAutonomy(currentState, conversation);
+  const phaseProgression = deriveSelectedThreadPhaseProgression(currentState, conversation);
   const conversationId = String(conversation?.conversation_id || "");
   const headerSummaryVisible = Boolean(conversationId || threadTransition.targetConversationId);
   const sessionIndicator = selectedThreadLiveSessionIndicator(currentState, conversation, liveRun, handoffState);
@@ -410,17 +402,17 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
     pathLabel = "SWITCHING";
     stateLabel = "ATTACH";
   } else if (handoffState.stage === "pending-user") {
-    pathLabel = "HANDOFF";
-    stateLabel = "SENDING";
+    pathLabel = "SESSION";
+    stateLabel = "ATTACHED";
   } else if (handoffState.stage === "pending-assistant") {
-    pathLabel = "HANDOFF";
-    stateLabel = "ACCEPTED";
+    pathLabel = "SESSION";
+    stateLabel = "ATTACHED";
   } else if (sessionStatus.transportState === "reconnect") {
     pathLabel = "DEGRADED";
     stateLabel = "RESUME";
-  } else if (sessionStatus.liveOwned) {
-    pathLabel = "SSE";
-    stateLabel = String(liveRun?.phase || "LIVE").toUpperCase();
+  } else if (liveAutonomy.visible && liveAutonomy.owned) {
+    pathLabel = "SESSION";
+    stateLabel = "ATTACHED";
   } else if (sessionStatus.transportState === "polling") {
     pathLabel = "DEGRADED";
     stateLabel = "POLLING";
@@ -437,6 +429,7 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
 
   dom.sessionSummaryRow.dataset.summaryPath = pathLabel.toLowerCase();
   dom.sessionSummaryRow.dataset.summaryState = stateLabel.toLowerCase();
+  dom.sessionSummaryRow.dataset.summaryPhase = String(phaseProgression.label || liveRun?.phase || "IDLE").toUpperCase();
   dom.sessionSummaryRow.dataset.followState = sessionIndicator.state;
   dom.sessionSummaryRow.dataset.liveSessionState = sessionIndicator.state;
   dom.sessionSummaryRow.dataset.liveSessionSource = sessionIndicator.source;
@@ -446,7 +439,7 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   dom.sessionSummaryScope.textContent = compactTargetLabel(conversation?.title || threadTransition.targetTitle || "", "SELECTED");
   dom.sessionSummaryPath.textContent = pathLabel;
   dom.sessionSummaryState.textContent = stateLabel;
-  dom.sessionLiveIndicator.hidden = !headerSummaryVisible || !sessionIndicator.visible;
+  dom.sessionLiveIndicator.hidden = true;
   dom.sessionLiveIndicator.textContent = sessionIndicator.label;
   dom.sessionLiveIndicator.dataset.liveSessionTone = sessionIndicator.tone;
   dom.sessionLiveIndicator.dataset.liveSessionSource = sessionIndicator.source;
@@ -1689,10 +1682,11 @@ export function renderSessionStrip(dom, currentState, conversation) {
     inlineState.selectedThreadSseOwned &&
     inlineState.status === "live" &&
     inlineState.renderSource === "sse";
+  const stripLiveOwned = false;
   const stripState = sessionStripStateRow(ownerState, transportState, liveRun, presentation, liveOwned);
   dom.sessionStrip.hidden = !sessionConversationId;
-  dom.sessionStrip.dataset.liveOwned = liveOwned ? "true" : "false";
-  dom.sessionStrip.dataset.sessionOwner = liveOwned ? "selected-thread" : "none";
+  dom.sessionStrip.dataset.liveOwned = stripLiveOwned ? "true" : "false";
+  dom.sessionStrip.dataset.sessionOwner = stripLiveOwned ? "selected-thread" : "none";
   dom.sessionStrip.dataset.sessionPresentation = presentation;
   dom.sessionStrip.dataset.sessionTerminal = liveRun.terminal ? "true" : "false";
   dom.sessionStrip.dataset.sessionCollapsed = shouldCollapse ? "true" : "false";
@@ -1717,7 +1711,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStrip.dataset.composerState = ownerState.state;
   dom.sessionStrip.dataset.composerTransport = transportState.key;
   dom.sessionStrip.dataset.composerTransportSource = transportState.source;
-  dom.sessionStrip.dataset.composerTransportOwned = transportState.owned ? "true" : "false";
+  dom.sessionStrip.dataset.composerTransportOwned = stripLiveOwned ? "true" : "false";
   dom.sessionStrip.dataset.composerTransportReason = transportState.reason;
   dom.sessionStrip.dataset.composerTargetConversationId = ownerState.conversationId;
   dom.sessionStripState.dataset.sessionStripRole = stripState.role;
