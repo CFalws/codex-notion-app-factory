@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `106`
-- bounded focus: `healthy selected-thread transcript session cards collapsed into one live session item`
+- current iteration: `109`
+- bounded focus: `selected-thread switch continuity keeps one compact switching workspace shell`
 
 ## Request
 
@@ -13,7 +13,7 @@
 
 ## Problem
 
-The selected-thread footer dock now owns healthy current execution state, but the transcript still fragments one healthy selected-thread run into multiple session-status cards. The remaining gap is to collapse those duplicate healthy SSE authority cards so the active conversation reads as one realtime session timeline instead of repeated phase/status events.
+Healthy selected-thread SSE ownership is now explicit across the footer and rail, but intentional thread switches can still read like the workspace lost state because the center shell is driven through the generic null-conversation branch. The remaining gap is to keep the center shell and composer frame in place through one explicit switching placeholder until the new snapshot attaches.
 
 ## Target User
 
@@ -30,8 +30,11 @@ The primary user is the operator or developer using the phone-friendly workspace
 - Do not change transport contracts or add new polling behavior in this iteration.
 - Reuse the existing selected-thread SSE ownership, phase, milestone, and follow datasets instead of introducing another state model.
 - Keep degraded, reconnect, restore, and polling provenance explicit instead of letting them resemble healthy session ownership.
-- Remove duplicate healthy selected-thread transcript status cards when the live session is already represented by the healthy footer dock and live item.
+- Reuse the existing selected-thread session-status and thread-transition state instead of adding another switch model.
+- Keep the center pane and bottom-fixed composer mounted during intentional thread switches.
+- Limit the center pane to one compact switching placeholder while the new thread attaches.
+- Keep reconnect, polling fallback, terminal, restore, and true no-selection paths visibly distinct from intentional switching.
 
 ## Deliverable
 
-Define and verify one selected-thread transcript-collapse contract where healthy SSE-owned authority events no longer append duplicate session-status cards when the live session is already represented elsewhere, while degraded, restore, reconnect, switching, failure, ready, and applied evidence remain explicit when they are no longer healthy live-owned.
+Define and verify one selected-thread switch continuity contract where the center pane holds one compact `SWITCHING` workspace placeholder and the composer row mirrors that same target state until the new thread attaches, while true empty, restore, reconnect, polling, and terminal paths do not retain switching treatment.

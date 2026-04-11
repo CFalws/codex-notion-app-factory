@@ -1697,16 +1697,67 @@ function threadMetaSummary(conversation, liveRun, messageCount, eventCount) {
 function renderThreadTransition(currentState, sessionStatus = deriveSelectedThreadSessionStatus(currentState, null)) {
   const targetTitle = String(sessionStatus.switchTargetTitle || sessionStatus.targetTitle || "선택한 대화").trim();
   return `
-    <article class="timeline-transition" data-thread-transition="loading" data-thread-transition-phase="switching" data-thread-transition-conversation-id="${escapeHtml(String(sessionStatus.switchConversationId || sessionStatus.targetConversationId || ""))}">
+    <article class="timeline-transition" data-thread-transition="switching" data-thread-transition-phase="switching" data-thread-transition-conversation-id="${escapeHtml(String(sessionStatus.switchConversationId || sessionStatus.targetConversationId || ""))}" data-thread-transition-source="selected-thread-session">
       <p class="timeline-kind">세션 전환</p>
       <div class="timeline-transition-row">
-        <span class="timeline-transition-chip">SWITCH</span>
+        <span class="timeline-transition-chip">SWITCHING</span>
         <span class="timeline-transition-chip">${escapeHtml(targetTitle.toUpperCase())}</span>
       </div>
-      <p class="timeline-body">이전 thread의 live 소유권은 정리했고, 새 선택 대화의 snapshot과 append stream을 연결하는 중입니다.</p>
-      <p class="timeline-meta">selected thread handoff · snapshot attach pending</p>
+      <p class="timeline-body">이전 thread의 live 소유권을 정리했고, 새 선택 대화의 snapshot attach를 기다리는 중입니다.</p>
+      <p class="timeline-meta">selected thread switching · snapshot attach pending</p>
     </article>
   `;
+}
+
+function selectedThreadWorkspacePlaceholder(currentState) {
+  const sessionStatus = deriveSelectedThreadSessionStatus(currentState, null);
+  const isSwitching = sessionStatus.presentation === "attach" && Boolean(sessionStatus.switchConversationId);
+  const isRestore = !isSwitching && sessionStatus.presentation === "restore";
+  if (isSwitching) {
+    return {
+      mode: "switching",
+      conversationId: String(sessionStatus.switchConversationId || sessionStatus.targetConversationId || ""),
+      title: String(sessionStatus.switchTargetTitle || sessionStatus.targetTitle || "대화 전환 중"),
+      conversationState: "새 대화 스냅샷을 연결하는 중입니다.",
+      timeline: renderThreadTransition(currentState, sessionStatus),
+      liveRun: runStateSnapshot({
+        visible: true,
+        phase: "UNKNOWN",
+        source: "thread-transition",
+        tone: "neutral",
+      }),
+    };
+  }
+  if (isRestore) {
+    return {
+      mode: "restore",
+      conversationId: String(sessionStatus.conversationId || ""),
+      title: String(sessionStatus.conversationTitle || "저장된 대화 복구 중"),
+      conversationState: sessionStatus.restoreResume
+        ? "저장된 대화를 authoritative SSE resume으로 복구하는 중입니다."
+        : "저장된 대화를 authoritative SSE attach로 복구하는 중입니다.",
+      timeline: renderRestoreSessionTimeline(currentState),
+      liveRun: runStateSnapshot({
+        visible: true,
+        phase: sessionStatus.restoreResume ? "RESUME" : "ATTACH",
+        source: "sse",
+        tone: "neutral",
+      }),
+    };
+  }
+  return {
+    mode: "empty",
+    conversationId: "",
+    title: "새 대화를 시작하세요",
+    conversationState: "아직 대화 세션이 없습니다.",
+    timeline: '<p class="timeline-empty">새 대화를 만들면 요청과 이벤트가 여기 쌓입니다.</p>',
+    liveRun: runStateSnapshot({
+      visible: true,
+      phase: currentState.currentJobId ? "RUNNING" : "IDLE",
+      source: "none",
+      tone: currentState.currentJobId ? "running" : "idle",
+    }),
+  };
 }
 
 function sessionProvenance(status, lastAppendId, lastLiveAppendId, liveRun) {
@@ -2294,33 +2345,32 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   onPersist();
 
   if (!conversation) {
-    const restoreSessionStatus = deriveSelectedThreadSessionStatus(currentState, null);
-    const isThreadTransition = restoreSessionStatus.presentation === "attach" && Boolean(restoreSessionStatus.switchConversationId);
-    const isSavedRestore = !isThreadTransition && restoreSessionStatus.presentation === "restore";
-    const restoreTimeline = isSavedRestore ? renderRestoreSessionTimeline(currentState) : "";
-    dom.conversationTimeline.innerHTML = isThreadTransition
-      ? renderThreadTransition(currentState, restoreSessionStatus)
-      : restoreTimeline || '<p class="timeline-empty">새 대화를 만들면 요청과 이벤트가 여기 쌓입니다.</p>';
+    const workspacePlaceholder = selectedThreadWorkspacePlaceholder(currentState);
+    const isThreadTransition = workspacePlaceholder.mode === "switching";
+    const isSavedRestore = workspacePlaceholder.mode === "restore";
+    dom.conversationTimeline.dataset.workspacePlaceholder = workspacePlaceholder.mode;
+    dom.conversationTimeline.dataset.workspaceConversationId = workspacePlaceholder.conversationId;
+    dom.conversationTimeline.innerHTML = workspacePlaceholder.timeline;
     if (dom.threadScroller) {
       dom.threadScroller.dataset.pendingConversationId = isThreadTransition
-        ? String(threadTransition.targetConversationId || "")
+        ? workspacePlaceholder.conversationId
         : isSavedRestore
-          ? String(restoreSessionStatus.conversationId || "")
+          ? workspacePlaceholder.conversationId
           : "";
       dom.threadScroller.dataset.pendingHandoffStage = "idle";
       dom.threadScroller.dataset.pendingUserCount = "0";
       dom.threadScroller.dataset.pendingAssistantCount = "0";
-      dom.threadScroller.dataset.threadTransitionState = isThreadTransition ? "loading" : "idle";
+      dom.threadScroller.dataset.threadTransitionState = isThreadTransition ? "switching" : "idle";
       dom.threadScroller.dataset.threadTransitionConversationId = isThreadTransition
-        ? String(threadTransition.targetConversationId || "")
+        ? workspacePlaceholder.conversationId
         : "";
     }
     renderSessionStrip(dom, currentState, null);
     currentState.liveFollow = {
       conversationId: isThreadTransition
-        ? String(threadTransition.targetConversationId || "")
+        ? workspacePlaceholder.conversationId
         : isSavedRestore
-          ? String(restoreSessionStatus.conversationId || "")
+          ? workspacePlaceholder.conversationId
           : "",
       isFollowing: true,
       jumpVisible: false,
@@ -2330,31 +2380,14 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
     };
     syncJumpToLatest(dom, currentState, currentState.liveFollow.conversationId, "snapshot");
     updateHeroState(dom, {
-      threadTitle: isThreadTransition
-        ? String(threadTransition.targetTitle || "대화 전환 중")
-        : isSavedRestore
-          ? String(restoreSessionStatus.conversationTitle || "저장된 대화 복구 중")
-          : "새 대화를 시작하세요",
+      threadTitle: workspacePlaceholder.title,
       threadKicker: "선택된 대화",
-      conversationState: isThreadTransition
-        ? "새 대화 스냅샷을 연결하는 중입니다."
-        : isSavedRestore
-          ? restoreSessionStatus.restoreResume
-            ? "저장된 대화를 authoritative SSE resume으로 복구하는 중입니다."
-            : "저장된 대화를 authoritative SSE attach로 복구하는 중입니다."
-          : "아직 대화 세션이 없습니다.",
-      liveRun: runStateSnapshot({
-        visible: true,
-        phase: isThreadTransition ? "UNKNOWN" : isSavedRestore ? (restoreSessionStatus.restoreResume ? "RESUME" : "ATTACH") : currentState.currentJobId ? "RUNNING" : "IDLE",
-        source: isThreadTransition ? "thread-transition" : isSavedRestore ? "sse" : "none",
-        tone: isThreadTransition ? "neutral" : isSavedRestore ? "neutral" : currentState.currentJobId ? "running" : "idle",
-      }),
+      conversationState: workspacePlaceholder.conversationState,
+      liveRun: workspacePlaceholder.liveRun,
     });
     renderWorkspaceSummary(
       dom,
-      isThreadTransition
-        ? "더 깊은 실행 맥락은 이 패널에서 확인합니다."
-        : "더 깊은 실행 맥락은 이 패널에서 확인합니다.",
+      "더 깊은 실행 맥락은 이 패널에서 확인합니다.",
     );
     renderSessionSummary(
       dom,
@@ -2381,9 +2414,12 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
       { stage: "idle" },
     );
     syncComposerOwnership(dom, currentState, null);
-  renderJobActivity(dom, null, "", null, currentState);
+    renderJobActivity(dom, null, "", null, currentState);
     return;
   }
+
+  dom.conversationTimeline.dataset.workspacePlaceholder = "conversation";
+  dom.conversationTimeline.dataset.workspaceConversationId = String(conversation.conversation_id || "");
 
   const messages = Array.isArray(conversation.messages) ? conversation.messages : [];
   const events = Array.isArray(conversation.events) ? conversation.events : [];

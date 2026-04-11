@@ -148,7 +148,7 @@ def browser_snapshot_script() -> str:
   const autonomyDetail = document.querySelector("#autonomy-detail");
   const statusOutput = document.querySelector("#status-output");
   const executionStatusCard = statusOutput ? statusOutput.closest(".inspector-card") : null;
-  const transition = document.querySelector('[data-thread-transition="loading"]');
+  const transition = document.querySelector('[data-thread-transition="switching"]');
   const emptyState = document.querySelector(".timeline-empty");
   const threadScroller = document.querySelector("#thread-scroller");
   return {
@@ -683,7 +683,7 @@ def assert_browser_runtime_surface(
             page.click(f'[data-conversation-id="{switch_conversation_id}"]')
             page.wait_for_function(
                 """([appId, targetConversationId]) => {
-                  const transition = document.querySelector('[data-thread-transition="loading"]');
+                  const transition = document.querySelector('[data-thread-transition="switching"]');
                   const summary = document.querySelector("#session-summary-row");
                   const liveIndicator = document.querySelector("#session-live-indicator");
                   const threadTitle = document.querySelector("#thread-title");
@@ -708,8 +708,9 @@ def assert_browser_runtime_surface(
                   );
                   return Boolean(
                     transition &&
-                    document.querySelectorAll('[data-thread-transition="loading"]').length === 1 &&
+                    document.querySelectorAll('[data-thread-transition="switching"]').length === 1 &&
                     transition.dataset.threadTransitionPhase === "switching" &&
+                    transition.dataset.threadTransitionSource === "selected-thread-session" &&
                     transition.dataset.threadTransitionConversationId === targetConversationId &&
                     summary &&
                     !summary.hidden &&
@@ -750,8 +751,10 @@ def assert_browser_runtime_surface(
                     sendRequest &&
                     sendRequest.dataset.composerOwnerState === "switching" &&
                     threadScroller &&
-                    threadScroller.dataset.threadTransitionState === "loading" &&
+                    threadScroller.dataset.threadTransitionState === "switching" &&
                     threadScroller.dataset.threadTransitionConversationId === targetConversationId &&
+                    document.querySelector("#conversation-timeline").dataset.workspacePlaceholder === "switching" &&
+                    document.querySelector("#conversation-timeline").dataset.workspaceConversationId === targetConversationId &&
                     threadScroller.dataset.phaseValue === "UNKNOWN" &&
                     threadScroller.dataset.phaseAuthoritative === "false" &&
                     threadScroller.dataset.phaseProvenance === "thread-transition" &&
@@ -783,7 +786,7 @@ def assert_browser_runtime_surface(
             page.click(f'[data-conversation-id="{switch_conversation_id}"]')
             page.wait_for_function(
                 """targetConversationId => {
-                  const transition = document.querySelector('[data-thread-transition="loading"]');
+                  const transition = document.querySelector('[data-thread-transition="switching"]');
                   const activeSessionRow = document.querySelector("#active-session-row");
                   const sessionStrip = document.querySelector("#session-strip");
                   const sessionStripState = document.querySelector("#session-strip-state");
@@ -791,7 +794,7 @@ def assert_browser_runtime_surface(
                   const empty = document.querySelector(".timeline-empty");
                   return Boolean(
                     transition &&
-                    document.querySelectorAll('[data-thread-transition="loading"]').length === 1 &&
+                    document.querySelectorAll('[data-thread-transition="switching"]').length === 1 &&
                     transition.dataset.threadTransitionConversationId === targetConversationId &&
                     activeSessionRow &&
                     activeSessionRow.hidden &&
@@ -810,8 +813,10 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.composerState === "switching" &&
                     sessionStrip.dataset.composerTargetConversationId === targetConversationId &&
                     threadScroller &&
-                    threadScroller.dataset.threadTransitionState === "loading" &&
+                    threadScroller.dataset.threadTransitionState === "switching" &&
                     threadScroller.dataset.threadTransitionConversationId === targetConversationId &&
+                    document.querySelector("#conversation-timeline").dataset.workspacePlaceholder === "switching" &&
+                    document.querySelector("#conversation-timeline").dataset.workspaceConversationId === targetConversationId &&
                     !empty
                   );
                 }""",
@@ -822,7 +827,7 @@ def assert_browser_runtime_surface(
             page.click(f'[data-conversation-id="{conversation_id}"]')
             page.wait_for_function(
                 """([appId, targetConversationId]) => {
-                  const transition = document.querySelector('[data-thread-transition="loading"]');
+                  const transition = document.querySelector('[data-thread-transition="switching"]');
                   const sessionStrip = document.querySelector("#session-strip");
                   const sessionStripState = document.querySelector("#session-strip-state");
                   const threadScroller = document.querySelector("#thread-scroller");
@@ -842,7 +847,7 @@ def assert_browser_runtime_surface(
                   );
                   return Boolean(
                     transition &&
-                    document.querySelectorAll('[data-thread-transition="loading"]').length === 1 &&
+                    document.querySelectorAll('[data-thread-transition="switching"]').length === 1 &&
                     transition.dataset.threadTransitionConversationId === targetConversationId &&
                     sessionStrip &&
                     !sessionStrip.hidden &&
@@ -857,8 +862,10 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.phaseAuthoritative === "false" &&
                     sessionStrip.dataset.phaseProvenance === "thread-transition" &&
                     threadScroller &&
-                    threadScroller.dataset.threadTransitionState === "loading" &&
+                    threadScroller.dataset.threadTransitionState === "switching" &&
                     threadScroller.dataset.threadTransitionConversationId === targetConversationId &&
+                    document.querySelector("#conversation-timeline").dataset.workspacePlaceholder === "switching" &&
+                    document.querySelector("#conversation-timeline").dataset.workspaceConversationId === targetConversationId &&
                     threadScroller.dataset.sessionOwner !== "selected-thread" &&
                     summary &&
                     summary.dataset.liveSessionOwned === "false" &&
@@ -1012,18 +1019,23 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "renderThreadTransition", label="thread transition helper")
     require(render_js, "function renderThreadTransition(currentState, sessionStatus = deriveSelectedThreadSessionStatus(currentState, null))", label="thread transition canonical status signature")
     require(render_js, "pendingHandoffState", label="pending handoff helper")
-    require(render_js, 'data-thread-transition="loading"', label="thread transition DOM")
+    require(render_js, 'data-thread-transition="switching"', label="thread transition DOM")
+    require(render_js, 'data-thread-transition-source="selected-thread-session"', label="thread transition source dataset")
     require(render_js, 'data-thread-transition-phase="switching"', label="thread transition phase dataset")
-    require(render_js, 'dom.conversationTimeline.innerHTML = isThreadTransition', label="thread transition placeholder render branch")
-    require(render_js, '? renderThreadTransition(currentState, restoreSessionStatus)', label="thread transition placeholder render path")
+    require(render_js, "selectedThreadWorkspacePlaceholder", label="thread transition workspace placeholder helper")
+    require(render_js, "const workspacePlaceholder = selectedThreadWorkspacePlaceholder(currentState);", label="thread transition workspace placeholder state")
+    require(render_js, 'dom.conversationTimeline.dataset.workspacePlaceholder = workspacePlaceholder.mode;', label="workspace placeholder mode dataset")
+    require(render_js, 'dom.conversationTimeline.dataset.workspaceConversationId = workspacePlaceholder.conversationId;', label="workspace placeholder conversation dataset")
+    require(render_js, 'dom.conversationTimeline.innerHTML = workspacePlaceholder.timeline;', label="thread transition placeholder render path")
     require(render_js, 'data-thread-transition-conversation-id="${escapeHtml(String(sessionStatus.switchConversationId || sessionStatus.targetConversationId || ""))}"', label="thread transition canonical conversation dataset")
-    require(render_js, 'const isSavedRestore = !isThreadTransition && restoreSessionStatus.presentation === "restore";', label="saved restore timeline guard")
-    require(render_js, 'const restoreTimeline = isSavedRestore ? renderRestoreSessionTimeline(currentState) : "";', label="saved restore timeline render branch")
-    require(render_js, ': restoreTimeline || \'<p class="timeline-empty">새 대화를 만들면 요청과 이벤트가 여기 쌓입니다.</p>\';', label="empty state limited to non-transition path")
-    require(render_js, 'conversationState: isThreadTransition', label="thread transition or restore conversation state copy")
-    require(render_js, 'threadTitle: isThreadTransition', label="thread transition or restore title copy")
-    require(render_js, 'phase: isThreadTransition ? "UNKNOWN" : isSavedRestore ? (restoreSessionStatus.restoreResume ? "RESUME" : "ATTACH") : currentState.currentJobId ? "RUNNING" : "IDLE",', label="thread transition or restore neutral phase")
-    require(render_js, 'source: isThreadTransition ? "thread-transition" : isSavedRestore ? "sse" : "none",', label="thread transition or restore neutral phase source")
+    require(render_js, 'mode: "switching"', label="switch workspace placeholder mode")
+    require(render_js, 'mode: "restore"', label="restore workspace placeholder mode")
+    require(render_js, 'mode: "empty"', label="empty workspace placeholder mode")
+    require(render_js, "timeline: renderThreadTransition(currentState, sessionStatus),", label="switch workspace timeline")
+    require(render_js, 'timeline: \'<p class="timeline-empty">새 대화를 만들면 요청과 이벤트가 여기 쌓입니다.</p>\',', label="true empty workspace timeline")
+    require(render_js, 'threadTitle: workspacePlaceholder.title,', label="thread transition or restore title copy")
+    require(render_js, 'conversationState: workspacePlaceholder.conversationState,', label="thread transition or restore conversation state copy")
+    require(render_js, 'liveRun: workspacePlaceholder.liveRun,', label="thread transition or restore neutral phase")
     require(render_js, "dataset.threadTransitionState", label="thread transition state dataset")
     require(render_js, 'renderSessionStrip(dom, currentState, null);', label="thread transition composer shell render path")
     require(render_js, 'syncComposerOwnership(dom, currentState, null);', label="thread transition composer owner switching path")
