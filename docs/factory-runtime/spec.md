@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `207`
-- bounded focus: `collapse healthy-path autonomy and execution state into the center session surface`
+- current iteration: `209`
+- bounded focus: `collapse footer proposal controls behind a compact utility affordance`
 
 ## Request
 
@@ -13,21 +13,21 @@
 
 ## Problem
 
-Healthy selected-thread ownership, explicit autonomy milestones, switch continuity, and healthy-path SSE authority are already present, but the workspace still splits live state across the center session surface and separate secondary-detail cards. The remaining bounded risk is operator inference caused by duplicate healthy-path execution and autonomy surfaces that should no longer be authoritative.
+Healthy selected-thread ownership, explicit autonomy milestones, switch continuity, healthy-path SSE authority, and healthy-path secondary-card suppression are already present, but the footer still reads like a request executor control cluster because apply and auto-open sit in the default composer surface. The remaining bounded risk is that those secondary controls compete visually with the chat-first composer instead of staying tucked behind a compact utility affordance.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly realtime workspace and expecting current phase, verifier state, blocker reason, and apply readiness to read from one live conversation surface instead of split status panels.
+The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the textarea and primary send action to remain the dominant bottom surface while secondary proposal utilities stay reachable but unobtrusive.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the iteration bounded to the selected-thread presentation layer and the existing render helpers for the secondary autonomy and execution surfaces.
-- Reuse the current selected-thread session status, timeline authority, session strip, and milestone models; do not change backend transport or broader ownership rules.
-- On the healthy selected-thread path, keep the center timeline and session strip authoritative and suppress duplicate autonomy and execution detail cards.
-- Preserve the current bottom-fixed composer, switch placeholder, reconnect fallback, restore flow, and degraded-path secondary detail behavior.
+- Keep the iteration bounded to the bottom-fixed composer utility cluster and its browser verification coverage.
+- Reuse the current selected-thread session, proposal readiness, and ownership datasets; do not change backend transport, polling, or broader ownership rules.
+- Keep the live session strip as the only healthy-path live status owner.
+- Collapse apply and auto-open behind a compact utility affordance that stays closed by default and closes on send, switch, app change, reconnect downgrade, polling fallback, and terminal idle.
 
 ## Deliverable
 
-Expose one conversation-first selected-thread workspace where healthy selected-thread autonomy and execution state read from the center timeline and adjacent session strip without duplicate secondary-detail cards.
+Expose one conversation-first selected-thread workspace where the bottom-fixed composer stays visually primary and proposal utilities sit behind a compact default-closed affordance without creating a second ownership surface.

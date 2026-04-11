@@ -1,12 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 207
+## Iteration 209
 
-Collapse healthy-path autonomy and execution state into the existing center session surface and hide duplicate secondary-detail cards while that surface is authoritative.
+Collapse selected-thread footer proposal and auto-open controls behind one compact default-closed utility affordance.
 
-1. Keep the change bounded to the healthy selected-thread presentation seam and verifier expectations.
-2. Reuse the existing selected-thread timeline authority and session strip models as the only healthy-path execution and autonomy source.
-3. Hide the secondary autonomy and execution cards only when the center timeline is healthy and authoritative.
-4. Preserve degraded, reconnect, switch, deselection, restore-gap, and terminal-clear paths as explicit fail-open detail routes.
-5. Keep the mounted conversation shell, milestone lane, and bottom-fixed composer unchanged.
-6. Align static checks, browser checks, and proposal artifacts with the healthy-path secondary-card suppression contract.
+1. Keep the change bounded to the composer utility cluster, its default-closed state, and verifier expectations.
+2. Preserve the textarea, primary send action, and composer-adjacent live bar as the visually dominant bottom session surface.
+3. Keep apply and auto-open reachable only through the compact utility affordance.
+4. Force the utility closed on send, selected-thread switch, app change, reconnect downgrade, polling fallback, and terminal idle.
+5. Preserve the existing live strip as the only healthy-path live status owner without adding duplicate live prose.
+6. Align static checks, browser checks, and proposal artifacts with the composer-utility contract.

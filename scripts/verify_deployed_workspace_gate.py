@@ -144,6 +144,9 @@ def browser_snapshot_script() -> str:
   const follow = document.querySelector("#jump-to-latest");
   const activeSessionRow = document.querySelector("#active-session-row");
   const sessionStrip = document.querySelector("#session-strip");
+  const composerUtilityMenu = document.querySelector("#composer-utility-menu");
+  const composerUtilityToggle = document.querySelector("#composer-utility-toggle");
+  const composerUtilityCluster = document.querySelector("#composer-utility-cluster");
   const composerDock = document.querySelector("#conversation-footer-dock");
   const composerOwnerRow = document.querySelector("#composer-owner-row");
   const sendRequest = document.querySelector("#send-request");
@@ -199,6 +202,21 @@ def browser_snapshot_script() -> str:
       hidden: !!sessionStrip.hidden,
       dataset: { ...sessionStrip.dataset },
       text: (sessionStrip.textContent || "").trim(),
+    } : null,
+    composerUtilityMenu: composerUtilityMenu ? {
+      dataset: { ...composerUtilityMenu.dataset },
+      text: (composerUtilityMenu.textContent || "").trim(),
+    } : null,
+    composerUtilityToggle: composerUtilityToggle ? {
+      dataset: { ...composerUtilityToggle.dataset },
+      expanded: composerUtilityToggle.getAttribute("aria-expanded"),
+      text: (composerUtilityToggle.textContent || "").trim(),
+    } : null,
+    composerUtilityCluster: composerUtilityCluster ? {
+      hidden: !!composerUtilityCluster.hidden,
+      dataset: { ...composerUtilityCluster.dataset },
+      ariaHidden: composerUtilityCluster.getAttribute("aria-hidden"),
+      text: (composerUtilityCluster.textContent || "").trim(),
     } : null,
     composerDock: composerDock ? {
       dataset: { ...composerDock.dataset },
@@ -634,7 +652,20 @@ def assert_browser_runtime_surface(
                     sessionStripState.dataset.sessionStripRole === "live-dock" &&
                     sessionStripState.textContent.includes("SSE OWNER") &&
                     sessionStripDetail &&
-                    sessionStripDetail.textContent.includes("SSE OWNER") &&
+                    sessionStripDetail.hidden &&
+                    sessionStripDetail.textContent.trim() === "" &&
+                    composerUtilityMenu &&
+                    composerUtilityMenu.dataset.composerUtilityOpen === "false" &&
+                    composerUtilityMenu.dataset.composerUtilityState === "closed" &&
+                    composerUtilityToggle &&
+                    composerUtilityToggle.dataset.composerUtilityOpen === "false" &&
+                    composerUtilityToggle.dataset.composerUtilityState === "closed" &&
+                    composerUtilityToggle.getAttribute("aria-expanded") === "false" &&
+                    composerUtilityCluster &&
+                    composerUtilityCluster.hidden &&
+                    composerUtilityCluster.dataset.composerUtilityOpen === "false" &&
+                    composerUtilityCluster.dataset.composerUtilityState === "closed" &&
+                    composerUtilityCluster.getAttribute("aria-hidden") === "true" &&
                     composerOwnerRow &&
                     composerOwnerRow.hidden &&
                     composerOwnerRow.dataset.composerOwnerMerged === "true" &&
@@ -890,6 +921,9 @@ def assert_browser_runtime_surface(
                   const sessionStrip = document.querySelector("#session-strip");
                   const sessionStripState = document.querySelector("#session-strip-state");
                   const secondarySessionFacts = document.querySelector("#secondary-session-facts");
+                  const composerUtilityMenu = document.querySelector("#composer-utility-menu");
+                  const composerUtilityToggle = document.querySelector("#composer-utility-toggle");
+                  const composerUtilityCluster = document.querySelector("#composer-utility-cluster");
                   const statusOutput = document.querySelector("#status-output");
                   const executionStatusCard = statusOutput ? statusOutput.closest(".inspector-card") : null;
                   const follow = document.querySelector("#jump-to-latest");
@@ -935,6 +969,18 @@ def assert_browser_runtime_surface(
                     sessionStripState.dataset.sessionStripRole === "degraded" &&
                     sessionStripState.dataset.sessionStripLabel === phase &&
                     sessionStripState.textContent.trim() === phase &&
+                    composerUtilityMenu &&
+                    composerUtilityMenu.dataset.composerUtilityOpen === "false" &&
+                    composerUtilityMenu.dataset.composerUtilityState === "closed" &&
+                    composerUtilityToggle &&
+                    composerUtilityToggle.dataset.composerUtilityOpen === "false" &&
+                    composerUtilityToggle.dataset.composerUtilityState === "closed" &&
+                    composerUtilityToggle.getAttribute("aria-expanded") === "false" &&
+                    composerUtilityCluster &&
+                    composerUtilityCluster.hidden &&
+                    composerUtilityCluster.dataset.composerUtilityOpen === "false" &&
+                    composerUtilityCluster.dataset.composerUtilityState === "closed" &&
+                    composerUtilityCluster.getAttribute("aria-hidden") === "true" &&
                     ["reconnect", "polling"].includes(sessionStrip.dataset.composerTransport || "") &&
                     sessionStrip.dataset.composerTransportOwned === "false" &&
                     !executionStatusCard.hidden &&
@@ -972,6 +1018,9 @@ def assert_browser_runtime_surface(
                   const sessionStrip = document.querySelector("#session-strip");
                   const sessionStripState = document.querySelector("#session-strip-state");
                   const secondarySessionFacts = document.querySelector("#secondary-session-facts");
+                  const composerUtilityMenu = document.querySelector("#composer-utility-menu");
+                  const composerUtilityToggle = document.querySelector("#composer-utility-toggle");
+                  const composerUtilityCluster = document.querySelector("#composer-utility-cluster");
                   const composerDock = document.querySelector("#conversation-footer-dock");
                   const sendRequest = document.querySelector("#send-request");
                   const composerOwnerRow = document.querySelector("#composer-owner-row");
@@ -1021,6 +1070,18 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.composerState === "switching" &&
                     sessionStrip.dataset.composerTransport === "attach" &&
                     sessionStrip.dataset.composerTargetConversationId === targetConversationId &&
+                    composerUtilityMenu &&
+                    composerUtilityMenu.dataset.composerUtilityOpen === "false" &&
+                    composerUtilityMenu.dataset.composerUtilityState === "closed" &&
+                    composerUtilityToggle &&
+                    composerUtilityToggle.dataset.composerUtilityOpen === "false" &&
+                    composerUtilityToggle.dataset.composerUtilityState === "closed" &&
+                    composerUtilityToggle.getAttribute("aria-expanded") === "false" &&
+                    composerUtilityCluster &&
+                    composerUtilityCluster.hidden &&
+                    composerUtilityCluster.dataset.composerUtilityOpen === "false" &&
+                    composerUtilityCluster.dataset.composerUtilityState === "closed" &&
+                    composerUtilityCluster.getAttribute("aria-hidden") === "true" &&
                     secondarySessionFacts &&
                     secondarySessionFacts.dataset.secondaryFactsPresentation === "switching" &&
                     secondarySessionFacts.dataset.secondaryFactsOwned === "false" &&
@@ -1313,6 +1374,9 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(app_js, 'dom.appSelect.addEventListener("change", async () => {\n    setComposerUtilityOpen(false);', label="composer utility closes on app change")
     require(app_js, 'dom.newConversationButton.addEventListener("click", async () => {\n    setComposerUtilityOpen(false);', label="composer utility closes on new conversation")
     require(app_js, 'setComposerUtilityOpen(false);\n    state.savedConversationId = button.dataset.conversationId || "";\n    await conversationController.handleConversationChange();', label="composer utility closes on selected-thread change")
+    require(render_js, 'dom.composerUtilityMenu.dataset.composerUtilityOpen = "false";', label="composer utility closes on non-healthy render")
+    require(render_js, 'dom.composerUtilityCluster.hidden = true;', label="composer utility cluster hides on non-healthy render")
+    require(render_js, 'dom.composerUtilityToggle.setAttribute("aria-expanded", "false");', label="composer utility toggle aria closes on non-healthy render")
     require_absent(styles, ".session-summary-row", label="removed session summary row CSS")
     require(styles, ".recent-thread-rail", label="recent-thread rail CSS")
     require(styles, ".recent-thread-rail-list", label="recent-thread rail list CSS")

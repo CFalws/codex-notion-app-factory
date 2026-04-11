@@ -1,10 +1,10 @@
 # Factory Runtime Tasks
 
-## Iteration 207
+## Iteration 209
 
-- [x] Keep the change bounded to the selected-thread healthy presentation seam and existing timeline authority helpers.
-- [x] Preserve the center timeline and session strip as the healthy-path authority source.
-- [x] Suppress duplicate secondary autonomy detail on the healthy selected-thread path.
-- [x] Suppress duplicate secondary execution detail on the healthy selected-thread path.
-- [x] Preserve degraded, reconnect, switch, deselection, restore-gap, and terminal-clear fail-open detail behavior.
-- [x] Align static checks, browser checks, and proposal artifacts with the healthy-path secondary-card suppression contract.
+- [x] Keep the change bounded to the composer utility cluster and existing live-strip ownership.
+- [x] Preserve the live strip as the only healthy-path live status owner.
+- [x] Keep apply and auto-open behind the compact utility affordance.
+- [x] Keep the utility collapsed by default.
+- [x] Close the utility on send, switch, app change, reconnect downgrade, polling fallback, and terminal idle.
+- [x] Align static checks, browser checks, and proposal artifacts with the composer-utility contract.

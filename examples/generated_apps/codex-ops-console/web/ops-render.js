@@ -2104,6 +2104,21 @@ export function renderSessionStrip(dom, currentState, conversation) {
       dom.sessionStripToggle.dataset.followState = "idle";
       dom.sessionStripToggle.dataset.followCount = "0";
     }
+    if (dom.composerUtilityMenu) {
+      dom.composerUtilityMenu.dataset.composerUtilityOpen = "false";
+      dom.composerUtilityMenu.dataset.composerUtilityState = "closed";
+    }
+    if (dom.composerUtilityCluster) {
+      dom.composerUtilityCluster.dataset.composerUtilityOpen = "false";
+      dom.composerUtilityCluster.dataset.composerUtilityState = "closed";
+      dom.composerUtilityCluster.hidden = true;
+      dom.composerUtilityCluster.setAttribute("aria-hidden", "true");
+    }
+    if (dom.composerUtilityToggle) {
+      dom.composerUtilityToggle.dataset.composerUtilityOpen = "false";
+      dom.composerUtilityToggle.dataset.composerUtilityState = "closed";
+      dom.composerUtilityToggle.setAttribute("aria-expanded", "false");
+    }
     return;
   }
 
@@ -2145,6 +2160,23 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const stripLiveOwned = Boolean(footerDock.visible);
   const healthyComposerAuthority =
     authority.state === "healthy" && stripLiveOwned && timelineAuthority.visible && timelineAuthority.presentation === "healthy";
+  if (!healthyComposerAuthority) {
+    if (dom.composerUtilityMenu) {
+      dom.composerUtilityMenu.dataset.composerUtilityOpen = "false";
+      dom.composerUtilityMenu.dataset.composerUtilityState = "closed";
+    }
+    if (dom.composerUtilityCluster) {
+      dom.composerUtilityCluster.dataset.composerUtilityOpen = "false";
+      dom.composerUtilityCluster.dataset.composerUtilityState = "closed";
+      dom.composerUtilityCluster.hidden = true;
+      dom.composerUtilityCluster.setAttribute("aria-hidden", "true");
+    }
+    if (dom.composerUtilityToggle) {
+      dom.composerUtilityToggle.dataset.composerUtilityOpen = "false";
+      dom.composerUtilityToggle.dataset.composerUtilityState = "closed";
+      dom.composerUtilityToggle.setAttribute("aria-expanded", "false");
+    }
+  }
   const stripState = sessionStripStateRow(ownerState, transportState, liveRun, presentation, liveOwned, footerFollow, footerDock);
   dom.sessionStrip.hidden = !sessionConversationId;
   dom.sessionStrip.dataset.liveOwned = stripLiveOwned ? "true" : "false";
