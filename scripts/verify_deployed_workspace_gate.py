@@ -134,7 +134,7 @@ class SSERecorder:
 def browser_snapshot_script() -> str:
     return """
 () => {
-  const summary = document.querySelector("#session-summary-row");
+  const threadPhase = document.querySelector("#thread-phase-chip");
   const inlineBlocks = Array.from(document.querySelectorAll('.session-inline-block[data-selected-thread-live-block="true"], .session-inline-block[data-selected-thread-degraded-block="true"]'));
   const liveActivity = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
   const secondaryPanel = document.querySelector("#secondary-panel");
@@ -154,10 +154,10 @@ def browser_snapshot_script() -> str:
   const emptyState = document.querySelector(".timeline-empty");
   const threadScroller = document.querySelector("#thread-scroller");
   return {
-    summary: summary ? {
-      hidden: !!summary.hidden,
-      dataset: { ...summary.dataset },
-      text: (summary.textContent || "").trim(),
+    threadPhase: threadPhase ? {
+      hidden: !!threadPhase.hidden,
+      dataset: { ...threadPhase.dataset },
+      text: (threadPhase.textContent || "").trim(),
     } : null,
     inlineBlocks: inlineBlocks.map(block => ({
       dataset: { ...block.dataset },
@@ -448,7 +448,7 @@ def assert_browser_runtime_surface(
             page.click(f'[data-conversation-id="{conversation_id}"]')
             page.wait_for_function(
                 """([appId, conversationId]) => {
-                  const summary = document.querySelector("#session-summary-row");
+                  const threadPhase = document.querySelector("#thread-phase-chip");
                   const sendRequest = document.querySelector("#send-request");
                   const sessionStrip = document.querySelector("#session-strip");
                   const threadScroller = document.querySelector("#thread-scroller");
@@ -469,7 +469,8 @@ def assert_browser_runtime_surface(
                     entry => String(entry.url || "").includes(`/api/apps/${appId}/goals`)
                   );
                   return Boolean(
-                    summary &&
+                    threadPhase &&
+                    threadPhase.hidden &&
                     sendRequest &&
                     sessionStrip &&
                     sessionStrip.dataset.attachMode === "sse-bootstrap" &&
@@ -515,9 +516,6 @@ def assert_browser_runtime_surface(
                   const inlineBlocks = document.querySelectorAll('.session-inline-block[data-selected-thread-live-block="true"], .session-inline-block[data-selected-thread-degraded-block="true"]');
                   const liveActivity = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
                   const primaryLiveActivities = document.querySelectorAll('.timeline-item.live-activity[data-live-session-primary="true"]');
-                  const summary = document.querySelector("#session-summary-row");
-                  const liveIndicator = document.querySelector("#session-live-indicator");
-                  const summaryCopy = document.querySelector("#session-summary-copy");
                   const threadPhase = document.querySelector("#thread-phase-chip");
                   const activeSessionRow = document.querySelector("#active-session-row");
                   const selectedCard = document.querySelector('.conversation-card[data-selected="true"]');
@@ -567,31 +565,18 @@ def assert_browser_runtime_surface(
                     milestoneLane.dataset.liveMilestones === "true" &&
                     milestoneLane.dataset.liveMilestonesPhase === liveActivity.dataset.liveMilestonesPhase &&
                     !legacyLaneMeta &&
-                    summary &&
-                    !summary.hidden &&
-                    summary.dataset.summaryPath === "session" &&
-                    summary.dataset.liveSessionOwned === "true" &&
-                    summary.dataset.footerDockOwned === "true" &&
-                    summary.dataset.centerTimelineAuthority === "true" &&
-                    summary.dataset.centerTimelinePresentation === "healthy" &&
-                    summary.dataset.indicatorOnly === "true" &&
-                    summary.dataset.summaryState === "attached" &&
-                    summaryCopy &&
-                    !summaryCopy.hidden &&
-                    summaryCopy.textContent.trim() === "SSE OWNER" &&
-                    liveIndicator &&
-                    !liveIndicator.hidden &&
-                    liveIndicator.textContent.trim() === summary.dataset.summaryPhase &&
-                    liveIndicator.dataset.liveSessionVisible === "true" &&
-                    liveIndicator.dataset.liveSessionPresentation === "healthy" &&
-                    liveIndicator.dataset.liveSessionProvenance === "sse" &&
-                    liveIndicator.dataset.liveSessionPhase === summary.dataset.summaryPhase &&
-                    liveIndicator.dataset.liveSessionDetail === "SSE OWNER" &&
-                    liveIndicator.dataset.liveSessionOwned === "true" &&
-                    liveIndicator.dataset.liveSessionSource === "sse" &&
                     threadPhase &&
-                    threadPhase.hidden &&
-                    threadPhase.dataset.threadPhase === summary.dataset.summaryPhase &&
+                    !threadPhase.hidden &&
+                    threadPhase.dataset.liveSessionVisible === "true" &&
+                    threadPhase.dataset.liveSessionPresentation === "healthy" &&
+                    threadPhase.dataset.liveSessionOwned === "true" &&
+                    threadPhase.dataset.liveSessionSource === "sse" &&
+                    threadPhase.dataset.liveSessionProvenance === "sse" &&
+                    threadPhase.dataset.centerTimelineAuthority === "true" &&
+                    threadPhase.dataset.centerTimelinePresentation === "healthy" &&
+                    threadPhase.dataset.threadPhase === liveActivity.dataset.liveRunPhase &&
+                    threadPhase.dataset.liveSessionPhase === liveActivity.dataset.liveRunPhase &&
+                    threadPhase.dataset.liveSessionDetail === "SSE OWNER" &&
                     threadPhase.dataset.threadPhaseDetail &&
                     threadPhase.dataset.threadPhaseDetail !== "idle" &&
                     activeSessionRow &&
@@ -599,7 +584,7 @@ def assert_browser_runtime_surface(
                     activeSessionRow.dataset.activeSessionOwned === "true" &&
                     activeSessionRow.dataset.activeSessionSource === "sse" &&
                     ["live", "paused", "new"].includes(activeSessionRow.dataset.activeSessionState || "") &&
-                    activeSessionRow.dataset.activeSessionPhase === summary.dataset.summaryPhase &&
+                    activeSessionRow.dataset.activeSessionPhase === liveActivity.dataset.liveRunPhase &&
                     ["live", "paused", "new"].includes(activeSessionRow.dataset.activeSessionFollow || "") &&
                     activeSessionRow.textContent.includes("OWNER") &&
                     !selectedCardLiveOwnerRow &&
@@ -611,17 +596,16 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.sessionOwner === "selected-thread" &&
                     sessionStrip.dataset.footerDockOwned === "true" &&
                     sessionStrip.dataset.footerDockMilestones === "false" &&
-                    sessionStrip.dataset.footerDockPhase === summary.dataset.summaryPhase &&
+                    sessionStrip.dataset.footerDockPhase === liveActivity.dataset.liveRunPhase &&
                     sessionStrip.dataset.footerDockSource === "sse" &&
                     threadScroller &&
-                    sessionStrip.dataset.phaseValue === summary.dataset.summaryPhase &&
-                    threadScroller.dataset.phaseValue === summary.dataset.summaryPhase &&
+                    sessionStrip.dataset.phaseValue === liveActivity.dataset.liveRunPhase &&
+                    threadScroller.dataset.phaseValue === liveActivity.dataset.liveRunPhase &&
                     sessionStripState &&
                     stripChips.length === 1 &&
                     sessionStripState.dataset.sessionStripRole === "live-dock" &&
                     ["PROPOSAL", "REVIEW", "VERIFY", "READY", "APPLIED", "NEW", "PAUSED"].includes(sessionStripState.dataset.sessionStripLabel || "") &&
                     sessionStripState.textContent.trim().length > 0 &&
-                    ["PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED", "FAILED", ""].includes(summary.dataset.summaryPhase || "") &&
                     sessionStripDetail &&
                     sessionStripDetail.textContent.trim().length > 0 &&
                     !sessionStripDetail.textContent.includes("OWNER") &&
@@ -770,7 +754,7 @@ def assert_browser_runtime_surface(
                 """conversationId => {
                   const sessionStrip = document.querySelector("#session-strip");
                   const threadScroller = document.querySelector("#thread-scroller");
-                  const summary = document.querySelector("#session-summary-row");
+                  const threadPhase = document.querySelector("#thread-phase-chip");
                   const composerOwnerRow = document.querySelector("#composer-owner-row");
                   const liveActivity = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-session-primary="true"]');
                   const inlineBlocks = document.querySelectorAll('.session-inline-block[data-selected-thread-live-block="true"], .session-inline-block[data-selected-thread-degraded-block="true"]');
@@ -820,11 +804,12 @@ def assert_browser_runtime_surface(
                     threadScroller.dataset.restorePath === "resume" &&
                     threadScroller.dataset.restoreProvenance === "sse-bootstrap" &&
                     Number(threadScroller.dataset.resumeCursor || "0") > 0 &&
-                    summary &&
-                    !summary.hidden &&
-                    summary.dataset.restorePath === "resume" &&
-                    summary.dataset.restoreProvenance === "sse-bootstrap" &&
-                    summary.dataset.restoreStage === "none" &&
+                    threadPhase &&
+                    !threadPhase.hidden &&
+                    threadPhase.dataset.liveSessionPresentation === "restore" &&
+                    threadPhase.dataset.restorePath === "resume" &&
+                    threadPhase.dataset.restoreProvenance === "sse-bootstrap" &&
+                    threadPhase.dataset.restoreStage === "none" &&
                     composerOwnerRow &&
                     composerOwnerRow.dataset.composerRestoreStage === "none" &&
                     liveActivity &&
@@ -861,9 +846,7 @@ def assert_browser_runtime_surface(
                   const degraded = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="false"]');
                   const healthy = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
                   const inlineBlocks = document.querySelectorAll('.session-inline-block[data-selected-thread-live-block="true"], .session-inline-block[data-selected-thread-degraded-block="true"]');
-                  const summary = document.querySelector("#session-summary-row");
-                  const liveIndicator = document.querySelector("#session-live-indicator");
-                  const summaryCopy = document.querySelector("#session-summary-copy");
+                  const threadPhase = document.querySelector("#thread-phase-chip");
                   const activeSessionRow = document.querySelector("#active-session-row");
                   const sessionStrip = document.querySelector("#session-strip");
                   const sessionStripState = document.querySelector("#session-strip-state");
@@ -872,7 +855,7 @@ def assert_browser_runtime_surface(
                   const executionStatusCard = statusOutput ? statusOutput.closest(".inspector-card") : null;
                   const follow = document.querySelector("#jump-to-latest");
                   const stripChips = sessionStripState ? sessionStripState.querySelectorAll(".session-chip") : [];
-                  if (!degraded || healthy || inlineBlocks.length !== 0 || !summary || !follow || !activeSessionRow || !sessionStrip || !sessionStripState || !executionStatusCard || !statusOutput) {
+                  if (!degraded || healthy || inlineBlocks.length !== 0 || !threadPhase || !follow || !activeSessionRow || !sessionStrip || !sessionStripState || !executionStatusCard || !statusOutput) {
                     return false;
                   }
                   const reason = degraded.dataset.liveReason || "";
@@ -887,20 +870,13 @@ def assert_browser_runtime_surface(
                     secondarySessionFacts.dataset.secondaryFactsOwned === "false" &&
                     secondarySessionFacts.dataset.secondaryFactsTransport === degraded.dataset.liveTransport &&
                     secondarySessionFacts.dataset.secondaryFactsPhase === phase &&
-                    !summary.hidden &&
-                    summary.dataset.summaryPath === "degraded" &&
-                    summary.dataset.liveSessionOwned === "false" &&
-                    summary.dataset.centerTimelineAuthority === "true" &&
-                    summary.dataset.centerTimelinePresentation === "degraded" &&
-                    summary.dataset.indicatorOnly === "true" &&
-                    summaryCopy &&
-                    !summaryCopy.hidden &&
-                    liveIndicator &&
-                    !liveIndicator.hidden &&
-                    ["RECONNECT", "POLLING"].includes(liveIndicator.textContent.trim()) &&
-                    liveIndicator.dataset.liveSessionVisible === "true" &&
-                    liveIndicator.dataset.liveSessionPresentation === "degraded" &&
-                    liveIndicator.dataset.liveSessionOwned === "false" &&
+                    !threadPhase.hidden &&
+                    ["RECONNECT", "POLLING"].includes(threadPhase.textContent.trim()) &&
+                    threadPhase.dataset.liveSessionVisible === "true" &&
+                    threadPhase.dataset.liveSessionPresentation === "degraded" &&
+                    threadPhase.dataset.liveSessionOwned === "false" &&
+                    threadPhase.dataset.centerTimelineAuthority === "true" &&
+                    threadPhase.dataset.centerTimelinePresentation === "degraded" &&
                     activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
                     activeSessionRow.dataset.activeSessionSource === "none" &&
@@ -937,8 +913,7 @@ def assert_browser_runtime_surface(
             page.wait_for_function(
                 """([appId, targetConversationId]) => {
                   const transition = document.querySelector('[data-thread-transition="switching"]');
-                  const summary = document.querySelector("#session-summary-row");
-                  const liveIndicator = document.querySelector("#session-live-indicator");
+                  const threadPhase = document.querySelector("#thread-phase-chip");
                   const threadTitle = document.querySelector("#thread-title");
                   const activeSessionRow = document.querySelector("#active-session-row");
                   const sessionStrip = document.querySelector("#session-strip");
@@ -969,12 +944,9 @@ def assert_browser_runtime_surface(
                     transition.dataset.threadTransitionOwnerCleared === "true" &&
                     transition.dataset.threadTransitionCompact === "true" &&
                     transition.dataset.threadTransitionConversationId === targetConversationId &&
-                    summary &&
-                    summary.hidden &&
-                    summary.dataset.liveSessionOwned === "false" &&
-                    liveIndicator &&
-                    liveIndicator.hidden &&
-                    liveIndicator.dataset.liveSessionOwned === "false" &&
+                    threadPhase &&
+                    threadPhase.hidden &&
+                    threadPhase.dataset.liveSessionOwned === "false" &&
                     threadTitle &&
                     threadTitle.textContent.trim().length > 0 &&
                     threadTitle.textContent.trim() !== "새 대화를 시작하세요" &&
@@ -1119,7 +1091,7 @@ def assert_browser_runtime_surface(
                   const sessionStripState = document.querySelector("#session-strip-state");
                   const threadScroller = document.querySelector("#thread-scroller");
                   const composerDock = document.querySelector("#conversation-footer-dock");
-                  const summary = document.querySelector("#session-summary-row");
+                  const threadPhase = document.querySelector("#thread-phase-chip");
                   const activeSessionRow = document.querySelector("#active-session-row");
                   const secondarySessionFacts = document.querySelector("#secondary-session-facts");
                   const follow = document.querySelector("#jump-to-latest");
@@ -1160,8 +1132,9 @@ def assert_browser_runtime_surface(
                     document.querySelector("#conversation-timeline").dataset.workspaceOwnerCleared === "true" &&
                     threadScroller.dataset.workspaceOwnerCleared === "true" &&
                     threadScroller.dataset.sessionOwner !== "selected-thread" &&
-                    summary &&
-                    summary.dataset.liveSessionOwned === "false" &&
+                    threadPhase &&
+                    threadPhase.hidden &&
+                    threadPhase.dataset.liveSessionOwned === "false" &&
                     activeSessionRow &&
                     activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
@@ -1231,15 +1204,12 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(html, 'data-primary-surface="conversation"', label="primary conversation surface")
     require(html, 'id="thread-scroller"', label="thread scroller")
     require(html, 'data-session-workspace="conversation-first"', label="conversation-first session workspace")
-    require(html, 'id="session-summary-row"', label="session summary row")
+    require_absent(html, 'id="session-summary-row"', label="removed session summary row")
     require(html, 'id="recent-thread-rail"', label="recent-thread rail")
     require(html, 'id="recent-thread-rail-list"', label="recent-thread rail list")
-    require(html, 'id="session-live-indicator"', label="session live indicator")
-    require(html, 'data-live-session-source="none"', label="session live indicator source default")
-    require(html, 'data-live-session-owned="false"', label="session live indicator ownership default")
-    require(html, 'data-live-session-reason="idle"', label="session live indicator reason default")
-    require(html, 'id="session-summary-path"', label="session summary path")
-    require(html, 'id="session-summary-state"', label="session summary state")
+    require_absent(html, 'id="session-live-indicator"', label="removed session live indicator")
+    require_absent(html, 'id="session-summary-path"', label="removed session summary path")
+    require_absent(html, 'id="session-summary-state"', label="removed session summary state")
     require(html, 'id="conversation-footer-dock"', label="footer dock")
     require(html, 'id="session-strip"', label="session strip")
     require(html, 'id="composer-owner-row"', label="composer owner row")
@@ -1281,17 +1251,12 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(app_js, 'dom.appSelect.addEventListener("change", async () => {\n    setComposerUtilityOpen(false);', label="composer utility closes on app change")
     require(app_js, 'dom.newConversationButton.addEventListener("click", async () => {\n    setComposerUtilityOpen(false);', label="composer utility closes on new conversation")
     require(app_js, 'setComposerUtilityOpen(false);\n    state.savedConversationId = button.dataset.conversationId || "";\n    await conversationController.handleConversationChange();', label="composer utility closes on selected-thread change")
-    require(styles, ".session-summary-row", label="session summary row CSS")
+    require_absent(styles, ".session-summary-row", label="removed session summary row CSS")
     require(styles, ".recent-thread-rail", label="recent-thread rail CSS")
     require(styles, ".recent-thread-rail-list", label="recent-thread rail list CSS")
     require(styles, ".recent-thread-chip", label="recent-thread chip CSS")
     require(styles, '.recent-thread-chip[data-thread-state="switching"] .recent-thread-token[data-recent-thread-state]', label="recent-thread switching chip CSS")
-    require(styles, ".session-live-indicator", label="session live indicator CSS")
-    require(styles, '.session-live-indicator[data-live-session-tone="healthy"]', label="session live indicator healthy CSS")
-    require(styles, '.session-live-indicator[data-live-session-tone="warning"]', label="session live indicator warning CSS")
-    require(styles, '.session-live-indicator[data-live-session-tone="neutral"]', label="session live indicator neutral CSS")
-    require(styles, '.session-live-indicator[data-live-session-tone="muted"]', label="session live indicator muted CSS")
-    require(styles, '.session-live-indicator[data-live-session-tone="danger"]', label="session live indicator danger CSS")
+    require_absent(styles, ".session-live-indicator", label="removed session live indicator CSS")
     require(styles, ".composer-owner-row", label="composer owner row CSS")
     require(styles, ".composer-owner-chip", label="composer owner chip CSS")
     require(styles, ".autonomy-detail-card", label="secondary panel autonomy detail card CSS")
@@ -1449,14 +1414,12 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.threadScroller.dataset.restorePath = sessionStatus.restorePath || "none";', label="thread scroller restore path dataset")
     require(render_js, 'dom.threadScroller.dataset.restoreProvenance = sessionStatus.restoreProvenance || "none";', label="thread scroller restore provenance dataset")
     require(render_js, 'dom.composerOwnerRow.dataset.composerRestoreStage = owner.state === "restore" ? (owner.label === "RESUME" ? "resume-pending" : "attach-pending") : "none";', label="composer owner restore stage dataset")
-    require(render_js, 'dom.sessionSummaryRow.dataset.restoreStage = sessionStatus.restoreStage || "none";', label="session summary restore stage dataset")
-    require(render_js, 'dom.sessionSummaryRow.dataset.restorePath = sessionStatus.restorePath || "none";', label="session summary restore path dataset")
-    require(render_js, 'dom.sessionSummaryRow.dataset.restoreProvenance = sessionStatus.restoreProvenance || "none";', label="session summary restore provenance dataset")
-    require(render_js, 'dom.sessionSummaryRow.dataset.footerDockOwned = footerDockOwnsLive ? "true" : "false";', label="header footer-dock ownership dataset")
-    require(render_js, 'dom.sessionSummaryRow.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="header center-timeline authority dataset")
-    require(render_js, 'dom.sessionSummaryRow.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="header center-timeline presentation dataset")
-    require(render_js, 'dom.sessionSummaryRow.dataset.indicatorOnly = indicatorOnlySummary ? "true" : "false";', label="header indicator-only summary dataset")
-    require(render_js, 'dom.sessionSummaryRow.hidden = !headerSummaryVisible || (!ownershipIndicatorVisible && timelineAuthority.visible);', label="header summary row visibility")
+    require(render_js, 'dom.threadPhaseChip.dataset.restoreStage = sessionStatus.restoreStage || "none";', label="header badge restore stage dataset")
+    require(render_js, 'dom.threadPhaseChip.dataset.restorePath = sessionStatus.restorePath || "none";', label="header badge restore path dataset")
+    require(render_js, 'dom.threadPhaseChip.dataset.restoreProvenance = sessionStatus.restoreProvenance || "none";', label="header badge restore provenance dataset")
+    require(render_js, 'dom.threadPhaseChip.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="header badge center-timeline authority dataset")
+    require(render_js, 'dom.threadPhaseChip.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="header badge center-timeline presentation dataset")
+    require(render_js, 'dom.threadPhaseChip.hidden = !badgeVisible;', label="header badge visibility")
     require(content, "__verifyStartSwitchMonitor", label="switch monitor start helper")
     require(content, "__verifySwitchMonitor", label="switch monitor state")
     require(content, "switchMonitor.sawEmptyState === false", label="switch monitor no empty-state flash assertion")
@@ -1501,21 +1464,15 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.autonomyDetail.dataset.surface = "secondary-detail";', label="autonomy detail surface dataset")
     require(render_js, 'dom.autonomyDetail.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="autonomy detail center-timeline authority dataset")
     require(render_js, 'dom.autonomyDetail.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="autonomy detail center-timeline presentation dataset")
-    require(render_js, 'dom.sessionSummaryScope.hidden = indicatorOnlySummary;', label="header scope demotion")
-    require(render_js, 'dom.sessionSummaryPath.hidden = indicatorOnlySummary;', label="header path demotion")
-    require(render_js, 'dom.sessionSummaryState.hidden = indicatorOnlySummary;', label="header state demotion")
-    require(render_js, 'dom.sessionSummaryCopy.hidden = !summaryDetailVisible;', label="header copy visibility")
-    require(render_js, 'dom.sessionLiveIndicator.hidden = !ownershipIndicatorVisible;', label="header indicator visibility")
-    require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionSource = ownershipIndicatorSource;', label="header indicator source dataset")
-    require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionOwned = sessionIndicator.owned ? "true" : "false";', label="header indicator ownership dataset")
-    require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionReason = ownershipIndicatorReason;', label="header indicator reason dataset")
-    require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionPresentation = ownershipIndicatorPresentation;', label="header indicator presentation dataset")
-    require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionVisible = ownershipIndicatorVisible ? "true" : "false";', label="header indicator visible dataset")
-    require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionProvenance = ownershipIndicatorSource;', label="header indicator provenance dataset")
-    require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionPhase = ownershipIndicatorLabel;', label="header indicator phase dataset")
-    require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionDetail = ownershipIndicatorDetail;', label="header indicator detail dataset")
-    require(render_js, 'label: sessionStatus.transportLabel || "SSE OWNER"', label="live-session healthy ownership label")
-    require(render_js, 'const ownershipIndicatorDetail =', label="header ownership detail helper")
+    require(render_js, 'dom.threadPhaseChip.dataset.liveSessionSource = badgeSource;', label="header badge live source dataset")
+    require(render_js, 'dom.threadPhaseChip.dataset.liveSessionOwned = sessionIndicator.owned ? "true" : "false";', label="header badge ownership dataset")
+    require(render_js, 'dom.threadPhaseChip.dataset.liveSessionReason = badgeReason;', label="header badge reason dataset")
+    require(render_js, 'dom.threadPhaseChip.dataset.liveSessionPresentation = badgePresentation;', label="header badge presentation dataset")
+    require(render_js, 'dom.threadPhaseChip.dataset.liveSessionVisible = badgeVisible ? "true" : "false";', label="header badge visible dataset")
+    require(render_js, 'dom.threadPhaseChip.dataset.liveSessionProvenance = badgeSource;', label="header badge provenance dataset")
+    require(render_js, 'dom.threadPhaseChip.dataset.liveSessionPhase = healthyPhaseLabel;', label="header badge phase dataset")
+    require(render_js, 'dom.threadPhaseChip.dataset.liveSessionDetail = badgeDetail;', label="header badge detail dataset")
+    require(render_js, 'const badgeDetail =', label="header badge detail helper")
     require(render_js, 'const healthyPhaseLabel = String(', label="header healthy phase label helper")
     require(store_js, 'transportLabel = "RECONNECT";', label="live-session reconnect label")
     require(store_js, 'transportLabel = "POLLING";', label="live-session polling label")
@@ -1544,7 +1501,6 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.threadPhaseChip.dataset.threadPhaseDetail = liveRun?.visible ? phaseDetailCopy(liveRun) : "idle";', label="thread phase detail dataset")
     require(render_js, 'dom.threadPhaseChip.title = liveRun?.visible ? phaseDetailCopy(liveRun) : "현재 활성 세션이 없습니다.";', label="thread phase detail title")
     require(render_js, "return target;", label="summary or composer compact target copy")
-    require(render_js, 'return joinSessionChromeTokens(target, stateLabel, "DEGRADED");', label="summary degraded token copy")
     require(render_js, 'type === "codex.exec.retrying"', label="live-session retry degradation mapping")
     require(render_js, "isAppendStreamAuthoritative(currentState, conversationId)", label="selected-thread authoritative SSE handoff guard")
     require(render_js, "const liveVisible =", label="inline live visibility guard")

@@ -692,14 +692,6 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   font-size: 0.88rem;
 }
 
-.session-summary-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.45rem 0.55rem;
-  margin-top: 0.1rem;
-}
-
 .session-summary-chip {
   display: inline-flex;
   align-items: center;
@@ -713,84 +705,6 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-}
-
-.session-summary-copy {
-  margin: 0;
-  display: inline-flex;
-  align-items: center;
-  min-height: 1.9rem;
-  padding: 0.2rem 0.55rem;
-  border: 1px solid rgba(221, 210, 196, 0.92);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.session-live-indicator {
-  white-space: nowrap;
-}
-
-.session-live-indicator[data-live-session-tone="healthy"] {
-  border-color: rgba(47, 138, 89, 0.24);
-  background: rgba(47, 138, 89, 0.1);
-  color: var(--success);
-}
-
-.session-live-indicator[data-live-session-tone="warning"] {
-  border-color: rgba(178, 114, 24, 0.24);
-  background: rgba(178, 114, 24, 0.08);
-  color: var(--warning);
-}
-
-.session-live-indicator[data-live-session-tone="neutral"] {
-  border-color: rgba(78, 96, 123, 0.18);
-  background: rgba(78, 96, 123, 0.08);
-  color: var(--muted);
-}
-
-.session-live-indicator[data-live-session-tone="muted"] {
-  border-color: rgba(78, 96, 123, 0.14);
-  background: rgba(78, 96, 123, 0.06);
-  color: var(--muted);
-}
-
-.session-live-indicator[data-live-session-tone="danger"] {
-  border-color: rgba(182, 75, 65, 0.24);
-  background: rgba(182, 75, 65, 0.1);
-  color: var(--danger);
-}
-
-.session-summary-row[data-summary-path="sse"] .session-summary-chip[data-summary-chip="path"],
-.session-summary-row[data-summary-state^="proposal"] .session-summary-chip[data-summary-chip="state"],
-.session-summary-row[data-summary-state="review"] .session-summary-chip[data-summary-chip="state"],
-.session-summary-row[data-summary-state="verify"] .session-summary-chip[data-summary-chip="state"],
-.session-summary-row[data-summary-state="ready"] .session-summary-chip[data-summary-chip="state"],
-.session-summary-row[data-summary-state="applied"] .session-summary-chip[data-summary-chip="state"] {
-  border-color: rgba(47, 138, 89, 0.24);
-  background: rgba(47, 138, 89, 0.1);
-  color: var(--success);
-}
-
-.session-summary-row[data-summary-path="switching"] .session-summary-chip[data-summary-chip="path"],
-.session-summary-row[data-summary-state="attach"] .session-summary-chip[data-summary-chip="state"] {
-  border-color: rgba(31, 120, 224, 0.2);
-  background: rgba(31, 120, 224, 0.08);
-  color: var(--accent-ink);
-}
-
-.session-summary-row[data-summary-path="handoff"] .session-summary-chip[data-summary-chip="path"],
-.session-summary-row[data-summary-state="sending"] .session-summary-chip[data-summary-chip="state"],
-.session-summary-row[data-summary-state="accepted"] .session-summary-chip[data-summary-chip="state"],
-.session-summary-row[data-summary-state="resume"] .session-summary-chip[data-summary-chip="state"] {
-  border-color: rgba(178, 114, 24, 0.24);
-  background: rgba(178, 114, 24, 0.08);
-  color: var(--warning);
 }
 
 .thread-phase-chip {

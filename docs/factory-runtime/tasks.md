@@ -1,9 +1,9 @@
 # Factory Runtime Tasks
 
-## Iteration 154
+## Iteration 155
 
-- [x] Render compact selected-thread scope, path, phase, verifier, blocker, and follow facts at the top of the secondary panel from existing session models.
-- [x] Keep the transcript and bottom composer authoritative while the secondary panel stays detail-only.
-- [x] Keep autonomy and execution detail visible in the panel without treating them as primary live status surfaces.
-- [x] Mirror healthy, degraded, switching, restore, and idle selected-thread states into the panel facts header and clear stale ownership immediately.
-- [x] Align focused static verification and proposal artifacts with the iteration-154 secondary-panel detail-drawer contract.
+- [x] Remove the standalone selected-thread session-summary strip from the center header markup and DOM bindings.
+- [x] Keep the selected-thread title area identity-first with at most one compact live phase badge.
+- [x] Mirror healthy, degraded, switching, restore, and idle selected-thread states through the single header badge and clear stale ownership immediately.
+- [x] Remove dead summary-strip CSS while preserving shared chip styling used by the secondary facts drawer.
+- [x] Align focused static verification and proposal artifacts with the iteration-155 single-badge header contract.
