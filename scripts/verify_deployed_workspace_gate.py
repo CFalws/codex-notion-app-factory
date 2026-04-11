@@ -981,13 +981,13 @@ def assert_browser_runtime_surface(
                     threadTitle.textContent.trim().length > 0 &&
                     threadTitle.textContent.trim() !== "새 대화를 시작하세요" &&
                     activeSessionRow &&
-                    activeSessionRow.hidden &&
+                    !activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
-                    activeSessionRow.dataset.activeSessionSource === "none" &&
-                    activeSessionRow.dataset.activeSessionState === "idle" &&
-                    activeSessionRow.dataset.activeSessionPhase === "IDLE" &&
-                    activeSessionRow.dataset.activeSessionConversationId === "" &&
-                    activeSessionRow.dataset.activeSessionFollow === "idle" &&
+                    activeSessionRow.dataset.activeSessionSource === "thread-transition" &&
+                    activeSessionRow.dataset.activeSessionState === "switching" &&
+                    activeSessionRow.dataset.activeSessionPhase === "SWITCHING" &&
+                    activeSessionRow.dataset.activeSessionConversationId === targetConversationId &&
+                    activeSessionRow.dataset.activeSessionFollow === "attach" &&
                     sessionStrip &&
                     !sessionStrip.hidden &&
                     sessionStripState &&
@@ -1073,13 +1073,13 @@ def assert_browser_runtime_surface(
                     transition.dataset.threadTransitionCompact === "true" &&
                     transition.dataset.threadTransitionConversationId === targetConversationId &&
                     activeSessionRow &&
-                    activeSessionRow.hidden &&
+                    !activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
-                    activeSessionRow.dataset.activeSessionSource === "none" &&
-                    activeSessionRow.dataset.activeSessionState === "idle" &&
-                    activeSessionRow.dataset.activeSessionPhase === "IDLE" &&
-                    activeSessionRow.dataset.activeSessionConversationId === "" &&
-                    activeSessionRow.dataset.activeSessionFollow === "idle" &&
+                    activeSessionRow.dataset.activeSessionSource === "thread-transition" &&
+                    activeSessionRow.dataset.activeSessionState === "switching" &&
+                    activeSessionRow.dataset.activeSessionPhase === "SWITCHING" &&
+                    activeSessionRow.dataset.activeSessionConversationId === targetConversationId &&
+                    activeSessionRow.dataset.activeSessionFollow === "attach" &&
                     sessionStrip &&
                     sessionStripState &&
                     sessionStripState.querySelectorAll(".session-chip").length === 1 &&
@@ -1172,13 +1172,13 @@ def assert_browser_runtime_surface(
                     selectedCardLiveOwnerRow.dataset.liveOwnerVisible === "false" &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerState === "idle" &&
                     activeSessionRow &&
-                    activeSessionRow.hidden &&
+                    !activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
-                    activeSessionRow.dataset.activeSessionSource === "none" &&
-                    activeSessionRow.dataset.activeSessionState === "idle" &&
-                    activeSessionRow.dataset.activeSessionPhase === "IDLE" &&
-                    activeSessionRow.dataset.activeSessionConversationId === "" &&
-                    activeSessionRow.dataset.activeSessionFollow === "idle" &&
+                    activeSessionRow.dataset.activeSessionSource === "thread-transition" &&
+                    activeSessionRow.dataset.activeSessionState === "switching" &&
+                    activeSessionRow.dataset.activeSessionPhase === "SWITCHING" &&
+                    activeSessionRow.dataset.activeSessionConversationId === targetConversationId &&
+                    activeSessionRow.dataset.activeSessionFollow === "attach" &&
                     secondarySessionFacts &&
                     secondarySessionFacts.dataset.secondaryFactsPresentation === "switching" &&
                     secondarySessionFacts.dataset.secondaryFactsOwned === "false" &&
@@ -1697,6 +1697,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionSource = visible ? rowSource : "none";', label="active session row source dataset")
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionPhase = visible ? rowPhase : "IDLE";', label="active session row phase dataset")
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionUnseenCount = String(visible ? rowUnseenCount : 0);', label="active session row unseen dataset")
+    require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionClearReason = visible ? clearReason : "idle";', label="active session row clear reason dataset")
     require(conversations_js, "const authoritativeSelectedAttach =", label="selected-thread attach authority gate")
     require(conversations_js, "if (authoritativeSelectedAttach) {", label="selected-thread attach authority short circuit")
     require(store_js, "export function deriveSelectedThreadActiveSessionRowModel", label="active session row store helper")
@@ -1705,10 +1706,12 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(store_js, 'markerLabel =', label="selected row marker label mapping")
     require(store_js, 'cueLabel =', label="selected row cue label mapping")
     require(store_js, 'cueKind =', label="selected row cue kind mapping")
-    require(store_js, 'presentation: "cleared",', label="active session switching cleared presentation")
-    require(store_js, 'rowState: "idle",', label="active session switching cleared state")
-    require(store_js, 'rowSource: "none",', label="active session switching cleared source")
-    require(store_js, 'rowPhase: "IDLE",', label="active session switching cleared phase")
+    require(store_js, 'presentation: "switching",', label="active session switching presentation")
+    require(store_js, 'rowState: "switching",', label="active session switching state")
+    require(store_js, 'rowSource: "thread-transition",', label="active session switching source")
+    require(store_js, 'rowPhase: "SWITCHING",', label="active session switching phase")
+    require(store_js, 'followLabel: "ATTACH",', label="active session switching follow label")
+    require(store_js, 'meta: "selected thread · switching · attach pending",', label="active session switching meta copy")
     require(store_js, 'presentation: "handoff",', label="active session handoff presentation")
     require(store_js, 'rowState: "handoff",', label="active session handoff state")
     require(store_js, 'stateLabel: "HANDOFF",', label="active session handoff label")
@@ -1771,6 +1774,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(jobs_js, "!isAppendStreamAuthoritative(state, state.currentConversationId)", label="polling refetch skip while append stream is authoritative")
     require(styles, ".conversation-card-live-owner-row", label="selected card live owner row CSS")
     require(styles, ".active-session-row", label="active session row CSS")
+    require(styles, "position: sticky;", label="active session sticky position CSS")
     require(styles, ".active-session-chip", label="active session chip CSS")
     require(styles, '.active-session-row[data-active-session-state="paused"] .active-session-chip[data-active-chip="state"]', label="active session paused chip CSS")
     require(styles, '.active-session-row[data-active-session-follow="live"] .active-session-chip[data-active-chip="follow"]', label="active session live chip CSS")

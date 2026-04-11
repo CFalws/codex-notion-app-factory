@@ -979,6 +979,7 @@ export function createConversationController(deps) {
       rowSource,
       rowPhase,
       rowUnseenCount,
+      clearReason,
     } = rowModel;
 
     dom.activeSessionRow.hidden = !visible;
@@ -990,6 +991,7 @@ export function createConversationController(deps) {
     dom.activeSessionRow.dataset.activeSessionSource = visible ? rowSource : "none";
     dom.activeSessionRow.dataset.activeSessionPhase = visible ? rowPhase : "IDLE";
     dom.activeSessionRow.dataset.activeSessionUnseenCount = String(visible ? rowUnseenCount : 0);
+    dom.activeSessionRow.dataset.activeSessionClearReason = visible ? clearReason : "idle";
     dom.activeSessionOwner.textContent = ownerLabel;
     dom.activeSessionState.textContent = stateLabel;
     dom.activeSessionFollow.textContent = followLabel;

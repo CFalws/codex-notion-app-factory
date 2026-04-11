@@ -1,10 +1,10 @@
 # Factory Runtime Tasks
 
-## Iteration 166
+## Iteration 167
 
-- [x] Keep the switch-path change read-only over the existing selected-thread ownership and attach seam.
-- [x] Preserve the center conversation shell during intentional thread switches instead of falling back to the generic empty reset.
-- [x] Keep exactly one compact transition placeholder visible while the new selected-thread snapshot is attaching.
-- [x] Keep the bottom composer dock mounted and expose a finite composer target row through switch.
-- [x] Clear old-thread live ownership immediately on switch, cancellation, deselection, terminal completion, reconnect downgrade, polling fallback, and lost authority.
-- [x] Align focused docs and verification with the iteration-166 switch-continuity contract.
+- [x] Keep the sticky active-session row read-only over the existing selected-thread session and follow seam.
+- [x] Make the row visible for healthy live, handoff, paused or unseen follow, and bounded switching states only.
+- [x] Keep the row selected-thread-only and prevent non-selected rows from appearing live-owned.
+- [x] Clear the row on reconnect downgrade, polling fallback, terminal completion, deselection, lost authority, and switch resolution.
+- [x] Add machine-readable row datasets for switching and clear-reason verification.
+- [x] Align focused docs and verification with the iteration-167 sticky active-session contract.

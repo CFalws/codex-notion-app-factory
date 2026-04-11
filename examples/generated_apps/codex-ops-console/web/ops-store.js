@@ -345,19 +345,20 @@ export function deriveSelectedThreadActiveSessionRowModel(currentState, conversa
   const conversationTitle = sessionStatus.conversationTitle || "현재 대화";
   if (sessionStatus.switchActive) {
     return {
-      visible: false,
-      conversationId: "",
-      presentation: "cleared",
-      rowState: "idle",
-      ownerLabel: "OWNER",
-      stateLabel: "SESSION",
-      followLabel: "LIVE",
-      title: "선택된 대화",
-      meta: "selected thread",
+      visible: true,
+      conversationId: String(sessionStatus.switchConversationId || ""),
+      presentation: "switching",
+      rowState: "switching",
+      ownerLabel: sessionStatus.transportLabel || "ATTACH",
+      stateLabel: "SWITCHING",
+      followLabel: "ATTACH",
+      title: sessionStatus.switchTargetTitle || "대화 전환 중",
+      meta: "selected thread · switching · attach pending",
       rowOwned: false,
-      rowSource: "none",
-      rowPhase: "IDLE",
+      rowSource: "thread-transition",
+      rowPhase: "SWITCHING",
       rowUnseenCount: 0,
+      clearReason: "none",
     };
   }
   if (sessionStatus.pendingHandoff && sessionStatus.selectedThreadSse) {
@@ -375,6 +376,7 @@ export function deriveSelectedThreadActiveSessionRowModel(currentState, conversa
       rowSource: "sse",
       rowPhase: "HANDOFF",
       rowUnseenCount: 0,
+      clearReason: "none",
     };
   }
   if (sessionStatus.liveOwned) {
@@ -402,6 +404,7 @@ export function deriveSelectedThreadActiveSessionRowModel(currentState, conversa
       rowSource: "sse",
       rowPhase,
       rowUnseenCount,
+      clearReason: "none",
     };
   }
   return {
@@ -418,6 +421,7 @@ export function deriveSelectedThreadActiveSessionRowModel(currentState, conversa
     rowSource: "none",
     rowPhase: "IDLE",
     rowUnseenCount: 0,
+    clearReason: String(sessionStatus.clearReason || sessionStatus.transportReason || "idle"),
   };
 }
 
