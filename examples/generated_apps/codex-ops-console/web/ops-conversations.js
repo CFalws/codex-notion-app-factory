@@ -1,4 +1,4 @@
-import { deriveSelectedThreadSessionStatus } from "./ops-store.js";
+import { deriveSelectedThreadFollowControlModel, deriveSelectedThreadSessionStatus } from "./ops-store.js";
 
 export function createConversationController(deps) {
   const {
@@ -936,28 +936,16 @@ export function createConversationController(deps) {
       return;
     }
 
-    const threadTransition = state.threadTransition || {};
     const sessionStatus = deriveSelectedThreadSessionStatus(state, state.conversationCache);
+    const followControl = deriveSelectedThreadFollowControlModel(state);
     const summaryLiveOwned = String(dom.sessionSummaryRow?.dataset.liveSessionOwned || "false") === "true";
     const summaryLiveSource = String(dom.sessionSummaryRow?.dataset.liveSessionSource || "none");
-    const summaryLiveState = String(dom.sessionSummaryRow?.dataset.liveSessionState || "idle");
-    const summaryLiveReason = String(dom.sessionSummaryRow?.dataset.liveSessionReason || "idle");
     const summaryPhaseLabel = String(dom.sessionSummaryRow?.dataset.summaryPhase || "").trim().toUpperCase();
-    const summaryStateLabel = String(dom.sessionSummaryState?.textContent || "").trim().toUpperCase();
     const sessionIndicatorLabel = String(dom.sessionLiveIndicator?.textContent || "").trim().toUpperCase();
-    const switchingActive =
-      Boolean(sessionStatus.switchActive && sessionStatus.switchConversationId) &&
-      !sessionTerminal;
-    const handoffActive =
-      Boolean(selectedConversationId) &&
-      !sessionTerminal &&
-      !threadTransition.active &&
-      sessionStatus.pendingHandoff &&
-      (pendingStage === "pending-user" || pendingStage === "pending-assistant");
     const healthySelectedSessionMirror =
       Boolean(selectedConversationId) &&
       !sessionTerminal &&
-      !threadTransition.active &&
+      !sessionStatus.switchActive &&
       sessionStatus.liveOwned &&
       summaryLiveOwned &&
       summaryLiveSource === "sse" &&
@@ -967,7 +955,7 @@ export function createConversationController(deps) {
     let conversationId = "";
     let rowState = "idle";
     let ownerLabel = "OWNER";
-    let stateLabel = summaryStateLabel || "LIVE";
+    let stateLabel = "LIVE";
     let followLabel = "LIVE";
     let title = "";
     let meta = "";
@@ -975,61 +963,29 @@ export function createConversationController(deps) {
     let rowSource = "none";
     let rowPhase = "IDLE";
     let rowUnseenCount = 0;
-    const livePhaseLabel = summaryPhaseLabel || liveRunPhase || summaryStateLabel || "LIVE";
+    const livePhaseLabel = summaryPhaseLabel || liveRunPhase || sessionStatus.phaseValue || "LIVE";
 
-    if (switchingActive) {
-      visible = true;
-      conversationId = String(sessionStatus.switchConversationId || sessionStatus.targetConversationId || "");
-      rowState = "switching";
-      stateLabel = "SWITCHING";
-      followLabel = "ATTACH";
-      rowOwned = false;
-      rowSource = "transition";
-      rowPhase = "ATTACH";
-      rowUnseenCount = 0;
-      title =
-        sessionStatus.switchTargetTitle ||
-        sessionStatus.targetTitle ||
-        threadTitleForConversation(conversationId) ||
-        String(dom.threadTitle?.textContent || "").trim() ||
-        "선택한 대화";
-      meta = "selected thread · switching · attach";
-    } else if (handoffActive) {
+    if (healthySelectedSessionMirror) {
       visible = true;
       conversationId = selectedConversationId;
-      rowState = "handoff";
-      stateLabel = "HANDOFF";
-      followLabel = "HANDOFF";
-      rowOwned = false;
-      rowSource = "handoff";
-      rowPhase = "HANDOFF";
-      rowUnseenCount = 0;
-      title =
-        sessionStatus.conversationTitle ||
-        threadTitleForConversation(selectedConversationId) ||
-        String(dom.threadTitle?.textContent || "").trim() ||
-        "현재 대화";
-      meta = "selected thread · handoff";
-    } else if (healthySelectedSessionMirror) {
-      visible = true;
-      conversationId = selectedConversationId;
-      rowState = sessionStatus.followState === "new" ? "new" : sessionStatus.followState === "paused" ? "paused" : "live";
-      stateLabel = sessionStatus.railLabel || (summaryLiveState === "paused" ? "PAUSED" : "LIVE");
-      followLabel = stateLabel;
+      rowState = followControl.visible ? followControl.followState : "live";
+      ownerLabel = sessionStatus.transportLabel || "SSE OWNER";
+      stateLabel = livePhaseLabel;
+      followLabel = followControl.visible ? followControl.stateLabel : "LIVE";
       rowOwned = true;
       rowSource = summaryLiveSource;
       rowPhase = livePhaseLabel;
-      rowUnseenCount = sessionStatus.followState === "new" ? Math.max(Number(sessionStatus.unseenCount || unseenCount || 0), 0) : 0;
+      rowUnseenCount = followControl.visible ? Math.max(Number(followControl.unseenCount || unseenCount || 0), 0) : 0;
       title =
         sessionStatus.conversationTitle ||
         threadTitleForConversation(selectedConversationId) ||
         String(dom.threadTitle?.textContent || "").trim() ||
         "현재 대화";
       meta =
-        sessionStatus.followState === "new" && rowUnseenCount > 0
+        followControl.followState === "new" && rowUnseenCount > 0
           ? `selected thread · ${livePhaseLabel.toLowerCase()} · ${rowUnseenCount} new`
-          : sessionStatus.followPaused || summaryLiveReason === "selected-thread-follow-paused"
-            ? `selected thread · ${livePhaseLabel.toLowerCase()} · follow paused`
+          : followControl.followState === "paused"
+            ? `selected thread · ${livePhaseLabel.toLowerCase()} · ${followControl.detailLabel}`
             : `selected thread · ${livePhaseLabel.toLowerCase()} · sse owner`;
     }
 

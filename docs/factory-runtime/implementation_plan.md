@@ -1,11 +1,11 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 119
+## Iteration 120
 
-Converge the footer session strip and detached follow affordance into one bottom-fixed session bar above the composer.
+Tighten the sticky left-rail active-session row so it mirrors only the healthy selected-thread SSE session and clears immediately on degraded or non-selected paths.
 
-1. Reuse the existing selected-thread footer dock and follow-control models as the only footer state inputs.
-2. Keep the session strip visible as the single live-owned footer surface on the healthy selected-thread SSE path.
-3. Route detached follow action through the same footer bar by turning the session-strip toggle into the jump-to-latest action when follow state is visible.
-4. Keep the old transcript-bottom follow button hidden so no second footer follow surface remains.
-5. Extend the focused verifier layer and proposal artifacts so iteration 119 proves the footer bar owns detached follow behavior without reintroducing stale or duplicate live-owned cues.
+1. Reuse `deriveSelectedThreadSessionStatus(...)` and `deriveSelectedThreadFollowControlModel(...)` as the only active-session row inputs.
+2. Keep the row visible only for the healthy selected-thread SSE-owned path instead of transition or handoff or degraded branches.
+3. Mirror owner, current phase, and `NEW` or `PAUSED` follow state with unseen-count metadata from the canonical selected-thread datasets.
+4. Clear the row on switching, polling fallback, reconnect downgrade, terminal idle, and deselection so no stale live-owned rail surface survives outside the intended path.
+5. Extend the focused verifier layer and proposal artifacts so iteration 120 proves both presence on the healthy path and absence on degraded or switching paths.

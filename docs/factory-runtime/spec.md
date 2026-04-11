@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `119`
-- bounded focus: `footer session strip and detached follow converge into one bottom-fixed session bar`
+- current iteration: `120`
+- bounded focus: `left rail exposes exactly one sticky active-session row from the healthy selected-thread session model`
 
 ## Request
 
@@ -13,7 +13,7 @@
 
 ## Problem
 
-Healthy selected-thread ownership, switching continuity, one center live session lane, and a canonical detached follow model are already established. The remaining gap is the footer itself: the composer dock still splits live session state and detached follow behavior across the session strip and a separate bottom follow control.
+Healthy selected-thread ownership, one center live session lane, and one footer session bar are already established. The remaining gap is the left rail: the sticky active-session row still mixes in transition behavior instead of mirroring only the healthy selected-thread SSE session and clearing immediately on degraded or non-selected paths.
 
 ## Target User
 
@@ -23,13 +23,13 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the selected-thread SSE ownership, center live-lane, rail, and polling-fallback contracts unchanged.
-- Do not introduce a new transport, polling path, backend protocol, or a second footer follow surface.
-- Reuse the existing selected-thread footer dock and follow-control models instead of adding a new footer state machine.
-- Show exactly one composer-adjacent footer session bar on the healthy selected-thread SSE path.
-- Let that bar carry live phase progression while following and switch into explicit `NEW` or `PAUSED` follow state with unseen-count metadata when detached from the tail.
-- Clear or degrade that footer follow treatment immediately on jump-to-latest, switching, reconnect downgrade, polling fallback, terminal idle, or any non-selected context.
+- Keep the selected-thread SSE ownership, center live-lane, footer session bar, and polling-fallback contracts unchanged.
+- Do not introduce a new transport, polling path, backend protocol, or a second rail live-status surface.
+- Reuse the existing selected-thread session-status and follow-control models instead of adding another rail authority source.
+- Show exactly one sticky active-session row above the left conversation list on the healthy selected-thread SSE path only.
+- Let that row carry owner, current phase, and `NEW` or `PAUSED` follow state with unseen-count metadata from the same selected-thread datasets as the center and footer surfaces.
+- Clear that row immediately on jump-to-latest follow re-engagement, idle, terminal, reconnect downgrade, polling fallback, deselection, and thread switch.
 
 ## Deliverable
 
-Define and verify one footer session-bar contract where the selected-thread footer strip is the only live-owned footer surface and it switches between phase progression and `NEW` or `PAUSED` follow state without a separate bottom follow button.
+Define and verify one active-session rail contract where the left navigation exposes exactly one sticky row for the healthy selected-thread SSE session with owner, phase, and detached follow state, while degraded and non-selected paths clear it immediately.

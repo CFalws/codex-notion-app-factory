@@ -1,8 +1,8 @@
 # Factory Runtime Tasks
 
-## Iteration 119
+## Iteration 120
 
-- [x] Keep the footer session strip as the only live-owned footer surface on the healthy selected-thread path.
-- [x] Move detached follow action into that same footer bar instead of a separate bottom follow button.
-- [x] Preserve immediate clearing on jump-to-latest, switching, reconnect downgrade, polling fallback, terminal idle, and non-selected contexts.
-- [x] Align focused verifiers and proposal artifacts with the iteration-119 unified footer-bar contract.
+- [x] Restrict the sticky active-session row to the healthy selected-thread SSE path only.
+- [x] Mirror owner, current phase, and detached follow state from canonical selected-thread session and follow-control datasets.
+- [x] Clear the row immediately on switching, reconnect downgrade, polling fallback, terminal idle, and non-selected contexts.
+- [x] Align focused verifiers and proposal artifacts with the iteration-120 active-session rail contract.
