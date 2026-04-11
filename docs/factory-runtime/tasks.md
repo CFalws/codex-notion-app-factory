@@ -1,8 +1,9 @@
 # Factory Runtime Tasks
 
-## Iteration 130
+## Iteration 131
 
-- [x] Keep the transcript-tail live activity item as the primary selected-thread center-lane session surface.
-- [x] Collapse duplicate selected-thread session-event cards whenever that primary transcript surface is present.
-- [x] Preserve degraded, handoff, restore, reconnect, polling fallback, and switch downgrade behavior without stale live-owned center treatment.
-- [x] Align focused verifiers and proposal artifacts with the iteration-130 unified live-timeline contract.
+- [x] Add one canonical selected-thread session surface helper derived from existing SSE-owned session status, phase progression, live autonomy, and milestone helpers.
+- [x] Route the composer-adjacent session strip footer dock through that shared selected-thread session surface helper.
+- [x] Route the transcript-tail live activity item through the same shared helper for phase, verifier, blocker, and milestone authority.
+- [x] Preserve reconnect, polling fallback, restore, switch, and deselection downgrade or clear behavior without stale healthy selected-thread ownership.
+- [x] Align focused verifiers and proposal artifacts with the iteration-131 shared selected-thread session-surface contract.

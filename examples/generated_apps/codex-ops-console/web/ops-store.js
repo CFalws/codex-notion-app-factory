@@ -582,6 +582,45 @@ export function deriveSelectedThreadTimelineMilestones(currentState, conversatio
   };
 }
 
+export function deriveSelectedThreadSessionSurfaceModel(currentState, conversation = null) {
+  const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
+  const liveAutonomy = deriveSelectedThreadLiveAutonomy(currentState, conversation);
+  const phaseProgression = deriveSelectedThreadPhaseProgression(currentState, conversation);
+  const milestoneModel = deriveSelectedThreadTimelineMilestones(currentState, conversation);
+  const shellPhaseLabel = deriveSelectedThreadShellPhaseLabel(currentState, conversation);
+  const liveOwned = Boolean(sessionStatus.liveOwned && liveAutonomy.owned && phaseProgression.visible);
+  const degradedVisible = sessionStatus.transportState === "reconnect" || sessionStatus.transportState === "polling";
+  const handoffVisible = Boolean(sessionStatus.pendingHandoff && sessionStatus.selectedThreadSse);
+  const restoreVisible = Boolean(sessionStatus.presentation === "restore" && liveAutonomy.visible && phaseProgression.visible);
+  const phaseLabel = degradedVisible
+    ? String(sessionStatus.transportLabel || "POLLING").toUpperCase()
+    : handoffVisible
+      ? "HANDOFF"
+      : String(shellPhaseLabel || phaseProgression.label || "").toUpperCase();
+  const summary = liveAutonomy.summary || null;
+  return {
+    sessionStatus,
+    liveAutonomy,
+    phaseProgression,
+    milestoneModel,
+    liveOwned,
+    degradedVisible,
+    handoffVisible,
+    restoreVisible,
+    phaseLabel,
+    pathVerdict: liveOwned ? String(summary?.pathVerdict || "UNKNOWN").toUpperCase() : "",
+    verifierAcceptability: liveOwned ? String(summary?.verifierAcceptability || "PENDING").toUpperCase() : "",
+    blockerReason: liveOwned ? String(summary?.blockerReason || "none").toUpperCase() : "",
+    source: String(
+      degradedVisible
+        ? sessionStatus.transport || "polling"
+        : restoreVisible
+          ? phaseProgression.source || liveAutonomy.source || "sse"
+          : phaseProgression.source || liveAutonomy.source || "none",
+    ).toLowerCase(),
+  };
+}
+
 export function isSelectedThreadSessionOwned(currentState, conversationId = "") {
   const selectedThreadStatus = deriveSelectedThreadSessionStatus(currentState, { conversation_id: conversationId });
   return Boolean(selectedThreadStatus.authoritative);

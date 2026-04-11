@@ -3,6 +3,7 @@ import {
   deriveSelectedThreadFollowControlModel,
   deriveSelectedThreadLiveAutonomy,
   deriveSelectedThreadPhaseProgression,
+  deriveSelectedThreadSessionSurfaceModel,
   deriveSelectedThreadShellPhaseLabel,
   deriveSelectedThreadSessionStatus,
   deriveSelectedThreadTimelineMilestones,
@@ -242,17 +243,9 @@ function sessionStripStateChipMarkup(chips) {
 }
 
 function selectedThreadFooterDockModel(currentState, conversation, liveRun, footerFollow = null) {
-  const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
-  const phaseProgression = deriveSelectedThreadPhaseProgression(currentState, conversation);
-  const shellPhaseLabel = deriveSelectedThreadShellPhaseLabel(currentState, conversation);
-  const liveAutonomy = deriveSelectedThreadLiveAutonomy(currentState, conversation);
-  const milestoneModel = deriveSelectedThreadTimelineMilestones(currentState, conversation);
-  const liveOwned = Boolean(
-    sessionStatus.liveOwned &&
-      phaseProgression.visible &&
-      String(phaseProgression.source || "none").toLowerCase() === "sse",
-  );
-  const phaseLabel = String(shellPhaseLabel || phaseProgression.label || liveRun?.phase || "LIVE").toUpperCase();
+  const sessionSurface = deriveSelectedThreadSessionSurfaceModel(currentState, conversation);
+  const liveOwned = Boolean(sessionSurface.liveOwned && sessionSurface.source === "sse");
+  const phaseLabel = String(sessionSurface.phaseLabel || deriveSelectedThreadShellPhaseLabel(currentState, conversation) || liveRun?.phase || "LIVE").toUpperCase();
   const chips = [
     footerFollow?.visible
       ? {
@@ -267,7 +260,7 @@ function selectedThreadFooterDockModel(currentState, conversation, liveRun, foot
     phaseLabel,
     chips,
     detail: footerFollow?.visible ? footerFollow.detailLabel : "SSE LIVE",
-    source: String(milestoneModel.source || phaseProgression.source || "sse").toLowerCase(),
+    source: String(sessionSurface.milestoneModel.source || sessionSurface.source || "sse").toLowerCase(),
     liveOwned,
   };
 }
@@ -981,19 +974,18 @@ function renderTranscriptMilestones(currentState, conversation) {
 function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
   const handoffState = pendingHandoffState(conversation, currentState);
   const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
-  const liveAutonomy = deriveSelectedThreadLiveAutonomy(currentState, conversation);
-  const phaseProgression = deriveSelectedThreadPhaseProgression(currentState, conversation);
-  const milestoneModel = deriveSelectedThreadTimelineMilestones(currentState, conversation);
+  const sessionSurface = deriveSelectedThreadSessionSurfaceModel(currentState, conversation);
+  const { liveAutonomy, phaseProgression, milestoneModel } = sessionSurface;
   const { handoffVisible, degradedVisible, sessionIndicator } = inlineState;
   if (!handoffVisible && !degradedVisible && (!phaseProgression.visible || !liveAutonomy.visible)) {
     return "";
   }
-  const liveOwned = !handoffVisible && !degradedVisible && liveAutonomy.owned;
+  const liveOwned = !handoffVisible && !degradedVisible && sessionSurface.liveOwned;
   const phaseLabel = degradedVisible
     ? String(sessionIndicator.label || "POLLING").toUpperCase()
     : handoffVisible
       ? "HANDOFF"
-      : String(phaseProgression.label || liveRun.phase || "LIVE").toUpperCase();
+      : String(sessionSurface.phaseLabel || phaseProgression.label || liveRun.phase || "LIVE").toUpperCase();
   const tone = degradedVisible ? "warning" : handoffVisible ? "neutral" : liveOwned ? transcriptLiveTone(liveRun) : "warning";
   const detail = degradedVisible
     ? sessionIndicator.reason === "session-rotation"
@@ -1019,9 +1011,9 @@ function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
         : String(liveAutonomy.label || "FALLBACK");
   const metaPhase = degradedVisible ? phaseLabel : handoffVisible ? "HANDOFF" : String(phaseProgression.label || "LIVE");
   const metaReason = degradedVisible ? String(sessionIndicator.reason || "polling-fallback").toUpperCase() : "";
-  const pathVerdict = liveOwned ? String(autonomySummary?.pathVerdict || "UNKNOWN").toUpperCase() : "";
-  const verifierAcceptability = liveOwned ? String(autonomySummary?.verifierAcceptability || "PENDING").toUpperCase() : "";
-  const blockerReason = liveOwned ? String(autonomySummary?.blockerReason || "none").toUpperCase() : "";
+  const pathVerdict = liveOwned ? sessionSurface.pathVerdict : "";
+  const verifierAcceptability = liveOwned ? sessionSurface.verifierAcceptability : "";
+  const blockerReason = liveOwned ? sessionSurface.blockerReason : "";
   return `
     <article class="timeline-item live-activity" data-live-activity-turn="true" data-live-session-primary="true" data-live-session-event="${liveOwned ? "true" : "false"}" data-live-session-lane="${escapeHtml(liveOwned ? "selected-thread" : degradedVisible ? "degraded" : handoffVisible ? "handoff" : "fallback")}" data-live-milestones-visible="${liveOwned && milestoneModel.visible ? "true" : "false"}" data-live-milestones-phase="${escapeHtml(liveOwned ? String(milestoneModel.currentLabel || phaseLabel) : "")}" data-live-path-verdict="${escapeHtml(pathVerdict)}" data-live-verifier-acceptability="${escapeHtml(verifierAcceptability)}" data-live-blocker-reason="${escapeHtml(blockerReason)}" data-live-run-state="${escapeHtml(handoffVisible ? "handoff" : degradedVisible ? String(sessionIndicator.state || "polling") : phaseProgression.state || liveRun.state)}" data-live-run-phase="${escapeHtml(phaseLabel)}" data-live-run-source="${escapeHtml(degradedVisible ? String(sessionIndicator.source || "polling") : handoffVisible ? "handoff" : phaseProgression.source || liveRun.source)}" data-live-owned="${liveOwned ? "true" : "false"}" data-live-autonomy-presentation="${escapeHtml(degradedVisible ? "degraded" : handoffVisible ? "handoff" : liveAutonomy.presentation)}" data-live-reason="${escapeHtml(degradedVisible ? String(sessionIndicator.reason || "polling-fallback") : handoffVisible ? "handoff" : String(liveAutonomy.reason || "healthy"))}" data-append-id="${appendId}" data-append-source="sse-live-activity">
       <p class="timeline-kind">${liveOwned ? "세션 진행" : "실시간 진행"}</p>
