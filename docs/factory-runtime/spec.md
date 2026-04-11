@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `211`
-- bounded focus: `preserve one continuous center workspace during selected-thread switches`
+- current iteration: `212`
+- bounded focus: `activate the inline selected-thread session block in the center transcript`
 
 ## Request
 
@@ -13,23 +13,23 @@
 
 ## Problem
 
-Healthy selected-thread ownership, explicit autonomy milestones, left-rail mirroring, healthy-path SSE authority, secondary-card suppression, and the compact composer utility affordance are already present, but thread switches still need to read as one continuous live workspace rather than a drop into an empty or reset view. The remaining bounded risk is that operators may still infer the wrong state during a deliberate thread switch if the center pane or composer appears to unmount, flash empty, or leave stale ownership cues behind while the next snapshot attaches.
+Healthy selected-thread ownership, explicit autonomy milestones, left-rail mirroring, switch continuity, and healthy-path SSE authority are already present, but the center transcript still keeps the prepared inline session block suppressed and leaves healthy live ownership expressed through adjacent strips rather than the conversation surface itself. The remaining bounded risk is that operators still have to look outside the transcript to understand the current selected-thread session state even though the render path for a compact inline owner block already exists.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly realtime workspace and expecting intentional thread switches to feel like one continuous session workspace rather than a tear-down and rebuild.
+The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the center transcript itself to read like the active realtime session rather than a passive history beside separate status surfaces.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the iteration bounded to selected-thread switch rendering, workspace placeholders, composer continuity, and browser verification coverage.
-- Reuse the current selected-thread session authority and thread-transition datasets; do not change backend transport, polling, or broader ownership rules.
-- Keep the center shell and bottom-fixed composer mounted throughout an intentional selected-thread switch.
-- Show at most one compact switching placeholder while the new selected-thread snapshot attaches.
-- Clear old-thread live-owned cues immediately on switch start and reserve the generic empty workspace for true no-selection idle only.
-- Keep reconnect downgrade, polling fallback, deselection, restore-gap loss, and terminal resolution on the existing fail-open clear path.
+- Keep the iteration bounded to the inline selected-thread session block in the center transcript and its browser verification coverage.
+- Reuse the current selected-thread authority, handoff, and phase datasets; do not change backend transport, polling, or broader ownership rules.
+- Show exactly one compact inline session block only for healthy selected-thread SSE ownership or pending assistant handoff.
+- Clear that block immediately on reconnect downgrade, polling fallback, terminal resolution, deselection, or thread switch.
+- Keep degraded fallback, switch placeholders, and restore behavior on the existing fail-open path.
+- Keep duplicate live-owner treatment out of competing surfaces on the same healthy path.
 
 ## Deliverable
 
-Expose one conversation-first selected-thread workspace where intentional thread switches preserve the mounted conversation shell and composer, show at most one compact switching placeholder, and never flash the generic empty state.
+Expose one conversation-first selected-thread workspace where the center transcript shows one compact inline session owner block for healthy or handoff selected-thread progress without introducing duplicate live-owner surfaces.

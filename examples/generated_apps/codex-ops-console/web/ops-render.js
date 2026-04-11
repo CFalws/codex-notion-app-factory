@@ -1135,7 +1135,49 @@ function selectedThreadTimelineAuthorityModel(conversation, currentState, liveRu
 }
 
 function renderInlineSessionBlock(conversation, currentState, liveRun, handoffState) {
-  return "";
+  const timelineSession = selectedThreadPrimaryTimelineSessionModel(conversation, currentState, liveRun);
+  const { inlineState, sessionSurface } = timelineSession;
+  const { handoffVisible, liveVisible } = inlineState;
+  if (!liveVisible && !handoffVisible) {
+    return "";
+  }
+  const sessionStatus = sessionSurface.sessionStatus;
+  const phaseProgression = sessionSurface.phaseProgression;
+  const phaseLabel = handoffVisible
+    ? "HANDOFF"
+    : String(sessionSurface.phaseLabel || phaseProgression.label || liveRun?.phase || "LIVE").toUpperCase();
+  const transportLabel = handoffVisible
+    ? "HANDOFF"
+    : String(sessionStatus.transportLabel || "SSE OWNER").toUpperCase();
+  const pathVerdict = liveVisible ? String(sessionSurface.pathVerdict || "EXPECTED").toUpperCase() : "";
+  const verifierAcceptability = liveVisible
+    ? String(sessionSurface.verifierAcceptability || "PENDING").toUpperCase()
+    : "";
+  const blockerReason = liveVisible ? String(sessionSurface.blockerReason || "none").toUpperCase() : "";
+  const expectedPath = liveVisible
+    ? String(sessionSurface.liveAutonomy?.summary?.expectedPath || "unknown").toUpperCase()
+    : "";
+  const detail = handoffVisible
+    ? "서버 handoff가 확인되어 첫 live assistant append를 기다리는 중입니다."
+    : simplifyText(phaseDetailHint(liveRun) || liveRun?.detail || "선택된 대화의 최신 live 진행 상태를 반영하는 중입니다.");
+  const milestoneLane = liveVisible ? renderTranscriptMilestones(currentState, conversation) : "";
+  return `
+    <article class="session-inline-block" data-selected-thread-live-block="true" data-selected-thread-degraded-block="false" data-live-block-conversation-id="${escapeHtml(String(sessionStatus.conversationId || ""))}" data-live-block-owned="true" data-live-block-source="${escapeHtml(String(sessionSurface.source || "sse"))}" data-live-block-phase="${escapeHtml(phaseLabel)}" data-live-block-transport="${escapeHtml(transportLabel)}" data-live-block-handoff="${handoffVisible ? "true" : "false"}" data-live-block-path-verdict="${escapeHtml(pathVerdict)}" data-live-block-verifier-acceptability="${escapeHtml(verifierAcceptability)}" data-live-block-blocker-reason="${escapeHtml(blockerReason)}" data-live-block-expected-path="${escapeHtml(expectedPath)}" data-live-block-reason="${escapeHtml(handoffVisible ? "handoff" : String(sessionSurface.liveAutonomy?.reason || "healthy"))}">
+      <p class="session-inline-kicker">${handoffVisible ? "Pending Handoff" : "Selected Session"}</p>
+      <div class="session-inline-row">
+        <span class="session-inline-chip">${escapeHtml(transportLabel)}</span>
+        <span class="session-inline-chip">${escapeHtml(phaseLabel)}</span>
+        ${liveVisible ? '<span class="session-inline-chip">SELECTED</span>' : ""}
+        ${liveVisible ? `<span class="session-inline-chip">${escapeHtml(expectedPath)}</span>` : ""}
+        ${liveVisible ? `<span class="session-inline-chip">${escapeHtml(pathVerdict)}</span>` : ""}
+        ${liveVisible ? `<span class="session-inline-chip">${escapeHtml(verifierAcceptability)}</span>` : ""}
+        ${liveVisible ? `<span class="session-inline-chip">BLOCKER ${escapeHtml(blockerReason)}</span>` : ""}
+      </div>
+      ${milestoneLane}
+      <p class="session-inline-body">${escapeHtml(detail)}</p>
+      <p class="session-inline-meta">selected thread · ${escapeHtml(phaseLabel)} · <span class="timeline-provenance">${escapeHtml(transportLabel)}</span></p>
+    </article>
+  `;
 }
 
 function autonomyChipTone(value) {
@@ -1244,6 +1286,9 @@ function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
   const sessionStrip = deriveSelectedThreadSessionStripModel(currentState, conversation, liveRun);
   const { liveAutonomy, phaseProgression, milestoneModel } = sessionSurface;
   const { handoffVisible, degradedVisible, sessionIndicator } = inlineState;
+  if (handoffVisible || inlineState.liveVisible) {
+    return "";
+  }
   if (!handoffVisible && !degradedVisible && (!phaseProgression.visible || !liveAutonomy.visible)) {
     return "";
   }

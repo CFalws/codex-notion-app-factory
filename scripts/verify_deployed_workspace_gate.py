@@ -538,6 +538,7 @@ def assert_browser_runtime_surface(
             page.wait_for_function(
                 """conversationId => {
                   const inlineBlocks = document.querySelectorAll('.session-inline-block[data-selected-thread-live-block="true"], .session-inline-block[data-selected-thread-degraded-block="true"]');
+                  const inlineBlock = inlineBlocks.length ? inlineBlocks[0] : null;
                   const liveActivity = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
                   const primaryLiveActivities = document.querySelectorAll('.timeline-item.live-activity[data-live-session-primary="true"]');
                   const threadPhase = document.querySelector("#thread-phase-chip");
@@ -567,37 +568,33 @@ def assert_browser_runtime_surface(
                   const executionStatusCard = statusOutput ? statusOutput.closest(".inspector-card") : null;
                   const follow = document.querySelector("#jump-to-latest");
                   const sessionEvents = document.querySelectorAll('.timeline-item.session-event[data-append-source="sse"]');
-                  const milestoneLane = liveActivity ? liveActivity.querySelector('[data-live-milestones="true"]') : null;
-                  const legacyLaneMeta = liveActivity ? liveActivity.querySelector(".session-inline-autonomy-meta") : null;
+                  const milestoneLane = inlineBlock ? inlineBlock.querySelector('[data-live-milestones="true"]') : null;
                   const fetchMark = Number(window.__verifyFetchMark || 0);
                   const jobFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
                     entry => String(entry.url || "").includes("/api/jobs/")
                   );
                   return Boolean(
-                    inlineBlocks.length === 0 &&
-                    liveActivity &&
-                    primaryLiveActivities.length === 1 &&
-                    liveActivity.dataset.liveSessionPrimary === "true" &&
-                    liveActivity.dataset.liveOwned === "true" &&
-                    liveActivity.dataset.liveSessionEvent === "true" &&
-                    liveActivity.dataset.liveSessionDuplicates === "collapsed" &&
-                    liveActivity.dataset.liveSessionLane === "selected-thread" &&
-                    liveActivity.dataset.liveMilestonesVisible === "true" &&
-                    liveActivity.dataset.liveTransport === "SSE OWNER" &&
-                    liveActivity.dataset.liveTransportOwned === "true" &&
-                    liveActivity.textContent.includes("SELECTED") &&
-                    liveActivity.textContent.includes("SSE OWNER") &&
-                    ["EXPECTED", "ACCEPTABLE"].includes(liveActivity.dataset.livePathVerdict || "") &&
-                    (liveActivity.dataset.liveExpectedPath || "").length > 0 &&
-                    ["ACCEPTABLE", "PENDING"].includes(liveActivity.dataset.liveVerifierAcceptability || "") &&
-                    (liveActivity.dataset.liveBlockerReason || "").length > 0 &&
-                    ["PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED"].includes(liveActivity.dataset.liveRunPhase || "") &&
+                    inlineBlocks.length === 1 &&
+                    inlineBlock &&
+                    !liveActivity &&
+                    primaryLiveActivities.length === 0 &&
+                    inlineBlock.dataset.selectedThreadLiveBlock === "true" &&
+                    inlineBlock.dataset.selectedThreadDegradedBlock === "false" &&
+                    inlineBlock.dataset.liveBlockOwned === "true" &&
+                    inlineBlock.dataset.liveBlockConversationId === conversationId &&
+                    inlineBlock.dataset.liveBlockTransport === "SSE OWNER" &&
+                    ["EXPECTED", "ACCEPTABLE"].includes(inlineBlock.dataset.liveBlockPathVerdict || "") &&
+                    (inlineBlock.dataset.liveBlockExpectedPath || "").length > 0 &&
+                    ["ACCEPTABLE", "PENDING"].includes(inlineBlock.dataset.liveBlockVerifierAcceptability || "") &&
+                    (inlineBlock.dataset.liveBlockBlockerReason || "").length > 0 &&
+                    ["PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED"].includes(inlineBlock.dataset.liveBlockPhase || "") &&
+                    inlineBlock.textContent.includes("SELECTED") &&
+                    inlineBlock.textContent.includes("SSE OWNER") &&
                     milestoneLane &&
                     milestoneLane.dataset.liveMilestones === "true" &&
                     milestoneLane.dataset.liveMilestonesExplicit === "true" &&
-                    milestoneLane.dataset.liveMilestonesPhase === liveActivity.dataset.liveMilestonesPhase &&
+                    milestoneLane.dataset.liveMilestonesPhase === inlineBlock.dataset.liveBlockPhase &&
                     milestoneLane.querySelector('[data-milestone-key="auto-apply"]') &&
-                    !legacyLaneMeta &&
                     threadSessionSummary &&
                     threadSessionSummary.hidden &&
                     threadSessionSummary.dataset.threadSummaryVisible === "false" &&
@@ -621,7 +618,7 @@ def assert_browser_runtime_surface(
                     activeSessionRow.dataset.activeSessionCanonical === "false" &&
                     activeSessionRow.dataset.activeSessionSource === "sse" &&
                     activeSessionRow.dataset.activeSessionConversationId === conversationId &&
-                    activeSessionRow.dataset.activeSessionPhase === liveActivity.dataset.liveRunPhase &&
+                    activeSessionRow.dataset.activeSessionPhase === inlineBlock.dataset.liveBlockPhase &&
                     ["live", "new", "paused"].includes(activeSessionRow.dataset.activeSessionState || "") &&
                     visibleConversationOwnerRows.length === 0 &&
                     selectedCardLiveOwnerRow &&
@@ -645,11 +642,11 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.sessionPresentation === "healthy" &&
                     sessionStrip.dataset.footerDockOwned === "true" &&
                     sessionStrip.dataset.footerDockMilestones === "true" &&
-                    sessionStrip.dataset.footerDockPhase === liveActivity.dataset.liveRunPhase &&
+                    sessionStrip.dataset.footerDockPhase === inlineBlock.dataset.liveBlockPhase &&
                     sessionStrip.dataset.footerDockSource === "sse" &&
                     threadScroller &&
-                    sessionStrip.dataset.phaseValue === liveActivity.dataset.liveRunPhase &&
-                    threadScroller.dataset.phaseValue === liveActivity.dataset.liveRunPhase &&
+                    sessionStrip.dataset.phaseValue === inlineBlock.dataset.liveBlockPhase &&
+                    threadScroller.dataset.phaseValue === inlineBlock.dataset.liveBlockPhase &&
                     sessionStripState &&
                     stripChips.length >= 3 &&
                     sessionStripState.dataset.sessionStripRole === "live-dock" &&
@@ -685,10 +682,10 @@ def assert_browser_runtime_surface(
                     secondarySessionFacts.dataset.secondaryFactsPresentation === "suppressed" &&
                     secondarySessionFacts.dataset.secondaryFactsOwned === "false" &&
                     secondarySessionFacts.dataset.secondaryFactsTransport === "SUPPRESSED" &&
-                    secondarySessionFacts.dataset.secondaryFactsPhase === liveActivity.dataset.liveRunPhase &&
-                    secondarySessionFacts.dataset.secondaryFactsPath === liveActivity.dataset.livePathVerdict &&
-                    secondarySessionFacts.dataset.secondaryFactsVerifier === liveActivity.dataset.liveVerifierAcceptability &&
-                    secondarySessionFacts.dataset.secondaryFactsBlocker === liveActivity.dataset.liveBlockerReason &&
+                    secondarySessionFacts.dataset.secondaryFactsPhase === inlineBlock.dataset.liveBlockPhase &&
+                    secondarySessionFacts.dataset.secondaryFactsPath === inlineBlock.dataset.liveBlockPathVerdict &&
+                    secondarySessionFacts.dataset.secondaryFactsVerifier === inlineBlock.dataset.liveBlockVerifierAcceptability &&
+                    secondarySessionFacts.dataset.secondaryFactsBlocker === inlineBlock.dataset.liveBlockBlockerReason &&
                     autonomyDetailCard &&
                     autonomyDetailCard.hidden &&
                     autonomyDetailCard.dataset.autonomySurface === "suppressed" &&
@@ -1448,7 +1445,10 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.jobMeta.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="job meta center-timeline presentation dataset")
     require(render_js, "if (inlineState.visible) {", label="composer strip suppression guard")
     require(render_js, "renderInlineSessionBlock", label="inline session block helper")
-    require(render_js, 'return "";', label="inline session block suppression")
+    require(render_js, 'data-selected-thread-live-block="true"', label="inline session block live dataset")
+    require(render_js, 'data-live-block-phase="${escapeHtml(phaseLabel)}"', label="inline session block phase dataset")
+    require(render_js, 'data-live-block-transport="${escapeHtml(transportLabel)}"', label="inline session block transport dataset")
+    require(render_js, 'if (handoffVisible || inlineState.liveVisible) {', label="transcript live activity suppression behind inline block")
     require(render_js, "INLINE_TERMINAL_RETENTION_MS = 12000", label="inline terminal retention window")
     require(render_js, "shouldRetainInlineTerminalPhase", label="inline terminal retention helper")
     require(render_js, "selectedThreadTimelineAuthorityModel", label="timeline authority model helper")

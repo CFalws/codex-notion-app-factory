@@ -1,11 +1,11 @@
 # Factory Runtime Tasks
 
-## Iteration 211
+## Iteration 212
 
-- [x] Keep the change bounded to the selected-thread switch path and existing workspace placeholder behavior.
-- [x] Reuse the existing selected-thread session and thread-transition datasets.
-- [x] Keep the center conversation shell and bottom-fixed composer mounted during intentional thread switches.
-- [x] Show at most one compact switching placeholder until the new selected-thread snapshot attaches.
-- [x] Clear stale old-thread live ownership immediately when the switch starts.
-- [x] Reserve the generic empty workspace for true no-selection idle only.
-- [x] Align static checks, browser checks, and proposal artifacts with the switch-continuity contract.
+- [x] Keep the change bounded to the inline selected-thread session block and existing center transcript ownership.
+- [x] Reuse the existing selected-thread authority, handoff, autonomy, and phase datasets.
+- [x] Render exactly one compact inline session block for healthy selected-thread SSE ownership or pending assistant handoff.
+- [x] Suppress the older healthy live-activity row while the inline block is present.
+- [x] Clear the inline block immediately on reconnect downgrade, polling fallback, switch, deselection, or terminal completion.
+- [x] Keep degraded fallback, switch placeholders, and restore behavior on the existing fail-open path.
+- [x] Align static checks, browser checks, and proposal artifacts with the inline session-block contract.
