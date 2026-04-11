@@ -1,10 +1,10 @@
 # Factory Runtime Tasks
 
-## Iteration 171
+## Iteration 173
 
-- [x] Keep the switch-or-attach change read-only over the existing selected-thread session-status, switch-state, and transport seam.
-- [x] Reuse one compact transition article shape for switching and restore or attach states.
-- [x] Keep the center conversation shell and fixed composer visible through intentional switch or attach boundaries.
-- [x] Clear stale old-thread live ownership immediately while the transition item is active.
-- [x] Preserve the generic empty state only for true no-conversation idle.
-- [x] Align focused docs and verification with the iteration-171 transition continuity contract.
+- [x] Keep the autonomy-state change read-only over the existing selected-thread append SSE and `session_status` seam.
+- [x] Derive visible selected-thread autonomy state from canonical `session_status` on the healthy SSE-owned path.
+- [x] Suppress goals polling fallback on the intended healthy selected-thread SSE path.
+- [x] Fail closed back to degraded or polling treatment on reconnect, restore gap, deselection, and polling-owned paths.
+- [x] Make the selected-thread store prefer canonical `session_status` autonomy fields while healthy ownership is active.
+- [x] Align focused docs and verification with the iteration-173 autonomy authority contract.

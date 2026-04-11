@@ -145,12 +145,83 @@ export function createConversationController(deps) {
     );
   }
 
+  function isSelectedThreadSessionStatusAutonomyAuthoritative(conversationId = state.currentConversationId || "") {
+    if (!isSelectedThreadAutonomyAuthoritative(conversationId)) {
+      return false;
+    }
+    const sessionStatus = state.appendStream?.sessionStatus;
+    if (!sessionStatus || typeof sessionStatus !== "object") {
+      return false;
+    }
+    const expectedPath = String(sessionStatus.expectedPath || "unknown").toLowerCase();
+    const pathVerdict = String(sessionStatus.pathVerdict || "UNKNOWN").toUpperCase();
+    const verifierAcceptability = String(sessionStatus.verifierAcceptability || "PENDING").toUpperCase();
+    return (
+      expectedPath !== "unknown" ||
+      pathVerdict !== "UNKNOWN" ||
+      verifierAcceptability !== "PENDING" ||
+      String(sessionStatus.blockerReason || "none").toLowerCase() !== "none"
+    );
+  }
+
+  function autonomySummaryFromSessionStatus(sessionStatusPayload = state.appendStream?.sessionStatus, fallback = state.autonomySummary || {}) {
+    if (!sessionStatusPayload || typeof sessionStatusPayload !== "object") {
+      return null;
+    }
+    const phaseValue = String(sessionStatusPayload?.phase?.value || "UNKNOWN").toUpperCase();
+    const proposalStatus = String(sessionStatusPayload?.proposalStatus || "").toLowerCase();
+    const pathVerdict = String(sessionStatusPayload?.pathVerdict || "UNKNOWN").toUpperCase();
+    const blockerReason = String(sessionStatusPayload?.blockerReason || "none");
+    const transportState = String(sessionStatusPayload?.transportState || sessionStatusPayload?.transport?.state || "idle").toLowerCase();
+    const authoritative = isSelectedThreadSessionStatusAutonomyAuthoritative(
+      String(sessionStatusPayload?.conversationId || state.currentConversationId || ""),
+    );
+    let goalStatus = String(fallback?.goalStatus || "running");
+    if (proposalStatus) {
+      goalStatus = proposalStatus;
+    } else if (phaseValue === "READY") {
+      goalStatus = "ready";
+    } else if (phaseValue === "APPLIED") {
+      goalStatus = "applied";
+    } else if (phaseValue === "FAILED" || pathVerdict === "DEGRADED" || String(blockerReason || "").toLowerCase() !== "none") {
+      goalStatus = "blocked";
+    } else if (phaseValue !== "UNKNOWN") {
+      goalStatus = "running";
+    }
+    return normalizeAutonomySummary(
+      {
+        goal_title: fallback?.goalTitle || "Autonomy Goal",
+        goal_status: goalStatus,
+        iteration: fallback?.iteration || "",
+        path_verdict: sessionStatusPayload?.pathVerdict,
+        verifier_acceptability: sessionStatusPayload?.verifierAcceptability,
+        blocker_reason: sessionStatusPayload?.blockerReason,
+        expected_path: sessionStatusPayload?.expectedPath,
+        degraded_signals: sessionStatusPayload?.degradedSignals,
+        heading:
+          String(fallback?.goalTitle || "Autonomy Goal").trim() +
+          " · " +
+          goalStatus +
+          " · iteration " +
+          String(fallback?.iteration || "unknown"),
+        source: authoritative ? "session-status" : `session-status-${transportState || "degraded"}`,
+        generated_at: sessionStatusPayload?.createdAt || fallback?.generatedAt || "",
+        freshness_state: authoritative ? "fresh" : "stale-or-missing",
+        fallback_allowed: !authoritative,
+      },
+      fallback,
+    );
+  }
+
   function shouldAllowGoalsPollingFallback({
     conversationId = state.currentConversationId || state.savedConversationId || "",
     autonomySummary = state.autonomySummary,
   } = {}) {
     if (!conversationId) {
       return true;
+    }
+    if (isSelectedThreadSessionStatusAutonomyAuthoritative(conversationId)) {
+      return false;
     }
     if (!autonomySummary || typeof autonomySummary !== "object") {
       return true;
@@ -474,6 +545,13 @@ export function createConversationController(deps) {
       transportState: "sse-live",
       attachMode: "live",
     });
+    const sessionStatusAutonomySummary = autonomySummaryFromSessionStatus(
+      state.appendStream.sessionStatus,
+      state.autonomySummary || {},
+    );
+    if (sessionStatusAutonomySummary) {
+      state.autonomySummary = sessionStatusAutonomySummary;
+    }
     stopPolling();
     renderConversation(dom, state, conversation, persistSettings);
     syncConversationCardState();
@@ -505,6 +583,13 @@ export function createConversationController(deps) {
   }
 
   function projectAutonomySummaryFromLiveAppend(kind, payload) {
+    const sessionStatusProjection = autonomySummaryFromSessionStatus(
+      state.appendStream?.sessionStatus,
+      state.autonomySummary || {},
+    );
+    if (sessionStatusProjection) {
+      return sessionStatusProjection;
+    }
     if (!shouldProjectAutonomySummaryFromLiveAppend(kind, payload)) {
       return state.autonomySummary;
     }
@@ -740,7 +825,12 @@ export function createConversationController(deps) {
           transportState: String(payload.attach_mode || (isResumeAttempt ? "sse-resume" : "sse-bootstrap")),
           attachMode: String(payload.attach_mode || (isResumeAttempt ? "sse-resume" : "sse-bootstrap")),
         });
-        const bootstrapAutonomy = bootstrapAutonomySummary(payload);
+        const bootstrapAutonomy =
+          autonomySummaryFromSessionStatus(
+            state.appendStream.sessionStatus,
+            bootstrapAutonomySummary(payload) || state.autonomySummary || {},
+          ) ||
+          bootstrapAutonomySummary(payload);
         hydrateAutonomySummary(bootstrapAutonomy, {
           source: "session-bootstrap",
           freshnessState: bootstrapAutonomy ? "fresh" : "stale-or-missing",
@@ -1662,6 +1752,17 @@ export function createConversationController(deps) {
           "snapshot-fallback",
       ),
     });
+    const selectedThreadAutonomy =
+      autonomySummaryFromSessionStatus(
+        state.appendStream.sessionStatus,
+        state.autonomySummary || {},
+      ) || state.autonomySummary;
+    if (selectedThreadAutonomy) {
+      state.autonomySummary = selectedThreadAutonomy;
+    }
+    renderConversation(dom, state, conversation, persistSettings);
+    syncConversationCardState();
+    syncAppendCursor(conversation);
     if (shouldAllowGoalsPollingFallback({ conversationId: conversation.conversation_id })) {
       await refreshGoalSummary({ conversationId: conversation.conversation_id });
     }

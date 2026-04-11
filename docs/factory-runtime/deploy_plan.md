@@ -1,20 +1,20 @@
 # Factory Runtime Deploy Plan
 
-## Iteration 171
+## Iteration 173
 
-This deploy plan validates selected-thread switch and attach continuity in the center pane.
+This deploy plan validates healthy selected-thread autonomy authority from the canonical `session_status` stream.
 
 ## Deployment Impact
 
-This iteration keeps transport and healthy live ownership unchanged while making switch and restore or attach boundaries use one compact transcript-bound transition item instead of splitting into different center-pane placeholder treatments.
+This iteration keeps transport and healthy live ownership unchanged while moving healthy selected-thread autonomy visibility onto the canonical `session_status` SSE seam instead of goals polling fallback.
 
 ## Rollout Notes
 
 1. Apply the proposal commit onto `main`.
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
 3. Open the operator console on desktop and phone widths with at least one selected-thread conversation.
-4. Start a selected-thread switch and confirm the center workspace keeps the shell and fixed composer visible while showing exactly one compact transcript-bound transition item.
-5. Reload into a saved selected-thread resume or attach path and confirm restore uses that same compact transition item shape instead of a separate live-activity placeholder card.
-6. Confirm stale old-thread ownership clears immediately while the transition item is active.
-7. Confirm reconnect downgrade, polling fallback, deselection, terminal completion, and true no-selection idle still fail closed correctly and only true idle shows the generic empty state.
-8. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible switch or attach boundary uses one compact transition item sourced from the selected-thread datasets without flashing the generic empty view.
+4. Open a healthy selected-thread conversation with internal append SSE enabled and confirm proposal, review, verify, blocker, intended-path, and verifier acceptability state update from the live session seam without waiting for goals polling.
+5. Confirm the active workspace stays SSE-owned on that healthy path and that autonomy treatment does not silently fall back to goals polling.
+6. Confirm reconnect downgrade, polling fallback, deselection, restore gap, terminal completion, and true non-authoritative paths clear or degrade that autonomy treatment immediately.
+7. Confirm stale autonomy ownership never survives onto a non-selected, deselected, or polling-owned path.
+8. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible autonomy surfaces are driven by selected-thread `session_status` on the healthy path and explicitly non-authoritative elsewhere.

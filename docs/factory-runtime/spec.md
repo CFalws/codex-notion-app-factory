@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `171`
-- bounded focus: `keep switch and attach continuity inside one compact session-timeline transition item`
+- current iteration: `173`
+- bounded focus: `make selected-thread session_status the single healthy live autonomy source across the workspace`
 
 ## Request
 
@@ -13,21 +13,21 @@
 
 ## Problem
 
-The selected-thread center workspace still breaks continuity at switch and attach boundaries. Operators can keep the live session surface during healthy progression, but switch and restore still split across placeholder modes that feel less like one continuous session timeline.
+The selected-thread workspace still depends on autonomy-summary polling fallback for some proposal, review, verify, blocker, intended-path, and verifier state. That leaves part of the active session delayed or inferred even when the healthy selected-thread SSE seam already carries the canonical autonomy signal.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly realtime workspace and expecting selected-thread switch or attach boundaries to stay inside one continuous conversation shell with a compact transition item instead of dropping toward a generic empty workspace feel.
+The primary user is the operator or developer using the phone-friendly realtime workspace and expecting healthy selected-thread autonomy state to update immediately from the same live session stream without waiting for separate goals polling.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the iteration bounded to selected-thread switch and attach continuity in the center conversation workspace.
-- Reuse the existing selected-thread session-status, switch-state, and transport datasets; do not add a new authority source.
-- Keep switch and attach inside one compact transcript-bound transition item while the composer dock stays fixed.
-- Fail closed to the generic empty state only when there is truly no selected conversation.
+- Keep the iteration bounded to read-only derivation over the existing selected-thread append SSE and `session_status` seam.
+- Reuse the existing selected-thread `session_status` payload; do not add a new autonomy authority source.
+- Promote healthy selected-thread SSE ownership over goals polling fallback for visible autonomy state.
+- Fail closed back to degraded or polling treatment on reconnect, deselection, restore gap, or polling-owned paths.
 
 ## Deliverable
 
-Render exactly one compact transcript-bound transition item during intentional selected-thread switch or attach, keep the conversation shell and composer dock visible, clear stale old-thread ownership immediately, and use the true empty state only when no conversation is selected.
+Drive visible selected-thread autonomy state from canonical `session_status` during healthy SSE ownership, suppress goals polling fallback on that intended path, and keep degraded, restore, deselected, and polling-owned paths explicitly non-authoritative.

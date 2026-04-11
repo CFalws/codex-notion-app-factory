@@ -486,6 +486,52 @@ export function deriveSelectedThreadConversationRowLiveModel(currentState, conve
 export function deriveSelectedThreadLiveAutonomy(currentState, conversation = null) {
   const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
   const autonomySummary = currentState.autonomySummary;
+  const sessionStatusPayload = currentState.appendStream?.sessionStatus || null;
+  const phaseValue = String(sessionStatusPayload?.phase?.value || "UNKNOWN").toUpperCase();
+  const proposalStatus = String(sessionStatusPayload?.proposalStatus || "").toLowerCase();
+  const sessionStatusSummary =
+    sessionStatusPayload && typeof sessionStatusPayload === "object"
+      ? {
+          goalTitle: String(autonomySummary?.goalTitle || "Autonomy Goal"),
+          goalStatus:
+            String(autonomySummary?.goalStatus || "").trim() ||
+            (proposalStatus
+              ? proposalStatus
+              : phaseValue === "READY"
+                ? "ready"
+                : phaseValue === "APPLIED"
+                  ? "applied"
+                  : String(sessionStatusPayload?.pathVerdict || "UNKNOWN").toUpperCase() === "DEGRADED"
+                    ? "blocked"
+                    : "running"),
+          iteration: String(autonomySummary?.iteration || ""),
+          pathVerdict: String(sessionStatusPayload?.pathVerdict || autonomySummary?.pathVerdict || "UNKNOWN").toUpperCase(),
+          verifierAcceptability: String(
+            sessionStatusPayload?.verifierAcceptability || autonomySummary?.verifierAcceptability || "PENDING",
+          ).toUpperCase(),
+          blockerReason: String(sessionStatusPayload?.blockerReason || autonomySummary?.blockerReason || "none"),
+          expectedPath: String(sessionStatusPayload?.expectedPath || autonomySummary?.expectedPath || "unknown"),
+          degradedSignals: Array.isArray(sessionStatusPayload?.degradedSignals)
+            ? sessionStatusPayload.degradedSignals
+            : Array.isArray(autonomySummary?.degradedSignals)
+              ? autonomySummary.degradedSignals
+              : [],
+          heading:
+            String(autonomySummary?.goalTitle || "Autonomy Goal").trim() +
+            " · " +
+            (
+              String(autonomySummary?.goalStatus || "").trim() ||
+              (proposalStatus || "running")
+            ) +
+            " · iteration " +
+            String(autonomySummary?.iteration || "unknown"),
+          source: "session-status",
+          generatedAt: String(sessionStatusPayload?.createdAt || autonomySummary?.generatedAt || ""),
+          freshnessState: sessionStatus.liveOwned ? "fresh" : "stale-or-missing",
+          fallbackAllowed: !sessionStatus.liveOwned,
+        }
+      : null;
+  const canonicalAutonomySummary = sessionStatus.liveOwned && sessionStatusSummary ? sessionStatusSummary : autonomySummary;
   if (sessionStatus.presentation === "restore") {
     return {
       visible: true,
@@ -494,12 +540,12 @@ export function deriveSelectedThreadLiveAutonomy(currentState, conversation = nu
       label: sessionStatus.transportLabel || "ATTACH",
       reason: sessionStatus.transportReason,
       source: sessionStatus.transport || "sse",
-      freshnessState: String(autonomySummary?.freshnessState || "stale-or-missing").toLowerCase(),
+      freshnessState: String(canonicalAutonomySummary?.freshnessState || "stale-or-missing").toLowerCase(),
       fallbackAllowed: false,
-      summary: autonomySummary || null,
+      summary: canonicalAutonomySummary || null,
     };
   }
-  if (!autonomySummary || typeof autonomySummary !== "object") {
+  if (!canonicalAutonomySummary || typeof canonicalAutonomySummary !== "object") {
     return {
       visible: false,
       owned: false,
@@ -520,9 +566,9 @@ export function deriveSelectedThreadLiveAutonomy(currentState, conversation = nu
       label: "",
       reason: "thread-switch",
       source: "none",
-      freshnessState: String(autonomySummary.freshnessState || "stale-or-missing").toLowerCase(),
-      fallbackAllowed: Boolean(autonomySummary.fallbackAllowed ?? true),
-      summary: autonomySummary,
+      freshnessState: String(canonicalAutonomySummary.freshnessState || "stale-or-missing").toLowerCase(),
+      fallbackAllowed: Boolean(canonicalAutonomySummary.fallbackAllowed ?? true),
+      summary: canonicalAutonomySummary,
     };
   }
   if (sessionStatus.transportState === "reconnect" || sessionStatus.transportState === "polling") {
@@ -533,9 +579,9 @@ export function deriveSelectedThreadLiveAutonomy(currentState, conversation = nu
       label: sessionStatus.transportLabel,
       reason: sessionStatus.transportReason,
       source: sessionStatus.transport === "sse" ? sessionStatus.renderSource || "snapshot" : sessionStatus.transport || "polling",
-      freshnessState: String(autonomySummary.freshnessState || "stale-or-missing").toLowerCase(),
-      fallbackAllowed: Boolean(autonomySummary.fallbackAllowed ?? true),
-      summary: autonomySummary,
+      freshnessState: String(canonicalAutonomySummary.freshnessState || "stale-or-missing").toLowerCase(),
+      fallbackAllowed: Boolean(canonicalAutonomySummary.fallbackAllowed ?? true),
+      summary: canonicalAutonomySummary,
     };
   }
   if (sessionStatus.liveOwned) {
@@ -545,10 +591,10 @@ export function deriveSelectedThreadLiveAutonomy(currentState, conversation = nu
       presentation: "owned",
       label: sessionStatus.transportLabel || "SSE OWNER",
       reason: sessionStatus.transportReason,
-      source: String(autonomySummary.source || "sse").toLowerCase(),
-      freshnessState: String(autonomySummary.freshnessState || "fresh").toLowerCase(),
-      fallbackAllowed: Boolean(autonomySummary.fallbackAllowed ?? false),
-      summary: autonomySummary,
+      source: String(canonicalAutonomySummary.source || "sse").toLowerCase(),
+      freshnessState: String(canonicalAutonomySummary.freshnessState || "fresh").toLowerCase(),
+      fallbackAllowed: Boolean(canonicalAutonomySummary.fallbackAllowed ?? false),
+      summary: canonicalAutonomySummary,
     };
   }
   return {
@@ -558,9 +604,9 @@ export function deriveSelectedThreadLiveAutonomy(currentState, conversation = nu
     label: "",
     reason: sessionStatus.clearReason,
     source: "none",
-    freshnessState: String(autonomySummary.freshnessState || "stale-or-missing").toLowerCase(),
-    fallbackAllowed: Boolean(autonomySummary.fallbackAllowed ?? true),
-    summary: autonomySummary,
+    freshnessState: String(canonicalAutonomySummary.freshnessState || "stale-or-missing").toLowerCase(),
+    fallbackAllowed: Boolean(canonicalAutonomySummary.fallbackAllowed ?? true),
+    summary: canonicalAutonomySummary,
   };
 }
 
