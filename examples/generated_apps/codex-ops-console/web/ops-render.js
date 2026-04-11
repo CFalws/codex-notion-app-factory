@@ -1,5 +1,5 @@
 import { DECISION_FIELDS } from "./ops-constants.js";
-import { maxConversationAppendId } from "./ops-store.js";
+import { deriveSelectedThreadSessionStatus, maxConversationAppendId } from "./ops-store.js";
 
 function escapeHtml(value) {
   return String(value || "")
@@ -242,43 +242,29 @@ function sessionStripStateRow(ownerState, transportState, liveRun, presentation,
 }
 
 function composerOwnerState(currentState, conversation) {
-  const threadTransition = currentState.threadTransition || {};
   const pendingOutgoing = currentState.pendingOutgoing || {};
-  const appendStream = currentState.appendStream || {};
-  const conversationId = String(conversation?.conversation_id || "");
-  const conversationTitle = String(conversation?.title || "현재 대화").trim() || "현재 대화";
-  const selectedThreadSseOwned =
-    conversationId &&
-    String(appendStream.conversationId || "") === conversationId &&
-    String(appendStream.transport || "polling").toLowerCase() === "sse";
+  const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
 
-  if (threadTransition.active && threadTransition.targetConversationId) {
+  if (sessionStatus.presentation === "attach" && sessionStatus.targetConversationId) {
     return {
       state: "switching",
       label: "SWITCHING",
       tone: "warning",
-      conversationId: String(threadTransition.targetConversationId || ""),
-      target: compactTargetLabel(threadTransition.targetTitle || "선택한 대화", "ATTACH TARGET"),
+      conversationId: String(sessionStatus.targetConversationId || ""),
+      target: compactTargetLabel(sessionStatus.targetTitle || "선택한 대화", "ATTACH TARGET"),
       copy: "ATTACH",
       blocked: true,
       blockedReason: "selected-thread attach가 끝날 때까지 잠시 기다려 주세요.",
     };
   }
 
-  if (
-    conversationId &&
-    pendingOutgoing.conversationId === conversationId &&
-    (
-      pendingOutgoing.status === "sending-user" ||
-      (pendingOutgoing.status === "awaiting-assistant" && selectedThreadSseOwned)
-    )
-  ) {
+  if (sessionStatus.pendingHandoff && sessionStatus.selectedThreadSse) {
     return {
       state: "handoff",
       label: "HANDOFF",
       tone: "neutral",
-      conversationId,
-      target: compactTargetLabel(conversationTitle, "CURRENT THREAD"),
+      conversationId: sessionStatus.conversationId,
+      target: compactTargetLabel(sessionStatus.conversationTitle, "CURRENT THREAD"),
       copy:
         pendingOutgoing.status === "sending-user"
           ? "SEND"
@@ -288,13 +274,13 @@ function composerOwnerState(currentState, conversation) {
     };
   }
 
-  if (conversationId) {
+  if (sessionStatus.conversationId) {
     return {
       state: "ready",
       label: "READY",
       tone: "healthy",
-      conversationId,
-      target: compactTargetLabel(conversationTitle, "CURRENT THREAD"),
+      conversationId: sessionStatus.conversationId,
+      target: compactTargetLabel(sessionStatus.conversationTitle, "CURRENT THREAD"),
       copy: "OWNER",
       blocked: false,
       blockedReason: "",
@@ -338,17 +324,10 @@ function syncComposerOwnership(dom, currentState, conversation) {
 }
 
 function composerTransportState(currentState, conversation, liveRun, handoffState = { stage: "idle" }) {
-  const threadTransition = currentState.threadTransition || {};
-  const appendStream = currentState.appendStream || {};
-  const conversationId = String(conversation?.conversation_id || "");
-  const streamConversationId = String(appendStream.conversationId || "");
-  const transport = String(appendStream.transport || "polling").toLowerCase();
-  const renderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
-  const status = String(appendStream.status || "offline").toLowerCase();
+  const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
   const sessionIndicator = selectedThreadLiveSessionIndicator(currentState, conversation, liveRun, handoffState);
-  const selectedThreadStream = Boolean(conversationId) && streamConversationId === conversationId;
 
-  if (!conversationId && threadTransition.active && threadTransition.targetConversationId) {
+  if (!sessionStatus.conversationId && sessionStatus.presentation === "attach" && sessionStatus.targetConversationId) {
     return {
       label: "ATTACH",
       key: "attach",
@@ -370,25 +349,14 @@ function composerTransportState(currentState, conversation, liveRun, handoffStat
     };
   }
 
-  if (selectedThreadStream && status === "reconnecting") {
+  if (sessionStatus.transportState === "reconnect" || sessionStatus.transportState === "polling") {
     return {
-      label: "RECONNECT",
-      key: "reconnect",
-      tone: "warning",
-      source: "sse",
+      label: sessionStatus.transportLabel || "POLLING",
+      key: sessionStatus.transportState,
+      tone: sessionStatus.transportTone,
+      source: sessionStatus.transport === "sse" ? sessionStatus.renderSource || "snapshot" : sessionStatus.transport || "polling",
       owned: false,
-      reason: "reconnecting",
-    };
-  }
-
-  if (selectedThreadStream && (transport !== "sse" || renderSource !== "sse")) {
-    return {
-      label: "POLLING",
-      key: "polling",
-      tone: "warning",
-      source: transport || "polling",
-      owned: false,
-      reason: "polling-fallback",
+      reason: sessionStatus.transportReason,
     };
   }
 
@@ -414,20 +382,10 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
     return;
   }
 
-  const appendStream = currentState.appendStream || {};
   const threadTransition = currentState.threadTransition || {};
+  const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
   const conversationId = String(conversation?.conversation_id || "");
-  const streamConversationId = String(appendStream.conversationId || "");
-  const renderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
-  const transport = String(appendStream.transport || "polling").toLowerCase();
-  const status = String(appendStream.status || "offline").toLowerCase();
   const headerSummaryVisible = Boolean(conversationId || threadTransition.targetConversationId);
-  const sseLiveOwner =
-    conversationId &&
-    streamConversationId === conversationId &&
-    transport === "sse" &&
-    renderSource === "sse" &&
-    status === "live";
   const sessionIndicator = selectedThreadLiveSessionIndicator(currentState, conversation, liveRun, handoffState);
   const proposalState = proposalChip(liveRun);
 
@@ -452,12 +410,15 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   } else if (handoffState.stage === "pending-assistant") {
     pathLabel = "HANDOFF";
     stateLabel = "ACCEPTED";
-  } else if (status === "reconnecting") {
+  } else if (sessionStatus.transportState === "reconnect") {
     pathLabel = "DEGRADED";
     stateLabel = "RESUME";
-  } else if (sseLiveOwner) {
+  } else if (sessionStatus.liveOwned) {
     pathLabel = "SSE";
     stateLabel = String(liveRun?.phase || "LIVE").toUpperCase();
+  } else if (sessionStatus.transportState === "polling") {
+    pathLabel = "DEGRADED";
+    stateLabel = "POLLING";
   }
   copy = sessionChromeCopy(
     composerOwnerState(currentState, conversation),
@@ -632,35 +593,18 @@ function latestSessionIndicatorEvent(conversation, currentState) {
 }
 
 function selectedThreadLiveSessionIndicator(currentState, conversation, liveRun, handoffState = { stage: "idle" }) {
-  const appendStream = currentState.appendStream || {};
-  const threadTransition = currentState.threadTransition || {};
-  const appSession = currentState.appSession || {};
-  const liveFollow = currentState.liveFollow || {};
-  const conversationId = String(conversation?.conversation_id || "");
-  const streamConversationId = String(appendStream.conversationId || "");
-  const transport = String(appendStream.transport || "polling").toLowerCase();
-  const renderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
-  const status = String(appendStream.status || "offline").toLowerCase();
+  const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
   const latestEvent = latestSessionIndicatorEvent(conversation, currentState);
   const latestType = String(latestEvent?.type || "");
-  const selectedThreadStream = Boolean(conversationId) && streamConversationId === conversationId;
-  const selectedThreadSseOwned =
-    selectedThreadStream &&
-    transport === "sse" &&
-    renderSource === "sse" &&
-    status === "live";
   const hasActiveRun =
-    Boolean(conversationId) &&
+    Boolean(sessionStatus.conversationId) &&
     liveRun?.visible &&
     !liveRun?.terminal &&
     liveRun?.phase &&
     liveRun.phase !== "IDLE";
-  const retrying = latestType === "codex.exec.retrying";
-  const sessionRotationDetected = Boolean(appSession.rotationDetected) && Boolean(appSession.appId);
-  const followPaused = selectedThreadSseOwned && !Boolean(liveFollow.isFollowing);
   if (
     !hasActiveRun ||
-    threadTransition.active ||
+    sessionStatus.presentation === "attach" ||
     handoffState.stage === "pending-user" ||
     handoffState.stage === "pending-assistant"
   ) {
@@ -674,40 +618,38 @@ function selectedThreadLiveSessionIndicator(currentState, conversation, liveRun,
       owned: false,
     };
   }
-  if (selectedThreadSseOwned) {
+  if (sessionStatus.liveOwned) {
     return {
       visible: true,
-      label: "SSE OWNER",
-      state: followPaused ? "paused" : "following",
+      label: sessionStatus.transportLabel || "SSE OWNER",
+      state: sessionStatus.followPaused ? "paused" : "following",
       source: "sse",
-      reason: followPaused ? "selected-thread-follow-paused" : "selected-thread-following",
+      reason: sessionStatus.transportReason,
       tone: "healthy",
       owned: true,
     };
   }
-  if (selectedThreadStream && status === "reconnecting") {
+  if (sessionStatus.transportState === "reconnect") {
     return {
       visible: true,
-      label: "RECONNECT",
+      label: sessionStatus.transportLabel || "RECONNECT",
       state: "reconnecting",
       source: "sse",
-      reason: retrying ? "retrying" : "reconnecting",
+      reason: sessionStatus.transportReason,
       tone: "warning",
       owned: false,
     };
   }
   if (
-    retrying ||
-    sessionRotationDetected ||
-    (selectedThreadStream && (transport !== "sse" || renderSource !== "sse"))
+    sessionStatus.transportState === "polling"
   ) {
     return {
       visible: true,
-      label: "POLLING",
+      label: sessionStatus.transportLabel || "POLLING",
       state: "polling",
-      source: transport === "sse" ? renderSource || "snapshot" : transport || "polling",
-      reason: sessionRotationDetected ? "session-rotation" : retrying ? "retrying" : "polling-fallback",
-      tone: sessionRotationDetected ? "danger" : "warning",
+      source: sessionStatus.transport === "sse" ? sessionStatus.renderSource || "snapshot" : sessionStatus.transport || "polling",
+      reason: sessionStatus.transportReason,
+      tone: sessionStatus.transportTone,
       owned: false,
     };
   }
@@ -777,25 +719,18 @@ function transcriptLiveTone(liveRun) {
 
 function selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState = { stage: "idle" }) {
   const appendStream = currentState.appendStream || {};
-  const conversationId = String(conversation?.conversation_id || "");
-  const streamConversationId = String(appendStream?.conversationId || "");
-  const transport = String(appendStream?.transport || "polling").toLowerCase();
-  const renderSource = String(appendStream?.lastRenderSource || "snapshot").toLowerCase();
-  const status = String(appendStream?.status || "offline").toLowerCase();
-  const selectedThreadSseOwned = conversationId && streamConversationId === conversationId && transport === "sse";
-  const handoffVisible = handoffState.stage === "pending-assistant" && selectedThreadSseOwned;
+  const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
+  const handoffVisible = handoffState.stage === "pending-assistant" && sessionStatus.selectedThreadSse;
   const retainedTerminalVisible = shouldRetainInlineTerminalPhase(
     appendStream,
     liveRun,
-    selectedThreadSseOwned,
-    renderSource,
-    status,
+    sessionStatus.selectedThreadSse,
+    sessionStatus.renderSource,
+    sessionStatus.streamStatus,
   );
   const sessionIndicator = selectedThreadLiveSessionIndicator(currentState, conversation, liveRun, handoffState);
   const liveVisible =
-    selectedThreadSseOwned &&
-    renderSource === "sse" &&
-    status === "live" &&
+    sessionStatus.liveOwned &&
     liveRun?.visible &&
     liveRun.phase &&
     liveRun.phase !== "IDLE" &&
@@ -809,11 +744,11 @@ function selectedThreadInlineSessionState(conversation, currentState, liveRun, h
     !sessionIndicator.owned &&
     (sessionIndicator.state === "reconnecting" || sessionIndicator.state === "polling");
   return {
-    conversationId,
-    selectedThreadSseOwned,
-    renderSource,
-    status,
-    transport,
+    conversationId: sessionStatus.conversationId,
+    selectedThreadSseOwned: sessionStatus.selectedThreadSse,
+    renderSource: sessionStatus.renderSource,
+    status: sessionStatus.streamStatus,
+    transport: sessionStatus.transport,
     sessionIndicator,
     handoffVisible,
     retainedTerminalVisible,

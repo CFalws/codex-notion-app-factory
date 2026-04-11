@@ -1,11 +1,11 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 90
+## Iteration 92
 
-Record the existing selected-thread switch continuity contract for this proposal branch without widening the already-correct runtime implementation.
+Move selected-thread session-status ownership into the frontend store without changing transport or polling behavior.
 
-1. Reuse the existing thread-transition placeholder and center-shell continuity path instead of adding another switch model.
-2. Keep the bottom-fixed composer shell mounted and reachable throughout intentional switches.
-3. Preserve exactly one compact attach placeholder and suppress healthy live blocks, degraded blocks, and generic empty-state flashes during switch.
-4. Keep stale prior-thread ownership cleared immediately and keep the intended path free of `/api/jobs` and `/api/goals` fallback during switch.
-5. Reconfirm the focused browser-proof and static verifiers around the bounded switch continuity contract.
+1. Add a compact canonical selected-thread session-status helper in `ops-store.js` using existing append-stream, pending-handoff, session-phase, live-follow, app-session, and thread-transition state.
+2. Make `isSelectedThreadSessionOwned(...)` delegate to that helper so polling control keeps the same behavior but shares the same ownership boundary.
+3. Replace duplicated ownership and degradation checks in the center header, composer owner or transport strip, inline live block, and left-rail active-session row with reads from the canonical helper.
+4. Keep reconnect, polling fallback, handoff, attach, and clear reasons explicit and finite, but do not change `/api/jobs` or `/api/goals` fallback policy in this iteration.
+5. Reconfirm the focused verifier layer and record the iteration-92 boundary contract in the durable proposal artifacts.

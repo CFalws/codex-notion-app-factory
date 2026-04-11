@@ -1,21 +1,21 @@
 # Factory Runtime Deploy Plan
 
-## Iteration 90
+## Iteration 92
 
-This deploy plan validates the bounded selected-thread switch continuity contract and does not introduce any new transport or layout behavior beyond that contract.
+This deploy plan validates the canonical selected-thread session-status contract and does not introduce new transport, new polling gates, or new status surfaces beyond that boundary cleanup.
 
 ## Deployment Impact
 
-This iteration changes only the selected-thread switch continuity evidence in the existing conversation-first workspace. The bounded expectation is that intentional thread switches keep the center shell and composer mounted, show exactly one compact attach placeholder, clear stale live ownership immediately, and avoid `/api/jobs` and `/api/goals` fallback on the intended path.
+This iteration changes frontend state derivation only. The bounded expectation is that the selected-thread center header, composer strip, inline live block, and left-rail active-session row all reflect one canonical selected-thread session-status model, while existing polling and fallback behavior remains unchanged.
 
 ## Rollout Notes
 
 1. Apply the proposal commit onto `main`.
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
-3. Open the operator console on desktop and phone widths with at least two existing conversations.
-4. Select a healthy selected-thread conversation, then click a different conversation and confirm the center shell stays mounted with exactly one compact transition placeholder.
-5. Confirm the composer remains fixed and reachable throughout the switch and that previous-thread healthy or degraded live markers clear immediately.
-6. Confirm no generic timeline empty-state flash appears during that switch and that the new snapshot attaches through the transition placeholder path.
-7. Before the first switch resolves, click another conversation and confirm the placeholder retargets cleanly to the latest selection without duplicate switch surfaces.
-8. Confirm `/api/jobs` and `/api/goals` do not reappear during the intended switch path.
-9. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible switch path succeeds through the intended selected-thread continuity contract.
+3. Open the operator console on desktop and phone widths with at least one healthy selected-thread conversation and one additional conversation for switching.
+4. Confirm the center header, composer strip, inline live block, and left active-session row all show the same selected-thread ownership or downgrade state during healthy SSE ownership.
+5. Force reconnect or polling fallback and confirm those same surfaces relabel consistently to `RECONNECT` or `POLLING` instead of leaving stale healthy ownership behind.
+6. Submit a new request and confirm handoff state appears consistently through the canonical selected-thread status boundary without changing the fixed composer behavior.
+7. Switch threads and confirm the existing switch continuity still clears stale ownership immediately while the canonical session-status model exposes the attach or clear reason consistently.
+8. Confirm no new `/api/jobs` or `/api/goals` suppression was introduced in this iteration beyond the existing intended-path behavior.
+9. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible selected-thread ownership contract succeeds through the intended path.

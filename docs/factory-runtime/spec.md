@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `90`
-- bounded focus: `selected-thread switch continuity contract`
+- current iteration: `92`
+- bounded focus: `canonical selected-thread session-status contract`
 
 ## Request
 
@@ -13,7 +13,7 @@
 
 ## Problem
 
-The selected-thread switch path is already implemented in the runtime, but this proposal branch still needs explicit iteration-90 evidence that intentional thread switches preserve one continuous center workspace with one compact attach placeholder instead of resetting through a generic empty-state view.
+Selected-thread session ownership is still derived in multiple frontend surfaces with slightly different handoff, reconnect, polling, and clear conditions. That makes the header, composer-adjacent strip, inline live block, and left-rail active-session row drift apart even when they are all reflecting the same selected-thread state.
 
 ## Target User
 
@@ -23,13 +23,12 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the existing selected-thread switch, summary, composer, and transcript datasets already present in the center workspace.
-- Keep the change bounded to the selected-thread switch continuity contract in the center timeline and bottom-fixed composer shell.
-- Preserve exactly one compact transition placeholder during switch and never flash the generic timeline empty state on intentional conversation changes.
-- Clear previous-thread live ownership and follow markers immediately while keeping the composer fixed and reachable.
-- Keep the bottom-fixed composer intact on desktop and phone layouts.
-- Do not introduce new transport, new side surfaces, or renewed `/api/goals` dependency on the healthy path.
+- Move selected-thread session-status ownership into `ops-store.js` and treat `ops-render.js`, `ops-conversations.js`, and `ops-jobs.js` as read-only consumers.
+- Reuse existing append-stream, pending-handoff, session-phase, live-follow, and thread-transition state; do not introduce a new transport or a new polling contract.
+- Keep healthy SSE owner, reconnect downgrade, polling fallback, handoff, attach, and clear reasons finite and machine-readable.
+- Preserve the bottom-fixed composer, center transcript card, and rail behavior already established in earlier iterations.
+- Do not suppress `/api/jobs` or `/api/goals` polling in this iteration; only surface degraded ownership consistently so later iterations can tighten fallback safely.
 
 ## Deliverable
 
-Record and verify the selected-thread switch continuity contract so intentional thread switches keep the conversation shell and composer mounted, show exactly one compact attach placeholder, clear stale live ownership immediately, and avoid `/api/jobs` and `/api/goals` fallback on the intended path.
+Define and verify one canonical selected-thread session-status model in `ops-store.js`, then have the center header, composer target row or strip, inline live block, and left-rail active-session row all consume that model so ownership and downgrade behavior stay consistent from bootstrap through append projection and negative cases.
