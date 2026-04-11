@@ -1052,16 +1052,29 @@ function renderTranscriptMilestones(currentState, conversation) {
   `;
 }
 
-function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
+function selectedThreadPrimaryTimelineSessionModel(conversation, currentState, liveRun) {
   const handoffState = pendingHandoffState(conversation, currentState);
   const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
   const sessionSurface = deriveSelectedThreadSessionSurfaceModel(currentState, conversation);
+  const liveOwned = !inlineState.handoffVisible && !inlineState.degradedVisible && sessionSurface.liveOwned;
+  return {
+    handoffState,
+    inlineState,
+    sessionSurface,
+    liveOwned,
+    visible: inlineState.visible,
+    collapseSessionEvents: inlineState.visible,
+  };
+}
+
+function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
+  const timelineSession = selectedThreadPrimaryTimelineSessionModel(conversation, currentState, liveRun);
+  const { handoffState, inlineState, sessionSurface, liveOwned, collapseSessionEvents } = timelineSession;
   const { liveAutonomy, phaseProgression, milestoneModel } = sessionSurface;
   const { handoffVisible, degradedVisible, sessionIndicator } = inlineState;
   if (!handoffVisible && !degradedVisible && (!phaseProgression.visible || !liveAutonomy.visible)) {
     return "";
   }
-  const liveOwned = !handoffVisible && !degradedVisible && sessionSurface.liveOwned;
   const phaseLabel = degradedVisible
     ? String(sessionIndicator.label || "POLLING").toUpperCase()
     : handoffVisible
@@ -1096,7 +1109,7 @@ function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
   const verifierAcceptability = liveOwned ? sessionSurface.verifierAcceptability : "";
   const blockerReason = liveOwned ? sessionSurface.blockerReason : "";
   return `
-    <article class="timeline-item live-activity" data-live-activity-turn="true" data-live-session-primary="true" data-live-session-event="${liveOwned ? "true" : "false"}" data-live-session-lane="${escapeHtml(liveOwned ? "selected-thread" : degradedVisible ? "degraded" : handoffVisible ? "handoff" : "fallback")}" data-live-milestones-visible="${liveOwned && milestoneModel.visible ? "true" : "false"}" data-live-milestones-phase="${escapeHtml(liveOwned ? String(milestoneModel.currentLabel || phaseLabel) : "")}" data-live-path-verdict="${escapeHtml(pathVerdict)}" data-live-verifier-acceptability="${escapeHtml(verifierAcceptability)}" data-live-blocker-reason="${escapeHtml(blockerReason)}" data-live-run-state="${escapeHtml(handoffVisible ? "handoff" : degradedVisible ? String(sessionIndicator.state || "polling") : phaseProgression.state || liveRun.state)}" data-live-run-phase="${escapeHtml(phaseLabel)}" data-live-run-source="${escapeHtml(degradedVisible ? String(sessionIndicator.source || "polling") : handoffVisible ? "handoff" : phaseProgression.source || liveRun.source)}" data-live-owned="${liveOwned ? "true" : "false"}" data-live-autonomy-presentation="${escapeHtml(degradedVisible ? "degraded" : handoffVisible ? "handoff" : liveAutonomy.presentation)}" data-live-reason="${escapeHtml(degradedVisible ? String(sessionIndicator.reason || "polling-fallback") : handoffVisible ? "handoff" : String(liveAutonomy.reason || "healthy"))}" data-append-id="${appendId}" data-append-source="sse-live-activity">
+    <article class="timeline-item live-activity" data-live-activity-turn="true" data-live-session-primary="true" data-live-session-event="${liveOwned ? "true" : "false"}" data-live-session-duplicates="${collapseSessionEvents ? "collapsed" : "allowed"}" data-live-session-lane="${escapeHtml(liveOwned ? "selected-thread" : degradedVisible ? "degraded" : handoffVisible ? "handoff" : "fallback")}" data-live-milestones-visible="${liveOwned && milestoneModel.visible ? "true" : "false"}" data-live-milestones-phase="${escapeHtml(liveOwned ? String(milestoneModel.currentLabel || phaseLabel) : "")}" data-live-path-verdict="${escapeHtml(pathVerdict)}" data-live-verifier-acceptability="${escapeHtml(verifierAcceptability)}" data-live-blocker-reason="${escapeHtml(blockerReason)}" data-live-run-state="${escapeHtml(handoffVisible ? "handoff" : degradedVisible ? String(sessionIndicator.state || "polling") : phaseProgression.state || liveRun.state)}" data-live-run-phase="${escapeHtml(phaseLabel)}" data-live-run-source="${escapeHtml(degradedVisible ? String(sessionIndicator.source || "polling") : handoffVisible ? "handoff" : phaseProgression.source || liveRun.source)}" data-live-owned="${liveOwned ? "true" : "false"}" data-live-autonomy-presentation="${escapeHtml(degradedVisible ? "degraded" : handoffVisible ? "handoff" : liveAutonomy.presentation)}" data-live-reason="${escapeHtml(degradedVisible ? String(sessionIndicator.reason || "polling-fallback") : handoffVisible ? "handoff" : String(liveAutonomy.reason || "healthy"))}" data-append-id="${appendId}" data-append-source="sse-live-activity">
       <p class="timeline-kind">${liveOwned ? "세션 진행" : "실시간 진행"}</p>
       <div class="timeline-live-row">
         <span class="timeline-live-chip" data-tone="${degradedVisible ? "warning" : handoffVisible ? "neutral" : liveOwned ? "neutral" : "warning"}">${escapeHtml(degradedVisible ? "DEGRADED" : handoffVisible ? "HANDOFF" : String(liveAutonomy.label || "LIVE"))}</span>
@@ -1201,15 +1214,15 @@ function shouldCollapseSelectedThreadSessionEvent(item, currentState, conversati
   if (!item || item.kind !== "event") {
     return false;
   }
-  const handoffState = pendingHandoffState(conversation, currentState);
-  const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
+  const timelineSession = selectedThreadPrimaryTimelineSessionModel(conversation, currentState, liveRun);
+  const { inlineState, collapseSessionEvents } = timelineSession;
   const liveAutonomy = deriveSelectedThreadLiveAutonomy(currentState, conversation);
   const phaseProgression = deriveSelectedThreadPhaseProgression(currentState, conversation);
   const restoreVisible =
     liveAutonomy.visible &&
     liveAutonomy.presentation === "restore" &&
     phaseProgression.visible;
-  if (!inlineState.visible && !restoreVisible) {
+  if (!collapseSessionEvents && !restoreVisible) {
     return false;
   }
   if (String(item.delivery_source || "").toLowerCase() !== "sse") {

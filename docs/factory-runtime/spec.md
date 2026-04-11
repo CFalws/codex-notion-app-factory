@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `146`
-- bounded focus: `preserve the selected-thread conversation shell and composer through intentional thread switches with one compact transition placeholder and no empty-state flash`
+- current iteration: `147`
+- bounded focus: `collapse selected-thread SSE session-phase event cards into the existing single center-timeline live activity block`
 
 ## Request
 
@@ -13,24 +13,24 @@
 
 ## Problem
 
-The selected-thread live timeline, header chip, and composer rail already reflect healthy and degraded state, but intentional thread switches can still force the workspace through a reset-looking gap that makes operators infer whether the session is loading, cleared, or broken.
+The selected-thread live timeline, header ownership, phase chips, and switch continuity are already stronger, but healthy SSE execution can still leave session progress split between the center live activity block and duplicate selected-thread session-event cards.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly realtime workspace and expecting an intentional thread switch to feel continuous rather than like a transient reset.
+The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the selected conversation to read like one live session timeline instead of two competing center-pane session surfaces.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the iteration bounded to the selected-thread switch render path plus focused verifier and doc updates.
+- Keep the iteration bounded to the selected-thread center-timeline render path plus focused verifier and doc updates.
 - Do not change transport, polling suppression, backend state sources, or composer ownership rules.
-- Keep the center conversation shell and bottom composer mounted during an intentional switch.
-- Reuse the existing switching placeholder and selected-thread workspace ownership rules.
-- Suppress the generic empty-state only during an active intentional switch for the selected thread.
-- Clear the previous thread's live-owned treatment immediately, and clear the switch placeholder as soon as the new selected-thread snapshot or live session attaches.
-- Preserve the normal empty-state for true idle with no selected conversation.
+- Reuse the existing selected-thread live activity item, session surface model, and degraded-path fail-closed rules.
+- Keep the center timeline as the only authority-looking selected-thread live-session surface during active SSE execution.
+- Suppress duplicate selected-thread session-event cards only while the selected-thread live activity block is visible.
+- Preserve existing degraded, restore, handoff, terminal clear, and thread-switch clearing rules.
+- Keep the bottom-fixed composer behavior unchanged.
 
 ## Deliverable
 
-Preserve the selected-thread conversation shell and fixed composer through an intentional thread switch by rendering at most one compact, machine-readable `SWITCHING` placeholder until the new selected-thread snapshot or live session attaches, without ever flashing the generic empty-state during that switch window.
+Expose exactly one machine-readable selected-thread live-session block in the center timeline during healthy SSE execution by collapsing duplicate selected-thread SSE session-event cards into the existing live activity block while its chips and detail copy carry phase, verdict, verifier, blocker, and milestone progress.

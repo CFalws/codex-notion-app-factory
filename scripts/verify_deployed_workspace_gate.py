@@ -504,6 +504,7 @@ def assert_browser_runtime_surface(
                 """conversationId => {
                   const healthyBlock = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-block-owner="selected-thread"][data-live-owned="true"]');
                   const liveActivity = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
+                  const primaryLiveActivities = document.querySelectorAll('.timeline-item.live-activity[data-live-session-primary="true"]');
                   const summary = document.querySelector("#session-summary-row");
                   const liveIndicator = document.querySelector("#session-live-indicator");
                   const summaryCopy = document.querySelector("#session-summary-copy");
@@ -527,7 +528,7 @@ def assert_browser_runtime_surface(
                   const statusOutput = document.querySelector("#status-output");
                   const executionStatusCard = statusOutput ? statusOutput.closest(".inspector-card") : null;
                   const follow = document.querySelector("#jump-to-latest");
-                  const sessionEvent = document.querySelector('.timeline-item.session-event[data-append-source="sse"]');
+                  const sessionEvents = document.querySelectorAll('.timeline-item.session-event[data-append-source="sse"]');
                   const milestoneLane = liveActivity ? liveActivity.querySelector('[data-live-milestones="true"]') : null;
                   const legacyLaneMeta = liveActivity ? liveActivity.querySelector(".session-inline-autonomy-meta") : null;
                   const fetchMark = Number(window.__verifyFetchMark || 0);
@@ -537,9 +538,11 @@ def assert_browser_runtime_surface(
                   return Boolean(
                     !healthyBlock &&
                     liveActivity &&
+                    primaryLiveActivities.length === 1 &&
                     liveActivity.dataset.liveSessionPrimary === "true" &&
                     liveActivity.dataset.liveOwned === "true" &&
                     liveActivity.dataset.liveSessionEvent === "true" &&
+                    liveActivity.dataset.liveSessionDuplicates === "collapsed" &&
                     liveActivity.dataset.liveSessionLane === "selected-thread" &&
                     liveActivity.dataset.liveMilestonesVisible === "true" &&
                     ["EXPECTED", "ACCEPTABLE"].includes(liveActivity.dataset.livePathVerdict || "") &&
@@ -634,7 +637,7 @@ def assert_browser_runtime_surface(
                     statusOutput.dataset.surface === "center-lane" &&
                     statusOutput.dataset.centerTimelineAuthority === "true" &&
                     statusOutput.dataset.centerTimelinePresentation === "healthy" &&
-                    !sessionEvent &&
+                    sessionEvents.length === 0 &&
                     follow &&
                     follow.dataset.followOwned !== undefined &&
                     jobFetches.length === 0
@@ -1491,12 +1494,14 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require_absent(render_js, 'const handoffVisible = handoffState.stage === "pending-assistant" && selectedThreadSseOwned;', label="legacy inline handoff visibility guard")
     require(render_js, "sessionTimelineEventModel", label="session timeline event model helper")
     require(render_js, "renderSessionTimelineEvent", label="session timeline event render helper")
+    require(render_js, "selectedThreadPrimaryTimelineSessionModel", label="primary selected-thread timeline session helper")
     require(render_js, 'data-live-session-primary="true"', label="transcript primary session surface dataset")
     require(render_js, "shouldCollapseSelectedThreadSessionEvent", label="selected-thread transcript session-event collapse helper")
     require(render_js, "renderTranscriptMilestones", label="transcript live milestone helper")
     require(render_js, "const transcriptLiveActivity = renderTranscriptLiveActivity(conversation, currentState, liveRun);", label="transcript live activity wiring")
     require(render_js, "if (inlineState.visible) {", label="transcript live activity suppression guard")
     require(render_js, 'data-live-session-event="${liveOwned ? "true" : "false"}"', label="transcript session event lane dataset")
+    require(render_js, 'data-live-session-duplicates="${collapseSessionEvents ? "collapsed" : "allowed"}"', label="transcript session-event collapse dataset")
     require(render_js, 'data-live-session-lane="${escapeHtml(liveOwned ? "selected-thread" : degradedVisible ? "degraded" : handoffVisible ? "handoff" : "fallback")}"', label="transcript session lane ownership dataset")
     require(render_js, 'data-live-milestones-visible="${liveOwned && milestoneModel.visible ? "true" : "false"}"', label="transcript session event milestone visibility dataset")
     require(render_js, 'data-live-milestones-phase="${escapeHtml(liveOwned ? String(milestoneModel.currentLabel || phaseLabel) : "")}"', label="transcript session event milestone phase dataset")
@@ -1512,6 +1517,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'data-session-milestone="${escapeHtml(model.milestone)}"', label="session timeline event milestone dataset")
     require(render_js, 'data-session-verdict="${escapeHtml(model.verdict.toLowerCase())}"', label="session timeline event verdict dataset")
     require(render_js, "const restoreVisible =", label="selected-thread restore transcript collapse gate")
+    require(render_js, "const timelineSession = selectedThreadPrimaryTimelineSessionModel(conversation, currentState, liveRun);", label="selected-thread transcript collapse shared model wiring")
+    require(render_js, "const { inlineState, collapseSessionEvents } = timelineSession;", label="selected-thread transcript collapse state destructuring")
     require(render_js, "if (shouldCollapseSelectedThreadSessionEvent(item, currentState, conversation, liveRun)) {", label="selected-thread transcript session-event suppression guard")
     require(render_js, 'const sessionEvent = renderSessionTimelineEvent(item);', label="session timeline event projection wiring")
     require(render_js, "if (sessionEvent) {", label="session timeline event branch")
