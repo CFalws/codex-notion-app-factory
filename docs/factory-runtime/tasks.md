@@ -1,9 +1,9 @@
 # Factory Runtime Tasks
 
-## Iteration 89
+## Iteration 90
 
-- [x] Reuse the sticky left-rail active-session row as the only navigation mirror of canonical selected-thread state.
-- [x] Show finite `HANDOFF`, `LIVE`, `NEW`, or `PAUSED` labels from canonical selected-thread handoff and healthy live state.
-- [x] Keep the actual selected-thread phase only in datasets and metadata instead of exposing changing phase labels in the rail row.
-- [x] Clear the row immediately on reconnect downgrade, polling fallback, terminal idle, or thread switch.
-- [x] Align focused browser-proof verifiers and iteration artifacts with the finite-state active-session rail contract.
+- [x] Confirm the proposal branch already contains the bounded selected-thread thread-transition placeholder path.
+- [x] Keep the center conversation shell and bottom-fixed composer mounted during intentional switches.
+- [x] Preserve exactly one compact attach placeholder and suppress generic timeline empty-state flashes during switch.
+- [x] Clear previous-thread live ownership and follow markers immediately while keeping switch behavior free of `/api/jobs` and `/api/goals` fallback.
+- [x] Align focused browser-proof verifiers and iteration artifacts with the switch continuity contract.

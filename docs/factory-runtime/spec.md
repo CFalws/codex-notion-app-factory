@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `89`
-- bounded focus: `left-rail finite active-session row`
+- current iteration: `90`
+- bounded focus: `selected-thread switch continuity contract`
 
 ## Request
 
@@ -13,7 +13,7 @@
 
 ## Problem
 
-Healthy selected-thread ownership, switch continuity, explicit phase vocabulary, and transcript-top session presentation are already bounded, but the left rail still fails to expose the selected session state through a finite navigation contract. Operators still need the center pane to distinguish handoff from healthy follow or detached follow.
+The selected-thread switch path is already implemented in the runtime, but this proposal branch still needs explicit iteration-90 evidence that intentional thread switches preserve one continuous center workspace with one compact attach placeholder instead of resetting through a generic empty-state view.
 
 ## Target User
 
@@ -23,13 +23,13 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Reuse the canonical selected-thread session datasets already exposed through the center header and live follow state.
-- Keep the change bounded to the sticky left-rail active-session row above the conversation list.
-- Show only finite `HANDOFF`, `LIVE`, `NEW`, or `PAUSED` row labels for the intended selected-thread handoff and healthy live path.
-- Clear the row immediately on reconnect downgrade, polling fallback, terminal idle, or thread switch, and keep non-selected rows snapshot-only.
+- Reuse the existing selected-thread switch, summary, composer, and transcript datasets already present in the center workspace.
+- Keep the change bounded to the selected-thread switch continuity contract in the center timeline and bottom-fixed composer shell.
+- Preserve exactly one compact transition placeholder during switch and never flash the generic timeline empty state on intentional conversation changes.
+- Clear previous-thread live ownership and follow markers immediately while keeping the composer fixed and reachable.
 - Keep the bottom-fixed composer intact on desktop and phone layouts.
 - Do not introduce new transport, new side surfaces, or renewed `/api/goals` dependency on the healthy path.
 
 ## Deliverable
 
-Expose and verify exactly one sticky left-rail active-session row derived only from canonical selected-thread state so operators can read `HANDOFF`, `LIVE`, `NEW`, or `PAUSED` at a glance without reopening the center timeline.
+Record and verify the selected-thread switch continuity contract so intentional thread switches keep the conversation shell and composer mounted, show exactly one compact attach placeholder, clear stale live ownership immediately, and avoid `/api/jobs` and `/api/goals` fallback on the intended path.

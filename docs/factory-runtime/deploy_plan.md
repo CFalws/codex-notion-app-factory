@@ -1,21 +1,21 @@
 # Factory Runtime Deploy Plan
 
-## Iteration 89
+## Iteration 90
 
-This deploy plan validates the bounded finite-state selected-thread active-session rail contract and does not introduce any new transport or layout behavior beyond that contract.
+This deploy plan validates the bounded selected-thread switch continuity contract and does not introduce any new transport or layout behavior beyond that contract.
 
 ## Deployment Impact
 
-This iteration changes only the sticky left-rail active-session row in the existing conversation-first workspace. The bounded expectation is that the row appears only for canonical selected-thread handoff and healthy live state, uses only `HANDOFF`, `LIVE`, `NEW`, or `PAUSED`, and clears immediately on reconnect downgrade, polling fallback, terminal idle, or thread switch.
+This iteration changes only the selected-thread switch continuity evidence in the existing conversation-first workspace. The bounded expectation is that intentional thread switches keep the center shell and composer mounted, show exactly one compact attach placeholder, clear stale live ownership immediately, and avoid `/api/jobs` and `/api/goals` fallback on the intended path.
 
 ## Rollout Notes
 
 1. Apply the proposal commit onto `main`.
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
-3. Open the operator console on desktop and phone widths with at least one selected-thread handoff and one healthy selected-thread live session available.
-4. Submit on the healthy selected-thread path and confirm the left rail shows exactly one sticky active-session row labeled `HANDOFF` until the first assistant append or ownership handoff completes.
-5. Confirm the same row shows `LIVE` while the selected thread is healthy and followed, `NEW` when selected-thread backlog exists, and `PAUSED` when follow is detached without backlog.
-6. Trigger reconnect downgrade or polling fallback and confirm the row clears immediately instead of preserving stale live ownership.
-7. Click a different conversation and confirm the row clears immediately on thread switch instead of showing a switch target row.
-8. Confirm terminal idle also clears the row and that non-selected conversation cards remain snapshot-only.
-9. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the rail-state transitions succeed through canonical selected-thread state with no healthy `/api/goals` fallback after submit.
+3. Open the operator console on desktop and phone widths with at least two existing conversations.
+4. Select a healthy selected-thread conversation, then click a different conversation and confirm the center shell stays mounted with exactly one compact transition placeholder.
+5. Confirm the composer remains fixed and reachable throughout the switch and that previous-thread healthy or degraded live markers clear immediately.
+6. Confirm no generic timeline empty-state flash appears during that switch and that the new snapshot attaches through the transition placeholder path.
+7. Before the first switch resolves, click another conversation and confirm the placeholder retargets cleanly to the latest selection without duplicate switch surfaces.
+8. Confirm `/api/jobs` and `/api/goals` do not reappear during the intended switch path.
+9. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible switch path succeeds through the intended selected-thread continuity contract.
