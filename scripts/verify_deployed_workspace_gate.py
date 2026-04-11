@@ -574,9 +574,11 @@ def assert_browser_runtime_surface(
                     threadPhase.dataset.liveSessionProvenance === "sse" &&
                     threadPhase.dataset.centerTimelineAuthority === "true" &&
                     threadPhase.dataset.centerTimelinePresentation === "healthy" &&
-                    threadPhase.dataset.threadPhase === liveActivity.dataset.liveRunPhase &&
+                    threadPhase.textContent.trim() === `${liveActivity.dataset.liveRunPhase} SSE` &&
+                    threadPhase.dataset.threadPhase === `${liveActivity.dataset.liveRunPhase} SSE` &&
+                    threadPhase.dataset.liveSessionStateLabel === "SSE" &&
                     threadPhase.dataset.liveSessionPhase === liveActivity.dataset.liveRunPhase &&
-                    threadPhase.dataset.liveSessionDetail === "SSE OWNER" &&
+                    threadPhase.dataset.liveSessionDetail === `${liveActivity.dataset.liveRunPhase} VIA SSE OWNER` &&
                     threadPhase.dataset.threadPhaseDetail &&
                     threadPhase.dataset.threadPhaseDetail !== "idle" &&
                     activeSessionRow &&
@@ -871,10 +873,11 @@ def assert_browser_runtime_surface(
                     secondarySessionFacts.dataset.secondaryFactsTransport === degraded.dataset.liveTransport &&
                     secondarySessionFacts.dataset.secondaryFactsPhase === phase &&
                     !threadPhase.hidden &&
-                    ["RECONNECT", "POLLING"].includes(threadPhase.textContent.trim()) &&
+                    threadPhase.textContent.trim() === `${phase} ${degraded.dataset.liveTransport}` &&
                     threadPhase.dataset.liveSessionVisible === "true" &&
                     threadPhase.dataset.liveSessionPresentation === "degraded" &&
                     threadPhase.dataset.liveSessionOwned === "false" &&
+                    threadPhase.dataset.liveSessionStateLabel === degraded.dataset.liveTransport &&
                     threadPhase.dataset.centerTimelineAuthority === "true" &&
                     threadPhase.dataset.centerTimelinePresentation === "degraded" &&
                     activeSessionRow.hidden &&
@@ -1469,9 +1472,11 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.threadPhaseChip.dataset.liveSessionReason = badgeReason;', label="header badge reason dataset")
     require(render_js, 'dom.threadPhaseChip.dataset.liveSessionPresentation = badgePresentation;', label="header badge presentation dataset")
     require(render_js, 'dom.threadPhaseChip.dataset.liveSessionVisible = badgeVisible ? "true" : "false";', label="header badge visible dataset")
+    require(render_js, 'dom.threadPhaseChip.dataset.liveSessionStateLabel = badgeStateLabel;', label="header badge state label dataset")
     require(render_js, 'dom.threadPhaseChip.dataset.liveSessionProvenance = badgeSource;', label="header badge provenance dataset")
     require(render_js, 'dom.threadPhaseChip.dataset.liveSessionPhase = healthyPhaseLabel;', label="header badge phase dataset")
     require(render_js, 'dom.threadPhaseChip.dataset.liveSessionDetail = badgeDetail;', label="header badge detail dataset")
+    require(render_js, 'const badgeStateLabel =', label="header badge path-state helper")
     require(render_js, 'const badgeDetail =', label="header badge detail helper")
     require(render_js, 'const healthyPhaseLabel = String(', label="header healthy phase label helper")
     require(store_js, 'transportLabel = "RECONNECT";', label="live-session reconnect label")

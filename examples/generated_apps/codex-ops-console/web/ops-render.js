@@ -649,15 +649,18 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   const healthyPhaseLabel = String(
     deriveSelectedThreadShellPhaseLabel(currentState, conversation) || liveRun?.phase || "LIVE",
   ).toUpperCase();
-  const badgeLabel = switchingSelectedThread
+  const badgeStateLabel = switchingSelectedThread
     ? "SWITCHING"
     : sessionStatus.selectedThreadRestore
-    ? String(sessionStatus.transportLabel || (sessionStatus.restoreResume ? "RESUME" : "ATTACH"))
+    ? String(sessionStatus.transportLabel || (sessionStatus.restoreResume ? "RESUME" : "ATTACH")).toUpperCase()
     : sessionIndicator.owned
-      ? healthyPhaseLabel
+      ? "SSE"
       : sessionIndicator.state === "handoff"
         ? "HANDOFF"
         : String(sessionIndicator.label || sessionStatus.transportLabel || "SESSION").toUpperCase();
+  const badgeLabel = switchingSelectedThread
+    ? badgeStateLabel
+    : `${healthyPhaseLabel} ${badgeStateLabel}`.trim();
   const badgeTone = switchingSelectedThread
     ? "warning"
     : sessionStatus.selectedThreadRestore
@@ -685,16 +688,16 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   const badgeDetail = switchingSelectedThread
     ? "THREAD SWITCH"
     : sessionStatus.selectedThreadRestore
-    ? `SSE ${sessionStatus.restoreResume ? "RESUME" : "ATTACH"}`
+    ? `${healthyPhaseLabel} VIA SSE ${sessionStatus.restoreResume ? "RESUME" : "ATTACH"}`
     : sessionIndicator.owned
-      ? String(sessionStatus.transportLabel || "SSE OWNER")
+      ? `${healthyPhaseLabel} VIA ${String(sessionStatus.transportLabel || "SSE OWNER").toUpperCase()}`
       : sessionIndicator.state === "reconnecting"
-        ? "SSE RECONNECT"
+        ? `${healthyPhaseLabel} VIA SSE RECONNECT`
         : sessionIndicator.state === "polling"
-          ? "POLLING FALLBACK"
+          ? `${healthyPhaseLabel} VIA POLLING FALLBACK`
           : sessionIndicator.state === "handoff"
-            ? "HANDOFF"
-            : String(sessionStatus.transportLabel || "SESSION");
+            ? `${healthyPhaseLabel} VIA HANDOFF`
+            : `${healthyPhaseLabel} VIA ${String(sessionStatus.transportLabel || "SESSION").toUpperCase()}`;
   dom.threadPhaseChip.hidden = !badgeVisible;
   dom.threadPhaseChip.textContent = badgeLabel;
   dom.threadPhaseChip.dataset.tone = badgeTone;
@@ -706,6 +709,7 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   dom.threadPhaseChip.dataset.liveSessionSource = badgeSource;
   dom.threadPhaseChip.dataset.liveSessionOwned = sessionIndicator.owned ? "true" : "false";
   dom.threadPhaseChip.dataset.liveSessionReason = badgeReason;
+  dom.threadPhaseChip.dataset.liveSessionStateLabel = badgeStateLabel;
   dom.threadPhaseChip.dataset.liveSessionPhase = healthyPhaseLabel;
   dom.threadPhaseChip.dataset.liveSessionDetail = badgeDetail;
   dom.threadPhaseChip.dataset.liveSessionProvenance = badgeSource;

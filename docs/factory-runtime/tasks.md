@@ -1,9 +1,9 @@
 # Factory Runtime Tasks
 
-## Iteration 155
+## Iteration 156
 
-- [x] Remove the standalone selected-thread session-summary strip from the center header markup and DOM bindings.
-- [x] Keep the selected-thread title area identity-first with at most one compact live phase badge.
-- [x] Mirror healthy, degraded, switching, restore, and idle selected-thread states through the single header badge and clear stale ownership immediately.
-- [x] Remove dead summary-strip CSS while preserving shared chip styling used by the secondary facts drawer.
-- [x] Align focused static verification and proposal artifacts with the iteration-155 single-badge header contract.
+- [x] Keep the selected-thread header at one compact badge with no reintroduced summary strip.
+- [x] Make the badge text combine the selected-thread phase with healthy, degraded, restore, or switching path state.
+- [x] Keep the badge datasets aligned with the canonical selected-thread session contract and clear stale ownership immediately.
+- [x] Extend focused static and deployed verification to require the richer one-badge mapping.
+- [x] Align proposal artifacts with the iteration-156 combined-phase-and-path badge contract.

@@ -1,12 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 155
+## Iteration 156
 
-Collapse the selected-thread header into a conversation-first identity surface with one live phase badge.
+Refine the selected-thread header badge so it carries both phase and live path state.
 
-1. Reuse the existing selected-thread session ownership, transport, phase, and timeline-authority models to drive `#thread-phase-chip` as the only compact live badge in the center header.
-2. Remove the standalone selected-thread session-summary row from the conversation header markup and DOM bindings.
-3. Keep the title row identity-first so the selected-thread title stays primary and the badge remains secondary chrome.
-4. Mirror healthy, degraded, switching, restore, and idle selected-thread states through the single header badge without introducing new state or transport sources.
-5. Extend focused static and deployed verification so desktop and phone layouts fail if the old summary strip reappears or if stale ownership survives on the badge during degraded or switching paths.
-6. Align proposal artifacts with the iteration-155 single-badge header contract.
+1. Reuse the existing selected-thread session ownership, transport, phase, and timeline-authority models to keep `#thread-phase-chip` as the only compact header badge.
+2. Change the badge label so it combines current phase with selected-thread path state such as healthy SSE, reconnect, polling fallback, restore attach, or switching.
+3. Preserve the title row as identity-first and keep the badge as the only status chrome above the transcript.
+4. Mirror healthy, degraded, switching, restore, and idle selected-thread states through the same canonical badge datasets without introducing new state or transport sources.
+5. Extend focused static and deployed verification so the badge must show both phase and path state while the removed summary strip stays absent.
+6. Align proposal artifacts with the iteration-156 combined-phase-and-path badge contract.
