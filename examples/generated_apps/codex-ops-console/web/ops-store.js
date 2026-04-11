@@ -726,6 +726,7 @@ export function deriveSelectedThreadSessionStripModel(currentState, conversation
     Boolean(payloadConversationId) &&
     conversationId === currentConversationId &&
     payloadConversationId === conversationId;
+  const terminal = Boolean(liveRun?.terminal);
   const transportState = String(
     sessionStatusPayload?.transportState ||
       sessionStatusPayload?.transport?.state ||
@@ -752,8 +753,17 @@ export function deriveSelectedThreadSessionStripModel(currentState, conversation
     !conversationId ||
     selectedThreadStatus.switchActive ||
     !sessionStatusPayload ||
-    liveRun?.terminal
+    terminal
   ) {
+    const clearReason = selectedThreadStatus.switchActive
+      ? "thread-switch"
+      : terminal
+        ? "terminal"
+        : !conversationId || !currentConversationId
+          ? "deselected"
+          : !sessionStatusPayload
+            ? "missing-session-status"
+            : "lost-authority";
     return {
       visible: false,
       presentation: "cleared",
@@ -771,7 +781,7 @@ export function deriveSelectedThreadSessionStripModel(currentState, conversation
       degradedSignals: [],
       owned: false,
       source: "none",
-      clearReason: selectedThreadStatus.switchActive ? "thread-switch" : liveRun?.terminal ? "terminal" : "idle",
+      clearReason,
     };
   }
 

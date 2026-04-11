@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `159`
-- bounded focus: `promote canonical selected-thread session_status into one compact center-pane live session strip`
+- current iteration: `161`
+- bounded focus: `preserve selected-thread session continuity during intentional thread switches`
 
 ## Request
 
@@ -13,25 +13,24 @@
 
 ## Problem
 
-The runtime now needs one selected-thread session strip in the center workspace that reads directly from canonical append-SSE `session_status` instead of mixing phase and autonomy inference across multiple UI helpers.
+The center workspace already has a canonical selected-thread live strip, but intentional thread switches can still feel like a reset unless the old thread is cleared immediately and the shell stays mounted behind one bounded transition placeholder.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the selected conversation pane to expose one compact live session strip that immediately shows phase and path state through the intended append-SSE path.
+The primary user is the operator or developer using the phone-friendly realtime workspace and expecting intentional thread switches to feel like one continuous selected-thread session shell rather than a generic empty reset.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the iteration bounded to canonical append-SSE `session_status` transport plus one selected-thread center-pane strip, focused verifier updates, and doc updates.
-- Keep `api_runtime_context.py` as the sole producer of canonical `session_status`.
-- Do not change composer docking, transcript append ownership, footer ownership rules, rail mirroring, or secondary-panel behavior.
-- Reuse existing selected-thread session switch, restore, and authority clearing rules.
-- Render one compact center-pane live session strip above the transcript for the selected thread only.
-- Demote reconnect and polling fallback explicitly instead of looking healthy.
+- Keep the iteration bounded to selected-thread switch handling in the center conversation workspace and its existing ownership state.
+- Do not change transport scope, transcript append ownership, composer docking, footer ownership rules, rail mirroring, or secondary-panel behavior.
+- Preserve the center conversation shell and bottom composer during intentional switches.
+- Replace generic empty-state fallback with exactly one compact selected-thread transition placeholder until the new snapshot attaches.
 - Clear stale selected-thread ownership immediately on switch, terminal completion, deselection, or thread loss of authority.
+- Keep reconnect and polling fallback from reclaiming primary selected-thread ownership during or after a switch.
 - Never make a non-selected thread appear live-owned.
 
 ## Deliverable
 
-Emit canonical selected-thread `session_status` over append SSE and render one compact center-pane live session strip from that payload without moving transcript or composer ownership.
+Keep the selected-thread conversation shell mounted during intentional switches, clear old-thread ownership immediately, and expose exactly one compact transition placeholder until the new thread snapshot attaches.

@@ -1,12 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 159
+## Iteration 161
 
-Promote canonical selected-thread `session_status` into one compact center-pane live session strip.
+Preserve selected-thread session continuity during intentional thread switches.
 
-1. Restore the missing canonical `session_status` payload in the append-SSE bootstrap, replay, and live append envelopes inside `api_runtime_context.py`.
-2. Hydrate `appendStream.sessionStatus` in `ops-conversations.js` and keep reconnect or polling fallback explicit there without changing other UI ownership.
-3. Add one store-owned selected-thread session strip model in `ops-store.js` that reads from `appendStream.sessionStatus` and fails closed on switch, terminal, deselection, or lost authority.
-4. Render one compact inline session strip above the transcript in `ops-render.js` and suppress the older transcript live card whenever that strip is visible.
-5. Extend focused runtime-contract, static, and deployed verification so the canonical `session_status` seam and the single center-pane strip are both required.
-6. Align proposal artifacts with the iteration-159 session-status strip contract.
+1. Keep the center conversation shell and bottom composer mounted while `threadTransition.active` targets a new selected thread.
+2. Clear old selected-thread live strip ownership explicitly during the switch window and expose that cleared state through machine-readable datasets.
+3. Keep exactly one compact transition placeholder until the new selected-thread snapshot attaches, without letting `.timeline-empty` win during that switch path.
+4. Preserve reconnect, polling fallback, deselection, terminal completion, and non-selected thread fail-closed behavior.
+5. Extend focused verification so switch, degraded, and cleared paths prove the old thread cannot remain session-owned and non-selected threads cannot become primary owners.
+6. Align proposal artifacts with the iteration-161 selected-thread switch continuity contract.

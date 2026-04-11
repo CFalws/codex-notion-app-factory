@@ -1871,7 +1871,7 @@ function threadMetaSummary(conversation, liveRun, messageCount, eventCount) {
 function renderThreadTransition(currentState, sessionStatus = deriveSelectedThreadSessionStatus(currentState, null)) {
   const targetTitle = String(sessionStatus.switchTargetTitle || sessionStatus.targetTitle || "선택한 대화").trim();
   return `
-    <article class="timeline-transition" data-thread-transition="switching" data-thread-transition-phase="switching" data-thread-transition-conversation-id="${escapeHtml(String(sessionStatus.switchConversationId || sessionStatus.targetConversationId || ""))}" data-thread-transition-source="selected-thread-session" data-thread-transition-owner-cleared="true" data-thread-transition-compact="true">
+    <article class="timeline-transition" data-thread-transition="switching" data-thread-transition-phase="switching" data-thread-transition-conversation-id="${escapeHtml(String(sessionStatus.switchConversationId || sessionStatus.targetConversationId || ""))}" data-thread-transition-source="selected-thread-session" data-thread-transition-owner-cleared="true" data-thread-transition-live-strip-cleared="true" data-thread-transition-compact="true">
       <p class="timeline-kind">세션 전환</p>
       <div class="timeline-transition-row">
         <span class="timeline-transition-chip">SWITCHING</span>
@@ -2533,14 +2533,23 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
     const workspacePlaceholder = selectedThreadWorkspacePlaceholder(currentState);
     const isThreadTransition = workspacePlaceholder.mode === "switching";
     const isSavedRestore = workspacePlaceholder.mode === "restore";
+    const sessionStripModel = deriveSelectedThreadSessionStripModel(currentState, null, workspacePlaceholder.liveRun);
     dom.conversationTimeline.dataset.workspacePlaceholder = workspacePlaceholder.mode;
     dom.conversationTimeline.dataset.workspaceConversationId = workspacePlaceholder.conversationId;
     dom.conversationTimeline.dataset.workspaceOwnerCleared = isThreadTransition ? "true" : "false";
+    dom.conversationTimeline.dataset.liveSessionStripVisible = "false";
+    dom.conversationTimeline.dataset.liveSessionStripOwned = "false";
+    dom.conversationTimeline.dataset.liveSessionStripConversationId = "";
+    dom.conversationTimeline.dataset.liveSessionStripClearReason = sessionStripModel.clearReason || (isThreadTransition ? "thread-switch" : "deselected");
     dom.conversationTimeline.innerHTML = workspacePlaceholder.timeline;
     if (dom.threadScroller) {
       dom.threadScroller.dataset.workspacePlaceholder = workspacePlaceholder.mode;
       dom.threadScroller.dataset.workspacePlaceholderConversationId = workspacePlaceholder.conversationId;
       dom.threadScroller.dataset.workspaceOwnerCleared = isThreadTransition ? "true" : "false";
+      dom.threadScroller.dataset.liveSessionStripVisible = "false";
+      dom.threadScroller.dataset.liveSessionStripOwned = "false";
+      dom.threadScroller.dataset.liveSessionStripConversationId = "";
+      dom.threadScroller.dataset.liveSessionStripClearReason = sessionStripModel.clearReason || (isThreadTransition ? "thread-switch" : "deselected");
       dom.threadScroller.dataset.pendingConversationId = isThreadTransition
         ? workspacePlaceholder.conversationId
         : isSavedRestore
@@ -2637,6 +2646,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   });
 
   const liveRun = deriveLiveRunState(conversation, currentState);
+  const sessionStripModel = deriveSelectedThreadSessionStripModel(currentState, conversation, liveRun);
   const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
   const inlineSessionBlock = renderInlineSessionBlock(conversation, currentState, liveRun, handoffState);
   const transcriptLiveActivity = renderTranscriptLiveActivity(conversation, currentState, liveRun);
@@ -2650,7 +2660,15 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
     dom.threadScroller.dataset.pendingAssistantCount = String(handoffState.pendingAssistantCount);
     dom.threadScroller.dataset.threadTransitionState = "idle";
     dom.threadScroller.dataset.threadTransitionConversationId = "";
+    dom.threadScroller.dataset.liveSessionStripVisible = sessionStripModel.visible ? "true" : "false";
+    dom.threadScroller.dataset.liveSessionStripOwned = sessionStripModel.owned ? "true" : "false";
+    dom.threadScroller.dataset.liveSessionStripConversationId = sessionStripModel.visible ? String(sessionStripModel.conversationId || "") : "";
+    dom.threadScroller.dataset.liveSessionStripClearReason = sessionStripModel.clearReason || "none";
   }
+  dom.conversationTimeline.dataset.liveSessionStripVisible = sessionStripModel.visible ? "true" : "false";
+  dom.conversationTimeline.dataset.liveSessionStripOwned = sessionStripModel.owned ? "true" : "false";
+  dom.conversationTimeline.dataset.liveSessionStripConversationId = sessionStripModel.visible ? String(sessionStripModel.conversationId || "") : "";
+  dom.conversationTimeline.dataset.liveSessionStripClearReason = sessionStripModel.clearReason || "none";
   renderSessionStrip(dom, currentState, conversation);
   const latestAppendId = maxConversationAppendId(conversation);
   const isSameConversation = previousConversationId === conversation.conversation_id;
