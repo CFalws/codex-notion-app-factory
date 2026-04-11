@@ -469,6 +469,7 @@ def assert_browser_runtime_surface(
                   return Boolean(
                     !healthyBlock &&
                     liveActivity &&
+                    liveActivity.dataset.liveSessionPrimary === "true" &&
                     liveActivity.dataset.liveOwned === "true" &&
                     liveActivity.dataset.liveSessionEvent === "true" &&
                     liveActivity.dataset.liveSessionLane === "selected-thread" &&
@@ -1308,7 +1309,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require_absent(render_js, 'const handoffVisible = handoffState.stage === "pending-assistant" && selectedThreadSseOwned;', label="legacy inline handoff visibility guard")
     require(render_js, "sessionTimelineEventModel", label="session timeline event model helper")
     require(render_js, "renderSessionTimelineEvent", label="session timeline event render helper")
-    require(render_js, "shouldCollapseHealthySessionEvent", label="healthy transcript session-event collapse helper")
+    require(render_js, 'data-live-session-primary="true"', label="transcript primary session surface dataset")
+    require(render_js, "shouldCollapseSelectedThreadSessionEvent", label="selected-thread transcript session-event collapse helper")
     require(render_js, "renderTranscriptMilestones", label="transcript live milestone helper")
     require(render_js, "const transcriptLiveActivity = renderTranscriptLiveActivity(conversation, currentState, liveRun);", label="transcript live activity wiring")
     require(render_js, "if (inlineState.visible) {", label="transcript live activity suppression guard")
@@ -1327,7 +1329,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'data-session-phase="${escapeHtml(model.phase)}"', label="session timeline event phase dataset")
     require(render_js, 'data-session-milestone="${escapeHtml(model.milestone)}"', label="session timeline event milestone dataset")
     require(render_js, 'data-session-verdict="${escapeHtml(model.verdict.toLowerCase())}"', label="session timeline event verdict dataset")
-    require(render_js, "if (shouldCollapseHealthySessionEvent(item, currentState, conversation, liveRun)) {", label="healthy transcript session-event suppression guard")
+    require(render_js, "const restoreVisible =", label="selected-thread restore transcript collapse gate")
+    require(render_js, "if (shouldCollapseSelectedThreadSessionEvent(item, currentState, conversation, liveRun)) {", label="selected-thread transcript session-event suppression guard")
     require(render_js, 'const sessionEvent = renderSessionTimelineEvent(item);', label="session timeline event projection wiring")
     require(render_js, "if (sessionEvent) {", label="session timeline event branch")
     require(render_js, "const renderedItems = items", label="transcript render item join")

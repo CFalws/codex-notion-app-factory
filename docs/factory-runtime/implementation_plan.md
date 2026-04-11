@@ -1,11 +1,11 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 129
+## Iteration 130
 
-Use one authoritative SSE-derived phase vocabulary across the selected-thread session shell.
+Make the transcript-tail live activity item the primary selected-thread center-lane session surface.
 
-1. Keep the selected-thread SSE authority, verifier-evidence projection, transcript-owned live detail, and compact footer contracts unchanged.
-2. Add one store-owned shell-phase helper derived from the selected-thread SSE phase progression.
-3. Use that helper in the left rail, header summary dataset, and composer-adjacent live strip so healthy selected-thread surfaces present the same phase label in the same render cycle.
-4. Preserve explicit reconnect, polling fallback, switch, and deselection downgrade behavior so stale healthy phase labels clear immediately.
-5. Extend the focused verifier layer and proposal artifacts so iteration 129 proves the shell no longer relies on generic `LIVE`, `READY`, or `ACTIVE` fallbacks on the healthy path.
+1. Keep the selected-thread SSE authority, verifier-evidence projection, shell-phase vocabulary, and compact footer contracts unchanged.
+2. Mark the transcript-tail live activity item as the primary selected-thread session surface.
+3. Collapse duplicate selected-thread session-event cards whenever that primary transcript surface is present on healthy, degraded, handoff, or restore selected-thread paths.
+4. Preserve immediate downgrade or clear behavior on reconnect, polling fallback, switch, deselection, and terminal resolution.
+5. Extend the focused verifier layer and proposal artifacts so iteration 130 proves the center pane reads as one live selected-thread session surface instead of multiple competing center-lane summaries.

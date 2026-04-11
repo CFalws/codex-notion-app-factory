@@ -1023,7 +1023,7 @@ function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
   const verifierAcceptability = liveOwned ? String(autonomySummary?.verifierAcceptability || "PENDING").toUpperCase() : "";
   const blockerReason = liveOwned ? String(autonomySummary?.blockerReason || "none").toUpperCase() : "";
   return `
-    <article class="timeline-item live-activity" data-live-activity-turn="true" data-live-session-event="${liveOwned ? "true" : "false"}" data-live-session-lane="${escapeHtml(liveOwned ? "selected-thread" : degradedVisible ? "degraded" : handoffVisible ? "handoff" : "fallback")}" data-live-milestones-visible="${liveOwned && milestoneModel.visible ? "true" : "false"}" data-live-milestones-phase="${escapeHtml(liveOwned ? String(milestoneModel.currentLabel || phaseLabel) : "")}" data-live-path-verdict="${escapeHtml(pathVerdict)}" data-live-verifier-acceptability="${escapeHtml(verifierAcceptability)}" data-live-blocker-reason="${escapeHtml(blockerReason)}" data-live-run-state="${escapeHtml(handoffVisible ? "handoff" : degradedVisible ? String(sessionIndicator.state || "polling") : phaseProgression.state || liveRun.state)}" data-live-run-phase="${escapeHtml(phaseLabel)}" data-live-run-source="${escapeHtml(degradedVisible ? String(sessionIndicator.source || "polling") : handoffVisible ? "handoff" : phaseProgression.source || liveRun.source)}" data-live-owned="${liveOwned ? "true" : "false"}" data-live-autonomy-presentation="${escapeHtml(degradedVisible ? "degraded" : handoffVisible ? "handoff" : liveAutonomy.presentation)}" data-live-reason="${escapeHtml(degradedVisible ? String(sessionIndicator.reason || "polling-fallback") : handoffVisible ? "handoff" : String(liveAutonomy.reason || "healthy"))}" data-append-id="${appendId}" data-append-source="sse-live-activity">
+    <article class="timeline-item live-activity" data-live-activity-turn="true" data-live-session-primary="true" data-live-session-event="${liveOwned ? "true" : "false"}" data-live-session-lane="${escapeHtml(liveOwned ? "selected-thread" : degradedVisible ? "degraded" : handoffVisible ? "handoff" : "fallback")}" data-live-milestones-visible="${liveOwned && milestoneModel.visible ? "true" : "false"}" data-live-milestones-phase="${escapeHtml(liveOwned ? String(milestoneModel.currentLabel || phaseLabel) : "")}" data-live-path-verdict="${escapeHtml(pathVerdict)}" data-live-verifier-acceptability="${escapeHtml(verifierAcceptability)}" data-live-blocker-reason="${escapeHtml(blockerReason)}" data-live-run-state="${escapeHtml(handoffVisible ? "handoff" : degradedVisible ? String(sessionIndicator.state || "polling") : phaseProgression.state || liveRun.state)}" data-live-run-phase="${escapeHtml(phaseLabel)}" data-live-run-source="${escapeHtml(degradedVisible ? String(sessionIndicator.source || "polling") : handoffVisible ? "handoff" : phaseProgression.source || liveRun.source)}" data-live-owned="${liveOwned ? "true" : "false"}" data-live-autonomy-presentation="${escapeHtml(degradedVisible ? "degraded" : handoffVisible ? "handoff" : liveAutonomy.presentation)}" data-live-reason="${escapeHtml(degradedVisible ? String(sessionIndicator.reason || "polling-fallback") : handoffVisible ? "handoff" : String(liveAutonomy.reason || "healthy"))}" data-append-id="${appendId}" data-append-source="sse-live-activity">
       <p class="timeline-kind">${liveOwned ? "세션 진행" : "실시간 진행"}</p>
       <div class="timeline-live-row">
         <span class="timeline-live-chip" data-tone="${degradedVisible ? "warning" : handoffVisible ? "neutral" : liveOwned ? "neutral" : "warning"}">${escapeHtml(degradedVisible ? "DEGRADED" : handoffVisible ? "HANDOFF" : String(liveAutonomy.label || "LIVE"))}</span>
@@ -1052,7 +1052,7 @@ function renderRestoreSessionTimeline(currentState) {
       ? "저장된 선택 대화에 다시 연결하는 중입니다. append SSE 복구가 완료되면 같은 세션이 이어집니다."
       : "저장된 선택 대화에 attach 중입니다. 첫 bootstrap이 완료되면 같은 세션이 live 상태로 이어집니다.";
   return `
-    <article class="timeline-item live-activity" data-live-activity-turn="true" data-live-run-state="${escapeHtml(String(phaseProgression.state || "attach"))}" data-live-run-phase="${escapeHtml(phaseLabel)}" data-live-run-source="sse" data-live-owned="false" data-live-autonomy-presentation="restore" data-live-reason="${escapeHtml(String(liveAutonomy.reason || "saved-restore-attach"))}" data-live-restore="true" data-live-restore-stage="${escapeHtml(String(sessionStatus.restoreStage || "none"))}" data-live-restore-path="${escapeHtml(String(sessionStatus.restorePath || "none"))}" data-live-restore-provenance="${escapeHtml(String(sessionStatus.restoreProvenance || "none"))}" data-append-id="0" data-append-source="sse-live-activity">
+    <article class="timeline-item live-activity" data-live-activity-turn="true" data-live-session-primary="true" data-live-run-state="${escapeHtml(String(phaseProgression.state || "attach"))}" data-live-run-phase="${escapeHtml(phaseLabel)}" data-live-run-source="sse" data-live-owned="false" data-live-autonomy-presentation="restore" data-live-reason="${escapeHtml(String(liveAutonomy.reason || "saved-restore-attach"))}" data-live-restore="true" data-live-restore-stage="${escapeHtml(String(sessionStatus.restoreStage || "none"))}" data-live-restore-path="${escapeHtml(String(sessionStatus.restorePath || "none"))}" data-live-restore-provenance="${escapeHtml(String(sessionStatus.restoreProvenance || "none"))}" data-append-id="0" data-append-source="sse-live-activity">
       <p class="timeline-kind">실시간 진행</p>
       <div class="timeline-live-row">
         <span class="timeline-live-chip" data-tone="neutral">RESTORE</span>
@@ -1124,12 +1124,19 @@ function renderSessionTimelineEvent(item) {
   `;
 }
 
-function shouldCollapseHealthySessionEvent(item, currentState, conversation, liveRun) {
+function shouldCollapseSelectedThreadSessionEvent(item, currentState, conversation, liveRun) {
   if (!item || item.kind !== "event") {
     return false;
   }
-  const footerDock = selectedThreadFooterDockModel(currentState, conversation, liveRun);
-  if (!footerDock.visible) {
+  const handoffState = pendingHandoffState(conversation, currentState);
+  const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
+  const liveAutonomy = deriveSelectedThreadLiveAutonomy(currentState, conversation);
+  const phaseProgression = deriveSelectedThreadPhaseProgression(currentState, conversation);
+  const restoreVisible =
+    liveAutonomy.visible &&
+    liveAutonomy.presentation === "restore" &&
+    phaseProgression.visible;
+  if (!inlineState.visible && !restoreVisible) {
     return false;
   }
   if (String(item.delivery_source || "").toLowerCase() !== "sse") {
@@ -2441,7 +2448,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   const renderedItems = items
     .map((item) => {
       if (item.kind === "event") {
-        if (shouldCollapseHealthySessionEvent(item, currentState, conversation, liveRun)) {
+        if (shouldCollapseSelectedThreadSessionEvent(item, currentState, conversation, liveRun)) {
           return "";
         }
         const sessionEvent = renderSessionTimelineEvent(item);

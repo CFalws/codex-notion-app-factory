@@ -1,8 +1,8 @@
 # Factory Runtime Tasks
 
-## Iteration 129
+## Iteration 130
 
-- [x] Add one shared selected-thread shell-phase helper derived from authoritative SSE phase progression.
-- [x] Use that helper for selected-card, active-session row, header summary phase dataset, and footer-dock phase labels.
-- [x] Keep degraded reconnect, polling fallback, switch, and deselection paths from retaining stale healthy-phase labels.
-- [x] Align focused verifiers and proposal artifacts with the iteration-129 shell-phase contract.
+- [x] Keep the transcript-tail live activity item as the primary selected-thread center-lane session surface.
+- [x] Collapse duplicate selected-thread session-event cards whenever that primary transcript surface is present.
+- [x] Preserve degraded, handoff, restore, reconnect, polling fallback, and switch downgrade behavior without stale live-owned center treatment.
+- [x] Align focused verifiers and proposal artifacts with the iteration-130 unified live-timeline contract.
