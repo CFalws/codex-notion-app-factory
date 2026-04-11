@@ -978,6 +978,11 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
 
     require(render_js, "renderSessionSummary", label="session summary helper")
     require(render_js, "selectedThreadLiveSessionIndicator", label="session live indicator helper")
+    require(conversations_js, "bootstrapAutonomySummary", label="bootstrap autonomy authority helper")
+    require(conversations_js, 'freshnessState: bootstrapAutonomy ? "fresh" : "stale-or-missing"', label="bootstrap autonomy freshness authority")
+    require(conversations_js, "fallbackAllowed: !bootstrapAutonomy", label="bootstrap autonomy fallback gate")
+    require(conversations_js, 'source: authoritativeBootstrapAutonomy ? "session-bootstrap" : "conversation-snapshot"', label="conversation fetch bootstrap authority precedence")
+    require(conversations_js, "if (shouldAllowGoalsPollingFallback({ conversationId: conversation.conversation_id })) {", label="conversation fetch goals fallback guard")
     require(render_js, "latestSessionIndicatorEvent", label="session live indicator event helper")
     require(render_js, "composerOwnerState", label="composer owner state helper")
     require(render_js, "composerTransportState", label="composer transport state helper")

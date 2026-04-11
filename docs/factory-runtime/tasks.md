@@ -1,9 +1,9 @@
 # Factory Runtime Tasks
 
-## Iteration 100
+## Iteration 101
 
-- [x] Keep the transcript-tail live activity item as the only healthy selected-thread SSE-owned session surface.
-- [x] Hide the composer-adjacent session strip during healthy selected-thread SSE ownership.
-- [x] Preserve the strip for restore, handoff, switching, reconnect, polling fallback, and other non-healthy states.
-- [x] Keep the compact header summary and fixed composer bound to the same conversation without duplicate healthy live-owned presentation.
-- [x] Align focused verifiers and proposal artifacts with the iteration-100 single-surface center-pane contract.
+- [x] Mark healthy selected-thread `session.bootstrap` autonomy data as fresh and fallback-disallowed when bootstrap already carries autonomy state.
+- [x] Prefer bootstrap autonomy over snapshot autonomy during `fetchConversation(...)` so healthy selected-thread session bootstrap owns autonomy state immediately.
+- [x] Allow `/api/goals` refresh only when selected-thread session authority is degraded, missing, or stale-or-missing instead of always refreshing after conversation fetch.
+- [x] Keep the existing render surface unchanged while exposing enough provenance for verification to prove healthy session-owned autonomy success.
+- [x] Align focused verifiers and proposal artifacts with the iteration-101 autonomy-authority contract.

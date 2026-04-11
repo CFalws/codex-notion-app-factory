@@ -1,11 +1,11 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 100
+## Iteration 101
 
-Keep the transcript-tail live activity item as the only healthy selected-thread SSE-owned session surface without changing transport or polling behavior.
+Make healthy selected-thread SSE session state the only authoritative autonomy summary source without changing transport or the visible session layout.
 
-1. Reuse the existing selected-thread store-owned session, restore, autonomy, and phase helpers.
-2. Hide the composer-adjacent session strip on the healthy selected-thread SSE path so the center pane reads as one live session timeline.
-3. Preserve the strip for restore, handoff, switching, reconnect, polling fallback, and other non-healthy states where explicit context is still needed.
-4. Keep the compact header summary and fixed composer bound to the same conversation while removing duplicate healthy live-owned presentation.
-5. Extend the focused verifier layer and proposal artifacts so the healthy path proves one session-owned center-pane live surface while degraded paths remain explicit.
+1. Reuse the existing selected-thread session, restore, live-autonomy, and phase helpers rather than adding a new authority model.
+2. Mark `session.bootstrap` autonomy data as fresh and fallback-disallowed when the bootstrap payload already carries the selected-thread autonomy summary.
+3. Prefer bootstrap autonomy over snapshot autonomy during `fetchConversation(...)` so the selected-thread session path becomes authoritative as soon as bootstrap succeeds.
+4. Gate `/api/goals` refresh behind explicit degraded transport, missing selected-thread authority, or stale-or-missing autonomy data instead of always refreshing after conversation fetch.
+5. Extend the focused verifier layer and proposal artifacts so the healthy path proves session-owned autonomy state and the negative case proves the absence of polling-owned success.

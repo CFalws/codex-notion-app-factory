@@ -117,6 +117,13 @@ export function createConversationController(deps) {
     return !isSelectedThreadAutonomyAuthoritative(conversationId);
   }
 
+  function bootstrapAutonomySummary(payload = {}) {
+    if (!payload || typeof payload !== "object") {
+      return null;
+    }
+    return payload.autonomy_summary || payload.conversation?.autonomy_summary || null;
+  }
+
   function resetSessionPhase() {
     state.appendStream.sessionPhase = normalizeSessionPhase({}, "none");
   }
@@ -648,10 +655,11 @@ export function createConversationController(deps) {
         state.appendStream.resumeCursor = Math.max(Number(payload.resume_from_append_id || resumeCursor || 0), 0);
         state.appendStream.reconnectAttempt = reconnectAttempt;
         state.appendStream.sessionPhase = normalizeSessionPhase(payload.session_phase || {}, "sse");
-        hydrateAutonomySummary(payload.autonomy_summary || payload.conversation?.autonomy_summary, {
+        const bootstrapAutonomy = bootstrapAutonomySummary(payload);
+        hydrateAutonomySummary(bootstrapAutonomy, {
           source: "session-bootstrap",
-          freshnessState: "stale-or-missing",
-          fallbackAllowed: false,
+          freshnessState: bootstrapAutonomy ? "fresh" : "stale-or-missing",
+          fallbackAllowed: !bootstrapAutonomy,
         });
         renderSessionStrip(dom, state, state.conversationCache);
         syncConversationCardState();
@@ -1644,10 +1652,12 @@ export function createConversationController(deps) {
     if (shouldClearPendingOutgoing(conversation)) {
       clearPendingOutgoing(conversation.conversation_id);
     }
-    hydrateAutonomySummary(conversation.autonomy_summary, {
-      source: "conversation-snapshot",
-      freshnessState: "stale-or-missing",
-      fallbackAllowed: true,
+    const authoritativeBootstrapAutonomy = bootstrapAutonomySummary(bootstrap);
+    const initialAutonomySummary = authoritativeBootstrapAutonomy || conversation.autonomy_summary;
+    hydrateAutonomySummary(initialAutonomySummary, {
+      source: authoritativeBootstrapAutonomy ? "session-bootstrap" : "conversation-snapshot",
+      freshnessState: authoritativeBootstrapAutonomy ? "fresh" : "stale-or-missing",
+      fallbackAllowed: !authoritativeBootstrapAutonomy,
     });
     state.currentConversationId = conversation.conversation_id;
     state.savedConversationId = state.currentConversationId;
@@ -1671,7 +1681,9 @@ export function createConversationController(deps) {
         : state.appendStream.bootstrapVersion || "";
     state.appendStream.resumeCursor = Math.max(Number(bootstrap?.resume_from_append_id || 0), 0);
     state.appendStream.sessionPhase = normalizeSessionPhase(bootstrap?.session_phase || {}, "sse");
-    await refreshGoalSummary({ conversationId: conversation.conversation_id });
+    if (shouldAllowGoalsPollingFallback({ conversationId: conversation.conversation_id })) {
+      await refreshGoalSummary({ conversationId: conversation.conversation_id });
+    }
     restoreDraft();
     syncDraftStatus();
 
