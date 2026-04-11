@@ -1,11 +1,11 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 92
+## Iteration 94
 
-Move selected-thread session-status ownership into the frontend store without changing transport or polling behavior.
+Project the selected-thread SSE path into one explicit phase progression model without changing transport or polling behavior.
 
-1. Add a compact canonical selected-thread session-status helper in `ops-store.js` using existing append-stream, pending-handoff, session-phase, live-follow, app-session, and thread-transition state.
-2. Make `isSelectedThreadSessionOwned(...)` delegate to that helper so polling control keeps the same behavior but shares the same ownership boundary.
-3. Replace duplicated ownership and degradation checks in the center header, composer owner or transport strip, inline live block, and left-rail active-session row with reads from the canonical helper.
-4. Keep reconnect, polling fallback, handoff, attach, and clear reasons explicit and finite, but do not change `/api/jobs` or `/api/goals` fallback policy in this iteration.
-5. Reconfirm the focused verifier layer and record the iteration-92 boundary contract in the durable proposal artifacts.
+1. Add a canonical selected-thread live-autonomy helper and a canonical selected-thread phase-progression helper in `ops-store.js`.
+2. Mark autonomy summaries projected from healthy selected-thread SSE append events as `source: "sse"`, `freshnessState: "fresh"`, and `fallbackAllowed: false`.
+3. Reuse the canonical phase-progression helper in the transcript live session surface and the inline autonomy or session surface so proposal, review, verify, auto-apply, ready, applied, and fallback states read consistently.
+4. Extend `deriveLiveRunState(...)` to recognize `AUTO APPLY` from the existing `goal.proposal.auto_apply.started` SSE event path so the composer-adjacent strip stays aligned with the center timeline.
+5. Reconfirm the focused verifier layer and record the iteration-94 phase progression contract in the durable proposal artifacts.

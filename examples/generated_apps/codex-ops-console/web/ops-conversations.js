@@ -473,10 +473,10 @@ export function createConversationController(deps) {
       heading:
         currentSummary.heading ||
         `${currentSummary.goalTitle || "Autonomy Goal"} · ${currentSummary.goalStatus || "running"} · iteration ${String(currentSummary.iteration || "")}`,
-      source: String(currentSummary.source || "none").toLowerCase(),
-      generatedAt: String(currentSummary.generatedAt || ""),
-      freshnessState: String(currentSummary.freshnessState || "stale-or-missing").toLowerCase(),
-      fallbackAllowed: Boolean(currentSummary.fallbackAllowed ?? true),
+      source: "sse",
+      generatedAt: String(payload?.created_at || payload?.timestamp || new Date().toISOString()),
+      freshnessState: "fresh",
+      fallbackAllowed: false,
     };
     return nextSummary;
   }

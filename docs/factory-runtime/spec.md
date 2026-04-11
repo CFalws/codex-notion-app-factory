@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `92`
-- bounded focus: `canonical selected-thread session-status contract`
+- current iteration: `94`
+- bounded focus: `canonical selected-thread phase progression contract`
 
 ## Request
 
@@ -13,7 +13,7 @@
 
 ## Problem
 
-Selected-thread session ownership is still derived in multiple frontend surfaces with slightly different handoff, reconnect, polling, and clear conditions. That makes the header, composer-adjacent strip, inline live block, and left-rail active-session row drift apart even when they are all reflecting the same selected-thread state.
+Selected-thread session ownership is canonical, but bounded autonomy progress still reads as fragmented cues rather than one explicit realtime phase flow. The active session can show that it is live, yet still force the operator to infer whether the run is in proposal, review, verify, auto-apply, ready, or applied progression.
 
 ## Target User
 
@@ -23,12 +23,12 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Move selected-thread session-status ownership into `ops-store.js` and treat `ops-render.js`, `ops-conversations.js`, and `ops-jobs.js` as read-only consumers.
-- Reuse existing append-stream, pending-handoff, session-phase, live-follow, and thread-transition state; do not introduce a new transport or a new polling contract.
-- Keep healthy SSE owner, reconnect downgrade, polling fallback, handoff, attach, and clear reasons finite and machine-readable.
+- Reuse the existing selected-thread session-status boundary and selected-thread live-autonomy boundary in the frontend store.
+- Reuse existing append-stream, pending-handoff, session-phase, autonomy summary, and thread-transition state; do not introduce a new transport or a new polling contract.
+- Make proposal, review, verify, auto-apply, ready, applied, and fallback progression finite and machine-readable on the selected-thread path.
 - Preserve the bottom-fixed composer, center transcript card, and rail behavior already established in earlier iterations.
-- Do not suppress `/api/jobs` or `/api/goals` polling in this iteration; only surface degraded ownership consistently so later iterations can tighten fallback safely.
+- Do not suppress `/api/jobs` or `/api/goals` polling in this iteration; only make the selected-thread SSE phase progression explicit and consistent.
 
 ## Deliverable
 
-Define and verify one canonical selected-thread session-status model in `ops-store.js`, then have the center header, composer target row or strip, inline live block, and left-rail active-session row all consume that model so ownership and downgrade behavior stay consistent from bootstrap through append projection and negative cases.
+Define and verify one canonical selected-thread phase progression model on the existing SSE path, then have the center-lane autonomy or session surface and composer-adjacent phase surface consume that model so the active session shows explicit proposal, review, verify, auto-apply, ready, and applied flow without transport or polling changes.

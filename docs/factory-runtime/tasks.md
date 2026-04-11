@@ -1,9 +1,9 @@
 # Factory Runtime Tasks
 
-## Iteration 92
+## Iteration 94
 
-- [x] Add a canonical selected-thread session-status helper in `ops-store.js`.
-- [x] Delegate selected-thread ownership checks to the canonical helper without changing polling behavior.
-- [x] Make the center header, composer transport strip, inline live block, and left-rail active-session row consume the canonical status model.
-- [x] Keep reconnect, polling fallback, handoff, attach, and clear reasons finite and machine-readable from existing client state.
-- [x] Align focused verifiers and proposal artifacts with the iteration-92 session-status boundary contract.
+- [x] Add canonical selected-thread live-autonomy and phase-progression helpers in `ops-store.js`.
+- [x] Mark healthy selected-thread SSE autonomy summaries as fresh, SSE-sourced, and non-fallback on append projection.
+- [x] Make the inline autonomy surface and transcript live session surface consume the canonical phase progression model.
+- [x] Extend the composer-adjacent phase strip to recognize `AUTO APPLY` through the existing selected-thread SSE path.
+- [x] Align focused verifiers and proposal artifacts with the iteration-94 phase progression contract.

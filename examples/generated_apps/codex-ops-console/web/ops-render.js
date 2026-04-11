@@ -1,5 +1,10 @@
 import { DECISION_FIELDS } from "./ops-constants.js";
-import { deriveSelectedThreadSessionStatus, maxConversationAppendId } from "./ops-store.js";
+import {
+  deriveSelectedThreadLiveAutonomy,
+  deriveSelectedThreadPhaseProgression,
+  deriveSelectedThreadSessionStatus,
+  maxConversationAppendId,
+} from "./ops-store.js";
 
 function escapeHtml(value) {
   return String(value || "")
@@ -878,22 +883,20 @@ export function buildAutonomySummary(goal) {
   };
 }
 
-function summarizeInlineAutonomy(currentState, inlineState) {
-  const autonomySummary = currentState.autonomySummary;
-  if (
-    !inlineState.visible ||
-    !inlineState.selectedThreadSseOwned ||
-    inlineState.renderSource !== "sse" ||
-    inlineState.status !== "live" ||
-    !autonomySummary
-  ) {
+function summarizeInlineAutonomy(currentState, conversation) {
+  const liveAutonomy = deriveSelectedThreadLiveAutonomy(currentState, conversation);
+  const phaseProgression = deriveSelectedThreadPhaseProgression(currentState, conversation);
+  const autonomySummary = liveAutonomy.summary;
+  if (!liveAutonomy.visible || !autonomySummary) {
     return "";
   }
   const blockerReason = String(autonomySummary.blockerReason || "none");
   const degradedSignals = Array.isArray(autonomySummary.degradedSignals) ? autonomySummary.degradedSignals : [];
   return `
-    <div class="session-inline-autonomy" data-live-autonomy="true" data-autonomy-path-verdict="${escapeHtml(String(autonomySummary.pathVerdict || "unknown").toLowerCase())}" data-autonomy-verifier-acceptability="${escapeHtml(String(autonomySummary.verifierAcceptability || "pending").toLowerCase())}" data-autonomy-blocker-reason="${escapeHtml(blockerReason)}" data-autonomy-iteration="${escapeHtml(String(autonomySummary.iteration || ""))}" data-autonomy-source="${escapeHtml(String(autonomySummary.source || "none"))}" data-autonomy-freshness-state="${escapeHtml(String(autonomySummary.freshnessState || "stale-or-missing"))}" data-autonomy-fallback-allowed="${autonomySummary.fallbackAllowed ? "true" : "false"}" data-autonomy-generated-at="${escapeHtml(String(autonomySummary.generatedAt || ""))}">
+    <div class="session-inline-autonomy" data-live-autonomy="true" data-live-autonomy-owned="${liveAutonomy.owned ? "true" : "false"}" data-live-autonomy-presentation="${escapeHtml(liveAutonomy.presentation)}" data-live-autonomy-label="${escapeHtml(String(liveAutonomy.label || ""))}" data-live-autonomy-reason="${escapeHtml(String(liveAutonomy.reason || "idle"))}" data-live-phase-label="${escapeHtml(String(phaseProgression.label || ""))}" data-live-phase-owned="${phaseProgression.owned ? "true" : "false"}" data-live-phase-authoritative="${phaseProgression.authoritative ? "true" : "false"}" data-live-phase-source="${escapeHtml(String(phaseProgression.source || "none"))}" data-autonomy-path-verdict="${escapeHtml(String(autonomySummary.pathVerdict || "unknown").toLowerCase())}" data-autonomy-verifier-acceptability="${escapeHtml(String(autonomySummary.verifierAcceptability || "pending").toLowerCase())}" data-autonomy-blocker-reason="${escapeHtml(blockerReason)}" data-autonomy-iteration="${escapeHtml(String(autonomySummary.iteration || ""))}" data-autonomy-source="${escapeHtml(String(liveAutonomy.source || autonomySummary.source || "none"))}" data-autonomy-freshness-state="${escapeHtml(String(liveAutonomy.freshnessState || autonomySummary.freshnessState || "stale-or-missing"))}" data-autonomy-fallback-allowed="${liveAutonomy.fallbackAllowed ? "true" : "false"}" data-autonomy-generated-at="${escapeHtml(String(autonomySummary.generatedAt || ""))}">
       <div class="autonomy-chip-row autonomy-chip-row-compact">
+        <span class="autonomy-chip ${liveAutonomy.owned ? "healthy" : liveAutonomy.presentation === "degraded" ? "warning" : "neutral"}">${escapeHtml(String(liveAutonomy.label || "SESSION"))}</span>
+        <span class="autonomy-chip ${phaseProgression.owned ? "healthy" : liveAutonomy.presentation === "degraded" ? "warning" : "neutral"}">${escapeHtml(String(phaseProgression.label || "UNKNOWN"))}</span>
         <span class="autonomy-chip ${autonomyChipTone(autonomySummary.pathVerdict)}">${escapeHtml(String(autonomySummary.pathVerdict || "UNKNOWN"))}</span>
         <span class="autonomy-chip ${autonomyChipTone(autonomySummary.verifierAcceptability)}">${escapeHtml(String(autonomySummary.verifierAcceptability || "PENDING"))}</span>
         <span class="autonomy-chip ${blockerTone(blockerReason)}">BLOCKER ${escapeHtml(blockerReason.toUpperCase())}</span>
@@ -902,6 +905,7 @@ function summarizeInlineAutonomy(currentState, inlineState) {
         <p class="session-inline-autonomy-item"><span>Iteration</span>${escapeHtml(String(autonomySummary.iteration || ""))}</p>
         <p class="session-inline-autonomy-item"><span>Path</span>${escapeHtml(String(autonomySummary.expectedPath || "unknown"))}</p>
         <p class="session-inline-autonomy-item"><span>Signals</span>${escapeHtml(degradedSignals.length ? degradedSignals.join(", ") : "none")}</p>
+        <p class="session-inline-autonomy-item"><span>Phase</span>${escapeHtml(String(phaseProgression.reason || "healthy"))}</p>
       </div>
     </div>
   `;
@@ -910,39 +914,33 @@ function summarizeInlineAutonomy(currentState, inlineState) {
 function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
   const handoffState = pendingHandoffState(conversation, currentState);
   const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
+  const liveAutonomy = deriveSelectedThreadLiveAutonomy(currentState, conversation);
+  const phaseProgression = deriveSelectedThreadPhaseProgression(currentState, conversation);
   if (inlineState.visible) {
     return "";
   }
   if (
-    !inlineState.selectedThreadSseOwned ||
-    inlineState.renderSource !== "sse" ||
-    inlineState.status !== "live" ||
-    !liveRun?.visible ||
-    !liveRun.phase ||
-    liveRun.phase === "IDLE" ||
-    liveRun.terminal ||
-    liveRun.state === "sending" ||
-    liveRun.state === "generating" ||
-    inlineState.handoffVisible ||
-    inlineState.degradedVisible
+    !phaseProgression.visible ||
+    !liveAutonomy.visible ||
+    inlineState.handoffVisible
   ) {
     return "";
   }
-  const tone = transcriptLiveTone(liveRun);
+  const tone = liveAutonomy.owned ? transcriptLiveTone(liveRun) : "warning";
   const detail = simplifyText(phaseDetailHint(liveRun) || liveRun.detail || "");
   const appendStream = currentState.appendStream || {};
   const appendId = Number(appendStream.lastLiveAppendId || appendStream.lastAppendId || 0);
-  const autonomySummary = summarizeInlineAutonomy(currentState, inlineState);
+  const autonomySummary = summarizeInlineAutonomy(currentState, conversation);
   return `
-    <article class="timeline-item live-activity" data-live-activity-turn="true" data-live-run-state="${escapeHtml(liveRun.state)}" data-live-run-phase="${escapeHtml(liveRun.phase)}" data-live-run-source="${escapeHtml(liveRun.source)}" data-live-owned="true" data-append-id="${appendId}" data-append-source="sse-live-activity">
+    <article class="timeline-item live-activity" data-live-activity-turn="true" data-live-run-state="${escapeHtml(phaseProgression.state || liveRun.state)}" data-live-run-phase="${escapeHtml(phaseProgression.label || liveRun.phase)}" data-live-run-source="${escapeHtml(phaseProgression.source || liveRun.source)}" data-live-owned="${liveAutonomy.owned ? "true" : "false"}" data-live-autonomy-presentation="${escapeHtml(liveAutonomy.presentation)}" data-append-id="${appendId}" data-append-source="sse-live-activity">
       <p class="timeline-kind">실시간 진행</p>
       <div class="timeline-live-row">
-        <span class="timeline-live-chip" data-tone="neutral">LIVE</span>
-        <span class="timeline-live-chip" data-tone="${escapeHtml(tone)}">${escapeHtml(String(liveRun.phase || "LIVE").toUpperCase())}</span>
+        <span class="timeline-live-chip" data-tone="${liveAutonomy.owned ? "neutral" : "warning"}">${escapeHtml(String(liveAutonomy.label || "LIVE"))}</span>
+        <span class="timeline-live-chip" data-tone="${escapeHtml(tone)}">${escapeHtml(String(phaseProgression.label || liveRun.phase || "LIVE").toUpperCase())}</span>
       </div>
       <p class="timeline-body">${escapeHtml(detail || "선택된 대화의 최신 live 진행 상태를 반영하는 중입니다.")}</p>
       ${autonomySummary}
-      <p class="timeline-meta">selected thread · LIVE${liveRun.jobId ? ` · ${escapeHtml(liveRun.jobId)}` : ""} · <span class="timeline-provenance">SSE LIVE</span></p>
+      <p class="timeline-meta">selected thread · ${escapeHtml(String(phaseProgression.label || "LIVE"))}${phaseProgression.jobId || liveRun.jobId ? ` · ${escapeHtml(String(phaseProgression.jobId || liveRun.jobId || ""))}` : ""} · <span class="timeline-provenance">${escapeHtml(String(liveAutonomy.owned ? "SSE LIVE" : liveAutonomy.label || "FALLBACK"))}</span></p>
     </article>
   `;
 }
@@ -1156,6 +1154,7 @@ function deriveLiveRunState(conversation, currentState) {
   const jobId = sessionAuthorityJobId(conversation, currentState);
   const sessionPhase = selectedThreadSessionPhase(conversation, currentState);
   const pendingOutgoing = currentState.pendingOutgoing || {};
+  const sessionPhaseEventType = String(sessionPhase.eventType || "");
 
   if (!conversation?.conversation_id) {
     return runStateSnapshot({
@@ -1235,6 +1234,19 @@ function deriveLiveRunState(conversation, currentState) {
       detail: "선택된 대화의 authoritative SSE phase가 리뷰 단계를 보고했습니다.",
       source: sessionPhase.source,
       tone: "thinking",
+      jobId: sessionPhase.jobId || jobId,
+      terminal: false,
+      appendId: sessionPhase.appendId,
+    });
+  }
+  if (sessionPhase.authoritative && sessionPhaseEventType === "goal.proposal.auto_apply.started") {
+    return runStateSnapshot({
+      visible: true,
+      state: "auto-apply",
+      phase: "AUTO APPLY",
+      detail: "선택된 대화의 authoritative SSE phase가 자동 적용 단계를 보고했습니다.",
+      source: sessionPhase.source,
+      tone: "waiting",
       jobId: sessionPhase.jobId || jobId,
       terminal: false,
       appendId: sessionPhase.appendId,
@@ -1874,29 +1886,11 @@ function syncAutonomyDetailSurface(dom, currentState, conversation, liveRun, han
   if (!autonomyCard || !dom.autonomyDetail) {
     return;
   }
-  const inlineState = conversation
-    ? selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState)
-    : {
-        selectedThreadSseOwned: false,
-        renderSource: "snapshot",
-        status: "offline",
-        degradedVisible: false,
-        handoffVisible: false,
-      };
-  const hideForHealthySelectedThread =
-    Boolean(currentState.autonomySummary) &&
-    inlineState.selectedThreadSseOwned &&
-    inlineState.renderSource === "sse" &&
-    inlineState.status === "live" &&
-    !inlineState.degradedVisible &&
-    !inlineState.handoffVisible &&
-    liveRun?.visible &&
-    !liveRun?.terminal &&
-    Boolean(liveRun?.phase) &&
-    liveRun.phase !== "IDLE";
-  autonomyCard.hidden = hideForHealthySelectedThread;
-  autonomyCard.dataset.autonomySurface = hideForHealthySelectedThread ? "center-lane" : "secondary-detail";
-  dom.autonomyDetail.dataset.surface = hideForHealthySelectedThread ? "center-lane" : "secondary-detail";
+  const liveAutonomy = conversation ? deriveSelectedThreadLiveAutonomy(currentState, conversation) : { visible: false };
+  const hideForSelectedThreadLiveAutonomy = Boolean(liveAutonomy.visible);
+  autonomyCard.hidden = hideForSelectedThreadLiveAutonomy;
+  autonomyCard.dataset.autonomySurface = hideForSelectedThreadLiveAutonomy ? "center-lane" : "secondary-detail";
+  dom.autonomyDetail.dataset.surface = hideForSelectedThreadLiveAutonomy ? "center-lane" : "secondary-detail";
 }
 
 function phaseLabel(status, eventType = "") {

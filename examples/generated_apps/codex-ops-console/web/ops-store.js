@@ -268,6 +268,157 @@ export function deriveSelectedThreadSessionStatus(currentState, conversation = n
   };
 }
 
+export function deriveSelectedThreadLiveAutonomy(currentState, conversation = null) {
+  const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
+  const autonomySummary = currentState.autonomySummary;
+  if (!autonomySummary || typeof autonomySummary !== "object") {
+    return {
+      visible: false,
+      owned: false,
+      presentation: "cleared",
+      label: "",
+      reason: sessionStatus.clearReason,
+      source: "none",
+      freshnessState: "stale-or-missing",
+      fallbackAllowed: true,
+      summary: null,
+    };
+  }
+  if (sessionStatus.presentation === "attach") {
+    return {
+      visible: false,
+      owned: false,
+      presentation: "cleared",
+      label: "",
+      reason: "thread-switch",
+      source: "none",
+      freshnessState: String(autonomySummary.freshnessState || "stale-or-missing").toLowerCase(),
+      fallbackAllowed: Boolean(autonomySummary.fallbackAllowed ?? true),
+      summary: autonomySummary,
+    };
+  }
+  if (sessionStatus.transportState === "reconnect" || sessionStatus.transportState === "polling") {
+    return {
+      visible: true,
+      owned: false,
+      presentation: "degraded",
+      label: sessionStatus.transportLabel,
+      reason: sessionStatus.transportReason,
+      source: sessionStatus.transport === "sse" ? sessionStatus.renderSource || "snapshot" : sessionStatus.transport || "polling",
+      freshnessState: String(autonomySummary.freshnessState || "stale-or-missing").toLowerCase(),
+      fallbackAllowed: Boolean(autonomySummary.fallbackAllowed ?? true),
+      summary: autonomySummary,
+    };
+  }
+  if (sessionStatus.liveOwned) {
+    return {
+      visible: true,
+      owned: true,
+      presentation: "owned",
+      label: sessionStatus.transportLabel || "SSE OWNER",
+      reason: sessionStatus.transportReason,
+      source: String(autonomySummary.source || "sse").toLowerCase(),
+      freshnessState: String(autonomySummary.freshnessState || "fresh").toLowerCase(),
+      fallbackAllowed: Boolean(autonomySummary.fallbackAllowed ?? false),
+      summary: autonomySummary,
+    };
+  }
+  return {
+    visible: false,
+    owned: false,
+    presentation: "cleared",
+    label: "",
+    reason: sessionStatus.clearReason,
+    source: "none",
+    freshnessState: String(autonomySummary.freshnessState || "stale-or-missing").toLowerCase(),
+    fallbackAllowed: Boolean(autonomySummary.fallbackAllowed ?? true),
+    summary: autonomySummary,
+  };
+}
+
+export function deriveSelectedThreadPhaseProgression(currentState, conversation = null) {
+  const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
+  const appendStream = currentState.appendStream || {};
+  const sessionPhase = appendStream.sessionPhase || {};
+  const phaseValue = String(sessionPhase.value || "UNKNOWN").toUpperCase();
+  const eventType = String(sessionPhase.eventType || sessionPhase.event_type || "");
+  const phaseSource = String(sessionPhase.source || "none").toLowerCase();
+
+  if (sessionStatus.presentation === "attach" || !sessionStatus.conversationId) {
+    return {
+      visible: false,
+      label: "",
+      state: "idle",
+      source: "none",
+      authoritative: false,
+      owned: false,
+      reason: sessionStatus.clearReason,
+      appendId: 0,
+      jobId: "",
+    };
+  }
+  if (sessionStatus.pendingHandoff && sessionStatus.selectedThreadSse) {
+    return {
+      visible: true,
+      label: "HANDOFF",
+      state: "handoff",
+      source: "handoff",
+      authoritative: false,
+      owned: false,
+      reason: "pending-handoff",
+      appendId: 0,
+      jobId: "",
+    };
+  }
+  if (sessionStatus.transportState === "reconnect" || sessionStatus.transportState === "polling") {
+    return {
+      visible: true,
+      label: sessionStatus.transportLabel,
+      state: sessionStatus.transportState,
+      source: sessionStatus.transport === "sse" ? sessionStatus.renderSource || "snapshot" : sessionStatus.transport || "polling",
+      authoritative: false,
+      owned: false,
+      reason: sessionStatus.transportReason,
+      appendId: 0,
+      jobId: "",
+    };
+  }
+  if (!sessionStatus.selectedThreadSseAuthoritative) {
+    return {
+      visible: false,
+      label: "",
+      state: "idle",
+      source: "none",
+      authoritative: false,
+      owned: false,
+      reason: "non-authoritative",
+      appendId: 0,
+      jobId: "",
+    };
+  }
+
+  let label = phaseValue;
+  if (eventType === "goal.proposal.auto_apply.started") {
+    label = "AUTO APPLY";
+  } else if (phaseValue === "LIVE") {
+    label = "LIVE";
+  } else if (!phaseValue || phaseValue === "UNKNOWN") {
+    label = "UNKNOWN";
+  }
+
+  return {
+    visible: true,
+    label,
+    state: String(label || "unknown").toLowerCase().replace(/\s+/g, "-"),
+    source: phaseSource || "sse",
+    authoritative: Boolean(sessionPhase.authoritative),
+    owned: sessionStatus.liveOwned,
+    reason: sessionStatus.transportReason,
+    appendId: Math.max(Number(sessionPhase.appendId || sessionPhase.append_id || 0), 0),
+    jobId: String(sessionPhase.jobId || sessionPhase.job_id || ""),
+  };
+}
+
 export function isSelectedThreadSessionOwned(currentState, conversationId = "") {
   const selectedThreadStatus = deriveSelectedThreadSessionStatus(currentState, { conversation_id: conversationId });
   return Boolean(selectedThreadStatus.authoritative);
