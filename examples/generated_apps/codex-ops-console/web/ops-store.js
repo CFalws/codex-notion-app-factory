@@ -344,18 +344,18 @@ export function deriveSelectedThreadActiveSessionRowModel(currentState, conversa
   const conversationTitle = sessionStatus.conversationTitle || "현재 대화";
   if (sessionStatus.switchActive) {
     return {
-      visible: true,
-      conversationId: String(sessionStatus.switchConversationId || ""),
-      presentation: "attach",
-      rowState: "switching",
-      ownerLabel: "TARGET",
-      stateLabel: "SWITCHING",
-      followLabel: "ATTACH",
-      title: String(sessionStatus.switchTargetTitle || conversationTitle),
-      meta: "selected thread · switching · attach pending",
+      visible: false,
+      conversationId: "",
+      presentation: "cleared",
+      rowState: "idle",
+      ownerLabel: "OWNER",
+      stateLabel: "SESSION",
+      followLabel: "LIVE",
+      title: "선택된 대화",
+      meta: "selected thread",
       rowOwned: false,
-      rowSource: "thread-transition",
-      rowPhase: "SWITCHING",
+      rowSource: "none",
+      rowPhase: "IDLE",
       rowUnseenCount: 0,
     };
   }

@@ -1,9 +1,9 @@
 # Factory Runtime Tasks
 
-## Iteration 151
+## Iteration 152
 
-- [x] Restore one compact inline selected-thread session block from the existing session surface and phase-progression models.
-- [x] Restrict the block to healthy selected-thread live progress and pending assistant handoff only.
-- [x] Clear the block immediately on reconnect, polling fallback, restore, terminal idle, deselection, switch, and other lost-authority paths.
-- [x] Suppress the pending assistant placeholder when the handoff block is visible.
-- [x] Align focused static verification and proposal artifacts with the iteration-151 inline-session contract.
+- [x] Derive the sticky active-session row directly from selected-thread session status, shell phase, and follow-control models.
+- [x] Restrict the row to healthy selected-thread ownership and bounded handoff only.
+- [x] Clear the row immediately on reconnect, polling fallback, switch, terminal idle, deselection, and other lost-authority paths.
+- [x] Preserve compact owner, phase, and follow or unseen cues without introducing another state source.
+- [x] Align focused static verification and proposal artifacts with the iteration-152 left-rail sticky-row contract.
