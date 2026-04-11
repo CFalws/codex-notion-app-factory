@@ -1,10 +1,10 @@
 # Factory Runtime Tasks
 
-## Iteration 190
+## Iteration 193
 
-- [x] Keep the change bounded to the existing switch placeholder, workspace placeholder, and composer-target continuity seam.
-- [x] Preserve the transcript shell and composer dock through intentional thread switches instead of allowing generic empty-state flashes.
-- [x] Require exactly one compact switching placeholder while the new selected thread snapshot or live authority attaches.
-- [x] Preserve machine-readable datasets so old-thread ownership clearing and incoming-thread targeting stay explicit.
-- [x] Fail closed immediately on degraded, reconnect, polling fallback, restore-gap, deselected, switched, and terminal paths.
-- [x] Align focused docs and verification with the iteration-190 switch-continuity contract.
+- [x] Keep the change bounded to the existing transcript-tail live activity and session-event seams.
+- [x] Preserve healthy selected-thread SSE ownership as the one authoritative transcript-tail live session block.
+- [x] Collapse duplicate selected-thread SSE session-event cards only while that healthy live block is authoritative.
+- [x] Preserve machine-readable datasets for phase progression, append provenance, intended-path verdict, verifier acceptability, and blocker state across `PROPOSAL`, `REVIEW`, `VERIFY`, `READY`, and `APPLIED`.
+- [x] Restore or fail open immediately on degraded, reconnect, polling fallback, restore-gap, deselected, switched, and terminal paths.
+- [x] Align focused docs and verification with the iteration-193 single-block healthy-path contract.

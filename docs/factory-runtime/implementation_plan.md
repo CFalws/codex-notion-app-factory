@@ -1,12 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 190
+## Iteration 193
 
-Lock the already-present selected-thread switch continuity path into the iteration 190 proposal artifacts.
+Lock the already-present healthy selected-thread transcript-tail session-event collapse path into the iteration 193 proposal artifacts.
 
-1. Keep the change bounded to the existing switch placeholder, workspace placeholder, and composer-target continuity seam.
-2. Preserve the transcript shell and composer dock through intentional thread switches instead of allowing generic empty-state flashes.
-3. Require exactly one compact switching placeholder while the new selected thread snapshot or live authority attaches.
-4. Preserve machine-readable datasets so old-thread ownership clearing and incoming-thread targeting stay explicit.
-5. Fail closed immediately on degraded, reconnect, polling fallback, restore-gap, deselected, switched, and terminal paths.
-6. Align focused verification and proposal artifacts with the iteration-190 switch-continuity contract.
+1. Keep the change bounded to the existing transcript-tail live activity and session-event seams.
+2. Preserve healthy selected-thread SSE ownership as the one authoritative transcript-tail live session block.
+3. Collapse duplicate selected-thread SSE session-event cards only while that healthy live block is authoritative.
+4. Preserve machine-readable datasets for phase progression, append provenance, intended-path verdict, verifier acceptability, and blocker state across `PROPOSAL`, `REVIEW`, `VERIFY`, `READY`, and `APPLIED`.
+5. Restore or fail open immediately on degraded, reconnect, polling fallback, restore-gap, deselected, switched, and terminal paths.
+6. Align focused verification and proposal artifacts with the iteration-193 single-block healthy-path contract.

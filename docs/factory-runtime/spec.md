@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `190`
-- bounded focus: `prove the selected-thread switch path stays inside one mounted conversation workspace`
+- current iteration: `193`
+- bounded focus: `collapse healthy selected-thread proposal, review, verify, ready, and applied progress into one transcript-tail live session block`
 
 ## Request
 
@@ -13,22 +13,22 @@
 
 ## Problem
 
-The selected-thread workspace already derives switch continuity through the existing thread-transition and workspace-placeholder seams, but the high-value remaining question is whether the intended switch path is explicit and verifier-acceptable rather than merely working through fallback inference.
+The selected-thread workspace already has healthy SSE-owned live activity and session-event rendering, but the center timeline still risks reading like multiple competing session surfaces unless the healthy path clearly collapses duplicate selected-thread session events into the transcript-tail live block.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly realtime workspace and expecting intentional thread switches to feel like one continuous live session instead of a drop to idle or empty state.
+The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the selected conversation to read like one continuous live Codex-style session rather than a live strip plus duplicate session-event cards.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the iteration bounded to the existing selected-thread switch placeholder, workspace placeholder, and composer-target continuity seam.
-- Reuse the existing selected-thread SSE and session model already driving workspace placeholder, transition, and composer surfaces; do not change transport ownership rules.
-- Keep the transcript shell and bottom-fixed composer mounted during intentional thread switches.
-- Require exactly one compact switching placeholder while the incoming selected thread snapshot or live authority attaches.
-- Fail closed on degraded, reconnect, polling fallback, restore-gap, deselected, switched, and terminal paths.
+- Keep the iteration bounded to the existing selected-thread transcript-tail live activity and session-event seams.
+- Reuse the existing selected-thread SSE and session model already driving transcript-tail live activity, append provenance, and session-event projection; do not change transport ownership rules.
+- On the healthy selected-thread SSE-owned path, expose at most one compact transcript-tail live session block that updates through `PROPOSAL`, `REVIEW`, `VERIFY`, `READY`, and `APPLIED`.
+- Suppress duplicate selected-thread session-event cards only while that healthy transcript-tail live block is authoritative.
+- Restore or fail open immediately on degraded, reconnect, polling fallback, restore-gap, deselected, switched, and terminal paths.
 
 ## Deliverable
 
-Expose one continuous conversation-first switch path where old-thread live ownership clears immediately, the generic empty workspace never flashes during intentional switches, and the incoming selected thread stays visible through one compact transition placeholder until attach completes.
+Expose one continuous conversation-first selected-thread timeline where healthy SSE-owned phase progression stays inside one transcript-tail live session block, duplicate selected-thread session-event cards disappear on that path, and degraded or non-authoritative paths immediately restore or clear those event surfaces.
