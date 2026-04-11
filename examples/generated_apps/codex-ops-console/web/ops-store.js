@@ -339,11 +339,14 @@ export function deriveSelectedThreadFollowControlModel(currentState) {
 }
 
 export function deriveSelectedThreadActiveSessionRowModel(currentState, conversation = null) {
-  const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
+  const authority = deriveSelectedThreadSessionAuthorityModel(currentState, conversation);
+  const sessionStatus = authority.sessionStatus;
   const followControl = deriveSelectedThreadFollowControlModel(currentState);
-  const phaseLabel = String(deriveSelectedThreadShellPhaseLabel(currentState, conversation) || "").trim().toUpperCase();
+  const phaseLabel = String(authority.phaseLabel || deriveSelectedThreadShellPhaseLabel(currentState, conversation) || "")
+    .trim()
+    .toUpperCase();
   const conversationTitle = sessionStatus.conversationTitle || "현재 대화";
-  if (sessionStatus.switchActive) {
+  if (authority.state === "switching") {
     return {
       visible: true,
       conversationId: String(sessionStatus.switchConversationId || ""),
@@ -362,7 +365,7 @@ export function deriveSelectedThreadActiveSessionRowModel(currentState, conversa
       clearReason: "none",
     };
   }
-  if (sessionStatus.pendingHandoff && sessionStatus.selectedThreadSse) {
+  if (authority.state === "handoff") {
     return {
       visible: true,
       conversationId: String(sessionStatus.conversationId || ""),
@@ -379,6 +382,25 @@ export function deriveSelectedThreadActiveSessionRowModel(currentState, conversa
       rowPhase: "HANDOFF",
       rowUnseenCount: 0,
       clearReason: "none",
+    };
+  }
+  if (authority.state === "healthy") {
+    return {
+      visible: false,
+      conversationId: "",
+      presentation: "cleared",
+      rowState: "idle",
+      ownerLabel: "OWNER",
+      stateLabel: "SESSION",
+      followLabel: "LIVE",
+      title: "선택된 대화",
+      meta: "selected thread",
+      rowOwned: false,
+      canonical: false,
+      rowSource: "none",
+      rowPhase: "IDLE",
+      rowUnseenCount: 0,
+      clearReason: "composer-authoritative",
     };
   }
   if (sessionStatus.liveOwned) {
@@ -425,7 +447,7 @@ export function deriveSelectedThreadActiveSessionRowModel(currentState, conversa
     rowSource: "none",
     rowPhase: "IDLE",
     rowUnseenCount: 0,
-    clearReason: String(sessionStatus.clearReason || sessionStatus.transportReason || "idle"),
+    clearReason: String(authority.clearReason || sessionStatus.clearReason || sessionStatus.transportReason || "idle"),
   };
 }
 
@@ -814,6 +836,116 @@ export function deriveSelectedThreadSessionSurfaceModel(currentState, conversati
           ? phaseProgression.source || liveAutonomy.source || "sse"
           : phaseProgression.source || liveAutonomy.source || "none",
     ).toLowerCase(),
+  };
+}
+
+export function deriveSelectedThreadSessionAuthorityModel(currentState, conversation = null, liveRun = null) {
+  const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
+  const sessionSurface = deriveSelectedThreadSessionSurfaceModel(currentState, conversation);
+  const sessionStrip = deriveSelectedThreadSessionStripModel(currentState, conversation, liveRun);
+  const shellPhaseLabel = String(deriveSelectedThreadShellPhaseLabel(currentState, conversation) || "").toUpperCase();
+  const conversationId = String(sessionStatus.conversationId || "");
+  const terminalClear = Boolean(liveRun?.terminal && sessionStatus.presentation !== "restore");
+
+  let state = "cleared";
+  let presentation = "cleared";
+  let owned = false;
+  let authoritative = false;
+  let visible = false;
+  let ownerLabel = "";
+  let badgeStateLabel = "";
+  let phaseLabel = "";
+  let pathLabel = "";
+  let source = "none";
+  let reason = String(sessionStatus.clearReason || sessionStatus.transportReason || "idle");
+  let clearReason = reason;
+
+  if (sessionStatus.switchActive) {
+    state = "switching";
+    presentation = "switching";
+    phaseLabel = "SWITCHING";
+    pathLabel = "SWITCH";
+    source = "thread-transition";
+    reason = "thread-switch";
+    clearReason = "thread-switch";
+  } else if (sessionStatus.presentation === "restore") {
+    state = "restore";
+    presentation = "restore";
+    visible = true;
+    ownerLabel = String(sessionStatus.transportLabel || (sessionStatus.restoreResume ? "RESUME" : "ATTACH")).toUpperCase();
+    badgeStateLabel = ownerLabel;
+    phaseLabel = String(sessionSurface.phaseLabel || ownerLabel).toUpperCase();
+    pathLabel = sessionStatus.restoreResume ? "RESUME" : "ATTACH";
+    source = String(sessionStatus.restoreProvenance || sessionStrip.source || "sse").toLowerCase();
+    reason = String(sessionStatus.transportReason || "saved-restore-attach");
+    clearReason = "none";
+  } else if (sessionStatus.pendingHandoff && sessionStatus.selectedThreadSse) {
+    state = "handoff";
+    presentation = "handoff";
+    visible = true;
+    owned = true;
+    ownerLabel = String(sessionStatus.transportLabel || "SSE OWNER").toUpperCase();
+    badgeStateLabel = "HANDOFF";
+    phaseLabel = "HANDOFF";
+    pathLabel = "HANDOFF";
+    source = "handoff";
+    reason = "pending-handoff";
+    clearReason = "none";
+  } else if (!terminalClear && sessionSurface.liveOwned && sessionStrip.visible && sessionStrip.owned) {
+    state = "healthy";
+    presentation = "healthy";
+    visible = true;
+    owned = true;
+    authoritative = true;
+    ownerLabel = String(sessionStatus.transportLabel || sessionStrip.stateLabel || "SSE OWNER").toUpperCase();
+    badgeStateLabel = "SSE";
+    phaseLabel = String(shellPhaseLabel || sessionSurface.phaseLabel || sessionStrip.phaseLabel || "LIVE").toUpperCase();
+    pathLabel = String(sessionSurface.pathVerdict || sessionStrip.pathVerdict || "EXPECTED").toUpperCase();
+    source = String(sessionStrip.source || sessionSurface.source || "sse").toLowerCase();
+    reason = String(sessionStatus.transportReason || "selected-thread-following");
+    clearReason = "none";
+  } else if (
+    !terminalClear &&
+    (sessionStatus.transportState === "reconnect" ||
+      sessionStatus.transportState === "polling" ||
+      sessionSurface.degradedVisible ||
+      sessionStrip.presentation === "degraded")
+  ) {
+    state = "degraded";
+    presentation = "degraded";
+    visible = true;
+    ownerLabel = String(sessionStatus.transportLabel || sessionStrip.stateLabel || "POLLING").toUpperCase();
+    badgeStateLabel = ownerLabel;
+    phaseLabel = String(sessionSurface.phaseLabel || sessionStrip.phaseLabel || ownerLabel).toUpperCase();
+    pathLabel = phaseLabel;
+    source = String(sessionStrip.source || sessionSurface.source || sessionStatus.transport || "polling").toLowerCase();
+    reason = String(sessionStatus.transportReason || "polling-fallback");
+    clearReason = "none";
+  } else if (terminalClear) {
+    state = "terminal-idle";
+    presentation = "cleared";
+    reason = "terminal";
+    clearReason = "terminal";
+  }
+
+  return {
+    state,
+    presentation,
+    visible,
+    owned,
+    authoritative,
+    ownerLabel,
+    badgeStateLabel,
+    phaseLabel,
+    pathLabel,
+    source,
+    reason,
+    clearReason,
+    summaryVisible: visible && state !== "healthy",
+    badgeVisible: visible && state !== "healthy",
+    sessionStatus,
+    sessionSurface,
+    sessionStrip,
   };
 }
 

@@ -581,36 +581,25 @@ def assert_browser_runtime_surface(
                     threadSessionSummary &&
                     threadSessionSummary.hidden &&
                     threadSessionSummary.dataset.threadSummaryVisible === "false" &&
-                    threadSessionSummary.dataset.threadSummaryPresentation === "suppressed" &&
+                    threadSessionSummary.dataset.threadSummaryPresentation === "cleared" &&
                     threadSessionSummary.dataset.threadSummaryOwned === "false" &&
                     threadSessionSummary.dataset.threadSummaryScope === "" &&
                     threadSessionSummary.dataset.threadSummaryPath === "" &&
                     threadSessionSummary.dataset.threadSummaryOwner === "" &&
                     threadSessionSummary.dataset.threadSummaryPhase === "" &&
-                    threadSessionSummary.dataset.threadSummaryReason === "center-timeline-authoritative" &&
+                    threadSessionSummary.dataset.threadSummaryReason === "idle" &&
                     threadPhase &&
                     threadPhase.hidden &&
-                    threadPhase.dataset.liveSessionVisible === "true" &&
-                    threadPhase.dataset.liveSessionPresentation === "healthy" &&
-                    threadPhase.dataset.liveSessionOwned === "true" &&
-                    threadPhase.dataset.liveSessionSource === "sse" &&
-                    threadPhase.dataset.liveSessionProvenance === "sse" &&
+                    threadPhase.dataset.liveSessionVisible === "false" &&
+                    threadPhase.dataset.liveSessionPresentation === "cleared" &&
+                    threadPhase.dataset.liveSessionOwned === "false" &&
                     threadPhase.dataset.centerTimelineAuthority === "true" &&
                     threadPhase.dataset.centerTimelinePresentation === "healthy" &&
-                    threadPhase.dataset.liveSessionStateLabel === "SSE" &&
-                    threadPhase.dataset.liveSessionPhase === liveActivity.dataset.liveRunPhase &&
-                    threadPhase.dataset.liveSessionDetail === `${liveActivity.dataset.liveRunPhase} VIA SSE OWNER` &&
-                    threadPhase.dataset.threadPhaseDetail &&
-                    threadPhase.dataset.threadPhaseDetail !== "idle" &&
                     activeSessionRow &&
-                    !activeSessionRow.hidden &&
+                    activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "true" &&
-                    activeSessionRow.dataset.activeSessionCanonical === "true" &&
-                    activeSessionRow.dataset.activeSessionSource === "sse" &&
-                    ["live", "paused", "new"].includes(activeSessionRow.dataset.activeSessionState || "") &&
-                    activeSessionRow.dataset.activeSessionPhase === liveActivity.dataset.liveRunPhase &&
-                    ["live", "paused", "new"].includes(activeSessionRow.dataset.activeSessionFollow || "") &&
-                    activeSessionRow.textContent.includes("OWNER") &&
+                    activeSessionRow.dataset.activeSessionCanonical === "false" &&
+                    activeSessionRow.dataset.activeSessionSource === "none" &&
                     visibleConversationOwnerRows.length === 0 &&
                     selectedCardLiveOwnerRow &&
                     selectedCardLiveOwnerRow.hidden &&
@@ -627,29 +616,26 @@ def assert_browser_runtime_surface(
                     !selectedRecentThreadOwner &&
                     !selectedRecentThreadFollow &&
                     sessionStrip &&
-                    sessionStrip.hidden &&
-                    sessionStrip.dataset.liveOwned === "false" &&
-                    sessionStrip.dataset.sessionOwner === "none" &&
-                    sessionStrip.dataset.sessionPresentation === "suppressed" &&
+                    !sessionStrip.hidden &&
+                    sessionStrip.dataset.liveOwned === "true" &&
+                    sessionStrip.dataset.sessionOwner === "selected-thread" &&
+                    sessionStrip.dataset.sessionPresentation === "healthy" &&
                     sessionStrip.dataset.footerDockOwned === "true" &&
-                    sessionStrip.dataset.footerDockMilestones === "false" &&
+                    sessionStrip.dataset.footerDockMilestones === "true" &&
                     sessionStrip.dataset.footerDockPhase === liveActivity.dataset.liveRunPhase &&
                     sessionStrip.dataset.footerDockSource === "sse" &&
                     threadScroller &&
                     sessionStrip.dataset.phaseValue === liveActivity.dataset.liveRunPhase &&
                     threadScroller.dataset.phaseValue === liveActivity.dataset.liveRunPhase &&
                     sessionStripState &&
-                    stripChips.length === 1 &&
+                    stripChips.length >= 3 &&
                     sessionStripState.dataset.sessionStripRole === "live-dock" &&
-                    ["PROPOSAL", "REVIEW", "VERIFY", "READY", "APPLIED", "NEW", "PAUSED"].includes(sessionStripState.dataset.sessionStripLabel || "") &&
-                    sessionStripState.textContent.trim().length > 0 &&
+                    sessionStripState.textContent.includes("SSE OWNER") &&
                     sessionStripDetail &&
-                    sessionStripDetail.textContent.trim().length > 0 &&
-                    !sessionStripDetail.textContent.includes("OWNER") &&
-                    !sessionStripDetail.textContent.includes("authoritative") &&
+                    sessionStripDetail.textContent.includes("SSE OWNER") &&
                     composerOwnerRow &&
-                    !composerOwnerRow.hidden &&
-                    composerOwnerRow.dataset.composerOwnerMerged === "false" &&
+                    composerOwnerRow.hidden &&
+                    composerOwnerRow.dataset.composerOwnerMerged === "true" &&
                     composerOwnerRow.dataset.composerOwner === "ready" &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
@@ -893,6 +879,7 @@ def assert_browser_runtime_surface(
                   const degraded = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="false"]');
                   const healthy = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
                   const inlineBlocks = document.querySelectorAll('.session-inline-block[data-selected-thread-live-block="true"], .session-inline-block[data-selected-thread-degraded-block="true"]');
+                  const threadSessionSummary = document.querySelector("#thread-session-summary");
                   const threadPhase = document.querySelector("#thread-phase-chip");
                   const activeSessionRow = document.querySelector("#active-session-row");
                   const selectedCard = document.querySelector('.conversation-card[data-selected="true"]');
@@ -920,6 +907,11 @@ def assert_browser_runtime_surface(
                     secondarySessionFacts.dataset.secondaryFactsOwned === "false" &&
                     secondarySessionFacts.dataset.secondaryFactsTransport === degraded.dataset.liveTransport &&
                     secondarySessionFacts.dataset.secondaryFactsPhase === phase &&
+                    threadSessionSummary &&
+                    !threadSessionSummary.hidden &&
+                    threadSessionSummary.dataset.threadSummaryVisible === "true" &&
+                    threadSessionSummary.dataset.threadSummaryPresentation === "degraded" &&
+                    threadSessionSummary.dataset.threadSummaryOwned === "false" &&
                     !threadPhase.hidden &&
                     threadPhase.textContent.trim() === `${phase} ${degraded.dataset.liveTransport}` &&
                     threadPhase.dataset.liveSessionVisible === "true" &&

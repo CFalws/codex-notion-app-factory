@@ -3,6 +3,7 @@ import {
   deriveSelectedThreadFollowControlModel,
   deriveSelectedThreadLiveAutonomy,
   deriveSelectedThreadPhaseProgression,
+  deriveSelectedThreadSessionAuthorityModel,
   deriveSelectedThreadSessionSurfaceModel,
   deriveSelectedThreadShellPhaseLabel,
   deriveSelectedThreadSessionStatus,
@@ -147,6 +148,7 @@ function secondaryFactsChip(label, tone = "muted") {
 }
 
 function secondaryPanelSessionFactsModel(currentState, conversation, liveRun, handoffState = { stage: "idle" }) {
+  const authority = deriveSelectedThreadSessionAuthorityModel(currentState, conversation, liveRun);
   const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
   const sessionSurface = deriveSelectedThreadSessionSurfaceModel(currentState, conversation);
   const followControl = deriveSelectedThreadFollowControlModel(currentState);
@@ -156,7 +158,7 @@ function secondaryPanelSessionFactsModel(currentState, conversation, liveRun, ha
     "NO TARGET",
   );
 
-  if (sessionStatus.switchActive) {
+  if (authority.state === "switching") {
     return {
       presentation: "switching",
       conversationId: String(sessionStatus.switchConversationId || ""),
@@ -173,7 +175,7 @@ function secondaryPanelSessionFactsModel(currentState, conversation, liveRun, ha
     };
   }
 
-  if (sessionSurface.restoreVisible) {
+  if (authority.state === "restore") {
     return {
       presentation: "restore",
       conversationId: String(sessionStatus.conversationId || ""),
@@ -192,7 +194,7 @@ function secondaryPanelSessionFactsModel(currentState, conversation, liveRun, ha
     };
   }
 
-  if (sessionSurface.liveOwned) {
+  if (authority.state === "healthy") {
     return {
       presentation: "suppressed",
       conversationId: String(sessionStatus.conversationId || ""),
@@ -209,7 +211,7 @@ function secondaryPanelSessionFactsModel(currentState, conversation, liveRun, ha
     };
   }
 
-  if (inlineState.handoffVisible || sessionSurface.handoffVisible) {
+  if (authority.state === "handoff") {
     return {
       presentation: "handoff",
       conversationId: String(sessionStatus.conversationId || ""),
@@ -226,8 +228,8 @@ function secondaryPanelSessionFactsModel(currentState, conversation, liveRun, ha
     };
   }
 
-  if (sessionSurface.degradedVisible || inlineState.degradedVisible) {
-    const degradedTransport = String(sessionStatus.transportLabel || "POLLING").toUpperCase();
+  if (authority.state === "degraded") {
+    const degradedTransport = String(authority.ownerLabel || sessionStatus.transportLabel || "POLLING").toUpperCase();
     return {
       presentation: "degraded",
       conversationId: String(sessionStatus.conversationId || ""),
@@ -409,24 +411,38 @@ function sessionStripStateChipMarkup(chips) {
 }
 
 function selectedThreadFooterDockModel(currentState, conversation, liveRun, footerFollow = null) {
+  const authority = deriveSelectedThreadSessionAuthorityModel(currentState, conversation, liveRun);
   const sessionSurface = deriveSelectedThreadSessionSurfaceModel(currentState, conversation);
-  const liveOwned = Boolean(sessionSurface.liveOwned && sessionSurface.source === "sse");
-  const phaseLabel = String(sessionSurface.phaseLabel || deriveSelectedThreadShellPhaseLabel(currentState, conversation) || liveRun?.phase || "LIVE").toUpperCase();
-  const chips = [
-    footerFollow?.visible
-      ? {
-          label: footerFollow.stateLabel,
-          tone: footerFollow.followState === "new" ? "warning" : "neutral",
-          role: "live-follow",
-        }
-      : { label: phaseLabel, tone: "neutral", role: "live-phase" },
-  ];
+  const liveOwned = authority.state === "healthy";
+  const phaseLabel = String(authority.phaseLabel || sessionSurface.phaseLabel || deriveSelectedThreadShellPhaseLabel(currentState, conversation) || liveRun?.phase || "LIVE").toUpperCase();
+  const runStateLabel = compactPhaseDetailCopy(liveRun, "SESSION ACTIVE");
+  const chips = liveOwned
+    ? [
+        { label: String(authority.ownerLabel || "SSE OWNER").toUpperCase(), tone: "healthy", role: "live-owner" },
+        { label: phaseLabel, tone: "neutral", role: "live-phase" },
+        footerFollow?.visible
+          ? {
+              label: footerFollow.stateLabel,
+              tone: footerFollow.followState === "new" ? "warning" : "neutral",
+              role: "live-follow",
+            }
+          : { label: runStateLabel, tone: "neutral", role: "live-state" },
+      ]
+    : [
+        footerFollow?.visible
+          ? {
+              label: footerFollow.stateLabel,
+              tone: footerFollow.followState === "new" ? "warning" : "neutral",
+              role: "live-follow",
+            }
+          : { label: phaseLabel, tone: "neutral", role: "live-phase" },
+      ];
   return {
     visible: liveOwned,
     phaseLabel,
     chips,
-    detail: footerFollow?.visible ? footerFollow.detailLabel : "SSE LIVE",
-    source: String(sessionSurface.milestoneModel.source || sessionSurface.source || "sse").toLowerCase(),
+    detail: footerFollow?.visible ? footerFollow.detailLabel : joinSessionChromeTokens(String(authority.ownerLabel || "SSE OWNER").toUpperCase(), runStateLabel),
+    source: String(authority.source || sessionSurface.milestoneModel.source || sessionSurface.source || "sse").toLowerCase(),
     liveOwned,
   };
 }
@@ -477,9 +493,10 @@ function sessionStripStateRow(ownerState, transportState, liveRun, presentation,
 
 function composerOwnerState(currentState, conversation) {
   const pendingOutgoing = currentState.pendingOutgoing || {};
-  const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
+  const authority = deriveSelectedThreadSessionAuthorityModel(currentState, conversation);
+  const sessionStatus = authority.sessionStatus;
 
-  if (sessionStatus.presentation === "attach" && sessionStatus.targetConversationId) {
+  if (authority.state === "switching" && sessionStatus.targetConversationId) {
     return {
       state: "switching",
       label: "SWITCHING",
@@ -492,7 +509,20 @@ function composerOwnerState(currentState, conversation) {
     };
   }
 
-  if (sessionStatus.pendingHandoff && sessionStatus.selectedThreadSse) {
+  if (authority.state === "restore") {
+    return {
+      state: sessionStatus.restoreResume ? "resume" : "attach",
+      label: String(authority.ownerLabel || (sessionStatus.restoreResume ? "RESUME" : "ATTACH")).toUpperCase(),
+      tone: String(sessionStatus.transportTone || "neutral"),
+      conversationId: sessionStatus.conversationId,
+      target: compactTargetLabel(sessionStatus.conversationTitle, "CURRENT THREAD"),
+      copy: sessionStatus.restoreResume ? "RESUME" : "ATTACH",
+      blocked: false,
+      blockedReason: "",
+    };
+  }
+
+  if (authority.state === "handoff") {
     return {
       state: "handoff",
       label: "HANDOFF",
@@ -508,10 +538,23 @@ function composerOwnerState(currentState, conversation) {
     };
   }
 
-  if (sessionStatus.liveOwned && sessionStatus.conversationId) {
+  if (authority.state === "degraded") {
+    return {
+      state: sessionStatus.transportState === "reconnect" ? "reconnect" : "polling",
+      label: String(authority.ownerLabel || "POLLING").toUpperCase(),
+      tone: String(sessionStatus.transportTone || "warning"),
+      conversationId: sessionStatus.conversationId,
+      target: compactTargetLabel(sessionStatus.conversationTitle, "CURRENT THREAD"),
+      copy: "WATCH",
+      blocked: false,
+      blockedReason: "",
+    };
+  }
+
+  if (authority.state === "healthy" && sessionStatus.conversationId) {
     return {
       state: "ready",
-      label: "READY",
+      label: String(authority.phaseLabel || "LIVE").toUpperCase(),
       tone: "healthy",
       conversationId: sessionStatus.conversationId,
       target: compactTargetLabel(sessionStatus.conversationTitle, "CURRENT THREAD"),
@@ -538,11 +581,12 @@ function syncComposerOwnership(dom, currentState, conversation) {
     return;
   }
   const owner = composerOwnerState(currentState, conversation);
+  const authority = deriveSelectedThreadSessionAuthorityModel(currentState, conversation);
   dom.composerOwnerRow.dataset.composerOwner = owner.state;
   dom.composerOwnerRow.dataset.composerOwnerConversationId = owner.conversationId;
   dom.composerOwnerRow.dataset.composerRestoreStage = "none";
-  dom.composerOwnerRow.dataset.composerOwnerMerged = "false";
-  dom.composerOwnerRow.hidden = owner.state === "idle";
+  dom.composerOwnerRow.dataset.composerOwnerMerged = authority.state === "healthy" ? "true" : "false";
+  dom.composerOwnerRow.hidden = owner.state === "idle" || authority.state === "healthy";
   dom.composerOwnerState.textContent = owner.label;
   dom.composerOwnerState.dataset.ownerTone = owner.tone;
   dom.composerOwnerTarget.textContent = owner.target;
@@ -621,77 +665,44 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   }
 
   const threadTransition = currentState.threadTransition || {};
-  const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
-  const sessionSurface = deriveSelectedThreadSessionSurfaceModel(currentState, conversation);
+  const authority = deriveSelectedThreadSessionAuthorityModel(currentState, conversation, liveRun);
+  const sessionStatus = authority.sessionStatus;
+  const sessionSurface = authority.sessionSurface;
   const timelineAuthority = selectedThreadTimelineAuthorityModel(conversation, currentState, liveRun, handoffState);
   const conversationId = String(conversation?.conversation_id || sessionStatus.conversationId || "");
   const switchingSelectedThread = Boolean(threadTransition.active && threadTransition.targetConversationId);
   const sessionIndicator = selectedThreadLiveSessionIndicator(currentState, conversation, liveRun, handoffState);
-  const badgeVisible =
-    Boolean(threadTransition.active && threadTransition.targetConversationId) ||
-    Boolean(sessionStatus.selectedThreadRestore) ||
-    (!Boolean(liveRun?.terminal && sessionStatus.presentation !== "restore") && Boolean(sessionIndicator.visible));
+  const badgeVisible = authority.badgeVisible;
   const healthyPhaseLabel = String(
-    deriveSelectedThreadShellPhaseLabel(currentState, conversation) || liveRun?.phase || "LIVE",
+    authority.phaseLabel || deriveSelectedThreadShellPhaseLabel(currentState, conversation) || liveRun?.phase || "LIVE",
   ).toUpperCase();
-  const badgeStateLabel = switchingSelectedThread
-    ? "SWITCHING"
-    : sessionStatus.selectedThreadRestore
-    ? String(sessionStatus.transportLabel || (sessionStatus.restoreResume ? "RESUME" : "ATTACH")).toUpperCase()
-    : sessionIndicator.owned
-      ? "SSE"
-      : sessionIndicator.state === "handoff"
-        ? "HANDOFF"
-        : String(sessionIndicator.label || sessionStatus.transportLabel || "SESSION").toUpperCase();
+  const badgeStateLabel = String(authority.badgeStateLabel || "SESSION").toUpperCase();
   const badgeLabel = switchingSelectedThread
     ? badgeStateLabel
     : `${healthyPhaseLabel} ${badgeStateLabel}`.trim();
-  const badgeTone = switchingSelectedThread
-    ? "warning"
-    : sessionStatus.selectedThreadRestore
-    ? String(sessionStatus.transportTone || "warning")
-    : String(sessionIndicator.tone || sessionStatus.transportTone || "muted");
-  const badgeSource = switchingSelectedThread
-    ? "thread-transition"
-    : sessionStatus.selectedThreadRestore
-    ? String(sessionStatus.restoreProvenance || "sse-bootstrap")
-    : String(sessionIndicator.source || sessionStatus.transport || "none");
-  const badgePresentation = switchingSelectedThread
-    ? "switching"
-    : sessionStatus.selectedThreadRestore
-    ? "restore"
-    : sessionIndicator.owned
-      ? "healthy"
-      : sessionIndicator.state === "reconnecting" || sessionIndicator.state === "polling"
-        ? "degraded"
-        : "hidden";
-  const badgeReason = switchingSelectedThread
-    ? "thread-switch"
-    : sessionStatus.selectedThreadRestore
-    ? String(sessionStatus.transportReason || "saved-restore-attach")
-    : String(sessionIndicator.reason || "idle");
-  const badgeDetail = switchingSelectedThread
-    ? "THREAD SWITCH"
-    : sessionStatus.selectedThreadRestore
-    ? `${healthyPhaseLabel} VIA SSE ${sessionStatus.restoreResume ? "RESUME" : "ATTACH"}`
-    : sessionIndicator.owned
-      ? `${healthyPhaseLabel} VIA ${String(sessionStatus.transportLabel || "SSE OWNER").toUpperCase()}`
-      : sessionIndicator.state === "reconnecting"
-        ? `${healthyPhaseLabel} VIA SSE RECONNECT`
-        : sessionIndicator.state === "polling"
-        ? `${healthyPhaseLabel} VIA POLLING FALLBACK`
-        : sessionIndicator.state === "handoff"
-            ? `${healthyPhaseLabel} VIA HANDOFF`
-            : `${healthyPhaseLabel} VIA ${String(sessionStatus.transportLabel || "SESSION").toUpperCase()}`;
-  const summaryVisible =
-    false;
+  const badgeTone =
+    authority.state === "degraded"
+      ? String(sessionStatus.transportTone || "warning")
+      : authority.state === "restore"
+        ? String(sessionStatus.transportTone || "warning")
+        : authority.state === "handoff"
+          ? "neutral"
+          : "muted";
+  const badgeSource = String(authority.source || "none");
+  const badgePresentation = String(authority.presentation || "cleared");
+  const badgeReason = String(authority.reason || "idle");
+  const badgeDetail =
+    authority.state === "degraded"
+      ? `${healthyPhaseLabel} VIA ${String(authority.ownerLabel || "POLLING").toUpperCase()}`
+      : authority.state === "restore"
+        ? `${healthyPhaseLabel} VIA SSE ${sessionStatus.restoreResume ? "RESUME" : "ATTACH"}`
+        : authority.state === "handoff"
+          ? `${healthyPhaseLabel} VIA HANDOFF`
+          : "SESSION IDLE";
+  const summaryVisible = authority.summaryVisible;
   const healthyTranscriptAuthority =
+    authority.state === "healthy" &&
     Boolean(conversationId) &&
-    !switchingSelectedThread &&
-    !sessionStatus.selectedThreadRestore &&
-    !Boolean(liveRun?.terminal) &&
-    sessionIndicator.owned &&
-    badgePresentation === "healthy" &&
     timelineAuthority.visible &&
     timelineAuthority.presentation === "healthy";
   if (
@@ -702,25 +713,25 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
     dom.threadSessionSummaryPhase
   ) {
     const summaryScope = "SELECTED";
-    const summaryPath = String(sessionSurface.pathVerdict || "EXPECTED").toUpperCase();
-    const summaryOwner = String(sessionStatus.transportLabel || "SSE OWNER").toUpperCase();
+    const summaryPath = String(authority.pathLabel || sessionSurface.pathVerdict || "EXPECTED").toUpperCase();
+    const summaryOwner = String(authority.ownerLabel || sessionStatus.transportLabel || "SSE OWNER").toUpperCase();
     dom.threadSessionSummary.hidden = !summaryVisible;
     dom.threadSessionSummary.dataset.threadSummaryVisible = summaryVisible ? "true" : "false";
-    dom.threadSessionSummary.dataset.threadSummaryPresentation = healthyTranscriptAuthority ? "suppressed" : "cleared";
+    dom.threadSessionSummary.dataset.threadSummaryPresentation = summaryVisible ? badgePresentation : "cleared";
     dom.threadSessionSummary.dataset.threadSummaryScope = summaryVisible ? "selected-thread" : "";
     dom.threadSessionSummary.dataset.threadSummaryPath = summaryVisible ? summaryPath : "";
     dom.threadSessionSummary.dataset.threadSummaryOwner = summaryVisible ? summaryOwner : "";
     dom.threadSessionSummary.dataset.threadSummaryPhase = summaryVisible ? healthyPhaseLabel : "";
     dom.threadSessionSummary.dataset.threadSummarySource = summaryVisible ? badgeSource : "none";
-    dom.threadSessionSummary.dataset.threadSummaryOwned = summaryVisible ? "true" : "false";
+    dom.threadSessionSummary.dataset.threadSummaryOwned = summaryVisible && authority.owned ? "true" : "false";
     dom.threadSessionSummary.dataset.threadSummaryConversationId = summaryVisible ? conversationId : "";
-    dom.threadSessionSummary.dataset.threadSummaryReason = healthyTranscriptAuthority ? "center-timeline-authoritative" : badgeReason;
+    dom.threadSessionSummary.dataset.threadSummaryReason = summaryVisible ? badgeReason : "idle";
     dom.threadSessionSummaryScope.textContent = summaryScope;
     dom.threadSessionSummaryPath.textContent = summaryPath;
     dom.threadSessionSummaryOwner.textContent = summaryOwner;
     dom.threadSessionSummaryPhase.textContent = healthyPhaseLabel;
   }
-  dom.threadPhaseChip.hidden = healthyTranscriptAuthority ? true : !badgeVisible;
+  dom.threadPhaseChip.hidden = !badgeVisible;
   dom.threadPhaseChip.textContent = badgeLabel;
   dom.threadPhaseChip.dataset.tone = badgeTone;
   dom.threadPhaseChip.dataset.threadPhase = badgeLabel;
@@ -729,7 +740,7 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   dom.threadPhaseChip.dataset.liveSessionVisible = badgeVisible ? "true" : "false";
   dom.threadPhaseChip.dataset.liveSessionPresentation = badgePresentation;
   dom.threadPhaseChip.dataset.liveSessionSource = badgeSource;
-  dom.threadPhaseChip.dataset.liveSessionOwned = sessionIndicator.owned ? "true" : "false";
+  dom.threadPhaseChip.dataset.liveSessionOwned = authority.owned ? "true" : "false";
   dom.threadPhaseChip.dataset.liveSessionReason = badgeReason;
   dom.threadPhaseChip.dataset.liveSessionStateLabel = badgeStateLabel;
   dom.threadPhaseChip.dataset.liveSessionPhase = healthyPhaseLabel;
@@ -1072,25 +1083,26 @@ function shouldShowComposerLiveStrip(conversation, currentState, liveRun, handof
 }
 
 function selectedThreadTimelineAuthorityModel(conversation, currentState, liveRun, handoffState = { stage: "idle" }) {
+  const authority = deriveSelectedThreadSessionAuthorityModel(currentState, conversation, liveRun);
   const sessionSurface = deriveSelectedThreadSessionSurfaceModel(currentState, conversation);
   const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
   const sessionStrip = deriveSelectedThreadSessionStripModel(currentState, conversation, liveRun);
   const restoreVisible = !conversation && sessionSurface.restoreVisible;
-  const visible = Boolean(sessionStrip.visible || inlineState.visible || restoreVisible);
-  const presentation = sessionStrip.visible
-    ? sessionStrip.presentation
-    : restoreVisible
-    ? "restore"
-    : inlineState.handoffVisible
-      ? "handoff"
-      : inlineState.degradedVisible
+  const visible = Boolean(authority.visible || sessionStrip.visible || inlineState.visible || restoreVisible);
+  const presentation =
+    authority.state === "healthy"
+      ? "healthy"
+      : authority.state === "degraded"
         ? "degraded"
-        : inlineState.liveVisible
-          ? "healthy"
-          : "hidden";
+        : authority.state === "restore"
+          ? "restore"
+          : authority.state === "handoff"
+            ? "handoff"
+            : "hidden";
   return {
     visible,
     presentation,
+    authority,
     sessionSurface,
     inlineState,
     sessionStrip,
@@ -1187,10 +1199,12 @@ function selectedThreadPrimaryTimelineSessionModel(conversation, currentState, l
   const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
   const sessionSurface = deriveSelectedThreadSessionSurfaceModel(currentState, conversation);
   const sessionStrip = deriveSelectedThreadSessionStripModel(currentState, conversation, liveRun);
-  const liveOwned = !inlineState.handoffVisible && !inlineState.degradedVisible && sessionSurface.liveOwned;
+  const authority = deriveSelectedThreadSessionAuthorityModel(currentState, conversation, liveRun);
+  const liveOwned = authority.state === "healthy";
   return {
     handoffState,
     inlineState,
+    authority,
     sessionSurface,
     sessionStrip,
     liveOwned,
@@ -1996,6 +2010,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
   const ownerState = composerOwnerState(currentState, conversation);
   const transportState = composerTransportState(currentState, conversation, liveRun, handoffState);
+  const authority = deriveSelectedThreadSessionAuthorityModel(currentState, conversation, liveRun);
   const sessionIndicator = selectedThreadLiveSessionIndicator(currentState, conversation, liveRun, handoffState);
   const proposalState = proposalChip(liveRun);
   const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
@@ -2101,19 +2116,15 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const phaseDatasetAuthoritative = ownerState.state === "switching" ? "false" : liveRun.phase && sessionPhase.authoritative ? "true" : "false";
   const phaseDatasetProvenance =
     ownerState.state === "switching" ? "thread-transition" : liveRun.source || sessionPhase.source;
-  const liveOwned =
-    transportState.owned &&
-    inlineState.selectedThreadSseOwned &&
-    inlineState.status === "live" &&
-    inlineState.renderSource === "sse";
+  const liveOwned = authority.state === "healthy";
   const stripLiveOwned = Boolean(footerDock.visible);
-  const healthyTranscriptAuthority =
-    stripLiveOwned && timelineAuthority.visible && timelineAuthority.presentation === "healthy";
+  const healthyComposerAuthority =
+    authority.state === "healthy" && stripLiveOwned && timelineAuthority.visible && timelineAuthority.presentation === "healthy";
   const stripState = sessionStripStateRow(ownerState, transportState, liveRun, presentation, liveOwned, footerFollow, footerDock);
-  dom.sessionStrip.hidden = !sessionConversationId ? true : healthyTranscriptAuthority;
-  dom.sessionStrip.dataset.liveOwned = healthyTranscriptAuthority ? "false" : stripLiveOwned ? "true" : "false";
-  dom.sessionStrip.dataset.sessionOwner = healthyTranscriptAuthority ? "none" : stripLiveOwned ? "selected-thread" : "none";
-  dom.sessionStrip.dataset.sessionPresentation = healthyTranscriptAuthority ? "suppressed" : presentation;
+  dom.sessionStrip.hidden = !sessionConversationId;
+  dom.sessionStrip.dataset.liveOwned = stripLiveOwned ? "true" : "false";
+  dom.sessionStrip.dataset.sessionOwner = stripLiveOwned ? "selected-thread" : "none";
+  dom.sessionStrip.dataset.sessionPresentation = healthyComposerAuthority ? "healthy" : presentation;
   dom.sessionStrip.dataset.sessionTerminal = liveRun.terminal ? "true" : "false";
   dom.sessionStrip.dataset.sessionCollapsed = shouldCollapse ? "true" : "false";
   dom.sessionStrip.dataset.streamState = status;
@@ -2142,7 +2153,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStrip.dataset.composerState = ownerState.state;
   dom.sessionStrip.dataset.composerTransport = transportState.key;
   dom.sessionStrip.dataset.composerTransportSource = transportState.source;
-  dom.sessionStrip.dataset.composerTransportOwned = healthyTranscriptAuthority ? "false" : stripLiveOwned ? "true" : "false";
+  dom.sessionStrip.dataset.composerTransportOwned = stripLiveOwned ? "true" : "false";
   dom.sessionStrip.dataset.composerTransportReason = transportState.reason;
   dom.sessionStrip.dataset.composerTargetConversationId = ownerState.conversationId;
   dom.sessionStrip.dataset.restoreStage = sessionStatus.restoreStage || "none";
@@ -2179,7 +2190,8 @@ export function renderSessionStrip(dom, currentState, conversation) {
     dom.sendRequestButton.textContent = status === "live" || presentation === "sending" ? "추가 지시 보내기" : "메시지 보내기";
   }
   if (dom.applyProposalButton) {
-    dom.applyProposalButton.textContent = liveRun.state === "proposal-ready" ? "지금 제안 적용" : "제안 적용";
+    dom.applyProposalButton.textContent =
+      liveRun.state === "proposal-ready" || authority.phaseLabel === "READY" ? "지금 제안 적용" : "제안 적용";
   }
 
   dom.threadScroller.dataset.streamState = status;

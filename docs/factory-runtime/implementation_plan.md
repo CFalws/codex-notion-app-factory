@@ -1,12 +1,13 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 200
+## Iteration 203
 
-Record the already-present healthy selected-thread live-session collapse path as the iteration 200 proposal contract.
+Promote the fixed composer strip into the healthy selected-thread session bar using the shared selected-thread authority model.
 
-1. Keep the change bounded to the healthy selected-thread center-pane timeline and the existing transcript/browser verification seam.
-2. Preserve exactly one primary live session-progress item in the center transcript on the healthy SSE-owned path.
-3. Preserve duplicate SSE session-event collapse while that primary live item is authoritative.
-4. Preserve machine-readable phase, verdict, verifier, blocker, and append provenance datasets on that single item through the expected phase sequence.
-5. Preserve negative assertions against duplicate session-event surfaces and stale authoritative residue on degraded or terminal transitions.
-6. Align proposal artifacts with the already-present iteration-200 single-item healthy-path contract.
+1. Keep the change bounded to the selected-thread authority model, composer strip, header, rail row, and verifier expectations.
+2. Reuse the shared selected-thread authority model so healthy, degraded, restore, switch, and cleared states are read from one contract.
+3. Make the bottom-fixed composer strip visible and authoritative on the healthy selected-thread path.
+4. Render compact owner, phase, and active-run state chips there from the healthy selected-thread model.
+5. Suppress healthy-path header and rail ownership chrome so the composer becomes the single authoritative session bar.
+6. Preserve immediate downgrade or clear behavior on reconnect, polling fallback, switch, deselection, restore-gap loss, and terminal completion.
+7. Align browser and static verification with the composer-authoritative healthy path.
