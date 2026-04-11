@@ -337,6 +337,89 @@ export function deriveSelectedThreadFollowControlModel(currentState) {
   };
 }
 
+export function deriveSelectedThreadActiveSessionRowModel(currentState, conversation = null) {
+  const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
+  const followControl = deriveSelectedThreadFollowControlModel(currentState);
+  const phaseLabel = String(deriveSelectedThreadShellPhaseLabel(currentState, conversation) || "").trim().toUpperCase();
+  const conversationTitle = sessionStatus.conversationTitle || "현재 대화";
+  if (sessionStatus.switchActive) {
+    return {
+      visible: true,
+      conversationId: String(sessionStatus.switchConversationId || ""),
+      presentation: "attach",
+      rowState: "switching",
+      ownerLabel: "TARGET",
+      stateLabel: "SWITCHING",
+      followLabel: "ATTACH",
+      title: String(sessionStatus.switchTargetTitle || conversationTitle),
+      meta: "selected thread · switching · attach pending",
+      rowOwned: false,
+      rowSource: "thread-transition",
+      rowPhase: "SWITCHING",
+      rowUnseenCount: 0,
+    };
+  }
+  if (sessionStatus.pendingHandoff && sessionStatus.selectedThreadSse) {
+    return {
+      visible: true,
+      conversationId: String(sessionStatus.conversationId || ""),
+      presentation: "handoff",
+      rowState: "handoff",
+      ownerLabel: sessionStatus.transportLabel || "SSE OWNER",
+      stateLabel: "HANDOFF",
+      followLabel: "LIVE",
+      title: conversationTitle,
+      meta: "selected thread · handoff · awaiting first append",
+      rowOwned: true,
+      rowSource: "sse",
+      rowPhase: "HANDOFF",
+      rowUnseenCount: 0,
+    };
+  }
+  if (sessionStatus.liveOwned) {
+    const rowState = followControl.visible ? followControl.followState : "live";
+    const followLabel = followControl.visible ? followControl.stateLabel : "LIVE";
+    const rowPhase = phaseLabel || "LIVE";
+    const rowUnseenCount = followControl.visible ? Math.max(Number(followControl.unseenCount || 0), 0) : 0;
+    const meta =
+      followControl.followState === "new" && rowUnseenCount > 0
+        ? `selected thread · ${rowPhase.toLowerCase()} · ${rowUnseenCount} new`
+        : followControl.followState === "paused"
+          ? `selected thread · ${rowPhase.toLowerCase()} · ${followControl.detailLabel}`
+          : `selected thread · ${rowPhase.toLowerCase()} · sse owner`;
+    return {
+      visible: true,
+      conversationId: String(sessionStatus.conversationId || ""),
+      presentation: "owned",
+      rowState,
+      ownerLabel: sessionStatus.transportLabel || "SSE OWNER",
+      stateLabel: rowPhase,
+      followLabel,
+      title: conversationTitle,
+      meta,
+      rowOwned: true,
+      rowSource: "sse",
+      rowPhase,
+      rowUnseenCount,
+    };
+  }
+  return {
+    visible: false,
+    conversationId: "",
+    presentation: "cleared",
+    rowState: "idle",
+    ownerLabel: "OWNER",
+    stateLabel: "SESSION",
+    followLabel: "LIVE",
+    title: "선택된 대화",
+    meta: "selected thread",
+    rowOwned: false,
+    rowSource: "none",
+    rowPhase: "IDLE",
+    rowUnseenCount: 0,
+  };
+}
+
 export function deriveSelectedThreadLiveAutonomy(currentState, conversation = null) {
   const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
   const autonomySummary = currentState.autonomySummary;

@@ -1,9 +1,9 @@
 # Factory Runtime Tasks
 
-## Iteration 147
+## Iteration 148
 
-- [x] Add one explicit selected-thread primary timeline-session helper for the center live activity path.
-- [x] Collapse duplicate SSE session-event cards while the selected-thread live activity block is visible.
-- [x] Publish a machine-readable live-activity dataset showing that duplicate session-event cards are collapsed behind the primary selected-thread live block.
-- [x] Require the healthy browser path to show exactly one primary selected-thread live-session item and zero duplicate SSE session-event cards.
-- [x] Align focused static verification and proposal artifacts with the iteration-147 unified center-timeline contract.
+- [x] Add one store-owned selected-thread active-session row model for owned, handoff, switching, and cleared states.
+- [x] Route the active-session row through that store model instead of mirroring rendered header datasets.
+- [x] Keep the row compact while exposing `HANDOFF`, `LIVE`, `NEW`, `PAUSED`, and `SWITCHING` cues from selected-thread session state.
+- [x] Require switching to keep the rail row visible with `SWITCHING` and `ATTACH` cues instead of clearing to idle.
+- [x] Align focused static verification and proposal artifacts with the iteration-148 left-rail session-mirroring contract.

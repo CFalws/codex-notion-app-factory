@@ -1,6 +1,5 @@
 import {
-  deriveSelectedThreadFollowControlModel,
-  deriveSelectedThreadSessionStatus,
+  deriveSelectedThreadActiveSessionRowModel,
   deriveSelectedThreadShellPhaseLabel,
 } from "./ops-store.js";
 
@@ -859,17 +858,6 @@ export function createConversationController(deps) {
   }
 
   function syncActiveSessionRow({
-    selectedConversationId = "",
-    liveConversationId = "",
-    presentation = "cleared",
-    liveRunState = "done",
-    liveRunPhase = "",
-    pendingStage = "idle",
-    jumpVisible = false,
-    isFollowing = false,
-    unseenCount = 0,
-    sessionTerminal = false,
-    renderSource = "snapshot",
   } = {}) {
     if (
       !dom.activeSessionRow ||
@@ -882,62 +870,22 @@ export function createConversationController(deps) {
       return;
     }
 
-    const sessionStatus = deriveSelectedThreadSessionStatus(state, state.conversationCache);
-    const followControl = deriveSelectedThreadFollowControlModel(state);
-    const summaryLiveOwned = String(dom.sessionSummaryRow?.dataset.liveSessionOwned || "false") === "true";
-    const summaryLiveSource = String(dom.sessionSummaryRow?.dataset.liveSessionSource || "none");
-    const summaryPhaseLabel = String(dom.sessionSummaryRow?.dataset.summaryPhase || "").trim().toUpperCase();
-    const sessionIndicatorLabel = String(dom.sessionLiveIndicator?.textContent || "").trim().toUpperCase();
-    const healthySelectedSessionMirror =
-      Boolean(selectedConversationId) &&
-      !sessionTerminal &&
-      !sessionStatus.switchActive &&
-      sessionStatus.liveOwned &&
-      summaryLiveOwned &&
-      summaryLiveSource === "sse" &&
-      sessionIndicatorLabel === "SSE OWNER";
-
-    let visible = false;
-    let conversationId = "";
-    let rowState = "idle";
-    let ownerLabel = "OWNER";
-    let stateLabel = "SESSION";
-    let followLabel = "LIVE";
-    let title = "";
-    let meta = "";
-    let rowOwned = false;
-    let rowSource = "none";
-    let rowPhase = "IDLE";
-    let rowUnseenCount = 0;
-    const livePhaseLabel =
-      deriveSelectedThreadShellPhaseLabel(state, state.conversationCache) ||
-      summaryPhaseLabel ||
-      liveRunPhase ||
-      "";
-
-    if (healthySelectedSessionMirror) {
-      visible = true;
-      conversationId = selectedConversationId;
-      rowState = followControl.visible ? followControl.followState : "live";
-      ownerLabel = sessionStatus.transportLabel || "SSE OWNER";
-      stateLabel = livePhaseLabel || "SESSION";
-      followLabel = followControl.visible ? followControl.stateLabel : "LIVE";
-      rowOwned = true;
-      rowSource = summaryLiveSource;
-      rowPhase = livePhaseLabel || "IDLE";
-      rowUnseenCount = followControl.visible ? Math.max(Number(followControl.unseenCount || unseenCount || 0), 0) : 0;
-      title =
-        sessionStatus.conversationTitle ||
-        threadTitleForConversation(selectedConversationId) ||
-        String(dom.threadTitle?.textContent || "").trim() ||
-        "현재 대화";
-      meta =
-        followControl.followState === "new" && rowUnseenCount > 0
-          ? `selected thread · ${(livePhaseLabel || "session").toLowerCase()} · ${rowUnseenCount} new`
-          : followControl.followState === "paused"
-            ? `selected thread · ${(livePhaseLabel || "session").toLowerCase()} · ${followControl.detailLabel}`
-            : `selected thread · ${(livePhaseLabel || "session").toLowerCase()} · sse owner`;
-    }
+    const rowModel = deriveSelectedThreadActiveSessionRowModel(state, state.conversationCache);
+    const {
+      visible,
+      conversationId,
+      presentation,
+      rowState,
+      ownerLabel,
+      stateLabel,
+      followLabel,
+      title,
+      meta,
+      rowOwned,
+      rowSource,
+      rowPhase,
+      rowUnseenCount,
+    } = rowModel;
 
     dom.activeSessionRow.hidden = !visible;
     dom.activeSessionRow.dataset.activeSessionState = visible ? rowState : "idle";
