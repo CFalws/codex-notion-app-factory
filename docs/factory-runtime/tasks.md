@@ -1,10 +1,10 @@
 # Factory Runtime Tasks
 
-## Iteration 199
+## Iteration 200
 
-- [x] Keep the change bounded to the intentional selected-thread switch path and existing thread-transition verifier seam.
-- [x] Preserve the mounted conversation shell and bottom-fixed composer dock during a deliberate thread change.
-- [x] Clear prior selected-thread live ownership immediately when switching starts.
-- [x] Preserve exactly one compact switching placeholder until the incoming thread snapshot attaches.
-- [x] Preserve negative assertions against empty-state flash, hidden composer dock, duplicate placeholders, and stale live-owned markers.
-- [x] Align proposal artifacts with the already-present iteration-199 switch-continuity contract.
+- [x] Keep the change bounded to the healthy selected-thread center-pane timeline and existing transcript/browser verification seam.
+- [x] Preserve exactly one primary live session-progress item in the center transcript on the healthy SSE-owned path.
+- [x] Preserve duplicate SSE session-event collapse while that primary live item is authoritative.
+- [x] Preserve machine-readable phase, verdict, verifier, blocker, and append provenance datasets on that single item through the expected phase sequence.
+- [x] Preserve negative assertions against duplicate session-event surfaces and stale authoritative residue on degraded or terminal transitions.
+- [x] Align proposal artifacts with the already-present iteration-200 single-item healthy-path contract.

@@ -1,12 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 199
+## Iteration 200
 
-Record the already-present selected-thread switch-continuity path as the iteration 199 proposal contract.
+Record the already-present healthy selected-thread live-session collapse path as the iteration 200 proposal contract.
 
-1. Keep the change bounded to the intentional selected-thread switch path and the existing thread-transition verification seam.
-2. Preserve the mounted conversation shell and bottom-fixed composer dock during a deliberate thread change.
-3. Clear prior selected-thread live ownership immediately when switching starts.
-4. Preserve exactly one compact switching placeholder until the incoming thread snapshot attaches.
-5. Preserve negative assertions against empty-state flash, hidden composer dock, duplicate transition placeholders, and stale live-owned markers.
-6. Align proposal artifacts with the already-present iteration-199 switch-continuity contract.
+1. Keep the change bounded to the healthy selected-thread center-pane timeline and the existing transcript/browser verification seam.
+2. Preserve exactly one primary live session-progress item in the center transcript on the healthy SSE-owned path.
+3. Preserve duplicate SSE session-event collapse while that primary live item is authoritative.
+4. Preserve machine-readable phase, verdict, verifier, blocker, and append provenance datasets on that single item through the expected phase sequence.
+5. Preserve negative assertions against duplicate session-event surfaces and stale authoritative residue on degraded or terminal transitions.
+6. Align proposal artifacts with the already-present iteration-200 single-item healthy-path contract.
