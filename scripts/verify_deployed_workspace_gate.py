@@ -436,8 +436,6 @@ def assert_browser_runtime_surface(
                 """conversationId => {
                   const healthyBlock = document.querySelector('.session-inline-block[data-selected-thread-live-block="true"][data-live-block-owner="selected-thread"][data-live-owned="true"]');
                   const liveActivity = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
-                  const liveMilestones = liveActivity ? liveActivity.querySelector('[data-live-milestones="true"]') : null;
-                  const activeMilestone = liveActivity ? liveActivity.querySelector('[data-milestone-state="active"]') : null;
                   const summary = document.querySelector("#session-summary-row");
                   const liveIndicator = document.querySelector("#session-live-indicator");
                   const summaryCopy = document.querySelector("#session-summary-copy");
@@ -462,21 +460,13 @@ def assert_browser_runtime_surface(
                   );
                   return Boolean(
                     !healthyBlock &&
-                    liveActivity &&
-                    liveMilestones &&
-                    activeMilestone &&
-                    liveActivity.dataset.liveRunSource === "sse" &&
-                    liveActivity.dataset.liveReason === "healthy" &&
-                    liveActivity.dataset.liveRunPhase &&
-                    liveActivity.dataset.liveRunPhase !== "IDLE" &&
-                    liveMilestones.dataset.liveMilestonesSource === "sse" &&
-                    liveMilestones.dataset.liveMilestonesPhase === liveActivity.dataset.liveRunPhase &&
+                    !liveActivity &&
                     summary &&
-                    !summary.hidden &&
+                    summary.hidden &&
                     summary.dataset.summaryPath === "session" &&
                     summary.dataset.liveSessionOwned === "true" &&
+                    summary.dataset.footerDockOwned === "true" &&
                     summary.dataset.summaryState === "attached" &&
-                    summary.dataset.summaryPhase === liveActivity.dataset.liveRunPhase &&
                     summaryCopy &&
                     summaryCopy.textContent.trim().length > 0 &&
                     !summaryCopy.textContent.includes("OWNER") &&
@@ -487,7 +477,7 @@ def assert_browser_runtime_surface(
                     liveIndicator.dataset.liveSessionSource === "sse" &&
                     threadPhase &&
                     threadPhase.hidden &&
-                    threadPhase.dataset.threadPhase === liveActivity.dataset.liveRunPhase &&
+                    threadPhase.dataset.threadPhase === summary.dataset.summaryPhase &&
                     threadPhase.dataset.threadPhaseDetail &&
                     threadPhase.dataset.threadPhaseDetail !== "idle" &&
                     activeSessionRow &&
@@ -495,30 +485,33 @@ def assert_browser_runtime_surface(
                     activeSessionRow.dataset.activeSessionOwned === "true" &&
                     activeSessionRow.dataset.activeSessionSource === "sse" &&
                     ["live", "paused", "new"].includes(activeSessionRow.dataset.activeSessionState || "") &&
-                    activeSessionRow.dataset.activeSessionPhase === liveActivity.dataset.liveRunPhase &&
+                    activeSessionRow.dataset.activeSessionPhase === summary.dataset.summaryPhase &&
                     ["live", "paused", "new"].includes(activeSessionRow.dataset.activeSessionFollow || "") &&
                     activeSessionRow.textContent.includes("OWNER") &&
                     sessionStrip &&
-                    sessionStrip.hidden &&
+                    !sessionStrip.hidden &&
+                    sessionStrip.dataset.liveOwned === "true" &&
+                    sessionStrip.dataset.sessionOwner === "selected-thread" &&
+                    sessionStrip.dataset.footerDockOwned === "true" &&
+                    sessionStrip.dataset.footerDockMilestones === "true" &&
+                    sessionStrip.dataset.footerDockPhase === summary.dataset.summaryPhase &&
+                    sessionStrip.dataset.footerDockSource === "sse" &&
                     threadScroller &&
-                    sessionStrip.dataset.phaseValue === liveActivity.dataset.liveRunPhase &&
-                    sessionStrip.dataset.phaseProvenance === liveActivity.dataset.liveRunSource &&
-                    threadScroller.dataset.phaseValue === liveActivity.dataset.liveRunPhase &&
-                    threadScroller.dataset.phaseProvenance === liveActivity.dataset.liveRunSource &&
+                    sessionStrip.dataset.phaseValue === summary.dataset.summaryPhase &&
+                    threadScroller.dataset.phaseValue === summary.dataset.summaryPhase &&
                     sessionStripState &&
-                    stripChips.length === 1 &&
-                    sessionStripState.dataset.sessionStripRole === "transition" &&
-                    sessionStripState.dataset.sessionStripLabel === "SWITCHING" &&
-                    sessionStripState.textContent.trim() === "SWITCHING" &&
-                    ["HANDOFF", "PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED", "FAILED", "LIVE", "UNKNOWN"].includes(liveActivity.dataset.liveRunPhase || "") &&
+                    stripChips.length >= 1 &&
+                    sessionStripState.dataset.sessionStripRole === "live-dock" &&
+                    ["PROPOSAL", "REVIEW", "VERIFY", "READY", "APPLIED", "NEW", "PAUSED"].includes(sessionStripState.dataset.sessionStripLabel || "") &&
+                    sessionStripState.textContent.trim().length > 0 &&
+                    ["HANDOFF", "PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED", "FAILED", "LIVE", "UNKNOWN"].includes(summary.dataset.summaryPhase || "") &&
                     sessionStripDetail &&
                     sessionStripDetail.textContent.trim().length > 0 &&
-                    !sessionStripDetail.textContent.includes("FOLLOW") &&
                     !sessionStripDetail.textContent.includes("OWNER") &&
                     !sessionStripDetail.textContent.includes("authoritative") &&
                     composerOwnerRow &&
-                    !composerOwnerRow.hidden &&
-                    composerOwnerRow.dataset.composerOwnerMerged === "false" &&
+                    composerOwnerRow.hidden &&
+                    composerOwnerRow.dataset.composerOwnerMerged === "true" &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     sendRequest &&
@@ -1080,6 +1073,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.sessionSummaryRow.dataset.restoreStage = sessionStatus.restoreStage || "none";', label="session summary restore stage dataset")
     require(render_js, 'dom.sessionSummaryRow.dataset.restorePath = sessionStatus.restorePath || "none";', label="session summary restore path dataset")
     require(render_js, 'dom.sessionSummaryRow.dataset.restoreProvenance = sessionStatus.restoreProvenance || "none";', label="session summary restore provenance dataset")
+    require(render_js, 'dom.sessionSummaryRow.dataset.footerDockOwned = footerDockOwnsLive ? "true" : "false";', label="header footer-dock ownership dataset")
+    require(render_js, 'dom.sessionSummaryRow.hidden = !headerSummaryVisible || footerDockOwnsLive;', label="header summary row visibility")
     require(render_js, 'label: "ATTACH"', label="composer strip attach label")
     require(render_js, 'label: "SNAPSHOT"', label="composer strip snapshot label")
     require(store_js, 'transportLabel = "POLLING";', label="composer strip polling label")
@@ -1127,6 +1122,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "sessionStripDetailCopy", label="session strip detail copy helper")
     require(render_js, "sessionStripStateChipMarkup", label="session strip chip markup helper")
     require(render_js, "sessionStripStateRow", label="session strip single-row state helper")
+    require(render_js, "selectedThreadFooterDockModel", label="footer session dock helper")
     require(render_js, 'copy: "ATTACH"', label="composer switching compact copy")
     require(render_js, 'pendingOutgoing.status === "sending-user"', label="composer sending compact copy guard")
     require(render_js, '? "SEND"', label="composer sending compact copy")
@@ -1148,19 +1144,25 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'const transportState = composerTransportState(currentState, conversation, liveRun, handoffState);', label="composer strip transport helper wiring")
     require(render_js, "const proposalState = proposalChip(liveRun);", label="composer strip proposal chip helper wiring")
     require(render_js, "const liveOwned =", label="composer strip ownership decoupled from strip visibility")
-    require(render_js, 'dom.sessionStrip.hidden = !sessionConversationId ? true : liveOwned ? !footerFollow.visible : false;', label="composer strip selected-target visibility")
+    require(render_js, 'const footerDock = selectedThreadFooterDockModel(currentState, conversation, liveRun, footerFollow);', label="composer strip footer dock helper wiring")
+    require(render_js, 'dom.sessionStrip.hidden = !sessionConversationId ? true : false;', label="composer strip selected-target visibility")
     require(render_js, 'dom.sessionStrip.dataset.sessionOwner = stripLiveOwned ? "selected-thread" : "none";', label="composer strip selected-thread owner dataset")
-    require(render_js, 'dom.sessionStrip.dataset.followState = footerFollow.visible ? footerFollow.followState : transportState.owned ? "owned" : "idle";', label="composer strip follow-state dataset")
+    require(render_js, 'dom.sessionStrip.dataset.followState = footerFollow.visible ? footerFollow.followState : stripLiveOwned ? sessionStatus.followState || "live" : transportState.owned ? "owned" : "idle";', label="composer strip follow-state dataset")
     require(render_js, 'dom.sessionStrip.dataset.followCount = String(footerFollow.visible ? footerFollow.unseenCount : 0);', label="composer strip follow-count dataset")
+    require(render_js, 'dom.sessionStrip.dataset.footerDockOwned = stripLiveOwned ? "true" : "false";', label="composer strip footer-dock ownership dataset")
+    require(render_js, 'dom.sessionStrip.dataset.footerDockPhase = footerDock.phaseLabel || "IDLE";', label="composer strip footer-dock phase dataset")
+    require(render_js, 'dom.sessionStrip.dataset.footerDockSource = footerDock.source || "none";', label="composer strip footer-dock source dataset")
+    require(render_js, 'dom.sessionStrip.dataset.footerDockMilestones = footerDock.visible ? "true" : "false";', label="composer strip footer-dock milestone dataset")
     require(render_js, 'dom.sessionStripState.dataset.sessionStripRole = stripState.role;', label="composer strip state role dataset")
     require(render_js, 'dom.sessionStripState.dataset.sessionStripLabel = stripState.label;', label="composer strip state label dataset")
     require(render_js, 'dom.sessionStripState.dataset.sessionStripTone = stripState.tone;', label="composer strip state tone dataset")
     require(render_js, 'dom.sessionStripMeta.textContent = ownerState.target;', label="composer strip target copy")
-    require(render_js, 'return { label: "SWITCHING", tone: "warning", role: "transition" };', label="composer strip switching row")
-    require(render_js, 'return { label: "TARGET", tone: "muted", role: "context" };', label="composer strip context row")
-    require(render_js, 'return { label: transportState.label, tone: transportState.tone, role: "degraded" };', label="composer strip degraded phase row")
-    require(render_js, 'dom.sessionStripState.innerHTML = sessionStripStateChipMarkup(stripState);', label="composer strip single-chip render")
-    require(render_js, 'dom.sessionStripDetail.textContent = sessionStripDetailCopy(', label="composer strip live phase detail copy")
+    require(render_js, 'label: "SWITCHING",', label="composer strip switching row")
+    require(render_js, 'label: "TARGET",', label="composer strip context row")
+    require(render_js, 'label: transportState.label,', label="composer strip degraded phase row")
+    require(render_js, "chips: footerDock.chips,", label="composer strip footer-dock chip row")
+    require(render_js, 'dom.sessionStripState.innerHTML = sessionStripStateChipMarkup(stripState.chips || stripState);', label="composer strip chip render")
+    require(render_js, 'dom.sessionStripDetail.textContent = footerDock.visible', label="composer strip footer-dock detail copy")
     require(render_js, '!handoffVisible && !degradedVisible && (!phaseProgression.visible || !liveAutonomy.visible)', label="transcript live activity unified visibility guard")
     require(render_js, 'const phaseLabel = degradedVisible', label="transcript live activity unified phase label")
     require(render_js, 'const provenanceLabel = degradedVisible', label="transcript live activity unified provenance label")
@@ -1180,6 +1182,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "renderTranscriptMilestones", label="transcript live milestone helper")
     require(render_js, "const transcriptLiveActivity = renderTranscriptLiveActivity(conversation, currentState, liveRun);", label="transcript live activity wiring")
     require(render_js, "if (inlineState.visible) {", label="transcript live activity suppression guard")
+    require(render_js, "const footerDock = selectedThreadFooterDockModel(currentState, conversation, liveRun);", label="transcript footer-dock helper wiring")
+    require(render_js, "if (footerDock.visible) {", label="healthy footer-dock transcript suppression guard")
     require(render_js, 'data-live-milestones="true"', label="transcript live milestone dataset")
     require(render_js, 'data-milestone-key="${escapeHtml(item.key)}"', label="transcript milestone key dataset")
     require(render_js, 'data-milestone-state="${escapeHtml(item.state)}"', label="transcript milestone state dataset")

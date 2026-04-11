@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `104`
-- bounded focus: `selected-thread follow control absorbed into the footer dock`
+- current iteration: `105`
+- bounded focus: `selected-thread live session dock promoted beside the fixed composer`
 
 ## Request
 
@@ -13,7 +13,7 @@
 
 ## Problem
 
-The selected-thread restore stage, healthy live surface, autonomy authority, switch continuity, and timeline milestones are now canonical, but the detached follow or unseen-state affordance still lives as a separate transcript-level control. The remaining gap is to absorb that follow surface into the existing footer dock so the active conversation ends with one unified session footer beside the composer.
+The selected-thread restore stage, healthy live surface, autonomy authority, switch continuity, timeline milestones, and footer-follow ownership are now canonical, but the composer-adjacent footer still does not own current run phase and proposal or review or verify or apply progress on the healthy path. The remaining gap is to promote that footer into the single selected-thread live session dock so the active conversation shows current execution state beside the fixed composer without scanning other surfaces.
 
 ## Target User
 
@@ -28,10 +28,10 @@ The primary user is the operator or developer using the phone-friendly workspace
 - Keep exactly one live-owned center-pane session surface during healthy selected-thread SSE progress.
 - Preserve the bottom-fixed composer, restore stage, thread-switch clearing, degraded reconnect or polling markers, and rail behavior already established in earlier iterations.
 - Do not change transport contracts or add new polling behavior in this iteration.
-- Reuse the existing selected-thread SSE ownership and follow datasets instead of introducing another follow model.
+- Reuse the existing selected-thread SSE ownership, phase, milestone, and follow datasets instead of introducing another state model.
 - Keep degraded, reconnect, restore, and polling provenance explicit instead of letting them resemble healthy session ownership.
-- Remove transcript-level follow duplication on the healthy path by moving detached NEW or PAUSED state into the footer dock.
+- Remove duplicate healthy selected-thread live-status surfaces when the footer dock owns the live session.
 
 ## Deliverable
 
-Define and verify one selected-thread footer-follow contract where healthy SSE-owned detached follow state appears only in the composer-adjacent footer strip with compact NEW or PAUSED context and unseen-count metadata, while degraded and fallback paths clear or downgrade that footer ownership immediately.
+Define and verify one selected-thread footer session-dock contract where healthy SSE-owned phase and proposal or review or verify or ready or applied progression appear in the composer-adjacent footer strip with compact milestone chips and follow metadata, while degraded and fallback paths clear or downgrade that footer ownership immediately.

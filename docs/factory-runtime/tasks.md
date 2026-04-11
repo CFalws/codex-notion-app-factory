@@ -1,9 +1,9 @@
 # Factory Runtime Tasks
 
-## Iteration 104
+## Iteration 105
 
-- [x] Add a footer-follow helper that derives healthy selected-thread `NEW` and `PAUSED` state from the existing live-follow datasets.
-- [x] Render detached healthy follow state only in the composer-adjacent session strip instead of as a visible transcript-level jump control.
-- [x] Make the existing session-strip toggle execute `jumpToLatest(...)` while the footer owns follow state.
-- [x] Clear or downgrade footer follow ownership immediately on reconnect, polling fallback, terminal idle, and thread switch.
-- [x] Align focused verifiers and proposal artifacts with the iteration-104 unified footer-follow contract.
+- [x] Derive a canonical healthy footer session-dock model from existing selected-thread phase, milestone, autonomy, and follow state.
+- [x] Render healthy selected-thread phase and milestone chips in the composer-adjacent footer strip beside the fixed composer.
+- [x] Suppress duplicate healthy selected-thread live-status surfaces outside the footer dock while keeping degraded, restore, reconnect, switching, and polling states explicit.
+- [x] Keep detached follow state inside the same footer dock and preserve the existing jump-to-latest action there.
+- [x] Align focused verifiers and proposal artifacts with the iteration-105 footer session-dock contract.

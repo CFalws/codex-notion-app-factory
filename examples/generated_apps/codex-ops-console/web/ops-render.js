@@ -229,21 +229,106 @@ function sessionStripDetailCopy(ownerState, transportState, sessionIndicator, li
   return target;
 }
 
-function sessionStripStateChipMarkup({ label, tone, role }) {
-  return `<span class="session-chip" data-tone="${escapeHtml(tone)}" data-session-strip-role="${escapeHtml(role)}">${escapeHtml(label)}</span>`;
+function sessionStripStateChipMarkup(chips) {
+  const items = Array.isArray(chips) ? chips : [chips];
+  return items
+    .map(
+      ({ label, tone, role }) =>
+        `<span class="session-chip" data-tone="${escapeHtml(tone)}" data-session-strip-role="${escapeHtml(role)}">${escapeHtml(label)}</span>`,
+    )
+    .join("");
 }
 
-function sessionStripStateRow(ownerState, transportState, liveRun, presentation, liveOwned, footerFollow = null) {
+function selectedThreadFooterDockModel(currentState, conversation, liveRun, footerFollow = null) {
+  const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
+  const phaseProgression = deriveSelectedThreadPhaseProgression(currentState, conversation);
+  const liveAutonomy = deriveSelectedThreadLiveAutonomy(currentState, conversation);
+  const milestoneModel = deriveSelectedThreadTimelineMilestones(currentState, conversation);
+  const summary = liveAutonomy.summary || null;
+  const liveOwned = Boolean(
+    sessionStatus.liveOwned &&
+      phaseProgression.visible &&
+      String(phaseProgression.source || "none").toLowerCase() === "sse",
+  );
+  const phaseLabel = String(phaseProgression.label || liveRun?.phase || "LIVE").toUpperCase();
+  const milestoneChips = milestoneModel.visible
+    ? milestoneModel.items.map((item) => ({
+        label: item.label,
+        tone: item.state === "complete" ? "healthy" : item.state === "active" ? "neutral" : item.state === "blocked" ? "warning" : "muted",
+        role: item.state === "active" ? "live-phase" : item.state === "complete" ? "live-complete" : item.state === "blocked" ? "live-blocked" : "live-pending",
+      }))
+    : [{ label: phaseLabel, tone: "neutral", role: "live-phase" }];
+  const chips = [];
+  if (footerFollow?.visible) {
+    chips.push({
+      label: footerFollow.stateLabel,
+      tone: footerFollow.followState === "new" ? "warning" : "neutral",
+      role: "live-follow",
+    });
+  }
+  chips.push(...milestoneChips);
+  const detailTokens = [];
+  if (footerFollow?.visible) {
+    detailTokens.push(footerFollow.detailLabel);
+  }
+  if (summary) {
+    detailTokens.push(String(summary.pathVerdict || "UNKNOWN").toUpperCase());
+    detailTokens.push(String(summary.verifierAcceptability || "PENDING").toUpperCase());
+    detailTokens.push(`BLOCKER ${String(summary.blockerReason || "none").toUpperCase()}`);
+  } else {
+    detailTokens.push(phaseLabel);
+  }
+  return {
+    visible: liveOwned,
+    phaseLabel,
+    chips,
+    detail: detailTokens.filter(Boolean).join(" · "),
+    source: String(milestoneModel.source || phaseProgression.source || "sse").toLowerCase(),
+    summary,
+    liveOwned,
+  };
+}
+
+function sessionStripStateRow(ownerState, transportState, liveRun, presentation, liveOwned, footerFollow = null, footerDock = null) {
   if (transportState.key === "reconnect" || transportState.key === "polling") {
-    return { label: transportState.label, tone: transportState.tone, role: "degraded" };
+    return {
+      label: transportState.label,
+      tone: transportState.tone,
+      role: "degraded",
+      chips: [{ label: transportState.label, tone: transportState.tone, role: "degraded" }],
+    };
   }
   if (ownerState.state === "switching") {
-    return { label: "SWITCHING", tone: "warning", role: "transition" };
+    return {
+      label: "SWITCHING",
+      tone: "warning",
+      role: "transition",
+      chips: [{ label: "SWITCHING", tone: "warning", role: "transition" }],
+    };
+  }
+  if (footerDock?.visible) {
+    const primaryChip = footerDock.chips[0] || { label: footerDock.phaseLabel || "LIVE", tone: "neutral", role: "live-phase" };
+    return {
+      label: primaryChip.label,
+      tone: primaryChip.tone,
+      role: "live-dock",
+      chips: footerDock.chips,
+    };
   }
   if (footerFollow?.visible) {
-    return { label: footerFollow.followState === "new" ? "LIVE" : ownerState.label || "READY", tone: "healthy", role: "live-follow" };
+    return {
+      label: footerFollow.followState === "new" ? "LIVE" : ownerState.label || "READY",
+      tone: "healthy",
+      role: "live-follow",
+      chips: [{ label: footerFollow.followState === "new" ? "LIVE" : ownerState.label || "READY", tone: "healthy", role: "live-follow" }],
+    };
   }
-  return { label: "TARGET", tone: "muted", role: "context" };
+  return {
+    label: "TARGET",
+    tone: "muted",
+    role: "context",
+    chips: [{ label: "TARGET", tone: "muted", role: "context" }],
+  };
 }
 
 function composerOwnerState(currentState, conversation) {
@@ -418,6 +503,7 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   const phaseProgression = deriveSelectedThreadPhaseProgression(currentState, conversation);
   const conversationId = String(conversation?.conversation_id || sessionStatus.conversationId || "");
   const headerSummaryVisible = Boolean(conversationId || threadTransition.targetConversationId || sessionStatus.conversationId);
+  const footerDockOwnsLive = Boolean(sessionStatus.liveOwned && phaseProgression.visible && liveAutonomy.owned);
   const sessionIndicator = selectedThreadLiveSessionIndicator(currentState, conversation, liveRun, handoffState);
   const proposalState = proposalChip(liveRun);
 
@@ -476,7 +562,8 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   dom.sessionSummaryRow.dataset.liveSessionSource = sessionIndicator.source;
   dom.sessionSummaryRow.dataset.liveSessionReason = sessionIndicator.reason;
   dom.sessionSummaryRow.dataset.liveSessionOwned = sessionIndicator.owned ? "true" : "false";
-  dom.sessionSummaryRow.hidden = !headerSummaryVisible;
+  dom.sessionSummaryRow.dataset.footerDockOwned = footerDockOwnsLive ? "true" : "false";
+  dom.sessionSummaryRow.hidden = !headerSummaryVisible || footerDockOwnsLive;
   dom.sessionSummaryScope.textContent = compactTargetLabel(
     conversation?.title || sessionStatus.conversationTitle || threadTransition.targetTitle || "",
     "SELECTED",
@@ -923,6 +1010,10 @@ function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
   const liveAutonomy = deriveSelectedThreadLiveAutonomy(currentState, conversation);
   const phaseProgression = deriveSelectedThreadPhaseProgression(currentState, conversation);
   const { handoffVisible, degradedVisible, sessionIndicator } = inlineState;
+  const footerDock = selectedThreadFooterDockModel(currentState, conversation, liveRun);
+  if (footerDock.visible) {
+    return "";
+  }
   if (!handoffVisible && !degradedVisible && (!phaseProgression.visible || !liveAutonomy.visible)) {
     return "";
   }
@@ -1657,6 +1748,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const proposalState = proposalChip(liveRun);
   const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
   const footerFollow = selectedThreadFooterFollowState(dom, currentState, conversationId, lastRenderSource);
+  const footerDock = selectedThreadFooterDockModel(currentState, conversation, liveRun, footerFollow);
   currentState.sessionRail ||= { conversationId: "", expanded: false };
 
   if (!conversationId && !(threadTransition.active && threadTransition.targetConversationId) && !sessionStatus.conversationId) {
@@ -1761,9 +1853,9 @@ export function renderSessionStrip(dom, currentState, conversation) {
     inlineState.selectedThreadSseOwned &&
     inlineState.status === "live" &&
     inlineState.renderSource === "sse";
-  const stripLiveOwned = Boolean(footerFollow.visible);
-  const stripState = sessionStripStateRow(ownerState, transportState, liveRun, presentation, liveOwned, footerFollow);
-  dom.sessionStrip.hidden = !sessionConversationId ? true : liveOwned ? !footerFollow.visible : false;
+  const stripLiveOwned = Boolean(footerDock.visible);
+  const stripState = sessionStripStateRow(ownerState, transportState, liveRun, presentation, liveOwned, footerFollow, footerDock);
+  dom.sessionStrip.hidden = !sessionConversationId ? true : false;
   dom.sessionStrip.dataset.liveOwned = stripLiveOwned ? "true" : "false";
   dom.sessionStrip.dataset.sessionOwner = stripLiveOwned ? "selected-thread" : "none";
   dom.sessionStrip.dataset.sessionPresentation = presentation;
@@ -1786,8 +1878,12 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStrip.dataset.liveRunSource = liveRun.source;
   dom.sessionStrip.dataset.liveRunJob = liveRun.jobId || "";
   dom.sessionStrip.dataset.liveRunTone = liveRun.tone;
-  dom.sessionStrip.dataset.followState = footerFollow.visible ? footerFollow.followState : transportState.owned ? "owned" : "idle";
+  dom.sessionStrip.dataset.followState = footerFollow.visible ? footerFollow.followState : stripLiveOwned ? sessionStatus.followState || "live" : transportState.owned ? "owned" : "idle";
   dom.sessionStrip.dataset.followCount = String(footerFollow.visible ? footerFollow.unseenCount : 0);
+  dom.sessionStrip.dataset.footerDockOwned = stripLiveOwned ? "true" : "false";
+  dom.sessionStrip.dataset.footerDockPhase = footerDock.phaseLabel || "IDLE";
+  dom.sessionStrip.dataset.footerDockSource = footerDock.source || "none";
+  dom.sessionStrip.dataset.footerDockMilestones = footerDock.visible ? "true" : "false";
   dom.sessionStrip.dataset.composerState = ownerState.state;
   dom.sessionStrip.dataset.composerTransport = transportState.key;
   dom.sessionStrip.dataset.composerTransportSource = transportState.source;
@@ -1801,17 +1897,19 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStripState.dataset.sessionStripLabel = stripState.label;
   dom.sessionStripState.dataset.sessionStripTone = stripState.tone;
 
-  dom.sessionStripState.innerHTML = sessionStripStateChipMarkup(stripState);
+  dom.sessionStripState.innerHTML = sessionStripStateChipMarkup(stripState.chips || stripState);
   dom.sessionStripMeta.textContent = ownerState.target;
-  dom.sessionStripDetail.textContent = sessionStripDetailCopy(
-    ownerState,
-    transportState,
-    sessionIndicator,
-    liveRun,
-    proposalState,
-    liveOwned,
-    footerFollow,
-  );
+  dom.sessionStripDetail.textContent = footerDock.visible
+    ? footerDock.detail
+    : sessionStripDetailCopy(
+        ownerState,
+        transportState,
+        sessionIndicator,
+        liveRun,
+        proposalState,
+        liveOwned,
+        footerFollow,
+      );
   if (dom.sessionStripToggle) {
     dom.sessionStripToggle.hidden = !footerFollow.visible;
     dom.sessionStripToggle.textContent = footerFollow.visible ? (footerFollow.followState === "new" ? "최신으로" : "재개") : "세부 보기";
