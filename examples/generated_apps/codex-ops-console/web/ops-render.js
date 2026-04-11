@@ -1146,6 +1146,20 @@ function renderSessionTimelineEvent(item) {
   `;
 }
 
+function shouldCollapseHealthySessionEvent(item, currentState, conversation, liveRun) {
+  if (!item || item.kind !== "event") {
+    return false;
+  }
+  const footerDock = selectedThreadFooterDockModel(currentState, conversation, liveRun);
+  if (!footerDock.visible) {
+    return false;
+  }
+  if (String(item.delivery_source || "").toLowerCase() !== "sse") {
+    return false;
+  }
+  return Boolean(sessionTimelineEventModel(item));
+}
+
 function pendingHandoffState(conversation, currentState) {
   const conversationId = String(conversation?.conversation_id || "");
   const pendingOutgoing = currentState.pendingOutgoing || {};
@@ -2442,6 +2456,9 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   const renderedItems = items
     .map((item) => {
       if (item.kind === "event") {
+        if (shouldCollapseHealthySessionEvent(item, currentState, conversation, liveRun)) {
+          return "";
+        }
         const sessionEvent = renderSessionTimelineEvent(item);
         if (sessionEvent) {
           return sessionEvent;

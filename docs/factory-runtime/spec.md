@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `105`
-- bounded focus: `selected-thread live session dock promoted beside the fixed composer`
+- current iteration: `106`
+- bounded focus: `healthy selected-thread transcript session cards collapsed into one live session item`
 
 ## Request
 
@@ -13,7 +13,7 @@
 
 ## Problem
 
-The selected-thread restore stage, healthy live surface, autonomy authority, switch continuity, timeline milestones, and footer-follow ownership are now canonical, but the composer-adjacent footer still does not own current run phase and proposal or review or verify or apply progress on the healthy path. The remaining gap is to promote that footer into the single selected-thread live session dock so the active conversation shows current execution state beside the fixed composer without scanning other surfaces.
+The selected-thread footer dock now owns healthy current execution state, but the transcript still fragments one healthy selected-thread run into multiple session-status cards. The remaining gap is to collapse those duplicate healthy SSE authority cards so the active conversation reads as one realtime session timeline instead of repeated phase/status events.
 
 ## Target User
 
@@ -30,8 +30,8 @@ The primary user is the operator or developer using the phone-friendly workspace
 - Do not change transport contracts or add new polling behavior in this iteration.
 - Reuse the existing selected-thread SSE ownership, phase, milestone, and follow datasets instead of introducing another state model.
 - Keep degraded, reconnect, restore, and polling provenance explicit instead of letting them resemble healthy session ownership.
-- Remove duplicate healthy selected-thread live-status surfaces when the footer dock owns the live session.
+- Remove duplicate healthy selected-thread transcript status cards when the live session is already represented by the healthy footer dock and live item.
 
 ## Deliverable
 
-Define and verify one selected-thread footer session-dock contract where healthy SSE-owned phase and proposal or review or verify or ready or applied progression appear in the composer-adjacent footer strip with compact milestone chips and follow metadata, while degraded and fallback paths clear or downgrade that footer ownership immediately.
+Define and verify one selected-thread transcript-collapse contract where healthy SSE-owned authority events no longer append duplicate session-status cards when the live session is already represented elsewhere, while degraded, restore, reconnect, switching, failure, ready, and applied evidence remain explicit when they are no longer healthy live-owned.

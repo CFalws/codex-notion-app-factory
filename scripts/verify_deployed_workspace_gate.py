@@ -454,6 +454,7 @@ def assert_browser_runtime_surface(
                   const statusOutput = document.querySelector("#status-output");
                   const executionStatusCard = statusOutput ? statusOutput.closest(".inspector-card") : null;
                   const follow = document.querySelector("#jump-to-latest");
+                  const sessionEvent = document.querySelector('.timeline-item.session-event[data-append-source="sse"]');
                   const fetchMark = Number(window.__verifyFetchMark || 0);
                   const jobFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
                     entry => String(entry.url || "").includes("/api/jobs/")
@@ -526,6 +527,7 @@ def assert_browser_runtime_surface(
                     executionStatusCard.dataset.executionSurface === "center-lane" &&
                     statusOutput &&
                     statusOutput.dataset.surface === "center-lane" &&
+                    !sessionEvent &&
                     follow &&
                     follow.dataset.followOwned !== undefined &&
                     jobFetches.length === 0
@@ -1179,6 +1181,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require_absent(render_js, 'const handoffVisible = handoffState.stage === "pending-assistant" && selectedThreadSseOwned;', label="legacy inline handoff visibility guard")
     require(render_js, "sessionTimelineEventModel", label="session timeline event model helper")
     require(render_js, "renderSessionTimelineEvent", label="session timeline event render helper")
+    require(render_js, "shouldCollapseHealthySessionEvent", label="healthy transcript session-event collapse helper")
     require(render_js, "renderTranscriptMilestones", label="transcript live milestone helper")
     require(render_js, "const transcriptLiveActivity = renderTranscriptLiveActivity(conversation, currentState, liveRun);", label="transcript live activity wiring")
     require(render_js, "if (inlineState.visible) {", label="transcript live activity suppression guard")
@@ -1191,6 +1194,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'data-session-phase="${escapeHtml(model.phase)}"', label="session timeline event phase dataset")
     require(render_js, 'data-session-milestone="${escapeHtml(model.milestone)}"', label="session timeline event milestone dataset")
     require(render_js, 'data-session-verdict="${escapeHtml(model.verdict.toLowerCase())}"', label="session timeline event verdict dataset")
+    require(render_js, "if (shouldCollapseHealthySessionEvent(item, currentState, conversation, liveRun)) {", label="healthy transcript session-event suppression guard")
     require(render_js, 'const sessionEvent = renderSessionTimelineEvent(item);', label="session timeline event projection wiring")
     require(render_js, "if (sessionEvent) {", label="session timeline event branch")
     require(render_js, "const renderedItems = items", label="transcript render item join")

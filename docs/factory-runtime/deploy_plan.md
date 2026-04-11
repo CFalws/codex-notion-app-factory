@@ -1,12 +1,12 @@
 # Factory Runtime Deploy Plan
 
-## Iteration 105
+## Iteration 106
 
-This deploy plan validates the selected-thread footer session-dock contract and does not introduce new transport, new polling behavior, or new duplicate healthy live-status surfaces.
+This deploy plan validates the healthy selected-thread transcript-collapse contract and does not introduce new transport, new polling behavior, or new transcript event schema.
 
 ## Deployment Impact
 
-This iteration changes healthy selected-thread footer presentation only. The bounded expectation is that current phase and milestone progression appear in the composer-adjacent footer strip on the healthy SSE-owned path, while degraded, reconnect, restore, switching, and polling provenance immediately clear or downgrade that footer ownership.
+This iteration changes healthy selected-thread transcript presentation only. The bounded expectation is that healthy selected-thread SSE authority events no longer append duplicate session-status cards while the current run is already represented by the live session surfaces, and degraded, reconnect, restore, switching, and polling provenance remain explicit.
 
 ## Rollout Notes
 
@@ -14,8 +14,8 @@ This iteration changes healthy selected-thread footer presentation only. The bou
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
 3. Open the operator console on desktop and phone widths with at least one healthy selected-thread conversation and one additional conversation for switching.
 4. Reload the workspace or re-enter with a saved selected conversation and confirm restore still appears through one transcript-tail `ATTACH` or `RESUME` item before bootstrap settles.
-5. Start from one healthy selected-thread conversation and confirm the composer-adjacent footer strip becomes the visible live session dock with current phase and milestone chips.
-6. Scroll away from the live tail and let unseen append backlog accumulate, then confirm the same footer dock also carries `NEW` or `PAUSED` follow context and unseen-count metadata.
-7. Confirm the footer action jumps back to the live tail and clears detached follow ownership in place.
-8. Confirm reconnect, polling fallback, restore, terminal idle, or thread switch immediately clear or downgrade the footer session dock instead of leaving stale selected-thread ownership.
-9. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible selected-thread footer session-dock contract succeeds through the intended path.
+5. Start from one healthy selected-thread conversation and confirm the composer-adjacent footer strip remains the live session dock with current phase and milestone chips.
+6. Let proposal, review, verify, ready, and applied progression occur on the healthy SSE-owned path and confirm the transcript does not append duplicate healthy selected-thread session-event cards for those transitions.
+7. Confirm degraded, reconnect, restore, switching, or failure paths still surface explicit transcript evidence instead of silently collapsing.
+8. Confirm detached follow state still works through the same footer dock and clears in place when returning to the live tail.
+9. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible selected-thread transcript-collapse contract succeeds through the intended path.

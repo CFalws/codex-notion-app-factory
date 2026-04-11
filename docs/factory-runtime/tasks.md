@@ -1,9 +1,8 @@
 # Factory Runtime Tasks
 
-## Iteration 105
+## Iteration 106
 
-- [x] Derive a canonical healthy footer session-dock model from existing selected-thread phase, milestone, autonomy, and follow state.
-- [x] Render healthy selected-thread phase and milestone chips in the composer-adjacent footer strip beside the fixed composer.
-- [x] Suppress duplicate healthy selected-thread live-status surfaces outside the footer dock while keeping degraded, restore, reconnect, switching, and polling states explicit.
-- [x] Keep detached follow state inside the same footer dock and preserve the existing jump-to-latest action there.
-- [x] Align focused verifiers and proposal artifacts with the iteration-105 footer session-dock contract.
+- [x] Add a healthy selected-thread transcript session-event collapse helper that reuses the existing footer-dock ownership contract.
+- [x] Suppress duplicate healthy SSE authority session-event cards while keeping normal user and assistant turns unchanged.
+- [x] Preserve explicit degraded, restore, reconnect, switching, failure, ready, and applied evidence when the session is no longer healthy live-owned.
+- [x] Align focused verifiers and proposal artifacts with the iteration-106 transcript-collapse contract.
