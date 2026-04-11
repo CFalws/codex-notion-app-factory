@@ -1,12 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 143
+## Iteration 144
 
-Make the center-timeline live-session item the primary selected-thread authority and demote duplicate center-lane status prose.
+Expose one compact selected-thread header ownership indicator without weakening the center-timeline authority contract.
 
-1. Add one render-layer selected-thread timeline authority helper derived from the existing selected-thread session surface and inline-session helpers.
-2. Use that helper to decide when the header summary row should hide instead of competing with the timeline item.
-3. Use the same helper to demote the autonomy detail and execution status cards into non-authoritative center-lane surfaces while the timeline item is active.
-4. Publish machine-readable datasets on those demoted surfaces so verification can prove healthy and degraded authority paths explicitly.
-5. Preserve existing transport, polling suppression, restore, handoff, switch, and composer behavior.
-6. Extend focused static and deployed verification so iteration 143 proves the timeline item owns selected-thread authority and stale duplicate prose does not survive degraded or cleared paths.
+1. Reuse existing selected-thread session-status and timeline-authority helpers to derive one compact header ownership indicator for healthy, degraded, and restore states.
+2. Keep that indicator secondary by collapsing the summary row into an indicator-only row whenever timeline authority or restore visibility is active.
+3. Hide the indicator immediately on switch and terminal idle.
+4. Publish machine-readable datasets for indicator visibility, presentation, and provenance so browser verification can prove it comes from the intended selected-thread session path.
+5. Preserve transport, polling suppression, composer, and cross-thread behavior unchanged.
+6. Extend focused static and deployed verification plus proposal artifacts so iteration 144 proves healthy and degraded ownership visibility without reintroducing duplicate authority prose.

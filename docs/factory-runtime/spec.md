@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `143`
-- bounded focus: `make one canonical center-timeline live-session item the primary selected-thread authority and demote duplicate center-lane status prose`
+- current iteration: `144`
+- bounded focus: `add one compact selected-thread header ownership indicator derived from existing session status without creating a second authority surface`
 
 ## Request
 
@@ -13,22 +13,22 @@
 
 ## Problem
 
-The selected-thread workspace already has authoritative SSE-backed session data, but the center lane still lets the header summary row, autonomy detail, and execution status prose compete with the timeline live item. That makes operators infer which surface is authoritative instead of reading one obvious session timeline item.
+Iteration 143 made the center timeline the sole authority-looking selected-thread session surface, but the header still leaves operators inferring whether the selected conversation is SSE-owned, reconnecting, polling, or restoring. That ownership state exists already, but it is not exposed as one compact secondary indicator in the header.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly workspace and expecting the active conversation to behave like one live Codex desktop session.
+The primary user is the operator or developer using the phone-friendly workspace and expecting the selected conversation header to show current session ownership at a glance without competing with the timeline.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the change presentation-only in `ops-render.js` plus focused verifier and doc updates.
-- Do not introduce a new transport, polling heuristic, backend protocol, or composer contract change.
-- Reuse the existing selected-thread session surface, phase progression, autonomy summary, and degraded-path rules.
-- Keep non-selected threads snapshot-only.
-- Preserve reconnect, polling fallback, restore, switch, deselection, and terminal states as immediate downgrade or clear paths in the same render cycle.
+- Keep the iteration presentation-only in the render layer plus focused verifier and doc updates.
+- Do not change transport, polling suppression, backend state sources, or composer ownership rules.
+- Keep the center timeline as the only authority-looking live session surface.
+- Reuse the existing selected-thread session status, timeline authority, and degraded-path rules.
+- Clear the header indicator immediately on switch and terminal idle.
 
 ## Deliverable
 
-Define one explicit center-timeline authority predicate for the selected thread and use it to demote duplicate selected-thread summary and status prose, so the center lane reads as one authoritative live-session item across healthy, degraded, restore, and handoff states.
+Expose one compact selected-thread header ownership indicator derived from existing session status so healthy SSE, reconnect, polling fallback, and restore states are visible at a glance while the timeline remains the sole selected-thread authority surface.

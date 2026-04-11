@@ -483,19 +483,22 @@ def assert_browser_runtime_surface(
                     milestoneLane.dataset.liveMilestonesPhase === liveActivity.dataset.liveMilestonesPhase &&
                     !legacyLaneMeta &&
                     summary &&
-                    summary.hidden &&
+                    !summary.hidden &&
                     summary.dataset.summaryPath === "session" &&
                     summary.dataset.liveSessionOwned === "true" &&
                     summary.dataset.footerDockOwned === "true" &&
                     summary.dataset.centerTimelineAuthority === "true" &&
                     summary.dataset.centerTimelinePresentation === "healthy" &&
+                    summary.dataset.indicatorOnly === "true" &&
                     summary.dataset.summaryState === "attached" &&
                     summaryCopy &&
-                    summaryCopy.textContent.trim().length > 0 &&
-                    !summaryCopy.textContent.includes("OWNER") &&
+                    summaryCopy.hidden &&
                     liveIndicator &&
-                    liveIndicator.hidden &&
+                    !liveIndicator.hidden &&
                     liveIndicator.textContent.trim() === "SSE OWNER" &&
+                    liveIndicator.dataset.liveSessionVisible === "true" &&
+                    liveIndicator.dataset.liveSessionPresentation === "healthy" &&
+                    liveIndicator.dataset.liveSessionProvenance === "sse" &&
                     liveIndicator.dataset.liveSessionOwned === "true" &&
                     liveIndicator.dataset.liveSessionSource === "sse" &&
                     threadPhase &&
@@ -736,14 +739,17 @@ def assert_browser_runtime_surface(
                   return (
                     ["retrying", "reconnecting", "polling-fallback", "session-rotation"].includes(reason) &&
                     ["RECONNECT", "POLLING"].includes(phase) &&
-                    summary.hidden &&
+                    !summary.hidden &&
                     summary.dataset.summaryPath === "degraded" &&
                     summary.dataset.liveSessionOwned === "false" &&
                     summary.dataset.centerTimelineAuthority === "true" &&
                     summary.dataset.centerTimelinePresentation === "degraded" &&
+                    summary.dataset.indicatorOnly === "true" &&
                     liveIndicator &&
-                    liveIndicator.hidden &&
+                    !liveIndicator.hidden &&
                     ["RECONNECT", "POLLING"].includes(liveIndicator.textContent.trim()) &&
+                    liveIndicator.dataset.liveSessionVisible === "true" &&
+                    liveIndicator.dataset.liveSessionPresentation === "degraded" &&
                     liveIndicator.dataset.liveSessionOwned === "false" &&
                     activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
@@ -1085,6 +1091,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(styles, ".session-live-indicator", label="session live indicator CSS")
     require(styles, '.session-live-indicator[data-live-session-tone="healthy"]', label="session live indicator healthy CSS")
     require(styles, '.session-live-indicator[data-live-session-tone="warning"]', label="session live indicator warning CSS")
+    require(styles, '.session-live-indicator[data-live-session-tone="neutral"]', label="session live indicator neutral CSS")
+    require(styles, '.session-live-indicator[data-live-session-tone="muted"]', label="session live indicator muted CSS")
     require(styles, '.session-live-indicator[data-live-session-tone="danger"]', label="session live indicator danger CSS")
     require(styles, ".composer-owner-row", label="composer owner row CSS")
     require(styles, ".composer-owner-chip", label="composer owner chip CSS")
@@ -1233,7 +1241,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.sessionSummaryRow.dataset.footerDockOwned = footerDockOwnsLive ? "true" : "false";', label="header footer-dock ownership dataset")
     require(render_js, 'dom.sessionSummaryRow.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="header center-timeline authority dataset")
     require(render_js, 'dom.sessionSummaryRow.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="header center-timeline presentation dataset")
-    require(render_js, 'dom.sessionSummaryRow.hidden = !headerSummaryVisible || timelineAuthority.visible;', label="header summary row visibility")
+    require(render_js, 'dom.sessionSummaryRow.dataset.indicatorOnly = indicatorOnlySummary ? "true" : "false";', label="header indicator-only summary dataset")
+    require(render_js, 'dom.sessionSummaryRow.hidden = !headerSummaryVisible || (!ownershipIndicatorVisible && timelineAuthority.visible);', label="header summary row visibility")
     require(render_js, 'label: "ATTACH"', label="composer strip attach label")
     require(render_js, 'label: "SNAPSHOT"', label="composer strip snapshot label")
     require(store_js, 'transportLabel = "POLLING";', label="composer strip polling label")
@@ -1272,9 +1281,17 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.autonomyDetail.dataset.surface = hideForSelectedThreadLiveAutonomy ? "center-lane" : "secondary-detail";', label="autonomy detail surface dataset")
     require(render_js, 'dom.autonomyDetail.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="autonomy detail center-timeline authority dataset")
     require(render_js, 'dom.autonomyDetail.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="autonomy detail center-timeline presentation dataset")
-    require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionSource = sessionIndicator.source;', label="header indicator source dataset")
+    require(render_js, 'dom.sessionSummaryScope.hidden = indicatorOnlySummary;', label="header scope demotion")
+    require(render_js, 'dom.sessionSummaryPath.hidden = indicatorOnlySummary;', label="header path demotion")
+    require(render_js, 'dom.sessionSummaryState.hidden = indicatorOnlySummary;', label="header state demotion")
+    require(render_js, 'dom.sessionSummaryCopy.hidden = indicatorOnlySummary;', label="header copy demotion")
+    require(render_js, 'dom.sessionLiveIndicator.hidden = !ownershipIndicatorVisible;', label="header indicator visibility")
+    require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionSource = ownershipIndicatorSource;', label="header indicator source dataset")
     require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionOwned = sessionIndicator.owned ? "true" : "false";', label="header indicator ownership dataset")
-    require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionReason = sessionIndicator.reason;', label="header indicator reason dataset")
+    require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionReason = ownershipIndicatorReason;', label="header indicator reason dataset")
+    require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionPresentation = ownershipIndicatorPresentation;', label="header indicator presentation dataset")
+    require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionVisible = ownershipIndicatorVisible ? "true" : "false";', label="header indicator visible dataset")
+    require(render_js, 'dom.sessionLiveIndicator.dataset.liveSessionProvenance = ownershipIndicatorSource;', label="header indicator provenance dataset")
     require(render_js, 'label: sessionStatus.transportLabel || "SSE OWNER"', label="live-session healthy ownership label")
     require(store_js, 'transportLabel = "RECONNECT";', label="live-session reconnect label")
     require(store_js, 'transportLabel = "POLLING";', label="live-session polling label")

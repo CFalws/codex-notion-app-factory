@@ -484,6 +484,31 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   const footerDockOwnsLive = Boolean(sessionStatus.liveOwned && phaseProgression.visible && liveAutonomy.owned);
   const sessionIndicator = selectedThreadLiveSessionIndicator(currentState, conversation, liveRun, handoffState);
   const proposalState = proposalChip(liveRun);
+  const ownershipIndicatorVisible =
+    !switchingSelectedThread &&
+    headerSummaryVisible &&
+    !Boolean(liveRun?.terminal && sessionStatus.presentation !== "restore") &&
+    Boolean(sessionStatus.selectedThreadRestore || sessionIndicator.visible);
+  const ownershipIndicatorLabel = sessionStatus.selectedThreadRestore
+    ? String(sessionStatus.transportLabel || (sessionStatus.restoreResume ? "RESUME" : "ATTACH"))
+    : String(sessionIndicator.label || sessionStatus.transportLabel || "SESSION");
+  const ownershipIndicatorTone = sessionStatus.selectedThreadRestore
+    ? String(sessionStatus.transportTone || "warning")
+    : String(sessionIndicator.tone || sessionStatus.transportTone || "muted");
+  const ownershipIndicatorSource = sessionStatus.selectedThreadRestore
+    ? String(sessionStatus.restoreProvenance || "sse-bootstrap")
+    : String(sessionIndicator.source || sessionStatus.transport || "none");
+  const ownershipIndicatorPresentation = sessionStatus.selectedThreadRestore
+    ? "restore"
+    : sessionIndicator.owned
+      ? "healthy"
+      : sessionIndicator.state === "reconnecting" || sessionIndicator.state === "polling"
+        ? "degraded"
+        : "hidden";
+  const ownershipIndicatorReason = sessionStatus.selectedThreadRestore
+    ? String(sessionStatus.transportReason || "saved-restore-attach")
+    : String(sessionIndicator.reason || "idle");
+  const indicatorOnlySummary = Boolean(ownershipIndicatorVisible && (timelineAuthority.visible || sessionStatus.presentation === "restore"));
 
   let pathLabel = "SNAPSHOT";
   let stateLabel = conversationId ? "READY" : "IDLE";
@@ -543,19 +568,27 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   dom.sessionSummaryRow.dataset.footerDockOwned = footerDockOwnsLive ? "true" : "false";
   dom.sessionSummaryRow.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
   dom.sessionSummaryRow.dataset.centerTimelinePresentation = timelineAuthority.presentation;
-  dom.sessionSummaryRow.hidden = !headerSummaryVisible || timelineAuthority.visible;
+  dom.sessionSummaryRow.dataset.indicatorOnly = indicatorOnlySummary ? "true" : "false";
+  dom.sessionSummaryRow.hidden = !headerSummaryVisible || (!ownershipIndicatorVisible && timelineAuthority.visible);
   dom.sessionSummaryScope.textContent = compactTargetLabel(
     conversation?.title || sessionStatus.conversationTitle || threadTransition.targetTitle || "",
     "SELECTED",
   );
   dom.sessionSummaryPath.textContent = pathLabel;
   dom.sessionSummaryState.textContent = stateLabel;
-  dom.sessionLiveIndicator.hidden = true;
-  dom.sessionLiveIndicator.textContent = sessionIndicator.label;
-  dom.sessionLiveIndicator.dataset.liveSessionTone = sessionIndicator.tone;
-  dom.sessionLiveIndicator.dataset.liveSessionSource = sessionIndicator.source;
+  dom.sessionSummaryScope.hidden = indicatorOnlySummary;
+  dom.sessionSummaryPath.hidden = indicatorOnlySummary;
+  dom.sessionSummaryState.hidden = indicatorOnlySummary;
+  dom.sessionSummaryCopy.hidden = indicatorOnlySummary;
+  dom.sessionLiveIndicator.hidden = !ownershipIndicatorVisible;
+  dom.sessionLiveIndicator.textContent = ownershipIndicatorLabel;
+  dom.sessionLiveIndicator.dataset.liveSessionTone = ownershipIndicatorTone;
+  dom.sessionLiveIndicator.dataset.liveSessionSource = ownershipIndicatorSource;
   dom.sessionLiveIndicator.dataset.liveSessionOwned = sessionIndicator.owned ? "true" : "false";
-  dom.sessionLiveIndicator.dataset.liveSessionReason = sessionIndicator.reason;
+  dom.sessionLiveIndicator.dataset.liveSessionReason = ownershipIndicatorReason;
+  dom.sessionLiveIndicator.dataset.liveSessionPresentation = ownershipIndicatorPresentation;
+  dom.sessionLiveIndicator.dataset.liveSessionVisible = ownershipIndicatorVisible ? "true" : "false";
+  dom.sessionLiveIndicator.dataset.liveSessionProvenance = ownershipIndicatorSource;
   dom.sessionSummaryCopy.textContent = copy;
   if (dom.threadPhaseChip) {
     dom.threadPhaseChip.hidden = headerSummaryVisible || switchingSelectedThread;
