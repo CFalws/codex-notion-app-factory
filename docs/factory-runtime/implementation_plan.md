@@ -1,11 +1,11 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 116
+## Iteration 117
 
-Extend the sticky active-session row so the left rail mirrors the selected thread's switching or attach, handoff, and healthy live follow state without creating a new authority source.
+Tighten the center transcript so the healthy selected-thread path reads as one inline live session lane instead of a lane plus a subordinate status block.
 
-1. Reuse `deriveSelectedThreadSessionStatus(...)`, selected-thread summary datasets, and existing follow-state fields as the only active-session row inputs.
-2. Add an explicit switching branch that mirrors the target conversation id and title while marking the row as non-owned transition state.
-3. Preserve the existing handoff and healthy live follow mirrors, including unseen-count projection for `NEW`.
-4. Keep the active-session row hidden for reconnect downgrade, polling fallback, terminal idle, and non-selected contexts.
-5. Extend the focused verifier layer and proposal artifacts so iteration 116 proves the rail mirrors selected-thread switching instead of clearing to generic idle.
+1. Reuse `renderTranscriptLiveActivity(...)` as the only healthy selected-thread center-pane live session surface.
+2. Keep milestone chips inside that article, but flatten the old transcript autonomy meta block into article-level datasets.
+3. Publish explicit path verdict, verifier acceptability, and blocker reason on the live article itself.
+4. Preserve degraded, handoff, restore, switching, and polling fallback behavior without widening transport scope.
+5. Extend the focused verifier layer and proposal artifacts so iteration 117 proves the center pane keeps one compact selected-thread live session lane on the healthy intended path.

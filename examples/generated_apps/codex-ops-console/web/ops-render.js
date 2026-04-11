@@ -978,28 +978,18 @@ function summarizeInlineAutonomy(currentState, conversation) {
 
 function renderTranscriptMilestones(currentState, conversation) {
   const milestoneModel = deriveSelectedThreadTimelineMilestones(currentState, conversation);
-  const liveAutonomy = deriveSelectedThreadLiveAutonomy(currentState, conversation);
-  const autonomySummary = liveAutonomy.summary;
-  if (!milestoneModel.visible || !autonomySummary) {
+  if (!milestoneModel.visible) {
     return "";
   }
-  const blockerReason = String(autonomySummary.blockerReason || "none").toUpperCase();
   return `
-    <div class="session-inline-autonomy" data-live-milestones="true" data-live-milestones-source="${escapeHtml(String(milestoneModel.source || "none"))}" data-live-milestones-phase="${escapeHtml(String(milestoneModel.currentLabel || "UNKNOWN"))}">
-      <div class="autonomy-chip-row autonomy-chip-row-compact">
-        ${milestoneModel.items
-          .map(
-            (item) => `<span class="autonomy-chip ${
-              item.state === "complete" ? "healthy" : item.state === "active" ? "neutral" : item.state === "blocked" ? "blocked" : ""
-            }" data-milestone-key="${escapeHtml(item.key)}" data-milestone-state="${escapeHtml(item.state)}">${escapeHtml(item.label)}</span>`,
-          )
-          .join("")}
-      </div>
-      <div class="session-inline-autonomy-meta">
-        <p class="session-inline-autonomy-item"><span>Path</span>${escapeHtml(String(autonomySummary.pathVerdict || "UNKNOWN"))}</p>
-        <p class="session-inline-autonomy-item"><span>Verifier</span>${escapeHtml(String(autonomySummary.verifierAcceptability || "PENDING"))}</p>
-        <p class="session-inline-autonomy-item"><span>Blocker</span>${escapeHtml(blockerReason)}</p>
-      </div>
+    <div class="timeline-live-row timeline-live-row-milestones" data-live-milestones="true" data-live-milestones-source="${escapeHtml(String(milestoneModel.source || "none"))}" data-live-milestones-phase="${escapeHtml(String(milestoneModel.currentLabel || "UNKNOWN"))}">
+      ${milestoneModel.items
+        .map(
+          (item) => `<span class="autonomy-chip ${
+            item.state === "complete" ? "healthy" : item.state === "active" ? "neutral" : item.state === "blocked" ? "blocked" : ""
+          }" data-milestone-key="${escapeHtml(item.key)}" data-milestone-state="${escapeHtml(item.state)}">${escapeHtml(item.label)}</span>`,
+        )
+        .join("")}
     </div>
   `;
 }
@@ -1034,7 +1024,8 @@ function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
       : simplifyText(phaseDetailHint(liveRun) || liveRun.detail || "");
   const appendStream = currentState.appendStream || {};
   const appendId = Number(appendStream.lastLiveAppendId || appendStream.lastAppendId || 0);
-  const autonomySummary = degradedVisible ? "" : liveOwned ? renderTranscriptMilestones(currentState, conversation) : summarizeInlineAutonomy(currentState, conversation);
+  const autonomySummary = liveAutonomy.summary;
+  const milestoneLane = degradedVisible ? "" : liveOwned ? renderTranscriptMilestones(currentState, conversation) : "";
   const provenanceLabel = degradedVisible
     ? String(sessionIndicator.label || "POLLING")
     : handoffVisible
@@ -1044,15 +1035,21 @@ function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
         : String(liveAutonomy.label || "FALLBACK");
   const metaPhase = degradedVisible ? phaseLabel : handoffVisible ? "HANDOFF" : String(phaseProgression.label || "LIVE");
   const metaReason = degradedVisible ? String(sessionIndicator.reason || "polling-fallback").toUpperCase() : "";
+  const pathVerdict = liveOwned ? String(autonomySummary?.pathVerdict || "UNKNOWN").toUpperCase() : "";
+  const verifierAcceptability = liveOwned ? String(autonomySummary?.verifierAcceptability || "PENDING").toUpperCase() : "";
+  const blockerReason = liveOwned ? String(autonomySummary?.blockerReason || "none").toUpperCase() : "";
   return `
-    <article class="timeline-item live-activity" data-live-activity-turn="true" data-live-session-event="${liveOwned ? "true" : "false"}" data-live-milestones-visible="${liveOwned && milestoneModel.visible ? "true" : "false"}" data-live-milestones-phase="${escapeHtml(liveOwned ? String(milestoneModel.currentLabel || phaseLabel) : "")}" data-live-run-state="${escapeHtml(handoffVisible ? "handoff" : degradedVisible ? String(sessionIndicator.state || "polling") : phaseProgression.state || liveRun.state)}" data-live-run-phase="${escapeHtml(phaseLabel)}" data-live-run-source="${escapeHtml(degradedVisible ? String(sessionIndicator.source || "polling") : handoffVisible ? "handoff" : phaseProgression.source || liveRun.source)}" data-live-owned="${liveOwned ? "true" : "false"}" data-live-autonomy-presentation="${escapeHtml(degradedVisible ? "degraded" : handoffVisible ? "handoff" : liveAutonomy.presentation)}" data-live-reason="${escapeHtml(degradedVisible ? String(sessionIndicator.reason || "polling-fallback") : handoffVisible ? "handoff" : String(liveAutonomy.reason || "healthy"))}" data-append-id="${appendId}" data-append-source="sse-live-activity">
+    <article class="timeline-item live-activity" data-live-activity-turn="true" data-live-session-event="${liveOwned ? "true" : "false"}" data-live-session-lane="${escapeHtml(liveOwned ? "selected-thread" : degradedVisible ? "degraded" : handoffVisible ? "handoff" : "fallback")}" data-live-milestones-visible="${liveOwned && milestoneModel.visible ? "true" : "false"}" data-live-milestones-phase="${escapeHtml(liveOwned ? String(milestoneModel.currentLabel || phaseLabel) : "")}" data-live-path-verdict="${escapeHtml(pathVerdict)}" data-live-verifier-acceptability="${escapeHtml(verifierAcceptability)}" data-live-blocker-reason="${escapeHtml(blockerReason)}" data-live-run-state="${escapeHtml(handoffVisible ? "handoff" : degradedVisible ? String(sessionIndicator.state || "polling") : phaseProgression.state || liveRun.state)}" data-live-run-phase="${escapeHtml(phaseLabel)}" data-live-run-source="${escapeHtml(degradedVisible ? String(sessionIndicator.source || "polling") : handoffVisible ? "handoff" : phaseProgression.source || liveRun.source)}" data-live-owned="${liveOwned ? "true" : "false"}" data-live-autonomy-presentation="${escapeHtml(degradedVisible ? "degraded" : handoffVisible ? "handoff" : liveAutonomy.presentation)}" data-live-reason="${escapeHtml(degradedVisible ? String(sessionIndicator.reason || "polling-fallback") : handoffVisible ? "handoff" : String(liveAutonomy.reason || "healthy"))}" data-append-id="${appendId}" data-append-source="sse-live-activity">
       <p class="timeline-kind">${liveOwned ? "세션 진행" : "실시간 진행"}</p>
       <div class="timeline-live-row">
         <span class="timeline-live-chip" data-tone="${degradedVisible ? "warning" : handoffVisible ? "neutral" : liveOwned ? "neutral" : "warning"}">${escapeHtml(degradedVisible ? "DEGRADED" : handoffVisible ? "HANDOFF" : String(liveAutonomy.label || "LIVE"))}</span>
         <span class="timeline-live-chip" data-tone="${escapeHtml(tone)}">${escapeHtml(phaseLabel)}</span>
+        ${liveOwned ? `<span class="timeline-live-chip" data-tone="${escapeHtml(autonomyChipTone(pathVerdict))}">${escapeHtml(pathVerdict)}</span>` : ""}
+        ${liveOwned ? `<span class="timeline-live-chip" data-tone="${escapeHtml(autonomyChipTone(verifierAcceptability))}">${escapeHtml(verifierAcceptability)}</span>` : ""}
+        ${liveOwned ? `<span class="timeline-live-chip" data-tone="${escapeHtml(blockerTone(String(autonomySummary?.blockerReason || "none")))}">BLOCKER ${escapeHtml(blockerReason)}</span>` : ""}
       </div>
+      ${milestoneLane}
       <p class="timeline-body">${escapeHtml(detail || "선택된 대화의 최신 live 진행 상태를 반영하는 중입니다.")}</p>
-      ${autonomySummary}
       <p class="timeline-meta">selected thread · ${escapeHtml(metaPhase)}${phaseProgression.jobId || liveRun.jobId ? ` · ${escapeHtml(String(phaseProgression.jobId || liveRun.jobId || ""))}` : ""}${metaReason ? ` · ${escapeHtml(metaReason)}` : ""} · <span class="timeline-provenance">${escapeHtml(provenanceLabel)}</span></p>
     </article>
   `;

@@ -456,6 +456,7 @@ def assert_browser_runtime_surface(
                   const follow = document.querySelector("#jump-to-latest");
                   const sessionEvent = document.querySelector('.timeline-item.session-event[data-append-source="sse"]');
                   const milestoneLane = liveActivity ? liveActivity.querySelector('[data-live-milestones="true"]') : null;
+                  const legacyLaneMeta = liveActivity ? liveActivity.querySelector(".session-inline-autonomy-meta") : null;
                   const fetchMark = Number(window.__verifyFetchMark || 0);
                   const jobFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
                     entry => String(entry.url || "").includes("/api/jobs/")
@@ -465,11 +466,16 @@ def assert_browser_runtime_surface(
                     liveActivity &&
                     liveActivity.dataset.liveOwned === "true" &&
                     liveActivity.dataset.liveSessionEvent === "true" &&
+                    liveActivity.dataset.liveSessionLane === "selected-thread" &&
                     liveActivity.dataset.liveMilestonesVisible === "true" &&
+                    ["EXPECTED", "ACCEPTABLE"].includes(liveActivity.dataset.livePathVerdict || "") &&
+                    ["ACCEPTABLE", "PENDING"].includes(liveActivity.dataset.liveVerifierAcceptability || "") &&
+                    (liveActivity.dataset.liveBlockerReason || "").length > 0 &&
                     ["PROPOSAL", "REVIEW", "VERIFY", "READY", "APPLIED"].includes(liveActivity.dataset.liveRunPhase || "") &&
                     milestoneLane &&
                     milestoneLane.dataset.liveMilestones === "true" &&
                     milestoneLane.dataset.liveMilestonesPhase === liveActivity.dataset.liveMilestonesPhase &&
+                    !legacyLaneMeta &&
                     summary &&
                     summary.hidden &&
                     summary.dataset.summaryPath === "session" &&
@@ -1234,9 +1240,14 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "const transcriptLiveActivity = renderTranscriptLiveActivity(conversation, currentState, liveRun);", label="transcript live activity wiring")
     require(render_js, "if (inlineState.visible) {", label="transcript live activity suppression guard")
     require(render_js, 'data-live-session-event="${liveOwned ? "true" : "false"}"', label="transcript session event lane dataset")
+    require(render_js, 'data-live-session-lane="${escapeHtml(liveOwned ? "selected-thread" : degradedVisible ? "degraded" : handoffVisible ? "handoff" : "fallback")}"', label="transcript session lane ownership dataset")
     require(render_js, 'data-live-milestones-visible="${liveOwned && milestoneModel.visible ? "true" : "false"}"', label="transcript session event milestone visibility dataset")
     require(render_js, 'data-live-milestones-phase="${escapeHtml(liveOwned ? String(milestoneModel.currentLabel || phaseLabel) : "")}"', label="transcript session event milestone phase dataset")
+    require(render_js, 'data-live-path-verdict="${escapeHtml(pathVerdict)}"', label="transcript session lane path verdict dataset")
+    require(render_js, 'data-live-verifier-acceptability="${escapeHtml(verifierAcceptability)}"', label="transcript session lane verifier dataset")
+    require(render_js, 'data-live-blocker-reason="${escapeHtml(blockerReason)}"', label="transcript session lane blocker dataset")
     require(render_js, 'data-live-milestones="true"', label="transcript live milestone dataset")
+    require(render_js, 'timeline-live-row timeline-live-row-milestones', label="transcript milestone row class")
     require(render_js, 'data-milestone-key="${escapeHtml(item.key)}"', label="transcript milestone key dataset")
     require(render_js, 'data-milestone-state="${escapeHtml(item.state)}"', label="transcript milestone state dataset")
     require(render_js, 'data-session-event="true"', label="session timeline event DOM")

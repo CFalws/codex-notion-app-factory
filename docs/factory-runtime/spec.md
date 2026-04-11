@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `116`
-- bounded focus: `left-rail active-session row mirrors selected-thread switching, handoff, and healthy live follow state`
+- current iteration: `117`
+- bounded focus: `center transcript collapses healthy selected-thread live progress into one inline session lane`
 
 ## Request
 
@@ -13,7 +13,7 @@
 
 ## Problem
 
-Healthy selected-thread ownership, switching continuity, transcript session-lane visibility, and composer utility ergonomics are already established. The remaining gap is left-rail session mirroring: operators still have to infer which selected thread is actively switching, handed off, or live-owned from the center pane instead of seeing one compact selected-thread mirror above the thread list.
+Healthy selected-thread ownership, switching continuity, detached follow behavior, and left-rail mirroring are already established. The remaining gap is the center transcript itself: healthy selected-thread progress still reads partly like a live lane plus adjacent status rendering instead of one compact session timeline surface.
 
 ## Target User
 
@@ -23,14 +23,14 @@ The primary user is the operator or developer using the phone-friendly workspace
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the selected-thread session authority, transcript session lane, composer strip, detached follow, and polling-fallback contracts unchanged.
-- Do not introduce a new transport, polling path, backend switch protocol, or a second live-status surface.
-- Reuse the existing `threadTransition`, selected-thread session-status, summary-row, and follow-state datasets instead of creating another rail authority source.
-- Show at most one sticky active-session row above the thread list for the selected thread only.
-- Mirror switching or attach, handoff, and healthy live follow states through chip-first row text and datasets.
-- Clear the row immediately on reconnect downgrade, polling fallback, terminal idle, deselection, or any non-selected context.
-- Keep non-selected rows snapshot-only and preserve degraded, restore, and empty behavior from earlier iterations.
+- Keep the selected-thread SSE ownership, follow-state, poll-fallback, composer, and rail contracts unchanged.
+- Do not introduce a new transport, polling path, backend protocol, or a second center-pane live-status surface.
+- Reuse the existing transcript live activity, selected-thread phase progression, autonomy summary, and milestone helpers instead of adding another center authority model.
+- Show exactly one compact selected-thread live session lane at the transcript tail on the healthy SSE-owned path.
+- Carry explicit proposal or review or verify or auto-apply or ready or applied labels plus path, verifier, and blocker state on that lane through machine-readable datasets.
+- Suppress duplicate prose-heavy milestone status rendering around that lane.
+- Clear or downgrade the lane immediately on reconnect, polling fallback, terminal idle, restore-only, or switching paths.
 
 ## Deliverable
 
-Define and verify one sticky active-session rail contract where the selected thread alone mirrors switching or attach, handoff, and healthy live follow state above the thread list through existing selected-thread datasets, while degraded and non-selected paths clear that mirror immediately.
+Define and verify one transcript-tail selected-thread live session lane contract where healthy SSE-owned progress, milestone progression, and autonomy path state read as one compact center-pane timeline surface, while degraded and non-healthy paths clear or downgrade it immediately.
