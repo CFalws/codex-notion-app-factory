@@ -1,12 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 169
+## Iteration 170
 
-Collapse the selected-thread center-pane live header into one compact summary row and keep the transcript-tail live activity primary.
+Collapse healthy selected-thread milestone appends into the transcript-tail live activity.
 
 1. Keep the change read-only over the existing selected-thread SSE authority and transcript-tail live activity seam.
-2. Add one compact chip-first header summary row for healthy selected-thread ownership using scope, path, and phase only.
-3. Hide the older header phase chip on the healthy selected-thread path so it remains available only for degraded, restore, switching, or cleared states.
-4. Remove live-phase prose from the plain thread metadata copy so the transcript stays the dominant live session surface.
-5. Keep the summary row selected-thread-only and clear it immediately on switching, reconnect downgrade, polling fallback, deselection, lost authority, or terminal completion.
-6. Align focused verification and proposal artifacts with the iteration-169 compact header-summary contract.
+2. Treat the transcript-tail live activity as the only healthy selected-thread primary session item in the center pane.
+3. Collapse proposal, review, verify, auto-apply, ready, and applied milestone session-event cards only while the selected-thread live item is healthy and SSE-owned.
+4. Leave degraded, restore, snapshot, switching, and terminal-cleared paths explicit so they do not silently inherit healthy milestone ownership.
+5. Keep non-live historical rendering behavior intact outside the healthy selected-thread path.
+6. Align focused verification and proposal artifacts with the iteration-170 unified live-timeline contract.

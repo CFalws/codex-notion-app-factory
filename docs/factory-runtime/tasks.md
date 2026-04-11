@@ -1,10 +1,10 @@
 # Factory Runtime Tasks
 
-## Iteration 169
+## Iteration 170
 
-- [x] Keep the header change read-only over the existing selected-thread SSE authority and transcript-tail live activity seam.
-- [x] Add one compact chip-first summary row above the transcript for healthy selected-thread ownership only.
-- [x] Hide the header phase chip on the healthy selected-thread path while preserving it for degraded, restore, or switching states.
-- [x] Remove live-phase prose from `conversation-meta` so the transcript remains the dominant realtime session surface.
-- [x] Clear the summary row on switching, reconnect downgrade, polling fallback, terminal completion, deselection, and lost authority.
-- [x] Align focused docs and verification with the iteration-169 compact header-summary contract.
+- [x] Keep the timeline change read-only over the existing selected-thread SSE authority and transcript-tail live activity seam.
+- [x] Make the transcript-tail live activity the only healthy selected-thread primary session item in the center pane.
+- [x] Collapse selected-thread milestone session-event cards only on the healthy SSE-owned path.
+- [x] Preserve explicit degraded, restore, snapshot, switching, and terminal-cleared rendering outside that healthy path.
+- [x] Keep non-live historical rendering behavior intact when the selected-thread live item is not healthy and SSE-owned.
+- [x] Align focused docs and verification with the iteration-170 unified live-timeline contract.

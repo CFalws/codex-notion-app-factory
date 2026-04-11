@@ -1206,8 +1206,8 @@ function selectedThreadPrimaryTimelineSessionModel(conversation, currentState, l
     sessionSurface,
     sessionStrip,
     liveOwned,
-    visible: inlineState.visible || sessionStrip.visible,
-    collapseSessionEvents: inlineState.visible || sessionStrip.visible,
+    visible: liveOwned || inlineState.visible || sessionStrip.visible,
+    collapseSessionEvents: liveOwned,
   };
 }
 
@@ -1370,14 +1370,8 @@ function shouldCollapseSelectedThreadSessionEvent(item, currentState, conversati
     return false;
   }
   const timelineSession = selectedThreadPrimaryTimelineSessionModel(conversation, currentState, liveRun);
-  const { inlineState, collapseSessionEvents } = timelineSession;
-  const liveAutonomy = deriveSelectedThreadLiveAutonomy(currentState, conversation);
-  const phaseProgression = deriveSelectedThreadPhaseProgression(currentState, conversation);
-  const restoreVisible =
-    liveAutonomy.visible &&
-    liveAutonomy.presentation === "restore" &&
-    phaseProgression.visible;
-  if (!collapseSessionEvents && !restoreVisible) {
+  const { collapseSessionEvents } = timelineSession;
+  if (!collapseSessionEvents) {
     return false;
   }
   if (String(item.delivery_source || "").toLowerCase() !== "sse") {

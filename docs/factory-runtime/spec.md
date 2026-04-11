@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `169`
-- bounded focus: `collapse the selected-thread center-pane live header into one compact machine-readable session summary row`
+- current iteration: `170`
+- bounded focus: `collapse healthy selected-thread milestone appends into the transcript-tail live activity`
 
 ## Request
 
@@ -13,21 +13,21 @@
 
 ## Problem
 
-The center pane still shows too much selected-thread live-status chrome above the transcript. Operators can see the transcript-tail live activity, but they still have to reconcile a second live-owner surface in the header instead of reading the conversation as one realtime session timeline.
+The selected-thread center timeline still duplicates milestone progression on the healthy path. Operators can read the transcript-tail live activity, but proposal, review, verify, ready, and applied progress can still appear as separate session-event cards instead of one continuous realtime session item.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the selected-thread transcript to remain the dominant realtime surface without duplicate status chrome above it.
+The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the selected-thread transcript to read as one authoritative live session timeline instead of a mixed live item plus milestone event feed.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the iteration bounded to the selected-thread center-pane header summary and live-status rendering.
+- Keep the iteration bounded to the selected-thread center-pane unified live timeline.
 - Reuse the existing selected-thread SSE authority and transcript-tail live item; do not add a new authority source.
-- Keep the header surface chip-first, compact, and fail closed on switching, reconnect downgrade, polling fallback, deselection, lost authority, or terminal resolution.
-- Keep the transcript-tail live activity as the only primary live session item on the healthy selected-thread path.
+- Collapse selected-thread milestone session-event cards only on the healthy SSE-owned path.
+- Keep degraded, restore, snapshot, switching, and terminal-cleared paths explicit and fail closed.
 
 ## Deliverable
 
-Render at most one compact selected-thread session summary row above the transcript on the healthy path, suppress duplicate live-owner chrome there, and leave the transcript-tail live activity as the only primary live session surface.
+Render exactly one healthy selected-thread primary live item in the transcript, move milestone visibility into that item's in-place milestone strip and datasets, and suppress duplicate selected-thread milestone session-event cards only on the healthy SSE-owned path.
