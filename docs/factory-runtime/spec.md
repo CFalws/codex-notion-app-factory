@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `173`
-- bounded focus: `make selected-thread session_status the single healthy live autonomy source across the workspace`
+- current iteration: `174`
+- bounded focus: `make the transcript live item the single healthy selected-thread realtime session surface`
 
 ## Request
 
@@ -13,21 +13,22 @@
 
 ## Problem
 
-The selected-thread workspace still depends on autonomy-summary polling fallback for some proposal, review, verify, blocker, intended-path, and verifier state. That leaves part of the active session delayed or inferred even when the healthy selected-thread SSE seam already carries the canonical autonomy signal.
+The selected-thread workspace now has authoritative healthy session state from `session_status`, but operators still see it split across the transcript, header summary, and secondary facts surfaces. That duplication weakens the conversation-first realtime session feel even when the healthy selected-thread SSE path is correct.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly realtime workspace and expecting healthy selected-thread autonomy state to update immediately from the same live session stream without waiting for separate goals polling.
+The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the central transcript to read as one canonical live session timeline without reconciling duplicate summary surfaces.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the iteration bounded to read-only derivation over the existing selected-thread append SSE and `session_status` seam.
-- Reuse the existing selected-thread `session_status` payload; do not add a new autonomy authority source.
-- Promote healthy selected-thread SSE ownership over goals polling fallback for visible autonomy state.
-- Fail closed back to degraded or polling treatment on reconnect, deselection, restore gap, or polling-owned paths.
+- Keep the iteration bounded to the selected-thread render boundary in the operator console.
+- Reuse the existing selected-thread SSE and `appendStream.sessionStatus` authority; do not add a new live session source.
+- Promote the transcript-bound live activity item to carry the healthy phase, proposal, verifier, blocker, and intended-path contract.
+- Suppress competing header summary and secondary facts surfaces on that same healthy path.
+- Fail closed on degraded, restore, handoff, deselected, and no-selection states.
 
 ## Deliverable
 
-Drive visible selected-thread autonomy state from canonical `session_status` during healthy SSE ownership, suppress goals polling fallback on that intended path, and keep degraded, restore, deselected, and polling-owned paths explicitly non-authoritative.
+Expose one obvious healthy selected-thread transcript live session item with the canonical `session_status` contract, while duplicate thread summary and secondary facts surfaces suppress themselves on that path and degraded or restore states remain explicit and non-authoritative.

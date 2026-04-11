@@ -1,12 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 173
+## Iteration 174
 
-Make selected-thread `session_status` the healthy live autonomy source across the workspace.
+Make the transcript live item the single healthy selected-thread realtime session surface.
 
-1. Keep the change read-only over the existing selected-thread append SSE and `session_status` seam.
-2. Derive autonomy summary state from canonical `session_status` during healthy selected-thread ownership.
-3. Suppress goals polling fallback on the intended healthy selected-thread SSE path.
-4. Keep degraded, restore, deselected, reconnect, and polling-owned paths explicitly non-authoritative.
-5. Make the store prefer canonical `session_status` autonomy fields over stale fallback summary state while healthy ownership is active.
-6. Align focused verification and proposal artifacts with the iteration-173 autonomy authority contract.
+1. Keep the change inside the selected-thread render boundary over the existing SSE and `session_status` seam.
+2. Let the transcript live activity carry the healthy phase, proposal, verifier, blocker, and intended-path contract.
+3. Suppress duplicate header summary and secondary facts surfaces on that same healthy path.
+4. Keep degraded, restore, handoff, deselected, and no-selection states explicit and fail closed.
+5. Preserve footer, rail, and transport ownership without adding a new source of authority.
+6. Align focused verification and proposal artifacts with the iteration-174 transcript-authority contract.

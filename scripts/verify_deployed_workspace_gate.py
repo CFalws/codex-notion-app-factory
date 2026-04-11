@@ -568,6 +568,7 @@ def assert_browser_runtime_surface(
                     liveActivity.dataset.liveTransport === "SSE OWNER" &&
                     liveActivity.dataset.liveTransportOwned === "true" &&
                     ["EXPECTED", "ACCEPTABLE"].includes(liveActivity.dataset.livePathVerdict || "") &&
+                    (liveActivity.dataset.liveExpectedPath || "").length > 0 &&
                     ["ACCEPTABLE", "PENDING"].includes(liveActivity.dataset.liveVerifierAcceptability || "") &&
                     (liveActivity.dataset.liveBlockerReason || "").length > 0 &&
                     ["PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED"].includes(liveActivity.dataset.liveRunPhase || "") &&
@@ -576,15 +577,11 @@ def assert_browser_runtime_surface(
                     milestoneLane.dataset.liveMilestonesPhase === liveActivity.dataset.liveMilestonesPhase &&
                     !legacyLaneMeta &&
                     threadSessionSummary &&
-                    !threadSessionSummary.hidden &&
-                    threadSessionSummary.dataset.threadSummaryVisible === "true" &&
-                    threadSessionSummary.dataset.threadSummaryPresentation === "healthy" &&
-                    threadSessionSummary.dataset.threadSummaryScope === "selected-thread" &&
-                    ["EXPECTED", "ACCEPTABLE"].includes(threadSessionSummary.dataset.threadSummaryPath || "") &&
-                    threadSessionSummary.dataset.threadSummaryPhase === liveActivity.dataset.liveRunPhase &&
-                    threadSessionSummary.dataset.threadSummarySource === "sse" &&
-                    threadSessionSummary.dataset.threadSummaryOwned === "true" &&
-                    threadSessionSummary.dataset.threadSummaryConversationId === conversationId &&
+                    threadSessionSummary.hidden &&
+                    threadSessionSummary.dataset.threadSummaryVisible === "false" &&
+                    threadSessionSummary.dataset.threadSummaryPresentation === "suppressed" &&
+                    threadSessionSummary.dataset.threadSummaryOwned === "false" &&
+                    threadSessionSummary.dataset.threadSummaryReason === "center-timeline-canonical" &&
                     threadPhase &&
                     threadPhase.hidden &&
                     threadPhase.dataset.liveSessionVisible === "true" &&
@@ -654,9 +651,10 @@ def assert_browser_runtime_surface(
                     secondaryPanelToggle.getAttribute("aria-expanded") === "false" &&
                     document.body.dataset.secondaryPanelOpen !== "true" &&
                     secondarySessionFacts &&
-                    secondarySessionFacts.dataset.secondaryFactsPresentation === "healthy" &&
-                    secondarySessionFacts.dataset.secondaryFactsOwned === "true" &&
-                    secondarySessionFacts.dataset.secondaryFactsTransport === "SSE OWNER" &&
+                    secondarySessionFacts.hidden &&
+                    secondarySessionFacts.dataset.secondaryFactsPresentation === "suppressed" &&
+                    secondarySessionFacts.dataset.secondaryFactsOwned === "false" &&
+                    secondarySessionFacts.dataset.secondaryFactsTransport === "SUPPRESSED" &&
                     secondarySessionFacts.dataset.secondaryFactsPhase === liveActivity.dataset.liveRunPhase &&
                     secondarySessionFacts.dataset.secondaryFactsPath === liveActivity.dataset.livePathVerdict &&
                     secondarySessionFacts.dataset.secondaryFactsVerifier === liveActivity.dataset.liveVerifierAcceptability &&
@@ -702,9 +700,10 @@ def assert_browser_runtime_surface(
                     secondaryPanelToggle.getAttribute("aria-expanded") === "true" &&
                     document.body.dataset.secondaryPanelOpen === "true" &&
                     secondarySessionFacts &&
-                    secondarySessionFacts.dataset.secondaryFactsPresentation === "healthy" &&
-                    secondarySessionFacts.dataset.secondaryFactsOwned === "true" &&
-                    secondarySessionFacts.dataset.secondaryFactsTransport === "SSE OWNER" &&
+                    secondarySessionFacts.hidden &&
+                    secondarySessionFacts.dataset.secondaryFactsPresentation === "suppressed" &&
+                    secondarySessionFacts.dataset.secondaryFactsOwned === "false" &&
+                    secondarySessionFacts.dataset.secondaryFactsTransport === "SUPPRESSED" &&
                     autonomyDetailCard &&
                     !autonomyDetailCard.hidden &&
                     autonomyDetailCard.dataset.autonomySurface === "secondary-detail" &&
@@ -1347,10 +1346,9 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "selectedThreadInlineSessionState", label="inline session visibility helper")
     require(render_js, "const degradedVisible =", label="inline degraded visibility helper")
     require(render_js, 'sessionIndicator.state === "reconnecting" || sessionIndicator.state === "polling"', label="inline degraded state scope")
-    require(render_js, "summarizeInlineAutonomy", label="inline autonomy summary helper")
-    require(render_js, "buildAutonomySummary", label="shared autonomy summary builder")
     require(render_js, "renderSecondaryPanelSessionFacts", label="secondary panel session facts helper")
     require(render_js, "secondaryPanelSessionFactsModel", label="secondary panel session facts model")
+    require(render_js, 'dom.secondarySessionFacts.hidden = facts.presentation === "suppressed";', label="secondary panel facts healthy suppression")
     require(render_js, 'dom.secondarySessionFacts.dataset.secondaryFactsPresentation = facts.presentation;', label="secondary panel facts presentation dataset")
     require(render_js, 'dom.secondarySessionFacts.dataset.secondaryFactsOwned = facts.owned ? "true" : "false";', label="secondary panel facts ownership dataset")
     require(render_js, 'dom.secondarySessionFacts.dataset.secondaryFactsTransport = facts.transport;', label="secondary panel facts transport dataset")
@@ -1378,6 +1376,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.jobMeta.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="job meta center-timeline presentation dataset")
     require(render_js, "if (inlineState.visible) {", label="composer strip suppression guard")
     require(render_js, "renderInlineSessionBlock", label="inline session block helper")
+    require(render_js, 'return "";', label="inline session block suppression")
     require(render_js, "INLINE_TERMINAL_RETENTION_MS = 12000", label="inline terminal retention window")
     require(render_js, "shouldRetainInlineTerminalPhase", label="inline terminal retention helper")
     require(render_js, "selectedThreadTimelineAuthorityModel", label="timeline authority model helper")
@@ -1433,25 +1432,15 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, 'state.appendStream.sessionStatus = normalizeSessionStatus(appendEnvelope.session_status || {}, {', label="append envelope session-status hydration")
     require(conversations_js, 'state.appendStream.sessionStatus = normalizeSessionStatus(payload.session_status || {}, {', label="bootstrap session-status hydration")
     require(store_js, "export function deriveSelectedThreadSessionStripModel(currentState, conversation = null, liveRun = null) {", label="selected-thread session strip model helper")
-    require(render_js, 'data-live-session-strip="true"', label="selected-thread session strip DOM")
-    require(render_js, 'data-session-event-source="session-status"', label="canonical inline session-event source dataset")
-    require(render_js, 'data-live-session-strip-transport="${escapeHtml(sessionStrip.transportState)}"', label="selected-thread session strip transport dataset")
-    require(render_js, 'data-live-session-strip-proposal-state="${escapeHtml(proposalLabel)}"', label="selected-thread session strip proposal dataset")
-    require(render_js, 'data-live-session-strip-job-id="${escapeHtml(latestJobId)}"', label="selected-thread session strip job dataset")
-    require(render_js, 'if (sessionStrip.visible) {', label="transcript live activity suppression behind strip")
+    require_absent(render_js, 'data-live-session-strip="true"', label="selected-thread session strip DOM")
+    require_absent(render_js, 'data-session-event-source="session-status"', label="canonical inline session-event source dataset")
+    require_absent(render_js, 'if (sessionStrip.visible) {', label="transcript live activity suppression behind strip")
     require(render_js, 'if (item.pending_assistant && inlineState.handoffVisible) {', label="pending assistant placeholder suppression behind inline block")
-    require(render_js, 'data-live-autonomy="true"', label="inline autonomy DOM")
-    require(render_js, 'data-autonomy-path-verdict="', label="inline autonomy path verdict dataset")
-    require(render_js, 'data-autonomy-verifier-acceptability="', label="inline autonomy verifier dataset")
-    require(render_js, 'data-autonomy-blocker-reason="', label="inline autonomy blocker dataset")
-    require(render_js, 'data-autonomy-iteration="', label="inline autonomy iteration dataset")
-    require(render_js, 'data-autonomy-source="', label="inline autonomy source dataset")
-    require(render_js, 'data-autonomy-freshness-state="', label="inline autonomy freshness dataset")
-    require(render_js, 'data-autonomy-fallback-allowed="', label="inline autonomy fallback dataset")
-    require(render_js, 'data-autonomy-generated-at="', label="inline autonomy generated-at dataset")
+    require_absent(render_js, 'data-live-autonomy="true"', label="inline autonomy DOM")
     require(render_js, 'data-live-reason="${escapeHtml(', label="transcript live reason dataset")
     require(render_js, 'data-live-transport="${escapeHtml(transportLabel)}"', label="transcript live transport dataset")
     require(render_js, 'data-live-transport-owned="${liveOwned ? "true" : "false"}"', label="transcript live transport ownership dataset")
+    require(render_js, 'data-live-expected-path="${escapeHtml(expectedPath)}"', label="transcript live expected-path dataset")
     require(render_js, 'data-thread-transition-transport="${escapeHtml(transportLabel)}"', label="restore transition transport dataset")
     require(render_js, 'const retainedTerminalVisible = shouldRetainInlineTerminalPhase(', label="inline terminal retention wiring")
     require(render_js, '(!liveRun.terminal || retainedTerminalVisible);', label="inline terminal visibility guard")
@@ -1491,7 +1480,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.threadPhaseChip.dataset.restoreProvenance = sessionStatus.restoreProvenance || "none";', label="header badge restore provenance dataset")
     require(render_js, 'dom.threadPhaseChip.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="header badge center-timeline authority dataset")
     require(render_js, 'dom.threadPhaseChip.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="header badge center-timeline presentation dataset")
-    require(render_js, 'dom.threadPhaseChip.hidden = summaryVisible ? true : !badgeVisible;', label="header badge visibility")
+    require(render_js, 'dom.threadPhaseChip.hidden = summarySuppressed ? true : !badgeVisible;', label="header badge visibility")
     require(content, "__verifyStartSwitchMonitor", label="switch monitor start helper")
     require(content, "__verifySwitchMonitor", label="switch monitor state")
     require(content, "switchMonitor.sawEmptyState === false", label="switch monitor no empty-state flash assertion")
@@ -1546,14 +1535,14 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.threadPhaseChip.dataset.liveSessionDetail = badgeDetail;', label="header badge detail dataset")
     require(render_js, "dom.threadSessionSummary.hidden = !summaryVisible;", label="header session summary visibility")
     require(render_js, 'dom.threadSessionSummary.dataset.threadSummaryVisible = summaryVisible ? "true" : "false";', label="header session summary visible dataset")
-    require(render_js, 'dom.threadSessionSummary.dataset.threadSummaryPresentation = summaryVisible ? "healthy" : "cleared";', label="header session summary presentation dataset")
+    require(render_js, 'dom.threadSessionSummary.dataset.threadSummaryPresentation = summarySuppressed ? "suppressed" : "cleared";', label="header session summary presentation dataset")
     require(render_js, 'dom.threadSessionSummary.dataset.threadSummaryScope = summaryVisible ? "selected-thread" : "";', label="header session summary scope dataset")
     require(render_js, 'dom.threadSessionSummary.dataset.threadSummaryPath = summaryVisible ? summaryPath : "";', label="header session summary path dataset")
     require(render_js, 'dom.threadSessionSummary.dataset.threadSummaryPhase = summaryVisible ? healthyPhaseLabel : "";', label="header session summary phase dataset")
     require(render_js, 'dom.threadSessionSummary.dataset.threadSummarySource = summaryVisible ? badgeSource : "none";', label="header session summary source dataset")
     require(render_js, 'dom.threadSessionSummary.dataset.threadSummaryOwned = summaryVisible ? "true" : "false";', label="header session summary ownership dataset")
     require(render_js, 'dom.threadSessionSummary.dataset.threadSummaryConversationId = summaryVisible ? conversationId : "";', label="header session summary conversation dataset")
-    require(render_js, 'dom.threadPhaseChip.hidden = summaryVisible ? true : !badgeVisible;', label="header badge suppressed on healthy summary path")
+    require(render_js, 'dom.threadPhaseChip.hidden = summarySuppressed ? true : !badgeVisible;', label="header badge suppressed on healthy summary path")
     require(render_js, 'const badgeStateLabel =', label="header badge path-state helper")
     require(render_js, 'const badgeDetail =', label="header badge detail helper")
     require(render_js, 'const healthyPhaseLabel = String(', label="header healthy phase label helper")

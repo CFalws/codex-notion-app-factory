@@ -1,10 +1,10 @@
 # Factory Runtime Tasks
 
-## Iteration 173
+## Iteration 174
 
-- [x] Keep the autonomy-state change read-only over the existing selected-thread append SSE and `session_status` seam.
-- [x] Derive visible selected-thread autonomy state from canonical `session_status` on the healthy SSE-owned path.
-- [x] Suppress goals polling fallback on the intended healthy selected-thread SSE path.
-- [x] Fail closed back to degraded or polling treatment on reconnect, restore gap, deselection, and polling-owned paths.
-- [x] Make the selected-thread store prefer canonical `session_status` autonomy fields while healthy ownership is active.
-- [x] Align focused docs and verification with the iteration-173 autonomy authority contract.
+- [x] Keep the change inside the selected-thread render boundary over the existing SSE and `session_status` seam.
+- [x] Make the transcript live activity carry the healthy selected-thread phase, proposal, verifier, blocker, and intended-path contract.
+- [x] Suppress duplicate header summary and secondary facts surfaces on that same healthy path.
+- [x] Keep degraded, restore, handoff, deselected, and no-selection states explicit and fail closed.
+- [x] Preserve existing footer, rail, and transport ownership without adding a new live authority source.
+- [x] Align focused docs and verification with the iteration-174 transcript-authority contract.
