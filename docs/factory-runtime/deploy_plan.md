@@ -1,12 +1,12 @@
 # Factory Runtime Deploy Plan
 
-## Iteration 308
+## Iteration 310
 
-This deploy plan validates that the deployed browser gate now proves the healthy selected-thread composer-adjacent live rail uses explicit canonical phase wording on the intended SSE-owned path and clears in the same render frame on non-healthy transitions.
+This deploy plan validates that the deployed browser gate now proves intentional selected-thread switches keep the mounted workspace continuous while the center timeline alone carries switch-status visibility.
 
 ## Deployment Impact
 
-This iteration keeps transport, provisional continuity, healthy promotion, composer targeting, selected-row rail parity, freshness, phase mirrors, switch continuity, and central `session_status` authority convergence intact. The gate should pass only when the deployed verifier attributes healthy composer-adjacent phase wording to the intended selected-thread SSE-owned strip, keeps the transcript live item primary, and rejects any stale healthy residue or stale generic wording during non-healthy transitions.
+This iteration keeps transport, provisional continuity, healthy promotion, composer targeting, selected-row rail parity, freshness, phase mirrors, and central `session_status` authority convergence intact. The gate should pass only when the deployed verifier attributes intentional switch visibility to one compact center-timeline placeholder, keeps the composer dock mounted, rejects the generic empty-state flash, and rejects any stale switch-status residue in auxiliary header, footer, detail, or rail chrome.
 
 ## Rollout Notes
 
@@ -16,10 +16,10 @@ This iteration keeps transport, provisional continuity, healthy promotion, compo
 4. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh`.
 5. Confirm selected-thread attach or resume keeps the center timeline and footer dock mounted as one provisional session lane with only ATTACH or RESUME plus one carried-forward phase chip and no duplicate restore-only chrome.
 6. Confirm the first healthy selected-thread promotion appears only after selected-thread session state and append-stream session-status agree on the same conversation in authoritative `sse-live` state.
-7. Confirm the center transcript shows exactly one healthy primary live activity item for the selected thread and that the composer-adjacent live rail shows explicit PROPOSAL, REVIEW, VERIFY, AUTO APPLY, READY, or APPLIED wording from the intended SSE-owned path rather than older generic phrases.
-8. Confirm the older healthy inline session block is absent on that path and that reconnect, polling fallback, restore downgrade, switch, idle, handoff loss, and terminal-adjacent paths clear or downgrade the live rail in the same render frame.
-9. Confirm reconnect, polling fallback, restore, switch, terminal, and other non-healthy paths still clear or downgrade healthy live cues immediately back to degraded or snapshot rendering.
-10. Confirm `active-session-row` remains canonical, selected-row owner and freshness mirrors remain unchanged, and non-selected rows stay snapshot-only.
+7. Confirm the center transcript shows exactly one compact switching or attach placeholder during intentional thread switches and that the generic no-conversation empty state never appears while a target thread is attaching.
+8. Confirm the bottom-fixed composer dock remains mounted throughout the switch and old-thread ownership clears in the same render frame.
+9. Confirm `active-session-row`, secondary session facts, and switch-specific footer strip state or detail chrome do not remain visible as parallel switch-status surfaces while the timeline placeholder is active.
+10. Confirm reconnect, polling fallback, restore, switch, terminal, and other non-healthy paths still clear or downgrade healthy live cues immediately back to degraded or snapshot rendering.
 11. Confirm `/api/jobs/{id}` and `/api/apps/:id/goals` polling resume only after explicit non-healthy fallback and never mutate healthy selected-thread state before that boundary.
 12. Treat the proposal as ready only after the deployed verifier passes and the runtime contract check is rerun in an environment with the missing dependencies.
 Iteration 245 deploy gate expectation: healthy selected-thread runs are acceptable only when the center-header session summary itself reports `SSE OWNER`, degraded runs visibly downgrade to `RECONNECT` or `POLLING`, and switch or terminal idle clears the header ownership signal immediately.

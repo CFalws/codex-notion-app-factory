@@ -162,18 +162,18 @@ function secondaryPanelSessionFactsModel(currentState, conversation, liveRun, ha
 
   if (authority.state === "switching") {
     return {
-      presentation: "switching",
-      conversationId: String(sessionStatus.switchConversationId || ""),
+      presentation: "suppressed",
+      conversationId: "",
       title,
       owned: false,
-      transport: "ATTACH",
-      phase: "SWITCHING",
-      path: "SWITCH",
+      transport: "SUPPRESSED",
+      phase: "IDLE",
+      path: "SNAPSHOT",
       verifier: "PENDING",
       blocker: "NONE",
       follow: "IDLE",
-      detail: joinSessionChromeTokens("SELECTED", "SWITCHING", compactTargetLabel(title, "ATTACH TARGET")),
-      meta: joinSessionChromeTokens("selected thread", "switching", "attach pending"),
+      detail: "selected thread detail drawer",
+      meta: "selected thread detail drawer",
     };
   }
 
@@ -395,7 +395,7 @@ function sessionStripDetailCopy(ownerState, transportState, sessionIndicator, li
   const target = ownerState.target;
   const proposalLabel = proposalStatusLabel(proposalState);
   if (ownerState.state === "switching") {
-    return joinSessionChromeTokens(target, "ATTACH PENDING");
+    return target;
   }
   if (ownerState.state === "handoff") {
     return joinSessionChromeTokens(target, "HANDOFF");
@@ -505,10 +505,10 @@ function sessionStripStateRow(ownerState, transportState, liveRun, presentation,
   }
   if (ownerState.state === "switching") {
     return {
-      label: "SWITCHING",
-      tone: "warning",
-      role: "transition",
-      chips: [{ label: "SWITCHING", tone: "warning", role: "transition" }],
+      label: "TARGET",
+      tone: "muted",
+      role: "context",
+      chips: [{ label: "TARGET", tone: "muted", role: "context" }],
     };
   }
   if (footerDock?.visible) {

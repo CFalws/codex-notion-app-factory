@@ -1,15 +1,16 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 308
+## Iteration 310
 
-Make the selected-thread composer-adjacent live rail expose explicit healthy phase wording from the existing SSE-owned authority path and align the deployed verifier to that contract.
+Keep the selected-thread switch path mounted and continuous while moving explicit switch-status visibility into the center timeline only.
 
-1. Keep the iteration bounded to the selected-thread live rail formatter and deployed verification of that existing workspace model.
-2. Preserve the existing selected-thread transport, healthy promotion, polling suppression, transcript-primary ownership, and thread-transition behavior unchanged.
-3. Replace the older generic composer-strip helper wording with explicit PROPOSAL, REVIEW, VERIFY, AUTO APPLY, READY, and APPLIED labels sourced from the current selected-thread phase authority.
-4. Add explicit negative assertions that reconnect downgrade, polling fallback, switch, idle, and terminal-adjacent paths clear or downgrade the rail and never leave stale generic healthy wording behind.
-5. Avoid introducing any new authority source, primary live surface, or controller state.
-6. Update proposal artifacts to record the landed rail wording plus verifier result and the remaining deployed verification dependency.
+1. Keep the iteration bounded to intentional selected-thread switch rendering and deployed verification of that existing workspace model.
+2. Preserve the existing selected-thread transport, healthy promotion, polling suppression, transcript-primary ownership, and bottom-fixed composer continuity unchanged.
+3. Keep the center transcript shell and composer dock mounted during switch, render exactly one compact switching placeholder, and clear old-thread ownership in the same render frame.
+4. Suppress auxiliary switch-status mirrors in the active-session rail row, secondary detail facts, and footer strip state/detail chrome while the center timeline owns the transition.
+5. Add explicit negative assertions that switch, cancelled-switch, reconnect downgrade, and fallback paths never flash the generic empty state or retain stale old-thread switch chrome.
+6. Avoid introducing any new authority source, primary live surface, or controller state.
+7. Update proposal artifacts to record the landed switch-continuity result and the remaining deployed verification dependency.
 Iteration 245 does not widen runtime or UI ownership. It records that the selected-thread center header already exposes the canonical ownership chip beside the session summary and that deployed verification already attributes healthy visibility to that selected-thread SSE-owned signal rather than to polling or side-panel inference.
 Iteration 248 keeps transport and header ownership unchanged and restores the same selected-thread certainty directly at the input surface by keeping the composer owner row visible for healthy, handoff, switching, and restore states while preserving explicit degraded or idle clearing.
 Iteration 249 does not widen runtime or UI ownership because the selected-thread rail mirror is already correct in this branch: the sticky active-session row is canonical on the healthy selected-thread SSE path, non-selected rows remain snapshot-only, and the deployed gate already attributes that rail marker to the intended selected-thread authority source.

@@ -423,21 +423,21 @@ export function deriveSelectedThreadActiveSessionRowModel(currentState, conversa
   const conversationTitle = sessionStatus.conversationTitle || "현재 대화";
   if (authority.state === "switching") {
     return {
-      visible: true,
-      conversationId: String(sessionStatus.switchConversationId || ""),
-      presentation: "switching",
-      rowState: "switching",
-      ownerLabel: sessionStatus.transportLabel || "ATTACH",
-      stateLabel: "SWITCHING",
-      followLabel: "ATTACH",
-      title: sessionStatus.switchTargetTitle || "대화 전환 중",
-      meta: "selected thread · switching · attach pending",
+      visible: false,
+      conversationId: "",
+      presentation: "cleared",
+      rowState: "idle",
+      ownerLabel: "OWNER",
+      stateLabel: "SESSION",
+      followLabel: "LIVE",
+      title: "선택된 대화",
+      meta: "selected thread",
       rowOwned: false,
       canonical: false,
-      rowSource: "thread-transition",
-      rowPhase: "SWITCHING",
+      rowSource: "none",
+      rowPhase: "IDLE",
       rowUnseenCount: 0,
-      clearReason: "none",
+      clearReason: "thread-switch",
     };
   }
   if (authority.state === "handoff") {

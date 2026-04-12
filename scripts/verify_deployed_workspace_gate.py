@@ -1108,20 +1108,20 @@ def assert_browser_runtime_surface(
                     threadTitle.textContent.trim().length > 0 &&
                     threadTitle.textContent.trim() !== "새 대화를 시작하세요" &&
                     activeSessionRow &&
-                    !activeSessionRow.hidden &&
+                    activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
-                    activeSessionRow.dataset.activeSessionSource === "thread-transition" &&
-                    activeSessionRow.dataset.activeSessionState === "switching" &&
-                    activeSessionRow.dataset.activeSessionPhase === "SWITCHING" &&
-                    activeSessionRow.dataset.activeSessionConversationId === targetConversationId &&
-                    activeSessionRow.dataset.activeSessionFollow === "attach" &&
+                    activeSessionRow.dataset.activeSessionSource === "none" &&
+                    activeSessionRow.dataset.activeSessionState === "idle" &&
+                    activeSessionRow.dataset.activeSessionPhase === "IDLE" &&
+                    activeSessionRow.dataset.activeSessionConversationId === "" &&
+                    activeSessionRow.dataset.activeSessionFollow === "idle" &&
                     sessionStrip &&
                     !sessionStrip.hidden &&
                     sessionStripState &&
                     sessionStripState.querySelectorAll(".session-chip").length === 1 &&
-                    sessionStripState.dataset.sessionStripRole === "transition" &&
-                    sessionStripState.dataset.sessionStripLabel === "SWITCHING" &&
-                    sessionStripState.textContent.trim() === "SWITCHING" &&
+                    sessionStripState.dataset.sessionStripRole === "context" &&
+                    sessionStripState.dataset.sessionStripLabel === "TARGET" &&
+                    sessionStripState.textContent.trim() === "TARGET" &&
                     sessionStrip.dataset.composerState === "switching" &&
                     sessionStrip.dataset.composerTransport === "attach" &&
                     sessionStrip.dataset.composerTargetConversationId === targetConversationId &&
@@ -1138,10 +1138,9 @@ def assert_browser_runtime_surface(
                     composerUtilityCluster.dataset.composerUtilityState === "closed" &&
                     composerUtilityCluster.getAttribute("aria-hidden") === "true" &&
                     secondarySessionFacts &&
-                    secondarySessionFacts.dataset.secondaryFactsPresentation === "switching" &&
+                    secondarySessionFacts.hidden &&
+                    secondarySessionFacts.dataset.secondaryFactsPresentation === "suppressed" &&
                     secondarySessionFacts.dataset.secondaryFactsOwned === "false" &&
-                    secondarySessionFacts.dataset.secondaryFactsTransport === "ATTACH" &&
-                    secondarySessionFacts.dataset.secondaryFactsPhase === "SWITCHING" &&
                     sessionStrip.dataset.phaseValue === "UNKNOWN" &&
                     sessionStrip.dataset.phaseAuthoritative === "false" &&
                     sessionStrip.dataset.phaseProvenance === "thread-transition" &&
@@ -1215,19 +1214,19 @@ def assert_browser_runtime_surface(
                     transition.dataset.threadTransitionCompact === "true" &&
                     transition.dataset.threadTransitionConversationId === targetConversationId &&
                     activeSessionRow &&
-                    !activeSessionRow.hidden &&
+                    activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
-                    activeSessionRow.dataset.activeSessionSource === "thread-transition" &&
-                    activeSessionRow.dataset.activeSessionState === "switching" &&
-                    activeSessionRow.dataset.activeSessionPhase === "SWITCHING" &&
-                    activeSessionRow.dataset.activeSessionConversationId === targetConversationId &&
-                    activeSessionRow.dataset.activeSessionFollow === "attach" &&
+                    activeSessionRow.dataset.activeSessionSource === "none" &&
+                    activeSessionRow.dataset.activeSessionState === "idle" &&
+                    activeSessionRow.dataset.activeSessionPhase === "IDLE" &&
+                    activeSessionRow.dataset.activeSessionConversationId === "" &&
+                    activeSessionRow.dataset.activeSessionFollow === "idle" &&
                     sessionStrip &&
                     sessionStripState &&
                     sessionStripState.querySelectorAll(".session-chip").length === 1 &&
-                    sessionStripState.dataset.sessionStripRole === "transition" &&
-                    sessionStripState.dataset.sessionStripLabel === "SWITCHING" &&
-                    sessionStripState.textContent.trim() === "SWITCHING" &&
+                    sessionStripState.dataset.sessionStripRole === "context" &&
+                    sessionStripState.dataset.sessionStripLabel === "TARGET" &&
+                    sessionStripState.textContent.trim() === "TARGET" &&
                     sessionStrip.dataset.composerState === "switching" &&
                     sessionStrip.dataset.composerTargetConversationId === targetConversationId &&
                     sessionStrip.dataset.liveOwned === "false" &&
@@ -1290,9 +1289,9 @@ def assert_browser_runtime_surface(
                     !document.querySelector("#jump-to-latest") &&
                     sessionStripState &&
                     sessionStripState.querySelectorAll(".session-chip").length === 1 &&
-                    sessionStripState.dataset.sessionStripRole === "transition" &&
-                    sessionStripState.dataset.sessionStripLabel === "SWITCHING" &&
-                    sessionStripState.textContent.trim() === "SWITCHING" &&
+                    sessionStripState.dataset.sessionStripRole === "context" &&
+                    sessionStripState.dataset.sessionStripLabel === "TARGET" &&
+                    sessionStripState.textContent.trim() === "TARGET" &&
                     sessionStrip.dataset.composerState === "switching" &&
                     sessionStrip.dataset.composerTargetConversationId === targetConversationId &&
                     sessionStrip.dataset.phaseValue === "UNKNOWN" &&
@@ -1329,15 +1328,16 @@ def assert_browser_runtime_surface(
                     selectedCardLivePhase.dataset.liveOwnerVisible === "false" &&
                     selectedCardLivePhase.dataset.liveOwnerPhase === "" &&
                     activeSessionRow &&
-                    !activeSessionRow.hidden &&
+                    activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
-                    activeSessionRow.dataset.activeSessionSource === "thread-transition" &&
-                    activeSessionRow.dataset.activeSessionState === "switching" &&
-                    activeSessionRow.dataset.activeSessionPhase === "SWITCHING" &&
-                    activeSessionRow.dataset.activeSessionConversationId === targetConversationId &&
-                    activeSessionRow.dataset.activeSessionFollow === "attach" &&
+                    activeSessionRow.dataset.activeSessionSource === "none" &&
+                    activeSessionRow.dataset.activeSessionState === "idle" &&
+                    activeSessionRow.dataset.activeSessionPhase === "IDLE" &&
+                    activeSessionRow.dataset.activeSessionConversationId === "" &&
+                    activeSessionRow.dataset.activeSessionFollow === "idle" &&
                     secondarySessionFacts &&
-                    secondarySessionFacts.dataset.secondaryFactsPresentation === "switching" &&
+                    secondarySessionFacts.hidden &&
+                    secondarySessionFacts.dataset.secondaryFactsPresentation === "suppressed" &&
                     secondarySessionFacts.dataset.secondaryFactsOwned === "false" &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
