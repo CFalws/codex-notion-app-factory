@@ -1,12 +1,12 @@
 # Factory Runtime Deploy Plan
 
-## Iteration 272
+## Iteration 273
 
-This deploy plan validates that the canonical selected-thread footer dock now exposes healthy phase progression directly around the bottom-fixed composer.
+This deploy plan validates that healthy selected-thread readiness and autonomy status remain owned by selected-thread `sessionStatus` plus append SSE rather than by polling fallback.
 
 ## Deployment Impact
 
-This iteration keeps transport and authority behavior intact and narrows only the healthy footer presentation. The gate should pass only when the selected-thread session strip remains the sole composer-adjacent live surface, healthy selected-thread runs expose explicit phase-led dock chips and short detail copy through the existing SSE or session bootstrap authority path, and switch or restore or reconnect or polling fallback still downgrade or clear that same dock without reintroducing duplicate owner surfaces.
+This iteration keeps transport and authority behavior intact and narrows only the authority contract evidence. The gate should pass only when healthy selected-thread proposal readiness, verifier acceptability, blocker reason, phase progression, and apply readiness stay on selected-thread `sessionStatus` plus append SSE, while goals or job polling remain absent from healthy ownership and continue to appear only as explicit degraded fallback.
 
 ## Rollout Notes
 
@@ -14,10 +14,10 @@ This iteration keeps transport and authority behavior intact and narrows only th
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
 3. Open the operator console on desktop and phone widths with a selected thread that can enter healthy live progress and separate paths that can exercise restore, switch, handoff, and degraded fallback.
 4. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh`.
-5. Confirm healthy selected-thread runs now show explicit phase-led dock chips such as `PROPOSAL`, `REVIEW`, `VERIFY`, `AUTO APPLY`, `READY`, or `APPLIED` instead of suppressed or generic footer wording.
-6. Confirm the dock stays the only composer-adjacent live surface and the composer-owner row remains merged rather than reappearing as a duplicate owner.
-7. Confirm dock phase labels advance through the intended selected-thread SSE or session bootstrap path with no early `/api/jobs/{id}` or `/goals` authority shaping healthy footer state.
-8. Confirm switch, restore, handoff, reconnect, polling fallback, and terminal paths still downgrade or clear the same dock without stale healthy phase labels surviving.
+5. Confirm healthy selected-thread runs expose proposal, review, verify, ready, verifier, blocker, and apply state through selected-thread session bootstrap or append SSE rather than through `/api/jobs/{id}` or `/goals`.
+6. Confirm the footer dock remains the only composer-adjacent live surface and the composer-owner row remains merged rather than reappearing as a duplicate owner.
+7. Confirm no healthy selected-thread readiness or blocker state appears before selected-thread attachment is authoritative.
+8. Confirm switch, restore, handoff, reconnect, polling fallback, and terminal paths still downgrade or clear the same dock without stale healthy labels surviving.
 9. Confirm the bottom-fixed composer dock remains continuously usable through healthy and exception paths.
 10. Treat the proposal as ready only after the deployed verifier passes and the runtime contract check is rerun in an environment with the missing dependencies.
 Iteration 245 deploy gate expectation: healthy selected-thread runs are acceptable only when the center-header session summary itself reports `SSE OWNER`, degraded runs visibly downgrade to `RECONNECT` or `POLLING`, and switch or terminal idle clears the header ownership signal immediately.
@@ -35,3 +35,4 @@ Iteration 267 deploy gate expectation: the deployed browser verifier already cov
 Iteration 268 deploy gate expectation: the healthy selected-thread timeline card already serves as the sole visible live drill-down surface in this branch, while autonomy and execution detail remain suppressed on that healthy path and explicit secondary-detail visibility returns only on degraded, restore, handoff, switching, and exception paths.
 Iteration 269 deploy gate expectation: the footer already behaves as one canonical selected-thread live dock in this branch, with the session strip carrying footer state, the composer-owner row staying hidden as merged state, and send readiness remaining tied to selected-thread authority instead of any polling-owned fallback.
 Iteration 272 deploy gate expectation: the canonical footer dock stays visible on healthy selected-thread runs in this branch, leads with explicit phase progression labels from the selected-thread SSE or session bootstrap path, and still downgrades or clears through the same authority model on restore, switch, handoff, reconnect, polling fallback, or terminal paths.
+Iteration 273 deploy gate expectation: healthy selected-thread proposal readiness, verifier acceptability, blocker reason, phase progression, and apply readiness already remain selected-thread `sessionStatus` plus append-SSE owned in this branch, while goals and job polling remain absent from healthy ownership until an explicit degraded fallback boundary is crossed.

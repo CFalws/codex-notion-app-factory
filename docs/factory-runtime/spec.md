@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `272`
-- bounded focus: `promote selected-thread phase authority into the canonical bottom-fixed session dock`
+- current iteration: `273`
+- bounded focus: `keep selected-thread sessionStatus plus append SSE as the only healthy-path authority for readiness, verifier, blocker, and phase state`
 
 ## Request
 
@@ -13,24 +13,24 @@
 
 ## Problem
 
-Healthy selected-thread ownership, explicit autonomy milestones, strict rail mirroring, the selected-thread session-stream contract, deployed single-authority proof, the selected-thread handoff path, streamed autonomy identity, unified header chrome, merged footer session-composer status, explicit attach authority, restore continuity, switch continuity, and the one-owner healthy timeline are already present. The bounded question for this iteration is footer legibility: whether the canonical composer-adjacent session dock still hides healthy live state behind generic wording or suppression, or whether it explicitly exposes `PROPOSAL`, `REVIEW`, `VERIFY`, `AUTO APPLY`, `READY`, and `APPLIED` through the existing selected-thread SSE and session-status authority path.
+Healthy selected-thread ownership, explicit autonomy milestones, strict rail mirroring, the selected-thread session-stream contract, deployed single-authority proof, the selected-thread handoff path, streamed autonomy identity, unified header chrome, merged footer session-composer status, explicit attach authority, restore continuity, switch continuity, one-owner healthy timeline rendering, preserved transitional transcript continuity, and phase-led footer dock presentation are already present. The bounded question for this iteration is authority: whether proposal readiness, verifier or blocker state, phase progression, and apply readiness on the selected thread can still be shaped by goals or job polling before selected-thread `sessionStatus` plus append SSE authority is explicitly lost.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the bottom-fixed composer area to read as one immediately legible live session dock that explains the current selected-thread phase without requiring timeline or side-panel inference.
+The primary user is the operator or developer using the phone-friendly realtime workspace and expecting proposal, review, verify, ready, verifier, blocker, and apply state to appear immediately on the live selected-thread session surface without having to infer whether those cues came from realtime session authority or a degraded polling fallback.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the change bounded to canonical footer-dock presentation and durable proposal artifacts.
-- Preserve the existing `session_status` plus SSE authority path and explicit degraded fallback behavior unchanged.
-- Keep the bottom-fixed composer dock, selected-thread shell, and one-owner healthy timeline behavior unchanged.
-- Avoid introducing a second footer authority source, new polling-owned phase state, or duplicate healthy owner surfaces.
+- Keep the change bounded to selected-thread authority derivation and durable proposal artifacts.
+- Preserve the existing `session_status` plus append SSE authority path and explicit degraded fallback behavior unchanged.
+- Keep the bottom-fixed composer dock, selected-thread shell, preserved transition shell, and one-owner healthy timeline behavior unchanged.
+- Avoid introducing a second status source, new polling-owned healthy readiness, or duplicate authority surfaces.
 
 ## Deliverable
 
-Keep the conversation footer as one canonical selected-thread live dock with explicit phase progression: the session strip remains the only composer-adjacent live surface, healthy selected-thread runs now expose phase-led dock chips and short detail copy sourced from the existing selected-thread session surface and session-status helpers, and switch or restore or handoff or reconnect or polling fallback still downgrade or clear the same dock through the same authority model without introducing a new status path.
+Keep the selected-thread session authority healthy-path-only: proposal readiness, verifier acceptability, blocker reason, phase progression, and apply readiness remain driven by selected-thread `sessionStatus` plus append SSE while attach, restore, and live ownership are healthy; goals or job polling stay demoted to explicitly degraded or detached fallback and cannot claim healthy selected-thread ownership.
 Iteration 245: the dominant selected-thread header summary is already the machine-readable live-session ownership signal, carrying owner, path, and phase from canonical session_status plus SSE authority while degrading or clearing immediately on reconnect, polling fallback, switch, or idle completion.
 Iteration 248: the bottom-fixed composer keeps a visible selected-thread target row during healthy and transition states, rendering `READY`, `SWITCHING`, or `HANDOFF` from canonical selected-thread session authority and downgrading or clearing immediately on reconnect, polling fallback, switch, or idle resolution.
 Iteration 249: the left-rail active-session row is already the canonical mirror of the currently selected healthy SSE-owned session, exposing owned and canonical cues only for the selected thread and clearing or downgrading immediately on reconnect, polling fallback, idle, terminal, or switch paths.
@@ -46,3 +46,4 @@ Iteration 267: the deployed browser gate already exercises healthy streaming, re
 Iteration 268: healthy selected-thread drill-down is already collapsed in this branch into the canonical timeline session card; autonomy and execution detail surfaces are already suppressed on the healthy path while degraded, restore, handoff, switching, and exception paths keep explicit secondary-panel visibility.
 Iteration 269: the bottom footer is already unified in this branch as one selected-thread live dock; the session strip carries footer state and datasets, the composer-owner row stays hidden as merged state whenever that dock is active, and send readiness already derives from the same selected-thread authority model without a parallel footer path.
 Iteration 272: the canonical footer dock now exposes healthy selected-thread phase progression directly in this branch; the dock leads with the current SSE-owned phase, keeps explicit proposal-ready or applied cues beside it, and stays on the same selected-thread authority path instead of falling back to generic suppressed footer wording.
+Iteration 273: selected-thread `sessionStatus` plus append SSE already remain the only healthy-path authority in this branch for proposal readiness, verifier acceptability, blocker reason, phase progression, and apply readiness; job or goals polling stay gated behind explicit degraded fallback and already cannot claim healthy selected-thread session ownership.
