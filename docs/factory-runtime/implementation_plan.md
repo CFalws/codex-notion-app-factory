@@ -1,16 +1,16 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 267
+## Iteration 268
 
-Keep deployed verification as one selected-thread scenario matrix proving session-scoped realtime ownership across healthy, restore, switch, handoff, and degraded paths.
+Keep healthy selected-thread drill-down on one canonical timeline card and reserve the secondary panel for exception paths only.
 
-1. Keep the change bounded to deployed verification coverage and durable proposal artifacts.
+1. Keep the change bounded to unified live timeline presentation and durable proposal artifacts.
 2. Preserve the existing selected-thread `session_status` plus SSE authority path.
-3. Prove healthy selected-thread streaming remains SSE authoritative end to end.
-4. Prove restore or resume, switch, and cancelled-switch paths preserve mounted selected-thread continuity without empty-state flashes.
-5. Prove degraded fallback is explicit and never masquerades as healthy ownership.
-6. Keep negative verifier coverage for zero early job or goals polling authority before explicit fallback is required.
-7. Align proposal artifacts with the already-present deployed scenario-matrix contract.
+3. Keep healthy selected-thread phase, milestones, path verdict, verifier, and blocker cues on the canonical timeline card.
+4. Keep autonomy and execution detail surfaces suppressed only on the healthy selected-thread path.
+5. Preserve explicit secondary-panel visibility for degraded, restore, handoff, switching, and exception paths.
+6. Keep negative verifier coverage for zero early job or goals polling authority and zero hidden healthy-path detail regression.
+7. Align proposal artifacts with the already-present canonical timeline drill-down contract.
 Iteration 245 does not widen runtime or UI ownership. It records that the selected-thread center header already exposes the canonical ownership chip beside the session summary and that deployed verification already attributes healthy visibility to that selected-thread SSE-owned signal rather than to polling or side-panel inference.
 Iteration 248 keeps transport and header ownership unchanged and restores the same selected-thread certainty directly at the input surface by keeping the composer owner row visible for healthy, handoff, switching, and restore states while preserving explicit degraded or idle clearing.
 Iteration 249 does not widen runtime or UI ownership because the selected-thread rail mirror is already correct in this branch: the sticky active-session row is canonical on the healthy selected-thread SSE path, non-selected rows remain snapshot-only, and the deployed gate already attributes that rail marker to the intended selected-thread authority source.
@@ -23,3 +23,4 @@ Iteration 262 keeps transport and authority unchanged and narrows only the healt
 Iteration 265 does not widen runtime or verifier ownership because intentional thread switch continuity is already correct in this branch: the selected-thread shell stays mounted, one compact switching placeholder remains visible, the composer dock stays present, stale ownership clears immediately, and the deployed gate already rejects generic empty-state flashes.
 Iteration 266 does not widen runtime or verifier ownership because selected-thread session authority is already correct in this branch: healthy and restore paths already derive proposal and phase visibility from session-status plus append SSE, and polling-driven goals or job state remains gated behind explicit loss of selected-thread ownership.
 Iteration 267 does not widen runtime or transport behavior because the deployed selected-thread scenario matrix is already correct in this branch: healthy, restore, degraded, switch, and cancelled-switch paths are already exercised together, and the browser gate already rejects polling-owned authority, stale ownership, hidden degraded recovery, and empty-state flashes before success is accepted.
+Iteration 268 does not widen runtime or transport behavior because healthy selected-thread drill-down is already correct in this branch: the canonical timeline card already carries phase, milestones, verifier, blocker, and session metadata while healthy-path autonomy and execution detail cards are already suppressed and exception paths already retain explicit secondary-detail visibility.
