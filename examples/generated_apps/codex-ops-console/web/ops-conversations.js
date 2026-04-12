@@ -59,6 +59,12 @@ export function createConversationController(deps) {
     return {
       version: Number(payload?.version || 0),
       conversationId: String(payload?.conversation_id || payload?.conversationId || ""),
+      goalTitle: String(payload?.goal_title || payload?.goalTitle || "Autonomy Goal"),
+      goalStatus: String(payload?.goal_status || payload?.goalStatus || "unknown"),
+      iteration: String(payload?.iteration || ""),
+      heading: String(payload?.heading || "").trim(),
+      freshnessState: String(payload?.freshness_state || payload?.freshnessState || "stale-or-missing").toLowerCase(),
+      fallbackAllowed: Boolean(payload?.fallback_allowed ?? payload?.fallbackAllowed ?? true),
       phase: {
         value: String(phasePayload?.value || "UNKNOWN").toUpperCase(),
         authoritative: Boolean(phasePayload?.authoritative),
@@ -190,24 +196,25 @@ export function createConversationController(deps) {
     }
     return normalizeAutonomySummary(
       {
-        goal_title: fallback?.goalTitle || "Autonomy Goal",
+        goal_title: sessionStatusPayload?.goalTitle || fallback?.goalTitle || "Autonomy Goal",
         goal_status: goalStatus,
-        iteration: fallback?.iteration || "",
+        iteration: sessionStatusPayload?.iteration || fallback?.iteration || "",
         path_verdict: sessionStatusPayload?.pathVerdict,
         verifier_acceptability: sessionStatusPayload?.verifierAcceptability,
         blocker_reason: sessionStatusPayload?.blockerReason,
         expected_path: sessionStatusPayload?.expectedPath,
         degraded_signals: sessionStatusPayload?.degradedSignals,
         heading:
-          String(fallback?.goalTitle || "Autonomy Goal").trim() +
-          " · " +
-          goalStatus +
-          " · iteration " +
-          String(fallback?.iteration || "unknown"),
+          String(sessionStatusPayload?.heading || "").trim() ||
+          String(sessionStatusPayload?.goalTitle || fallback?.goalTitle || "Autonomy Goal").trim() +
+            " · " +
+            goalStatus +
+            " · iteration " +
+            String(sessionStatusPayload?.iteration || fallback?.iteration || "unknown"),
         source: authoritative ? "session-status" : `session-status-${transportState || "degraded"}`,
         generated_at: sessionStatusPayload?.createdAt || fallback?.generatedAt || "",
-        freshness_state: authoritative ? "fresh" : "stale-or-missing",
-        fallback_allowed: !authoritative,
+        freshness_state: sessionStatusPayload?.freshnessState || (authoritative ? "fresh" : "stale-or-missing"),
+        fallback_allowed: sessionStatusPayload?.fallbackAllowed ?? !authoritative,
       },
       fallback,
     );

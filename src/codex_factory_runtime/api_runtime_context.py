@@ -126,6 +126,25 @@ class RuntimeApiContext:
         return {
             "version": 1,
             "conversation_id": conversation_id,
+            "goal_title": str(autonomy_summary.get("goal_title") or autonomy_summary.get("goalTitle") or "Autonomy Goal"),
+            "goal_status": str(autonomy_summary.get("goal_status") or autonomy_summary.get("goalStatus") or "unknown"),
+            "iteration": str(autonomy_summary.get("iteration") or ""),
+            "heading": str(
+                autonomy_summary.get("heading")
+                or f"{autonomy_summary.get('goal_title') or autonomy_summary.get('goalTitle') or 'Autonomy Goal'}"
+                f" · {autonomy_summary.get('goal_status') or autonomy_summary.get('goalStatus') or 'unknown'}"
+                f" · iteration {autonomy_summary.get('iteration') or 'unknown'}"
+            ),
+            "freshness_state": str(
+                autonomy_summary.get("freshness_state")
+                or autonomy_summary.get("freshnessState")
+                or "stale-or-missing"
+            ),
+            "fallback_allowed": bool(
+                autonomy_summary.get("fallback_allowed")
+                if "fallback_allowed" in autonomy_summary
+                else autonomy_summary.get("fallbackAllowed", False)
+            ),
             "phase": phase,
             "transport": {
                 "channel": "append-sse",
