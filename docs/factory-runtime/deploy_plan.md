@@ -2,11 +2,11 @@
 
 ## Iteration 275
 
-This deploy plan validates that selected-thread attach or resume stays on one provisional session lane through bootstrap, with the center timeline and composer-adjacent footer dock remaining mounted until authoritative `session.bootstrap` or append SSE ownership arrives.
+This deploy plan validates that selected-thread attach or resume stays on one provisional session lane through bootstrap, with the center timeline and composer-adjacent footer dock remaining mounted and limited to ATTACH or RESUME plus one carried-forward phase chip until authoritative `session.bootstrap` or append SSE ownership arrives.
 
 ## Deployment Impact
 
-This iteration keeps transport and authority behavior intact and narrows only the bootstrap continuity boundary. The gate should pass only when selected-thread attach or resume stays on one provisional timeline-plus-footer lane without polling-owned presentation, while healthy ownership still appears only after authoritative bootstrap or append SSE and degraded paths still expose explicit fallback visibility.
+This iteration keeps transport and authority behavior intact and narrows only the bootstrap continuity boundary. The gate should pass only when selected-thread attach or resume stays on one provisional timeline-plus-footer lane without polling-owned presentation, while healthy ownership still appears only after authoritative bootstrap or append SSE, provisional state shows no proposal, verifier, blocker, or apply detail, and degraded paths still expose explicit fallback visibility.
 
 ## Rollout Notes
 
@@ -14,7 +14,7 @@ This iteration keeps transport and authority behavior intact and narrows only th
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
 3. Open the operator console on desktop and phone widths with a selected thread that can enter healthy live progress and separate paths that can exercise restore, switch, handoff, and degraded fallback.
 4. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh`.
-5. Confirm selected-thread attach or resume keeps the center timeline and footer dock mounted as one provisional session lane with phase-led continuity and no duplicate restore-only chrome.
+5. Confirm selected-thread attach or resume keeps the center timeline and footer dock mounted as one provisional session lane with only ATTACH or RESUME plus one carried-forward phase chip and no duplicate restore-only chrome.
 6. Confirm the healthy header session summary stays hidden while the center timeline is authoritative and remains hidden during provisional bootstrap continuity as well.
 7. Confirm no healthy selected-thread readiness, blocker state, or `SSE OWNER` chrome appears before authoritative `session.bootstrap` or append SSE attachment.
 8. Confirm reconnect, retrying, polling fallback, detached restore, handoff, and terminal paths still downgrade explicitly without inheriting provisional healthy-looking state.
@@ -37,4 +37,4 @@ Iteration 269 deploy gate expectation: the footer already behaves as one canonic
 Iteration 272 deploy gate expectation: the canonical footer dock stays visible on healthy selected-thread runs in this branch, leads with explicit phase progression labels from the selected-thread SSE or session bootstrap path, and still downgrades or clears through the same authority model on restore, switch, handoff, reconnect, polling fallback, or terminal paths.
 Iteration 273 deploy gate expectation: healthy selected-thread proposal readiness, verifier acceptability, blocker reason, phase progression, and apply readiness already remain selected-thread `sessionStatus` plus append-SSE owned in this branch, while goals and job polling remain absent from healthy ownership until an explicit degraded fallback boundary is crossed.
 Iteration 274 deploy gate expectation: healthy selected-thread runs now keep the header session summary hidden in this branch while the center timeline and footer dock remain authoritative; restore and degraded paths still restore explicit top-level status visibility and continue to reject polling-owned healthy success.
-Iteration 275 deploy gate expectation: once the intended selected-thread EventSource is open in this branch, the center timeline and footer dock remain on one provisional session lane with carried-forward phase and proposal state, but healthy ownership still does not appear until authoritative `session.bootstrap` or append SSE arrives, and reconnect or polling fallback still downgrade explicitly.
+Iteration 279 deploy gate expectation: once the intended selected-thread EventSource is open in this branch, the center timeline and footer dock remain on one provisional session lane with only ATTACH or RESUME plus one carried-forward phase chip, healthy ownership still does not appear until authoritative `session.bootstrap` or append SSE arrives, and reconnect or polling fallback still downgrade explicitly.

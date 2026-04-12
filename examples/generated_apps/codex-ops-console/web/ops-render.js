@@ -433,7 +433,17 @@ function selectedThreadFooterDockModel(currentState, conversation, liveRun, foot
   const sessionSurface = deriveSelectedThreadSessionSurfaceModel(currentState, conversation);
   const liveOwned = authority.state === "healthy";
   const provisionalVisible = authority.state === "provisional";
-  const phaseLabel = String(authority.phaseLabel || sessionSurface.phaseLabel || deriveSelectedThreadShellPhaseLabel(currentState, conversation) || liveRun?.phase || "LIVE").toUpperCase();
+  const phaseLabel = String(
+    authority.phaseLabel ||
+      sessionSurface.phaseLabel ||
+      deriveSelectedThreadShellPhaseLabel(currentState, conversation) ||
+      liveRun?.phase ||
+      "LIVE",
+  ).toUpperCase();
+  const provisionalPhaseLabel = String(
+    sessionSurface.phaseLabel || deriveSelectedThreadShellPhaseLabel(currentState, conversation) || phaseLabel || "ATTACH",
+  ).toUpperCase();
+  const provisionalOwnerLabel = String(authority.ownerLabel || "ATTACH").toUpperCase();
   const proposalLabel = proposalStatusLabel(proposalChip(liveRun));
   const runStateLabel = compactPhaseDetailCopy(liveRun, "SESSION ACTIVE");
   const chips = liveOwned
@@ -449,20 +459,10 @@ function selectedThreadFooterDockModel(currentState, conversation, liveRun, foot
             }
           : { label: runStateLabel, tone: "neutral", role: "live-state" },
       ]
-    : [
-        footerFollow?.visible
-          ? {
-              label: footerFollow.stateLabel,
-              tone: footerFollow.followState === "new" ? "warning" : "neutral",
-              role: "live-follow",
-            }
-          : { label: phaseLabel, tone: "neutral", role: "live-phase" },
-      ]
     : provisionalVisible
       ? [
-          { label: phaseLabel, tone: "neutral", role: "live-phase" },
-          { label: String(authority.ownerLabel || "ATTACH").toUpperCase(), tone: "neutral", role: "live-owner" },
-          ...(proposalLabel ? [{ label: proposalLabel, tone: proposalLabel === "BLOCKED" ? "warning" : "neutral", role: "live-proposal" }] : []),
+          { label: provisionalOwnerLabel, tone: "neutral", role: "live-owner" },
+          { label: provisionalPhaseLabel, tone: "neutral", role: "live-phase" },
         ]
       : [
           footerFollow?.visible
@@ -475,12 +475,10 @@ function selectedThreadFooterDockModel(currentState, conversation, liveRun, foot
         ];
   return {
     visible: liveOwned || provisionalVisible,
-    phaseLabel,
+    phaseLabel: provisionalVisible ? provisionalPhaseLabel : phaseLabel,
     chips,
     detail: provisionalVisible
-      ? proposalLabel
-        ? joinSessionChromeTokens(phaseLabel, String(authority.ownerLabel || "ATTACH").toUpperCase(), proposalLabel)
-        : joinSessionChromeTokens(phaseLabel, String(authority.ownerLabel || "ATTACH").toUpperCase(), "BOOTSTRAP PENDING")
+      ? joinSessionChromeTokens(provisionalOwnerLabel, provisionalPhaseLabel)
       : footerFollow?.visible
         ? joinSessionChromeTokens(phaseLabel, footerFollow.detailLabel)
         : proposalLabel
@@ -488,6 +486,7 @@ function selectedThreadFooterDockModel(currentState, conversation, liveRun, foot
           : joinSessionChromeTokens(phaseLabel, runStateLabel),
     source: String(authority.source || sessionSurface.milestoneModel.source || sessionSurface.source || "sse").toLowerCase(),
     liveOwned,
+    milestoneVisible: liveOwned && chips.length > 1,
   };
 }
 
@@ -1265,12 +1264,14 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
     : handoffVisible
     ? sessionCompactTarget(currentState, conversation, "HANDOFF TARGET")
     : sessionCompactTarget(currentState, conversation, "CURRENT THREAD");
-  const summaryMeta = joinSessionChromeTokens(
-    "selected thread",
-    phaseLabel,
-    transportLabel,
-    liveVisible ? expectedPath : provisionalVisible ? "bootstrap pending" : "attach pending",
-  );
+  const summaryMeta = provisionalVisible
+    ? joinSessionChromeTokens("selected thread", transportLabel, phaseLabel)
+    : joinSessionChromeTokens(
+        "selected thread",
+        phaseLabel,
+        transportLabel,
+        liveVisible ? expectedPath : "attach pending",
+      );
   const milestoneLane = liveVisible ? renderTranscriptMilestones(currentState, conversation) : "";
   return `
     <article class="session-inline-block" data-selected-thread-live-block="true" data-selected-thread-degraded-block="false" data-live-block-conversation-id="${escapeHtml(String(sessionStatus.conversationId || ""))}" data-live-block-owned="${liveVisible ? "true" : "false"}" data-live-block-source="${escapeHtml(String(sessionSurface.source || "sse"))}" data-live-block-phase="${escapeHtml(phaseLabel)}" data-live-block-transport="${escapeHtml(transportLabel)}" data-live-block-handoff="${handoffVisible ? "true" : "false"}" data-live-block-provisional="${provisionalVisible ? "true" : "false"}" data-live-block-path-verdict="${escapeHtml(pathVerdict)}" data-live-block-verifier-acceptability="${escapeHtml(verifierAcceptability)}" data-live-block-blocker-reason="${escapeHtml(blockerReason)}" data-live-block-expected-path="${escapeHtml(expectedPath)}" data-live-block-reason="${escapeHtml(provisionalVisible ? String(sessionStatus.transportReason || "selected-thread-attach") : handoffVisible ? "handoff" : String(sessionSurface.liveAutonomy?.reason || "healthy"))}">
@@ -2369,7 +2370,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStrip.dataset.footerDockOwned = stripProgressOwned ? "true" : "false";
   dom.sessionStrip.dataset.footerDockPhase = footerDock.phaseLabel || "IDLE";
   dom.sessionStrip.dataset.footerDockSource = footerDock.source || "none";
-  dom.sessionStrip.dataset.footerDockMilestones = footerDock.visible && footerDock.chips.length > 1 ? "true" : "false";
+  dom.sessionStrip.dataset.footerDockMilestones = footerDock.milestoneVisible ? "true" : "false";
   dom.sessionStrip.dataset.composerState = ownerState.state;
   dom.sessionStrip.dataset.composerTransport = transportState.key;
   dom.sessionStrip.dataset.composerTransportSource = transportState.source;
