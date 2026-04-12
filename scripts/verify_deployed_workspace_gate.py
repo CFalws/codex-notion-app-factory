@@ -862,8 +862,10 @@ def assert_browser_runtime_surface(
                   ).map(item => Number(item.appendId || 0));
                   const deduped = new Set(appendIds);
                   const lastResume = resumeEvents.length ? resumeEvents[resumeEvents.length - 1].data : {};
+                  const healthy = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
                   return Boolean(
                     sessionStrip &&
+                    sessionStrip.dataset.liveOwned === "false" &&
                     sessionStrip.dataset.attachMode === "sse-resume" &&
                     sessionStrip.dataset.bootstrapVersion === "2" &&
                     sessionStrip.dataset.resumeMode === "resumed" &&
@@ -876,6 +878,7 @@ def assert_browser_runtime_surface(
                     threadScroller.dataset.resumeMode === "resumed" &&
                     threadScroller.dataset.restorePath === "resume" &&
                     threadScroller.dataset.restoreProvenance === "sse-bootstrap" &&
+                    threadScroller.dataset.sessionOwner !== "selected-thread" &&
                     Number(threadScroller.dataset.resumeCursor || "0") > 0 &&
                     threadSessionSummary &&
                     !threadSessionSummary.hidden &&
@@ -918,6 +921,7 @@ def assert_browser_runtime_surface(
                     goalsFetches.length === 0 &&
                     appendIds.length === deduped.size &&
                     inlineBlocks.length === 0 &&
+                    !healthy &&
                     !emptyState
                   );
                 }""",
@@ -994,6 +998,8 @@ def assert_browser_runtime_surface(
                     activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
                     activeSessionRow.dataset.activeSessionSource === "none" &&
+                    threadScroller &&
+                    threadScroller.dataset.sessionOwner !== "selected-thread" &&
                     composerOwnerRow &&
                     composerOwnerRow.hidden &&
                     composerOwnerRow.dataset.composerOwnerMerged === "false" &&
@@ -1001,6 +1007,7 @@ def assert_browser_runtime_surface(
                     composerOwnerRow.dataset.composerOwnerConversationId === "" &&
                     !composerOwnerRow.textContent.includes("READY") &&
                     !sessionStrip.hidden &&
+                    sessionStrip.dataset.liveOwned === "false" &&
                     stripChips.length === 1 &&
                     sessionStripState.dataset.sessionStripRole === "degraded" &&
                     sessionStripState.dataset.sessionStripLabel === phase &&
@@ -1145,6 +1152,7 @@ def assert_browser_runtime_surface(
                     document.querySelector("#conversation-timeline").dataset.workspacePlaceholder !== "empty" &&
                     document.querySelector("#conversation-timeline").dataset.workspaceConversationId === targetConversationId &&
                     document.querySelector("#conversation-timeline").dataset.workspaceOwnerCleared === "true" &&
+                    sessionStrip.dataset.liveOwned === "false" &&
                     threadScroller.dataset.phaseValue === "UNKNOWN" &&
                     threadScroller.dataset.phaseAuthoritative === "false" &&
                     threadScroller.dataset.phaseProvenance === "thread-transition" &&
@@ -1212,6 +1220,7 @@ def assert_browser_runtime_surface(
                     sessionStripState.textContent.trim() === "SWITCHING" &&
                     sessionStrip.dataset.composerState === "switching" &&
                     sessionStrip.dataset.composerTargetConversationId === targetConversationId &&
+                    sessionStrip.dataset.liveOwned === "false" &&
                     threadScroller &&
                     threadScroller.dataset.threadTransitionState === "switching" &&
                     threadScroller.dataset.threadTransitionConversationId === targetConversationId &&
@@ -1279,6 +1288,7 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.phaseValue === "UNKNOWN" &&
                     sessionStrip.dataset.phaseAuthoritative === "false" &&
                     sessionStrip.dataset.phaseProvenance === "thread-transition" &&
+                    sessionStrip.dataset.liveOwned === "false" &&
                     threadScroller &&
                     threadScroller.dataset.threadTransitionState === "switching" &&
                     threadScroller.dataset.threadTransitionConversationId === targetConversationId &&

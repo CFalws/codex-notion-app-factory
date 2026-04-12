@@ -1,14 +1,13 @@
 # Factory Runtime Tasks
 
-## Iteration 304
+## Iteration 305
 
-- [x] Keep the iteration bounded to center-timeline presentation on the existing selected-thread authority path.
+- [x] Keep the iteration bounded to deployed browser verification of the existing selected-thread workspace model.
 - [x] Preserve the existing selected-thread `session_status` plus append SSE transport, promotion, and degraded fallback contract.
-- [x] Promote healthy selected-thread progression into the primary transcript live item.
-- [x] Suppress the older healthy inline session block so no second primary live-phase owner remains in the center pane.
-- [x] Verify that reconnect, restore, switch, polling fallback, handoff, and terminal paths still clear or downgrade that healthy transcript treatment immediately.
+- [x] Prove that healthy selected-thread workspace ownership is attributable only to the intended transcript and composer surfaces.
+- [x] Add explicit negative assertions that restore, degraded reconnect, switch, polling fallback, handoff, and terminal-adjacent paths clear healthy ownership in the same render frame.
 - [x] Avoid introducing any new authority source, parallel healthy-path controller state, or duplicate healthy chrome.
-- [x] Update proposal artifacts to record the intended-path result.
+- [x] Update proposal artifacts to record the intended-path verifier result.
 - Iteration 245: confirm the selected-thread center header already exposes the canonical ownership chip and keep deployed verification bound to that machine-readable selected-thread signal without adding another live-status surface.
 - Iteration 248: keep the selected-thread composer owner row visible on healthy and transition paths, render `READY` only on healthy SSE-owned state, and assert degraded paths never retain stale ready ownership.
 - Iteration 249: record that the sticky left-rail active-session row is already the canonical selected-thread SSE mirror and keep non-selected rows snapshot-only with immediate clear or downgrade on degraded paths.
@@ -36,4 +35,5 @@
 - Iteration 293: promote healthy selected-thread proposal, verify, ready, applied, and apply-readiness cues to a single `session_status` SSE authority path in the central session surface while jobs polling remains explicit degraded fallback only.
 - Iteration 296: record that intentional selected-thread switch continuity is already correct in this branch, with one compact placeholder, immediate stale-owner clearing, mounted composer continuity, and no generic empty-state flash or polling-owned healthy reclaim.
 - Iteration 297: record that healthy selected-thread autonomy, proposal, verifier, blocker, apply-readiness, and live job identity are already append-SSE `session_status` owned in this branch, while `/api/jobs` and goals polling remain explicit non-healthy fallbacks only.
+- Iteration 305: tighten the deployed selected-thread workspace gate so it proves healthy owner exclusivity and same-render clearing on restore, degraded reconnect, switch, polling fallback, handoff, and terminal-adjacent transitions.
 - Iteration 304: promote healthy selected-thread progression into one primary transcript live item while suppressing the older healthy inline session block and keeping header, rail, and composer as compact secondary mirrors.
