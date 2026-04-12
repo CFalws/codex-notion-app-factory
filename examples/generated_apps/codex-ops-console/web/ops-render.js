@@ -2665,18 +2665,18 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
     const isThreadTransition = workspacePlaceholder.mode === "switching";
     const isSavedRestore = workspacePlaceholder.mode === "restore";
     const sessionStripModel = deriveSelectedThreadSessionStripModel(currentState, null, workspacePlaceholder.liveRun);
-    dom.conversationTimeline.dataset.workspacePlaceholder = workspacePlaceholder.mode;
+    dom.conversationTimeline.dataset.workspacePlaceholder = "conversation";
     dom.conversationTimeline.dataset.workspaceConversationId = workspacePlaceholder.conversationId;
-    dom.conversationTimeline.dataset.workspaceOwnerCleared = isThreadTransition ? "true" : "false";
+    dom.conversationTimeline.dataset.workspaceOwnerCleared = isThreadTransition || isSavedRestore ? "true" : "false";
     dom.conversationTimeline.dataset.liveSessionStripVisible = "false";
     dom.conversationTimeline.dataset.liveSessionStripOwned = "false";
     dom.conversationTimeline.dataset.liveSessionStripConversationId = "";
     dom.conversationTimeline.dataset.liveSessionStripClearReason = sessionStripModel.clearReason || (isThreadTransition ? "thread-switch" : "deselected");
     dom.conversationTimeline.innerHTML = workspacePlaceholder.timeline;
     if (dom.threadScroller) {
-      dom.threadScroller.dataset.workspacePlaceholder = workspacePlaceholder.mode;
+      dom.threadScroller.dataset.workspacePlaceholder = "conversation";
       dom.threadScroller.dataset.workspacePlaceholderConversationId = workspacePlaceholder.conversationId;
-      dom.threadScroller.dataset.workspaceOwnerCleared = isThreadTransition ? "true" : "false";
+      dom.threadScroller.dataset.workspaceOwnerCleared = isThreadTransition || isSavedRestore ? "true" : "false";
       dom.threadScroller.dataset.liveSessionStripVisible = "false";
       dom.threadScroller.dataset.liveSessionStripOwned = "false";
       dom.threadScroller.dataset.liveSessionStripConversationId = "";
