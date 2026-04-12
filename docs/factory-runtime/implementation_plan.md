@@ -1,12 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 225
+## Iteration 227
 
-Drive selected-thread live status from one session-scoped append SSE stream.
+Prove one authoritative selected-thread SSE session source in deployed verification.
 
-1. Keep the change bounded to the selected-thread append SSE session-status path and its verifier expectations.
-2. Reuse the existing conversation append stream, session-status envelopes, and selected-thread ownership datasets instead of adding a separate transport.
-3. Keep the transcript timeline as the healthy live owner while mirrored surfaces stay passive or degraded-only.
-4. Keep `ops-jobs` as fallback-only when the selected thread is already SSE-owned.
-5. Preserve reconnect, offline, switch, deselection, and restore behavior on the existing fail-open path.
-6. Align static checks, browser checks, and proposal artifacts with the selected-thread session-stream contract.
+1. Keep the change bounded to the deployed workspace gate and matching proposal artifacts.
+2. Reuse the existing append SSE stream, session-status datasets, and passive mirrored-surface contract instead of adding new runtime behavior.
+3. Prove that the center timeline is the only healthy live-owned owner while the composer-adjacent strip stays passive with `sse` phase provenance.
+4. Prove that job and goals polling do not become visible owners on the healthy selected-thread path.
+5. Keep session rotation rejection and degraded-path stale-owner clearing explicit in the deployed gate.
+6. Align static checks, browser checks, and proposal artifacts with the deployed single-authority contract.

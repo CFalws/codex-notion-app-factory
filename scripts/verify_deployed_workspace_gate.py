@@ -573,6 +573,9 @@ def assert_browser_runtime_surface(
                   const jobFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
                     entry => String(entry.url || "").includes("/api/jobs/")
                   );
+                  const goalsFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
+                    entry => String(entry.url || "").includes(`/api/apps/${appId}/goals`)
+                  );
                   return Boolean(
                     inlineBlocks.length === 1 &&
                     inlineBlock &&
@@ -637,16 +640,19 @@ def assert_browser_runtime_surface(
                     !selectedRecentThreadFollow &&
                     sessionStrip &&
                     !sessionStrip.hidden &&
-                    sessionStrip.dataset.liveOwned === "true" &&
-                    sessionStrip.dataset.sessionOwner === "selected-thread" &&
-                    sessionStrip.dataset.sessionPresentation === "healthy" &&
-                    sessionStrip.dataset.footerDockOwned === "true" &&
+                    sessionStrip.dataset.liveOwned === "false" &&
+                    sessionStrip.dataset.sessionOwner === "none" &&
+                    sessionStrip.dataset.sessionPresentation === "suppressed" &&
+                    sessionStrip.dataset.footerDockOwned === "false" &&
                     sessionStrip.dataset.footerDockMilestones === "true" &&
                     sessionStrip.dataset.footerDockPhase === inlineBlock.dataset.liveBlockPhase &&
                     sessionStrip.dataset.footerDockSource === "sse" &&
+                    sessionStrip.dataset.composerTransportOwned === "false" &&
+                    sessionStrip.dataset.phaseProvenance === "sse" &&
                     threadScroller &&
                     sessionStrip.dataset.phaseValue === inlineBlock.dataset.liveBlockPhase &&
                     threadScroller.dataset.phaseValue === inlineBlock.dataset.liveBlockPhase &&
+                    threadScroller.dataset.phaseProvenance === "sse" &&
                     sessionStripState &&
                     stripChips.length >= 3 &&
                     sessionStripState.dataset.sessionStripRole === "live-dock" &&
@@ -707,10 +713,11 @@ def assert_browser_runtime_surface(
                     sessionEvents.length === 0 &&
                     follow &&
                     follow.dataset.followOwned !== undefined &&
-                    jobFetches.length === 0
+                    jobFetches.length === 0 &&
+                    goalsFetches.length === 0
                   );
                 }""",
-                conversation_id,
+                [app_id, conversation_id],
                 timeout=120000,
             )
             healthy_snapshot = page.evaluate(browser_snapshot_script())

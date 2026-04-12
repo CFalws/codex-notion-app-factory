@@ -1,10 +1,10 @@
 # Factory Runtime Tasks
 
-## Iteration 225
+## Iteration 227
 
-- [x] Keep the change bounded to the selected-thread append SSE session-status path and its existing ownership surfaces.
-- [x] Reuse the current append stream, session-status envelopes, and selected-thread ownership datasets instead of adding a second transport.
-- [x] Keep the transcript timeline as the healthy live owner while mirrored surfaces stay passive or degraded-only.
-- [x] Keep `ops-jobs` as fallback-only when the selected thread is already SSE-owned.
-- [x] Preserve reconnect, offline, switch, deselection, and restore behavior on the existing fail-open path.
-- [x] Align static checks, browser checks, and proposal artifacts with the selected-thread session-stream contract.
+- [x] Keep the change bounded to the deployed workspace gate and matching proposal artifacts.
+- [x] Reuse the current append SSE stream, session-status datasets, and passive mirrored-surface contract instead of adding new runtime behavior.
+- [x] Prove that the center timeline is the only healthy live-owned owner while the composer-adjacent strip stays passive with `sse` phase provenance.
+- [x] Prove that job and goals polling do not become visible owners on the healthy selected-thread path.
+- [x] Keep session rotation rejection and degraded-path stale-owner clearing explicit in the deployed gate.
+- [x] Align static checks, browser checks, and proposal artifacts with the deployed single-authority contract.

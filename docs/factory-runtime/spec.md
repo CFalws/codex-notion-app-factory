@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `225`
-- bounded focus: `drive selected-thread live status from one session-scoped append SSE stream`
+- current iteration: `227`
+- bounded focus: `prove one authoritative selected-thread SSE session source in deployed verification`
 
 ## Request
 
@@ -13,22 +13,22 @@
 
 ## Problem
 
-Healthy selected-thread ownership, explicit autonomy milestones, strict rail mirroring, switch continuity, handoff continuity, and restore continuity are already present, but this branch still records the older restore-only seam instead of the selected-thread session-stream contract that now drives live phase, proposal, verifier, and apply state. The remaining bounded risk is contract drift: future sessions could let polling or job-panel inference reclaim ownership unless the selected-thread append SSE path is recorded as the intended source of truth.
+Healthy selected-thread ownership, explicit autonomy milestones, strict rail mirroring, switch continuity, handoff continuity, restore continuity, and the selected-thread session-stream contract are already present locally. The remaining bounded gap is deployed proof: the workspace gate still needs to fail for exactly one reason when the healthy selected-thread SSE path loses sole authority, polling takes over visibly, or stale ownership revives after downgrade.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly realtime workspace and expecting one selected-thread SSE session stream to drive the visible session timeline without polling-owned phase or proposal inference.
+The primary user is the operator or developer using the phone-friendly realtime workspace and expecting deployed verification to prove that one selected-thread SSE session remains the sole healthy live authority without hidden polling takeover or stale-state revival.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the iteration bounded to the selected-thread append SSE session-status path and its existing frontend ownership surfaces.
-- Reuse the current conversation append stream, session-status envelopes, inline timeline owner, and polling fallback gates; do not broaden transport scope beyond the existing append SSE channel.
-- Keep header, composer-adjacent context, transcript timeline, and rail markers derived from the same selected-thread session authority.
-- Keep polling fallback explicit and degraded-only when the selected-thread SSE path is not authoritative.
-- Preserve reconnect, offline, switch, deselection, and restore behavior on the current fail-open path.
+- Keep the iteration bounded to deployed selected-thread session-authority verification.
+- Reuse the current append SSE stream, session-status datasets, and passive mirrored-surface contract; do not broaden transport, UI layout, or store logic.
+- Verify that the center timeline and composer-adjacent phase strip stay attributable to the same selected-thread SSE provenance on the healthy path.
+- Fail when polling or goal refresh becomes the visible owner on the healthy path.
+- Fail when session rotation occurs or when stale live-owned state revives after reconnect or offline downgrade.
 
 ## Deliverable
 
-Expose one conversation-first selected-thread workspace where healthy live phase, proposal, verifier, and apply state are attributable to the selected-thread append SSE session stream rather than polling-owned job refresh, while fallback paths remain explicit and degraded.
+Expose one deployed verification contract where the healthy selected-thread SSE session is the sole live authority, mirrored surfaces stay passive, polling remains fallback-only, and authority loss cannot revive stale live-owned state.
