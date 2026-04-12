@@ -1238,6 +1238,9 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
   const timelineSession = selectedThreadPrimaryTimelineSessionModel(conversation, currentState, liveRun);
   const { inlineState, sessionSurface } = timelineSession;
   const { handoffVisible, liveVisible, provisionalVisible } = inlineState;
+  if (liveVisible) {
+    return "";
+  }
   if (!liveVisible && !handoffVisible && !provisionalVisible) {
     return "";
   }
@@ -1400,7 +1403,7 @@ function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
   const sessionStrip = deriveSelectedThreadSessionStripModel(currentState, conversation, liveRun);
   const { liveAutonomy, phaseProgression, milestoneModel } = sessionSurface;
   const { handoffVisible, degradedVisible, sessionIndicator } = inlineState;
-  if (handoffVisible || inlineState.liveVisible) {
+  if (handoffVisible) {
     return "";
   }
   if (!handoffVisible && !degradedVisible && (!phaseProgression.visible || !liveAutonomy.visible)) {
