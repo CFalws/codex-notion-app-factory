@@ -1,5 +1,12 @@
 # Factory Runtime Implementation Plan
 
+## Iteration 320
+
+- Preserve the existing selected-thread transport and snapshot authority model.
+- Extend the selected-session snapshot to include the composer owner and readiness fields that were still being derived separately.
+- Publish that snapshot on the merged composer owner row and send button datasets.
+- Tighten malformed-append deployed verification so composer controls must downgrade through the same snapshot ordering as the transcript, summary, selected row, scroller, and strip.
+
 ## Iteration 318
 
 - Re-land the malformed selected-thread append downgrade baseline if this proposal branch is behind the accepted lane.

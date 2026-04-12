@@ -1,5 +1,12 @@
 # Factory Runtime Tasks
 
+## Iteration 320
+
+- [x] Keep transport and selected-session ownership unchanged while extending the snapshot seam to the bottom composer controls.
+- [x] Make the merged composer owner row and send button publish selected-session snapshot datasets instead of relying only on helper-local owner state.
+- [x] Tighten malformed-append deployed verification so stale composer READY or SSE-owner cues fail before any poll-led recovery can explain the downgrade.
+- Iteration 320: converge composer control readiness and ownership onto the same selected-session snapshot used by the transcript, summary, rail row, scroller, and strip.
+
 ## Iteration 318
 
 - [x] Restore the missing malformed selected-thread append downgrade seam in this proposal branch so the unified snapshot reflects a real degraded transition.

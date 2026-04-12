@@ -569,59 +569,16 @@ export function deriveSelectedThreadConversationRowLiveModel(currentState, conve
 }
 
 export function deriveSelectedThreadComposerTargetRowModel(currentState, conversation = null) {
-  const pendingOutgoing = currentState.pendingOutgoing || {};
-  const authority = deriveSelectedThreadSessionAuthorityModel(currentState, conversation);
-  const sessionStatus = authority.sessionStatus;
-  const conversationTitle = String(sessionStatus.conversationTitle || conversation?.title || "현재 대화").trim() || "현재 대화";
-
-  if (authority.state === "switching" && sessionStatus.targetConversationId) {
-    return {
-      state: "switching",
-      label: "SWITCHING",
-      tone: "warning",
-      conversationId: String(sessionStatus.targetConversationId || ""),
-      target: String(sessionStatus.targetTitle || "선택한 대화").trim() || "선택한 대화",
-      copy: "ATTACH",
-      blocked: true,
-      blockedReason: "ATTACH PENDING",
-    };
-  }
-
-  if (authority.state === "handoff" && sessionStatus.conversationId) {
-    return {
-      state: "handoff",
-      label: "HANDOFF",
-      tone: "neutral",
-      conversationId: String(sessionStatus.conversationId || ""),
-      target: conversationTitle,
-      copy: pendingOutgoing.status === "sending-user" ? "SEND" : "FIRST",
-      blocked: false,
-      blockedReason: "",
-    };
-  }
-
-  if (authority.state === "healthy" && sessionStatus.conversationId) {
-    return {
-      state: "ready",
-      label: "READY",
-      tone: "healthy",
-      conversationId: String(sessionStatus.conversationId || ""),
-      target: conversationTitle,
-      copy: "SSE OWNER",
-      blocked: false,
-      blockedReason: "",
-    };
-  }
-
+  const sessionSnapshot = deriveSelectedThreadSessionSnapshot(currentState, conversation);
   return {
-    state: "idle",
-    label: "IDLE",
-    tone: "muted",
-    conversationId: "",
-    target: "NO TARGET",
-    copy: "SELECT",
-    blocked: false,
-    blockedReason: "",
+    state: String(sessionSnapshot.composerState || "idle"),
+    label: String(sessionSnapshot.composerLabel || "IDLE"),
+    tone: String(sessionSnapshot.composerTone || "muted"),
+    conversationId: String(sessionSnapshot.composerConversationId || ""),
+    target: String(sessionSnapshot.composerTarget || "NO TARGET"),
+    copy: String(sessionSnapshot.composerCopy || "SELECT"),
+    blocked: Boolean(sessionSnapshot.composerBlocked),
+    blockedReason: String(sessionSnapshot.composerBlockedReason || ""),
   };
 }
 
@@ -1108,6 +1065,7 @@ export function deriveSelectedThreadSessionSnapshot(currentState, conversation =
   const sessionSurface = authority.sessionSurface;
   const sessionStrip = authority.sessionStrip;
   const followControl = deriveSelectedThreadFollowControlModel(currentState);
+  const pendingOutgoing = currentState.pendingOutgoing || {};
   const phaseLabel = String(
     authority.phaseLabel || deriveSelectedThreadShellPhaseLabel(currentState, conversation) || sessionSurface.phaseLabel || "IDLE",
   )
@@ -1128,6 +1086,56 @@ export function deriveSelectedThreadSessionSnapshot(currentState, conversation =
     rowState = followControl.visible ? followControl.followState : "live";
     rowUnseenCount = followControl.visible ? Math.max(Number(followControl.unseenCount || 0), 0) : 0;
   }
+  const conversationTitle = String(sessionStatus.conversationTitle || conversation?.title || "현재 대화").trim() || "현재 대화";
+  let composerState = "idle";
+  let composerLabel = "IDLE";
+  let composerTone = "muted";
+  let composerConversationId = "";
+  let composerTarget = "NO TARGET";
+  let composerCopy = "SELECT";
+  let composerBlocked = false;
+  let composerBlockedReason = "";
+
+  if (authority.state === "switching" && sessionStatus.targetConversationId) {
+    composerState = "switching";
+    composerLabel = "SWITCHING";
+    composerTone = "warning";
+    composerConversationId = String(sessionStatus.targetConversationId || "");
+    composerTarget = String(sessionStatus.targetTitle || "선택한 대화").trim() || "선택한 대화";
+    composerCopy = "ATTACH";
+    composerBlocked = true;
+    composerBlockedReason = "ATTACH PENDING";
+  } else if (authority.state === "provisional" || authority.state === "restore") {
+    const resume = authority.state === "provisional" ? sessionStatus.provisionalResume : sessionStatus.restoreResume;
+    composerState = resume ? "resume" : "attach";
+    composerLabel = transportLabel || (resume ? "RESUME" : "ATTACH");
+    composerTone = String(sessionStatus.transportTone || "neutral");
+    composerConversationId = String(sessionStatus.conversationId || "");
+    composerTarget = conversationTitle;
+    composerCopy = resume ? "RESUME" : "ATTACH";
+  } else if (authority.state === "handoff" && sessionStatus.conversationId) {
+    composerState = "handoff";
+    composerLabel = "HANDOFF";
+    composerTone = "neutral";
+    composerConversationId = String(sessionStatus.conversationId || "");
+    composerTarget = conversationTitle;
+    composerCopy = pendingOutgoing.status === "sending-user" ? "SEND" : "FIRST";
+  } else if (authority.state === "degraded" && sessionStatus.conversationId) {
+    composerState = sessionStatus.transportState === "reconnect" ? "reconnect" : "polling";
+    composerLabel = transportLabel || "POLLING";
+    composerTone = String(sessionStatus.transportTone || "warning");
+    composerConversationId = String(sessionStatus.conversationId || "");
+    composerTarget = conversationTitle;
+    composerCopy = "WATCH";
+  } else if (authority.state === "healthy" && sessionStatus.conversationId) {
+    composerState = "ready";
+    composerLabel = "READY";
+    composerTone = "healthy";
+    composerConversationId = String(sessionStatus.conversationId || "");
+    composerTarget = conversationTitle;
+    composerCopy = "SSE OWNER";
+  }
+
   return {
     conversationId: String(sessionStatus.conversationId || conversation?.conversation_id || ""),
     state: String(authority.state || "cleared"),
@@ -1147,6 +1155,14 @@ export function deriveSelectedThreadSessionSnapshot(currentState, conversation =
     rowSource: owned || handoff ? "sse" : "none",
     rowPhase: owned || handoff ? phaseLabel || "LIVE" : "IDLE",
     rowUnseenCount,
+    composerState,
+    composerLabel,
+    composerTone,
+    composerConversationId,
+    composerTarget,
+    composerCopy,
+    composerBlocked,
+    composerBlockedReason,
     authority,
     sessionStatus,
     sessionSurface,

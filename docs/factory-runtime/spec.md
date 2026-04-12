@@ -1,5 +1,11 @@
 # Factory Runtime Spec
 
+## Iteration 320
+
+- The bottom composer controls must publish the same selected-session snapshot authority as the transcript live activity, header summary, selected rail row, thread scroller, and session strip.
+- Malformed selected-thread append downgrade must clear or degrade composer readiness and ownership through that snapshot before any polling-owned recovery evidence appears.
+- Deployed verification must fail if the composer controls retain helper-only `READY`, `SSE OWNER`, or other healthy ownership cues after the selected-session snapshot has already degraded.
+
 ## Iteration 318
 
 - Selected-thread healthy, degraded, and handoff ownership must be representable through one compact selected-session snapshot derived from the existing realtime transport path.

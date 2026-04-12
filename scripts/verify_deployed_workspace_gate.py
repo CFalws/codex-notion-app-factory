@@ -811,6 +811,7 @@ def assert_browser_runtime_surface(
                   const sessionStrip = document.querySelector("#session-strip");
                   const sessionStripState = document.querySelector("#session-strip-state");
                   const composerOwnerRow = document.querySelector("#composer-owner-row");
+                  const sendRequest = document.querySelector("#send-request");
                   const threadScroller = document.querySelector("#thread-scroller");
                   const inlineBlocks = document.querySelectorAll('.session-inline-block[data-selected-thread-live-block="true"], .session-inline-block[data-selected-thread-degraded-block="true"]');
                   const visibleConversationOwnerRows = document.querySelectorAll('[data-conversation-live-owner-row]:not([hidden])');
@@ -883,7 +884,20 @@ def assert_browser_runtime_surface(
                     sessionStripState &&
                     sessionStripState.dataset.sessionStripRole === "degraded" &&
                     composerOwnerRow &&
+                    composerOwnerRow.dataset.selectedSessionState === "degraded" &&
+                    composerOwnerRow.dataset.selectedSessionOwned === "false" &&
+                    composerOwnerRow.dataset.selectedSessionTransport === "POLLING" &&
+                    composerOwnerRow.dataset.selectedSessionReason === "append-frame-parse-failed" &&
+                    composerOwnerRow.dataset.selectedSessionPhase === "POLLING" &&
                     composerOwnerRow.hidden &&
+                    sendRequest &&
+                    sendRequest.dataset.selectedSessionState === "degraded" &&
+                    sendRequest.dataset.selectedSessionOwned === "false" &&
+                    sendRequest.dataset.selectedSessionTransport === "POLLING" &&
+                    sendRequest.dataset.selectedSessionReason === "append-frame-parse-failed" &&
+                    sendRequest.dataset.selectedSessionPhase === "POLLING" &&
+                    sendRequest.dataset.composerOwnerState === "polling" &&
+                    sendRequest.dataset.composerBlocked === "false" &&
                     threadScroller &&
                     threadScroller.dataset.selectedSessionState === "degraded" &&
                     threadScroller.dataset.selectedSessionOwned === "false" &&

@@ -540,110 +540,16 @@ function sessionStripStateRow(ownerState, transportState, liveRun, presentation,
 }
 
 function composerOwnerState(currentState, conversation) {
-  const pendingOutgoing = currentState.pendingOutgoing || {};
-  const authority = deriveSelectedThreadSessionAuthorityModel(currentState, conversation);
-  const sessionStatus = authority.sessionStatus;
-
-  if (authority.state === "switching" && sessionStatus.targetConversationId) {
-    return {
-      state: "switching",
-      label: "SWITCHING",
-      tone: "warning",
-      conversationId: String(sessionStatus.targetConversationId || ""),
-      target: compactTargetLabel(sessionStatus.targetTitle || "선택한 대화", "ATTACH TARGET"),
-      copy: "ATTACH",
-      blocked: true,
-      blockedReason: "ATTACH PENDING",
-    };
-  }
-
-  if (authority.state === "restore" || authority.state === "provisional") {
-    return {
-      state:
-        authority.state === "provisional"
-          ? sessionStatus.provisionalResume
-            ? "resume"
-            : "attach"
-          : sessionStatus.restoreResume
-            ? "resume"
-            : "attach",
-      label: String(
-        authority.ownerLabel ||
-          (authority.state === "provisional"
-            ? sessionStatus.provisionalResume
-              ? "RESUME"
-              : "ATTACH"
-            : sessionStatus.restoreResume
-              ? "RESUME"
-              : "ATTACH"),
-      ).toUpperCase(),
-      tone: String(sessionStatus.transportTone || "neutral"),
-      conversationId: sessionStatus.conversationId,
-      target: compactTargetLabel(sessionStatus.conversationTitle, "CURRENT THREAD"),
-      copy:
-        authority.state === "provisional"
-          ? sessionStatus.provisionalResume
-            ? "RESUME"
-            : "ATTACH"
-          : sessionStatus.restoreResume
-            ? "RESUME"
-            : "ATTACH",
-      blocked: false,
-      blockedReason: "",
-    };
-  }
-
-  if (authority.state === "handoff") {
-    return {
-      state: "handoff",
-      label: "HANDOFF",
-      tone: "neutral",
-      conversationId: sessionStatus.conversationId,
-      target: compactTargetLabel(sessionStatus.conversationTitle, "CURRENT THREAD"),
-      copy:
-        pendingOutgoing.status === "sending-user"
-          ? "SEND"
-          : "FIRST",
-      blocked: false,
-      blockedReason: "",
-    };
-  }
-
-  if (authority.state === "degraded") {
-    return {
-      state: sessionStatus.transportState === "reconnect" ? "reconnect" : "polling",
-      label: String(authority.ownerLabel || "POLLING").toUpperCase(),
-      tone: String(sessionStatus.transportTone || "warning"),
-      conversationId: sessionStatus.conversationId,
-      target: compactTargetLabel(sessionStatus.conversationTitle, "CURRENT THREAD"),
-      copy: "WATCH",
-      blocked: false,
-      blockedReason: "",
-    };
-  }
-
-  if (authority.state === "healthy" && sessionStatus.conversationId) {
-    return {
-      state: "ready",
-      label: "READY",
-      tone: "healthy",
-      conversationId: sessionStatus.conversationId,
-      target: compactTargetLabel(sessionStatus.conversationTitle, "CURRENT THREAD"),
-      copy: "SSE OWNER",
-      blocked: false,
-      blockedReason: "",
-    };
-  }
-
+  const sessionSnapshot = deriveSelectedThreadSessionSnapshot(currentState, conversation);
   return {
-    state: "idle",
-    label: "IDLE",
-    tone: "muted",
-    conversationId: "",
-    target: "NO TARGET",
-    copy: "SELECT",
-    blocked: false,
-    blockedReason: "",
+    state: String(sessionSnapshot.composerState || "idle"),
+    label: String(sessionSnapshot.composerLabel || "IDLE"),
+    tone: String(sessionSnapshot.composerTone || "muted"),
+    conversationId: String(sessionSnapshot.composerConversationId || ""),
+    target: compactTargetLabel(sessionSnapshot.composerTarget || "NO TARGET", "NO TARGET"),
+    copy: String(sessionSnapshot.composerCopy || "SELECT"),
+    blocked: Boolean(sessionSnapshot.composerBlocked),
+    blockedReason: String(sessionSnapshot.composerBlockedReason || ""),
   };
 }
 
@@ -657,6 +563,14 @@ function syncComposerOwnership(dom, currentState, conversation) {
   dom.composerOwnerRow.dataset.composerOwnerConversationId = owner.conversationId;
   dom.composerOwnerRow.dataset.composerRestoreStage = "none";
   dom.composerOwnerRow.dataset.composerOwnerMerged = mergedIntoStrip ? "true" : "false";
+  const sessionSnapshot = deriveSelectedThreadSessionSnapshot(currentState, conversation);
+  dom.composerOwnerRow.dataset.selectedSessionState = sessionSnapshot.state;
+  dom.composerOwnerRow.dataset.selectedSessionPresentation = sessionSnapshot.presentation;
+  dom.composerOwnerRow.dataset.selectedSessionOwned = sessionSnapshot.owned ? "true" : "false";
+  dom.composerOwnerRow.dataset.selectedSessionTransport = sessionSnapshot.transportLabel;
+  dom.composerOwnerRow.dataset.selectedSessionReason = sessionSnapshot.reason;
+  dom.composerOwnerRow.dataset.selectedSessionPhase = sessionSnapshot.phaseLabel;
+  dom.composerOwnerRow.dataset.selectedSessionConversationId = sessionSnapshot.conversationId;
   dom.composerOwnerRow.hidden = mergedIntoStrip || owner.state === "idle";
   dom.composerOwnerState.textContent = owner.label;
   dom.composerOwnerState.dataset.ownerTone = owner.tone;
@@ -668,6 +582,13 @@ function syncComposerOwnership(dom, currentState, conversation) {
     dom.sendRequestButton.dataset.composerOwnerState = owner.state;
     dom.sendRequestButton.dataset.composerOwnerConversationId = owner.conversationId;
     dom.sendRequestButton.dataset.composerBlockedReason = owner.blockedReason;
+    dom.sendRequestButton.dataset.selectedSessionState = sessionSnapshot.state;
+    dom.sendRequestButton.dataset.selectedSessionPresentation = sessionSnapshot.presentation;
+    dom.sendRequestButton.dataset.selectedSessionOwned = sessionSnapshot.owned ? "true" : "false";
+    dom.sendRequestButton.dataset.selectedSessionTransport = sessionSnapshot.transportLabel;
+    dom.sendRequestButton.dataset.selectedSessionReason = sessionSnapshot.reason;
+    dom.sendRequestButton.dataset.selectedSessionPhase = sessionSnapshot.phaseLabel;
+    dom.sendRequestButton.dataset.selectedSessionConversationId = sessionSnapshot.conversationId;
     dom.sendRequestButton.disabled = owner.blocked || sendBusy;
   }
 }

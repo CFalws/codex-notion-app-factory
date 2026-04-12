@@ -1,5 +1,10 @@
 # Factory Runtime Deploy Plan
 
+## Iteration 320
+
+- Run the deployed malformed-append browser scenario and confirm the merged composer owner row and send button datasets degrade through the same selected-session snapshot as the transcript, summary, selected row, scroller, and strip.
+- Treat deployment readiness as blocked if the composer controls still expose `READY`, `SSE OWNER`, or any other healthy owner cue before the degraded selected-session reason appears.
+
 ## Iteration 318
 
 - Run the deployed malformed-append browser scenario and confirm the selected-session snapshot downgrades first across thread summary, selected row, thread scroller, and composer dock.
