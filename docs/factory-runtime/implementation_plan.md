@@ -1,16 +1,16 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 268
+## Iteration 269
 
-Keep healthy selected-thread drill-down on one canonical timeline card and reserve the secondary panel for exception paths only.
+Keep the conversation footer as one canonical selected-thread live dock around the bottom-fixed composer.
 
-1. Keep the change bounded to unified live timeline presentation and durable proposal artifacts.
+1. Keep the change bounded to footer presentation and durable proposal artifacts.
 2. Preserve the existing selected-thread `session_status` plus SSE authority path.
-3. Keep healthy selected-thread phase, milestones, path verdict, verifier, and blocker cues on the canonical timeline card.
-4. Keep autonomy and execution detail surfaces suppressed only on the healthy selected-thread path.
-5. Preserve explicit secondary-panel visibility for degraded, restore, handoff, switching, and exception paths.
-6. Keep negative verifier coverage for zero early job or goals polling authority and zero hidden healthy-path detail regression.
-7. Align proposal artifacts with the already-present canonical timeline drill-down contract.
+3. Keep footer state on the selected-thread session strip model instead of a split strip-plus-owner-row presentation.
+4. Keep send-button targeting and blocking sourced from the same selected-thread authority model.
+5. Preserve explicit dock visibility for restore, handoff, switching, degraded, and other exception paths.
+6. Keep negative verifier coverage for zero polling-owned footer authority or duplicate owner-row reentry.
+7. Align proposal artifacts with the already-present canonical footer-dock contract.
 Iteration 245 does not widen runtime or UI ownership. It records that the selected-thread center header already exposes the canonical ownership chip beside the session summary and that deployed verification already attributes healthy visibility to that selected-thread SSE-owned signal rather than to polling or side-panel inference.
 Iteration 248 keeps transport and header ownership unchanged and restores the same selected-thread certainty directly at the input surface by keeping the composer owner row visible for healthy, handoff, switching, and restore states while preserving explicit degraded or idle clearing.
 Iteration 249 does not widen runtime or UI ownership because the selected-thread rail mirror is already correct in this branch: the sticky active-session row is canonical on the healthy selected-thread SSE path, non-selected rows remain snapshot-only, and the deployed gate already attributes that rail marker to the intended selected-thread authority source.
@@ -24,3 +24,4 @@ Iteration 265 does not widen runtime or verifier ownership because intentional t
 Iteration 266 does not widen runtime or verifier ownership because selected-thread session authority is already correct in this branch: healthy and restore paths already derive proposal and phase visibility from session-status plus append SSE, and polling-driven goals or job state remains gated behind explicit loss of selected-thread ownership.
 Iteration 267 does not widen runtime or transport behavior because the deployed selected-thread scenario matrix is already correct in this branch: healthy, restore, degraded, switch, and cancelled-switch paths are already exercised together, and the browser gate already rejects polling-owned authority, stale ownership, hidden degraded recovery, and empty-state flashes before success is accepted.
 Iteration 268 does not widen runtime or transport behavior because healthy selected-thread drill-down is already correct in this branch: the canonical timeline card already carries phase, milestones, verifier, blocker, and session metadata while healthy-path autonomy and execution detail cards are already suppressed and exception paths already retain explicit secondary-detail visibility.
+Iteration 269 does not widen runtime or transport behavior because footer ownership is already correct in this branch: the selected-thread session strip already carries the live footer state, the composer-owner row already hides as merged state whenever that footer surface is active, and send readiness already derives from the same selected-thread authority model.

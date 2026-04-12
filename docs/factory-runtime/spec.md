@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `268`
-- bounded focus: `collapse healthy selected-thread autonomy and execution drill-down into one canonical in-timeline session card`
+- current iteration: `269`
+- bounded focus: `keep the conversation footer as one canonical selected-thread live dock around the bottom-fixed composer`
 
 ## Request
 
@@ -13,24 +13,24 @@
 
 ## Problem
 
-Healthy selected-thread ownership, explicit autonomy milestones, strict rail mirroring, the selected-thread session-stream contract, deployed single-authority proof, the selected-thread handoff path, streamed autonomy identity, unified header chrome, merged footer session-composer status, explicit attach authority, restore continuity, switch continuity, and the one-owner healthy timeline are already present. The bounded question for this iteration is live-state split: whether healthy selected-thread autonomy and execution drill-down still require the secondary panel, or whether the canonical center timeline card already carries phase, milestone, path verdict, verifier, blocker, and session metadata while suppressing healthy-path secondary detail.
+Healthy selected-thread ownership, explicit autonomy milestones, strict rail mirroring, the selected-thread session-stream contract, deployed single-authority proof, the selected-thread handoff path, streamed autonomy identity, unified header chrome, merged footer session-composer status, explicit attach authority, restore continuity, switch continuity, and the one-owner healthy timeline are already present. The bounded question for this iteration is footer inference: whether the bottom session strip and composer-owner cues still act like split surfaces, or whether the footer already behaves as one canonical selected-thread live dock driven by the same session-status plus append-SSE authority used everywhere else.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the healthy selected-thread conversation timeline to explain proposal, review, verify, apply, verifier, and blocker state directly in the live session surface without needing to open a secondary detail panel.
+The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the bottom-fixed composer area to read as one coherent live footer surface that explains current selected-thread state, follow or send readiness, and degraded or restore status without split ownership cues.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the change bounded to unified live timeline presentation and durable proposal artifacts.
+- Keep the change bounded to footer presentation and durable proposal artifacts.
 - Preserve the existing `session_status` plus SSE authority path and explicit degraded fallback behavior unchanged.
 - Keep the bottom-fixed composer dock, selected-thread shell, and one-owner healthy timeline behavior unchanged.
-- Avoid reintroducing polling-owned authority or a second healthy live-detail owner outside the canonical timeline card.
+- Avoid introducing a second footer authority source or reintroducing polling-owned send readiness.
 
 ## Deliverable
 
-Keep the healthy selected-thread timeline as the sole visible live drill-down surface, with one canonical in-timeline session card carrying phase, milestones, path verdict, verifier acceptability, blocker reason, and latest selected-thread session metadata while autonomy and execution detail cards remain suppressed on that healthy path and still reappear explicitly on degraded, restore, handoff, switching, or exception paths.
+Keep the conversation footer as one canonical selected-thread live dock: the session strip carries footer state from the selected-thread authority model, the composer-owner row remains hidden as merged state, send-button targeting and blocking stay bound to that same authority model, and degraded or restore or handoff or switching paths continue to render explicit dock state without opening a parallel footer channel.
 Iteration 245: the dominant selected-thread header summary is already the machine-readable live-session ownership signal, carrying owner, path, and phase from canonical session_status plus SSE authority while degrading or clearing immediately on reconnect, polling fallback, switch, or idle completion.
 Iteration 248: the bottom-fixed composer keeps a visible selected-thread target row during healthy and transition states, rendering `READY`, `SWITCHING`, or `HANDOFF` from canonical selected-thread session authority and downgrading or clearing immediately on reconnect, polling fallback, switch, or idle resolution.
 Iteration 249: the left-rail active-session row is already the canonical mirror of the currently selected healthy SSE-owned session, exposing owned and canonical cues only for the selected thread and clearing or downgrading immediately on reconnect, polling fallback, idle, terminal, or switch paths.
@@ -44,3 +44,4 @@ Iteration 265: intentional thread switches are already preserved in this branch 
 Iteration 266: selected-thread session-status and append SSE already remain authoritative in this branch for healthy and restore paths; job polling and goals polling are already gated behind explicit loss of selected-thread ownership, and deployed/static verification already asserts that polling-owned authority does not silently reappear before degradation is explicit.
 Iteration 267: the deployed browser gate already exercises healthy streaming, restore or resume, degraded fallback, intentional switch, and cancelled switch as one selected-thread scenario matrix, and already rejects early polling authority, stale ownership, hidden degraded recovery, or generic empty-state flashes before they can qualify as correct success.
 Iteration 268: healthy selected-thread drill-down is already collapsed in this branch into the canonical timeline session card; autonomy and execution detail surfaces are already suppressed on the healthy path while degraded, restore, handoff, switching, and exception paths keep explicit secondary-panel visibility.
+Iteration 269: the bottom footer is already unified in this branch as one selected-thread live dock; the session strip carries footer state and datasets, the composer-owner row stays hidden as merged state whenever that dock is active, and send readiness already derives from the same selected-thread authority model without a parallel footer path.
