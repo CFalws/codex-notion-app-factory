@@ -1,12 +1,12 @@
 # Factory Runtime Deploy Plan
 
-## Iteration 307
+## Iteration 308
 
-This deploy plan validates that the deployed browser gate now proves the healthy selected-thread header summary row appears only on the intended SSE-owned path, remains contextual while the transcript live item stays primary, and clears in the same render frame on non-healthy transitions.
+This deploy plan validates that the deployed browser gate now proves the healthy selected-thread composer-adjacent live rail uses explicit canonical phase wording on the intended SSE-owned path and clears in the same render frame on non-healthy transitions.
 
 ## Deployment Impact
 
-This iteration keeps transport, provisional continuity, healthy promotion, composer targeting, selected-row rail parity, freshness, phase mirrors, switch continuity, and central `session_status` authority convergence intact. The gate should pass only when the deployed verifier attributes healthy header phase visibility to the intended selected-thread SSE-owned summary row, keeps the transcript live item primary, and rejects any stale healthy residue during non-healthy transitions.
+This iteration keeps transport, provisional continuity, healthy promotion, composer targeting, selected-row rail parity, freshness, phase mirrors, switch continuity, and central `session_status` authority convergence intact. The gate should pass only when the deployed verifier attributes healthy composer-adjacent phase wording to the intended selected-thread SSE-owned strip, keeps the transcript live item primary, and rejects any stale healthy residue or stale generic wording during non-healthy transitions.
 
 ## Rollout Notes
 
@@ -16,8 +16,8 @@ This iteration keeps transport, provisional continuity, healthy promotion, compo
 4. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh`.
 5. Confirm selected-thread attach or resume keeps the center timeline and footer dock mounted as one provisional session lane with only ATTACH or RESUME plus one carried-forward phase chip and no duplicate restore-only chrome.
 6. Confirm the first healthy selected-thread promotion appears only after selected-thread session state and append-stream session-status agree on the same conversation in authoritative `sse-live` state.
-7. Confirm the center transcript shows exactly one healthy primary live activity item for the selected thread and that the compact header summary row is visible as contextual scope, path, owner, and phase context rather than as a second primary live owner surface.
-8. Confirm the older healthy inline session block is absent on that path and that reconnect, polling fallback, restore downgrade, switch, idle, handoff loss, and terminal-adjacent paths clear or downgrade the header summary in the same render frame.
+7. Confirm the center transcript shows exactly one healthy primary live activity item for the selected thread and that the composer-adjacent live rail shows explicit PROPOSAL, REVIEW, VERIFY, AUTO APPLY, READY, or APPLIED wording from the intended SSE-owned path rather than older generic phrases.
+8. Confirm the older healthy inline session block is absent on that path and that reconnect, polling fallback, restore downgrade, switch, idle, handoff loss, and terminal-adjacent paths clear or downgrade the live rail in the same render frame.
 9. Confirm reconnect, polling fallback, restore, switch, terminal, and other non-healthy paths still clear or downgrade healthy live cues immediately back to degraded or snapshot rendering.
 10. Confirm `active-session-row` remains canonical, selected-row owner and freshness mirrors remain unchanged, and non-selected rows stay snapshot-only.
 11. Confirm `/api/jobs/{id}` and `/api/apps/:id/goals` polling resume only after explicit non-healthy fallback and never mutate healthy selected-thread state before that boundary.
@@ -52,3 +52,4 @@ Iteration 297 deploy gate expectation: healthy selected-thread autonomy, proposa
 Iteration 304 deploy gate expectation: the healthy selected-thread path now renders exactly one primary transcript live activity item in this branch, the older healthy inline session block remains absent there, and reconnect, restore, switch, polling fallback, handoff, and terminal paths clear or downgrade that primary live treatment immediately.
 Iteration 305 deploy gate expectation: the deployed browser verifier now accepts success only when healthy selected-thread workspace ownership remains exclusive to the intended transcript and composer surfaces and clears in the same render frame on restore, degraded reconnect, switch, polling fallback, handoff, and terminal-adjacent transitions.
 Iteration 307 deploy gate expectation: the healthy selected-thread path now also keeps one compact contextual header summary row visible with selected-thread scope, path, owner, and explicit phase from the intended SSE-owned authority, while the transcript live item remains primary and reconnect, restore downgrade, switch, polling fallback, idle, handoff loss, and terminal paths clear or downgrade the header row immediately.
+Iteration 308 deploy gate expectation: the healthy selected-thread path now keeps explicit canonical phase wording in the composer-adjacent live rail, the transcript live item remains primary, and reconnect downgrade, polling fallback, switch, idle, restore downgrade, handoff loss, and terminal paths clear or downgrade that rail without leaving stale generic healthy wording behind.

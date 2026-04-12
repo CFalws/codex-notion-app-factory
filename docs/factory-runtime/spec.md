@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `307`
-- bounded focus: `land the missing healthy selected-thread header phase row and align the deployed verifier`
+- current iteration: `308`
+- bounded focus: `make the composer-adjacent live rail show explicit healthy selected-thread phase chips from SSE authority`
 
 ## Request
 
@@ -13,7 +13,7 @@
 
 ## Problem
 
-Healthy selected-thread ownership, explicit autonomy milestones, strict rail mirroring, the selected-thread session-stream contract, deployed single-authority proof, the selected-thread handoff path, streamed autonomy identity, merged footer session-composer status, explicit attach authority, restore continuity, switch continuity, and central `session_status` authority convergence are already present. The bounded question for this iteration is landing the previously missed healthy-path header summary visibility contract so one compact selected-thread row exposes explicit live phase context without becoming a second primary live surface.
+Healthy selected-thread ownership, explicit autonomy milestones, strict rail mirroring, the selected-thread session-stream contract, deployed single-authority proof, the selected-thread handoff path, streamed autonomy identity, merged footer session-composer status, explicit attach authority, restore continuity, switch continuity, and central `session_status` authority convergence are already present. The bounded question for this iteration is making the composer-adjacent live rail read the canonical healthy selected-thread phase labels directly instead of older generic running or completion wording.
 
 ## Target User
 
@@ -23,14 +23,14 @@ The primary user is the operator or developer using the phone-friendly realtime 
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the change bounded to the existing selected-thread header summary render path and the deployed browser verification contract around it.
-- Preserve degraded fallback behavior, deliberate switch flow, rail mirrors, center-timeline presentation, transcript primary ownership, and composer continuity unchanged.
-- Keep the header row contextual and machine-readable rather than turning it into a second primary live-status surface.
+- Keep the change bounded to the existing selected-thread composer-adjacent live rail formatter and its deployed browser verification contract.
+- Preserve degraded fallback behavior, deliberate switch flow, rail mirrors, center-timeline presentation, transcript primary ownership, and header summary continuity unchanged.
+- Keep the transcript as the only primary live surface while making the live rail phase wording explicit and machine-readable.
 - Avoid introducing a second status source, new polling-owned healthy readiness, or new exception-path regressions.
 
 ## Deliverable
 
-Keep selected-thread attach or resume on one canonical provisional session lane as soon as the intended EventSource is open. During that bootstrap window, the center timeline and composer-adjacent footer dock stay mounted with only ATTACH or RESUME plus one carried-forward phase chip, and healthy ownership remains withheld until the selected-thread store models agree on the same conversation in authoritative `sse-live` state. For iteration 307 specifically, keep the transcript live item as the only primary center live surface while restoring one compact healthy selected-thread summary row in the header from the same authoritative session-status plus append-SSE path, and require the deployed verifier to prove that row appears only on the intended healthy path and clears immediately on reconnect, polling fallback, switch, idle, restore downgrade, and terminal paths.
+Keep selected-thread attach or resume on one canonical provisional session lane as soon as the intended EventSource is open. During that bootstrap window, the center timeline and composer-adjacent footer dock stay mounted with only ATTACH or RESUME plus one carried-forward phase chip, and healthy ownership remains withheld until the selected-thread store models agree on the same conversation in authoritative `sse-live` state. For iteration 308 specifically, keep the transcript live item as the only primary center live surface while making the composer-adjacent live rail expose explicit PROPOSAL, REVIEW, VERIFY, AUTO APPLY, READY, and APPLIED wording from the same authoritative session-status plus append-SSE path, and require the deployed verifier to reject stale generic wording or stale healthy ownership on degraded transitions.
 Iteration 245: the dominant selected-thread header summary is already the machine-readable live-session ownership signal, carrying owner, path, and phase from canonical session_status plus SSE authority while degrading or clearing immediately on reconnect, polling fallback, switch, or idle completion.
 Iteration 248: the bottom-fixed composer keeps a visible selected-thread target row during healthy and transition states, rendering `READY`, `SWITCHING`, or `HANDOFF` from canonical selected-thread session authority and downgrading or clearing immediately on reconnect, polling fallback, switch, or idle resolution.
 Iteration 249: the left-rail active-session row is already the canonical mirror of the currently selected healthy SSE-owned session, exposing owned and canonical cues only for the selected thread and clearing or downgrading immediately on reconnect, polling fallback, idle, terminal, or switch paths.
@@ -61,3 +61,4 @@ Iteration 297: the healthy selected-thread polling-removal contract was already 
 Iteration 304: healthy selected-thread progression now renders through the transcript live activity item as the primary center-timeline live surface in this branch, while the older healthy inline session block stays suppressed and compact header, rail, and composer surfaces remain secondary mirrors.
 Iteration 305: the deployed browser gate now proves healthy owner exclusivity and same-render clearing across restore, degraded reconnect, switch, polling fallback, handoff, and terminal-adjacent transition paths in this branch without requiring further UI changes.
 Iteration 307: the previously missed healthy selected-thread header summary contract now lands in this branch. One compact machine-readable header row stays visible on the healthy SSE-owned path with selected-thread scope, path, owner, and explicit phase context, while the transcript live activity item remains the only primary center-timeline live surface and degraded or terminal transitions clear the header row in the same render pass.
+Iteration 308: the composer-adjacent live rail now reads healthy selected-thread phase progression directly from the selected-thread SSE-owned authority path in this branch. The strip keeps explicit PROPOSAL, REVIEW, VERIFY, AUTO APPLY, READY, and APPLIED wording instead of the older generic helper phrases, while degraded or terminal transitions still clear or downgrade the rail in the same render pass.

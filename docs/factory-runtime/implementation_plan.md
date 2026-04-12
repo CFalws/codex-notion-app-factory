@@ -1,15 +1,15 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 307
+## Iteration 308
 
-Land the missing healthy selected-thread header summary row and align the deployed browser verifier to require that contextual phase visibility and same-render clearing contract.
+Make the selected-thread composer-adjacent live rail expose explicit healthy phase wording from the existing SSE-owned authority path and align the deployed verifier to that contract.
 
-1. Keep the iteration bounded to the selected-thread header summary render path and deployed verification of that existing workspace model.
+1. Keep the iteration bounded to the selected-thread live rail formatter and deployed verification of that existing workspace model.
 2. Preserve the existing selected-thread transport, healthy promotion, polling suppression, transcript-primary ownership, and thread-transition behavior unchanged.
-3. Render one compact healthy selected-thread header summary row from the existing session-status plus append-SSE authority path.
-4. Add explicit negative assertions that reconnect downgrade, polling fallback, switch, idle, restore downgrade, and terminal-adjacent paths clear or downgrade that row in the same render frame.
+3. Replace the older generic composer-strip helper wording with explicit PROPOSAL, REVIEW, VERIFY, AUTO APPLY, READY, and APPLIED labels sourced from the current selected-thread phase authority.
+4. Add explicit negative assertions that reconnect downgrade, polling fallback, switch, idle, and terminal-adjacent paths clear or downgrade the rail and never leave stale generic healthy wording behind.
 5. Avoid introducing any new authority source, primary live surface, or controller state.
-6. Update proposal artifacts to record the landed runtime plus verifier result and the remaining deployed verification dependency.
+6. Update proposal artifacts to record the landed rail wording plus verifier result and the remaining deployed verification dependency.
 Iteration 245 does not widen runtime or UI ownership. It records that the selected-thread center header already exposes the canonical ownership chip beside the session summary and that deployed verification already attributes healthy visibility to that selected-thread SSE-owned signal rather than to polling or side-panel inference.
 Iteration 248 keeps transport and header ownership unchanged and restores the same selected-thread certainty directly at the input surface by keeping the composer owner row visible for healthy, handoff, switching, and restore states while preserving explicit degraded or idle clearing.
 Iteration 249 does not widen runtime or UI ownership because the selected-thread rail mirror is already correct in this branch: the sticky active-session row is canonical on the healthy selected-thread SSE path, non-selected rows remain snapshot-only, and the deployed gate already attributes that rail marker to the intended selected-thread authority source.
@@ -37,5 +37,5 @@ Iteration 292 keeps transport, ownership, and canonical rail authority unchanged
 Iteration 293 keeps transport, ownership, and canonical session surfaces unchanged and narrows only the remaining central authority seam: healthy proposal, verify, ready, applied, and apply-readiness cues now derive from selected-thread `session_status` SSE state instead of split healthy derivation between session-phase and session-strip helpers.
 Iteration 296 keeps transport, ownership, switch rendering, and polling suppression unchanged because the current branch already satisfies the bounded switch-handoff contract; the work for this iteration is to record that intended-path result explicitly so a later apply decision is based on verified behavior rather than duplicated rewrites.
 Iteration 297 keeps transport, ownership, switch rendering, and healthy-path authority unchanged because the current branch already satisfies the bounded polling-removal contract; the work for this iteration is to record that the selected-thread `session_status` path already owns those healthy cues before any degraded fallback polling is permitted.
-Iteration 307 lands the previously missed runtime half of the healthy selected-thread header summary contract and aligns the deployed browser gate to that intended-path behavior.
+Iteration 308 keeps the selected-thread authority path unchanged and narrows only the composer-adjacent rail wording boundary so the existing healthy live strip reads with explicit canonical phases instead of generic helper phrases.
 Iteration 304 keeps transport, ownership, rail mirrors, and composer continuity unchanged and narrows only the primary live-phase presentation boundary: healthy selected-thread progression now renders through one transcript live item while the older healthy inline session block remains suppressed.

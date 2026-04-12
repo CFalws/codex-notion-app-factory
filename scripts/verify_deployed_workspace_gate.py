@@ -663,12 +663,22 @@ def assert_browser_runtime_surface(
                     sessionStripState.dataset.sessionStripLabel === liveActivity.dataset.liveRunPhase &&
                     sessionStripState.textContent.includes(liveActivity.dataset.liveRunPhase || "") &&
                     sessionStripState.textContent.includes("SSE OWNER") &&
+                    !sessionStripState.textContent.includes("HYPOTHESIS") &&
+                    !sessionStripState.textContent.includes("REVIEW SIGNAL") &&
+                    !sessionStripState.textContent.includes("VERIFY SIGNAL") &&
+                    !sessionStripState.textContent.includes("READY TO APPLY") &&
+                    !sessionStripState.textContent.includes("APPLY COMPLETE") &&
                     sessionStripMeta &&
                     !sessionStripMeta.hidden &&
                     sessionStripMeta.textContent.trim().length > 0 &&
                     sessionStripDetail &&
                     !sessionStripDetail.hidden &&
                     sessionStripDetail.textContent.includes(liveActivity.dataset.liveRunPhase || "") &&
+                    !sessionStripDetail.textContent.includes("HYPOTHESIS") &&
+                    !sessionStripDetail.textContent.includes("REVIEW SIGNAL") &&
+                    !sessionStripDetail.textContent.includes("VERIFY SIGNAL") &&
+                    !sessionStripDetail.textContent.includes("READY TO APPLY") &&
+                    !sessionStripDetail.textContent.includes("APPLY COMPLETE") &&
                     parseFloat(getComputedStyle(sessionStrip).minHeight || "0") >= 70 &&
                     getComputedStyle(sessionStrip).flexWrap === "nowrap" &&
                     composerUtilityMenu &&

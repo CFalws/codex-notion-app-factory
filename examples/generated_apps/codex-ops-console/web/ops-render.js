@@ -368,12 +368,6 @@ function sessionFollowLabel(sessionIndicator, transportState) {
 }
 
 function proposalStatusLabel(proposalState) {
-  if (proposalState.label === "READY") {
-    return "APPLY READY";
-  }
-  if (proposalState.label === "APPLIED") {
-    return "APPLIED";
-  }
   if (proposalState.label === "BLOCKED") {
     return "BLOCKED";
   }
@@ -448,19 +442,23 @@ function selectedThreadFooterDockModel(currentState, conversation, liveRun, foot
   const provisionalOwnerLabel = String(authority.ownerLabel || "ATTACH").toUpperCase();
   const proposalLabel = proposalStatusLabel(proposalChip(liveRun));
   const runStateLabel = compactPhaseDetailCopy(liveRun, "SESSION ACTIVE");
+  const dockStateLabel =
+    runStateLabel && runStateLabel !== phaseLabel && runStateLabel !== proposalLabel ? runStateLabel : "";
   const chips = liveOwned
     ? [
         { label: phaseLabel, tone: "neutral", role: "live-phase" },
         { label: String(authority.ownerLabel || "SSE OWNER").toUpperCase(), tone: "healthy", role: "live-owner" },
         ...(proposalLabel ? [{ label: proposalLabel, tone: proposalLabel === "BLOCKED" ? "warning" : "neutral", role: "live-proposal" }] : []),
+        ...(dockStateLabel ? [{ label: dockStateLabel, tone: "neutral", role: "live-state" }] : []),
         footerFollow?.visible
           ? {
               label: footerFollow.stateLabel,
               tone: footerFollow.followState === "new" ? "warning" : "neutral",
               role: "live-follow",
             }
-          : { label: runStateLabel, tone: "neutral", role: "live-state" },
+          : null,
       ]
+          .filter(Boolean)
     : provisionalVisible
       ? [
           { label: provisionalOwnerLabel, tone: "neutral", role: "live-owner" },
@@ -484,8 +482,12 @@ function selectedThreadFooterDockModel(currentState, conversation, liveRun, foot
       : footerFollow?.visible
         ? joinSessionChromeTokens(phaseLabel, footerFollow.detailLabel)
         : proposalLabel
-          ? joinSessionChromeTokens(phaseLabel, proposalLabel, runStateLabel)
-          : joinSessionChromeTokens(phaseLabel, runStateLabel),
+          ? dockStateLabel
+            ? joinSessionChromeTokens(phaseLabel, proposalLabel, dockStateLabel)
+            : joinSessionChromeTokens(phaseLabel, proposalLabel)
+          : dockStateLabel
+            ? joinSessionChromeTokens(phaseLabel, dockStateLabel)
+            : phaseLabel,
     source: String(authority.source || sessionSurface.milestoneModel.source || sessionSurface.source || "sse").toLowerCase(),
     liveOwned,
     milestoneVisible: liveOwned && chips.length > 1,
@@ -1971,22 +1973,22 @@ function proposalChip(liveRun) {
 
 function phaseDetailHint(liveRun) {
   if (liveRun.state === "proposal-phase") {
-    return "HYPOTHESIS";
+    return "PROPOSAL";
   }
   if (liveRun.state === "review-phase") {
-    return "REVIEW SIGNAL";
+    return "REVIEW";
   }
   if (liveRun.state === "verify-phase") {
-    return "VERIFY SIGNAL";
+    return "VERIFY";
   }
   if (liveRun.state === "auto-apply") {
     return "AUTO APPLY";
   }
   if (liveRun.state === "proposal-ready") {
-    return "READY TO APPLY";
+    return "READY";
   }
   if (liveRun.state === "applied") {
-    return "APPLY COMPLETE";
+    return "APPLIED";
   }
   if (liveRun.state === "accepted" || liveRun.phase === "ACCEPTED") {
     return "FIRST APPEND";
