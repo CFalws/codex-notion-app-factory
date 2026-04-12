@@ -141,7 +141,6 @@ def browser_snapshot_script() -> str:
   const secondaryPanel = document.querySelector("#secondary-panel");
   const secondaryPanelToggle = document.querySelector("#secondary-panel-toggle");
   const secondarySessionFacts = document.querySelector("#secondary-session-facts");
-  const follow = document.querySelector("#jump-to-latest");
   const activeSessionRow = document.querySelector("#active-session-row");
   const sessionStrip = document.querySelector("#session-strip");
   const composerUtilityMenu = document.querySelector("#composer-utility-menu");
@@ -563,7 +562,6 @@ def assert_browser_runtime_surface(
                   const autonomyDetail = document.querySelector("#autonomy-detail");
                   const statusOutput = document.querySelector("#status-output");
                   const executionStatusCard = statusOutput ? statusOutput.closest(".inspector-card") : null;
-                  const follow = document.querySelector("#jump-to-latest");
                   const sessionEvents = document.querySelectorAll('.timeline-item.session-event[data-append-source="sse"]');
                   const milestoneLane = inlineBlock ? inlineBlock.querySelector('[data-live-milestones="true"]') : null;
                   const fetchMark = Number(window.__verifyFetchMark || 0);
@@ -711,8 +709,7 @@ def assert_browser_runtime_surface(
                     statusOutput.dataset.centerTimelineAuthority === "true" &&
                     statusOutput.dataset.centerTimelinePresentation === "healthy" &&
                     sessionEvents.length === 0 &&
-                    follow &&
-                    follow.dataset.followOwned !== undefined &&
+                    !document.querySelector("#jump-to-latest") &&
                     jobFetches.length === 0 &&
                     goalsFetches.length === 0
                   );
@@ -772,14 +769,9 @@ def assert_browser_runtime_surface(
             )
             page.wait_for_function(
                 """conversationId => {
-                  const follow = document.querySelector("#jump-to-latest");
                   const sessionStripToggle = document.querySelector("#session-strip-toggle");
                   return Boolean(
-                    follow &&
-                    follow.hidden &&
-                    follow.dataset.followOwned === "none" &&
-                    follow.dataset.followState === "hidden" &&
-                    follow.dataset.followCount === "0" &&
+                    !document.querySelector("#jump-to-latest") &&
                     sessionStripToggle &&
                     !sessionStripToggle.hidden &&
                     sessionStripToggle.dataset.sessionAction === "jump-latest" &&
@@ -794,15 +786,9 @@ def assert_browser_runtime_surface(
             page.click("#session-strip-toggle")
             page.wait_for_function(
                 """() => {
-                  const follow = document.querySelector("#jump-to-latest");
                   const sessionStripToggle = document.querySelector("#session-strip-toggle");
                   return Boolean(
-                    follow &&
-                    follow.hidden &&
-                    follow.dataset.followOwned === "none" &&
-                    follow.dataset.followState === "hidden" &&
-                    follow.dataset.followCount === "0" &&
-                    follow.dataset.followConversationId === "" &&
+                    !document.querySelector("#jump-to-latest") &&
                     sessionStripToggle &&
                     sessionStripToggle.hidden &&
                     sessionStripToggle.dataset.sessionAction === "toggle-session-rail" &&
@@ -935,9 +921,8 @@ def assert_browser_runtime_surface(
                   const composerUtilityCluster = document.querySelector("#composer-utility-cluster");
                   const statusOutput = document.querySelector("#status-output");
                   const executionStatusCard = statusOutput ? statusOutput.closest(".inspector-card") : null;
-                  const follow = document.querySelector("#jump-to-latest");
                   const stripChips = sessionStripState ? sessionStripState.querySelectorAll(".session-chip") : [];
-                  if (!degraded || healthy || inlineBlocks.length !== 0 || !threadPhase || !follow || !activeSessionRow || !sessionStrip || !sessionStripState || !executionStatusCard || !statusOutput) {
+                  if (!degraded || healthy || inlineBlocks.length !== 0 || !threadPhase || !activeSessionRow || !sessionStrip || !sessionStripState || !executionStatusCard || !statusOutput) {
                     return false;
                   }
                   const reason = degraded.dataset.liveReason || "";
@@ -999,7 +984,7 @@ def assert_browser_runtime_surface(
                     statusOutput.dataset.centerTimelineAuthority === "true" &&
                     statusOutput.dataset.centerTimelinePresentation === "degraded" &&
                     sessionStrip.dataset.composerTransport !== "sse-owner" &&
-                    follow.dataset.followOwned !== "selected-thread"
+                    !document.querySelector("#jump-to-latest")
                   );
                 }""",
                 timeout=120000,
@@ -1037,7 +1022,6 @@ def assert_browser_runtime_surface(
                   const healthy = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
                   const degraded = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="false"]');
                   const empty = document.querySelector(".timeline-empty");
-                  const follow = document.querySelector("#jump-to-latest");
                   const fetchMark = Number(window.__verifyFetchMark || 0);
                   const jobFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
                     entry => String(entry.url || "").includes("/api/jobs/")
@@ -1122,8 +1106,7 @@ def assert_browser_runtime_surface(
                     threadScroller.dataset.phaseProvenance === "thread-transition" &&
                     threadScroller.dataset.workspaceOwnerCleared === "true" &&
                     threadScroller.dataset.sessionOwner !== "selected-thread" &&
-                    follow &&
-                    follow.dataset.followOwned !== "selected-thread" &&
+                    !document.querySelector("#jump-to-latest") &&
                     jobFetches.length === 0 &&
                     goalsFetches.length === 0 &&
                     switchMonitor.active === true &&
@@ -1222,7 +1205,6 @@ def assert_browser_runtime_surface(
                   const threadPhase = document.querySelector("#thread-phase-chip");
                   const activeSessionRow = document.querySelector("#active-session-row");
                   const secondarySessionFacts = document.querySelector("#secondary-session-facts");
-                  const follow = document.querySelector("#jump-to-latest");
                   const empty = document.querySelector(".timeline-empty");
                   const inlineBlocks = document.querySelectorAll('.session-inline-block[data-selected-thread-live-block="true"], .session-inline-block[data-selected-thread-degraded-block="true"]');
                   const degraded = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="false"]');
@@ -1242,6 +1224,7 @@ def assert_browser_runtime_surface(
                     transition.dataset.threadTransitionConversationId === targetConversationId &&
                     sessionStrip &&
                     !sessionStrip.hidden &&
+                    !document.querySelector("#jump-to-latest") &&
                     sessionStripState &&
                     sessionStripState.querySelectorAll(".session-chip").length === 1 &&
                     sessionStripState.dataset.sessionStripRole === "transition" &&
@@ -1767,12 +1750,9 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "selectedThreadFooterFollowState", label="footer follow state helper")
     require(render_js, "pendingAppendCount", label="follow control unseen append state")
     require(render_js, 'const footerFollow = selectedThreadFooterFollowState(dom, currentState, conversationId, renderSource);', label="follow control footer follow source")
-    require(render_js, 'dom.jumpToLatestButton.hidden = true;', label="follow button hidden when footer bar owns control")
-    require(render_js, 'dom.jumpToLatestButton.dataset.followOwned = "none";', label="follow button owner cleared")
-    require(render_js, 'dom.jumpToLatestButton.dataset.followState = "hidden";', label="follow button state cleared")
-    require(render_js, 'dom.jumpToLatestButton.dataset.followCount = "0";', label="follow button count cleared")
-    require(render_js, 'dom.jumpToLatestButton.dataset.followConversationId = "";', label="follow button conversation cleared")
-    require(render_js, 'dom.jumpToLatestButton.dataset.followRenderSource = footerFollow.renderSource || renderSource || "snapshot";', label="follow control render source dataset")
+    require(render_js, "footerFollowActionLabel", label="footer follow action label helper")
+    require(render_js, 'dom.sessionStripToggle.textContent = footerFollowActionLabel(footerFollow);', label="footer follow action label render")
+    require(render_js, 'dom.sessionStripToggle.dataset.followRenderSource = footerFollow.renderSource || renderSource || "snapshot";', label="follow control render source dataset")
     require(store_js, 'followState === "new"', label="follow control new-state derivation")
     require(store_js, 'followState === "paused"', label="follow control paused-state derivation")
     require(store_js, "새 live append", label="follow control new copy")
@@ -1926,8 +1906,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(styles, '.conversation-card[data-live-owner-state="handoff"] .conversation-card-marker', label="selected handoff owner marker CSS")
     require(styles, '.conversation-card[data-live-owner-state="new"] .conversation-card-marker', label="selected new owner marker CSS")
     require(styles, '.conversation-card[data-live-owner-state="paused"] .conversation-card-marker', label="selected paused owner marker CSS")
-    require(index_html, 'class="jump-to-latest-chip"', label="follow control chip DOM")
-    require(index_html, 'class="jump-to-latest-copy"', label="follow control copy DOM")
+    require_absent(index_html, 'id="jump-to-latest"', label="removed floating jump-to-latest DOM")
     require(index_html, 'id="active-session-row"', label="active session row DOM")
     require(index_html, 'id="active-session-owner"', label="active session owner DOM")
     require(index_html, 'id="active-session-state"', label="active session state DOM")
@@ -1936,8 +1915,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(index_html, 'data-active-session-source="none"', label="active session source default")
     require(index_html, 'data-active-session-phase="IDLE"', label="active session phase default")
     require(index_html, 'data-active-session-unseen-count="0"', label="active session unseen default")
-    require(styles, '.jump-to-latest[data-follow-state="new"] .jump-to-latest-chip', label="follow control new state CSS")
-    require(styles, '.jump-to-latest[data-follow-state="paused"] .jump-to-latest-chip', label="follow control paused state CSS")
+    require_absent(styles, ".jump-to-latest", label="removed floating jump-to-latest CSS")
 
 
 def assert_conversation_events(

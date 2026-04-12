@@ -1529,25 +1529,39 @@ function pendingHandoffState(conversation, currentState) {
   };
 }
 
-function syncJumpToLatest(dom, currentState, conversationId, renderSource) {
-  if (!dom.jumpToLatestButton) {
-    return;
-  }
-  const footerFollow = selectedThreadFooterFollowState(dom, currentState, conversationId, renderSource);
-  dom.jumpToLatestButton.hidden = true;
-  dom.jumpToLatestButton.dataset.followConversationId = "";
-  dom.jumpToLatestButton.dataset.followOwned = "none";
-  dom.jumpToLatestButton.dataset.followMode = "hidden";
-  dom.jumpToLatestButton.dataset.followState = "hidden";
-  dom.jumpToLatestButton.dataset.followCount = "0";
-  dom.jumpToLatestButton.dataset.followRenderSource = footerFollow.renderSource || renderSource || "snapshot";
-  dom.jumpToLatestButton.setAttribute("aria-label", "최신 응답으로 이동");
-  dom.jumpToLatestButton.innerHTML =
-    '<span class="jump-to-latest-chip">NEW</span><span class="jump-to-latest-copy">최신 응답으로 이동</span>';
-}
-
 function selectedThreadFooterFollowState(dom, currentState, conversationId, renderSource) {
   return deriveSelectedThreadFollowControlModel(currentState);
+}
+
+function footerFollowActionLabel(footerFollow) {
+  if (!footerFollow?.visible) {
+    return "세부 보기";
+  }
+  if (footerFollow.followState === "new") {
+    return `NEW ${Math.max(Number(footerFollow.unseenCount || 0), 1)}`;
+  }
+  if (footerFollow.followState === "paused") {
+    const unseen = Math.max(Number(footerFollow.unseenCount || 0), 0);
+    return unseen > 0 ? `PAUSED ${unseen}` : "PAUSED";
+  }
+  return "FOLLOW";
+}
+
+function syncJumpToLatest(dom, currentState, conversationId, renderSource) {
+  const footerFollow = selectedThreadFooterFollowState(dom, currentState, conversationId, renderSource);
+  if (dom.sessionStrip) {
+    dom.sessionStrip.dataset.followState = footerFollow.visible ? footerFollow.followState : "idle";
+    dom.sessionStrip.dataset.followCount = String(footerFollow.visible ? footerFollow.unseenCount : 0);
+  }
+  if (dom.sessionStripToggle) {
+    dom.sessionStripToggle.hidden = !footerFollow.visible;
+    dom.sessionStripToggle.textContent = footerFollowActionLabel(footerFollow);
+    dom.sessionStripToggle.dataset.sessionAction = footerFollow.visible ? "jump-latest" : "toggle-session-rail";
+    dom.sessionStripToggle.dataset.followState = footerFollow.visible ? footerFollow.followState : "idle";
+    dom.sessionStripToggle.dataset.followCount = String(footerFollow.visible ? footerFollow.unseenCount : 0);
+    dom.sessionStripToggle.dataset.followRenderSource = footerFollow.renderSource || renderSource || "snapshot";
+    dom.sessionStripToggle.setAttribute("aria-label", footerFollow.visible ? "최신 응답으로 이동" : "세부 보기");
+  }
 }
 
 export function updateLiveFollowFromScroll(dom, currentState) {
@@ -2297,10 +2311,11 @@ export function renderSessionStrip(dom, currentState, conversation) {
       );
   if (dom.sessionStripToggle) {
     dom.sessionStripToggle.hidden = !footerFollow.visible;
-    dom.sessionStripToggle.textContent = footerFollow.visible ? (footerFollow.followState === "new" ? "최신으로" : "재개") : "세부 보기";
+    dom.sessionStripToggle.textContent = footerFollowActionLabel(footerFollow);
     dom.sessionStripToggle.dataset.sessionAction = footerFollow.visible ? "jump-latest" : "toggle-session-rail";
     dom.sessionStripToggle.dataset.followState = footerFollow.visible ? footerFollow.followState : "idle";
     dom.sessionStripToggle.dataset.followCount = String(footerFollow.visible ? footerFollow.unseenCount : 0);
+    dom.sessionStripToggle.dataset.followRenderSource = footerFollow.renderSource || lastRenderSource || "snapshot";
   }
   if (dom.draftStatus) {
     dom.draftStatus.hidden = true;

@@ -42,7 +42,6 @@ export const dom = {
   newConversationButton: document.getElementById("new-conversation"),
   conversationMeta: document.getElementById("conversation-meta"),
   threadScroller: document.getElementById("thread-scroller"),
-  jumpToLatestButton: document.getElementById("jump-to-latest"),
   conversationTimeline: document.getElementById("conversation-timeline"),
   requestTextInput: document.getElementById("request-text"),
   composerHint: document.getElementById("composer-hint"),

@@ -1,12 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 240
+## Iteration 241
 
-Compress selected-thread helper prose into one compact chip-first session surface without changing authority.
+Absorb selected-thread NEW or PAUSED follow affordance into the footer dock without changing authority.
 
-1. Keep the change bounded to selected-thread presentation in `ops-render.js` and `styles.css`.
+1. Keep the change bounded to footer-dock follow presentation, DOM wiring, and verifier artifacts.
 2. Preserve the existing selected-thread `session_status` plus SSE authority path.
-3. Replace sentence-style helper copy in the selected-thread inline session block and transition placeholder with compact target and state cues.
-4. Keep the transcript inline session block as the only in-timeline live progress surface.
+3. Remove the separate floating jump-to-latest surface.
+4. Render NEW or PAUSED follow state and unseen-count metadata only through the footer-dock action affordance.
 5. Preserve immediate clear or downgrade behavior on switch, terminal, reconnect, and polling fallback paths.
-6. Align proposal artifacts with the compact selected-thread session-surface contract.
+6. Align proposal artifacts with the single-owner footer follow contract.
