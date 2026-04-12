@@ -6,6 +6,7 @@ import {
   deriveSelectedThreadLiveAutonomy,
   deriveSelectedThreadPhaseProgression,
   deriveSelectedThreadSessionAuthorityModel,
+  isSelectedThreadPrimarySessionOwned,
   deriveSelectedThreadSessionQuorumModel,
   deriveSelectedThreadSessionSnapshot,
   deriveSelectedThreadSessionSurfaceModel,
@@ -1200,7 +1201,7 @@ function selectedThreadTimelineAuthorityModel(conversation, currentState, liveRu
 
 function renderInlineSessionBlock(conversation, currentState, liveRun, handoffState) {
   const timelineSession = selectedThreadPrimaryTimelineSessionModel(conversation, currentState, liveRun);
-  const { inlineState, sessionSurface } = timelineSession;
+  const { inlineState, sessionSurface, collapseSessionEvents, primarySessionOwned } = timelineSession;
   const quorumModel = deriveSelectedThreadSessionQuorumModel(currentState, conversation);
   const { handoffVisible, liveVisible, provisionalVisible, restoreVisible, degradedVisible } = inlineState;
   if (!liveVisible && !handoffVisible && !provisionalVisible && !restoreVisible && !degradedVisible) {
@@ -1246,7 +1247,7 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
       );
   const milestoneLane = liveVisible ? renderTranscriptMilestones(currentState, conversation) : "";
   return `
-    <article class="session-inline-block" data-selected-thread-live-block="true" data-selected-thread-degraded-block="${liveVisible ? "false" : "true"}" data-live-block-conversation-id="${escapeHtml(String(sessionStatus.conversationId || ""))}" data-live-block-owned="${liveVisible ? "true" : "false"}" data-live-block-source="${escapeHtml(String(sessionSurface.source || "sse"))}" data-live-block-phase="${escapeHtml(phaseLabel)}" data-live-block-transport="${escapeHtml(transportLabel)}" data-live-block-handoff="${handoffVisible ? "true" : "false"}" data-live-block-provisional="${provisionalVisible ? "true" : "false"}" data-live-block-restore="${restoreVisible ? "true" : "false"}" data-live-block-path-verdict="${escapeHtml(pathVerdict)}" data-live-block-verifier-acceptability="${escapeHtml(verifierAcceptability)}" data-live-block-blocker-reason="${escapeHtml(blockerReason)}" data-live-block-expected-path="${escapeHtml(expectedPath)}" data-live-block-review-quorum="${escapeHtml(reviewQuorumLabel)}" data-live-block-verify-quorum="${escapeHtml(verifyQuorumLabel)}" data-live-block-ready="${escapeHtml(readyLabel)}" data-live-block-reason="${escapeHtml(provisionalVisible || restoreVisible || degradedVisible ? String(sessionStatus.transportReason || "selected-thread-transition") : handoffVisible ? "handoff" : String(sessionSurface.liveAutonomy?.reason || "healthy"))}">
+    <article class="session-inline-block" data-selected-thread-live-block="true" data-selected-thread-degraded-block="${liveVisible ? "false" : "true"}" data-live-block-conversation-id="${escapeHtml(String(sessionStatus.conversationId || ""))}" data-live-block-owned="${liveVisible ? "true" : "false"}" data-live-block-source="${escapeHtml(String(sessionSurface.source || "sse"))}" data-live-block-phase="${escapeHtml(phaseLabel)}" data-live-block-transport="${escapeHtml(transportLabel)}" data-live-block-handoff="${handoffVisible ? "true" : "false"}" data-live-block-provisional="${provisionalVisible ? "true" : "false"}" data-live-block-restore="${restoreVisible ? "true" : "false"}" data-live-block-canonical="${primarySessionOwned ? "true" : "false"}" data-live-block-duplicates="${collapseSessionEvents ? "collapsed" : "allowed"}" data-live-block-path-verdict="${escapeHtml(pathVerdict)}" data-live-block-verifier-acceptability="${escapeHtml(verifierAcceptability)}" data-live-block-blocker-reason="${escapeHtml(blockerReason)}" data-live-block-expected-path="${escapeHtml(expectedPath)}" data-live-block-review-quorum="${escapeHtml(reviewQuorumLabel)}" data-live-block-verify-quorum="${escapeHtml(verifyQuorumLabel)}" data-live-block-ready="${escapeHtml(readyLabel)}" data-live-block-reason="${escapeHtml(provisionalVisible || restoreVisible || degradedVisible ? String(sessionStatus.transportReason || "selected-thread-transition") : handoffVisible ? "handoff" : String(sessionSurface.liveAutonomy?.reason || "healthy"))}">
       <p class="session-inline-kicker">${provisionalVisible ? "Selected Session Attach" : restoreVisible ? "Selected Session Restore" : degradedVisible ? "Selected Session Fallback" : handoffVisible ? "Pending Handoff" : "Selected Session"}</p>
       <div class="session-inline-row">
         <span class="session-inline-chip">${escapeHtml(transportLabel)}</span>
@@ -1355,6 +1356,7 @@ function selectedThreadPrimaryTimelineSessionModel(conversation, currentState, l
   const sessionStrip = deriveSelectedThreadSessionStripModel(currentState, conversation, liveRun);
   const authority = deriveSelectedThreadSessionAuthorityModel(currentState, conversation, liveRun);
   const liveOwned = authority.state === "healthy";
+  const primarySessionOwned = isSelectedThreadPrimarySessionOwned(currentState, conversation, liveRun);
   return {
     handoffState,
     inlineState,
@@ -1362,8 +1364,9 @@ function selectedThreadPrimaryTimelineSessionModel(conversation, currentState, l
     sessionSurface,
     sessionStrip,
     liveOwned,
+    primarySessionOwned,
     visible: liveOwned || inlineState.visible || sessionStrip.visible,
-    collapseSessionEvents: liveOwned,
+    collapseSessionEvents: primarySessionOwned,
   };
 }
 

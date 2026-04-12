@@ -737,6 +737,8 @@ def assert_browser_runtime_surface(
                     !liveActivity &&
                     primaryLiveActivities.length === 0 &&
                     inlineBlock.dataset.liveBlockOwned === "true" &&
+                    inlineBlock.dataset.liveBlockCanonical === "true" &&
+                    inlineBlock.dataset.liveBlockDuplicates === "collapsed" &&
                     inlineBlock.dataset.liveBlockTransport === "SSE OWNER" &&
                     ["PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED"].includes(inlineBlock.dataset.liveBlockPhase || "") &&
                     ["EXPECTED", "ACCEPTABLE"].includes(inlineBlock.dataset.liveBlockPathVerdict || "") &&
@@ -2314,6 +2316,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "selectedThreadPrimaryTimelineSessionModel", label="primary selected-thread timeline session helper")
     require(render_js, 'data-live-session-primary="true"', label="transcript primary session surface dataset")
     require(render_js, "shouldCollapseSelectedThreadSessionEvent", label="selected-thread transcript session-event collapse helper")
+    require(render_js, 'data-live-block-canonical="${primarySessionOwned ? "true" : "false"}"', label="inline canonical live session dataset")
+    require(render_js, 'data-live-block-duplicates="${collapseSessionEvents ? "collapsed" : "allowed"}"', label="inline session-event collapse dataset")
     require(render_js, "renderTranscriptMilestones", label="transcript live milestone helper")
     require(render_js, "const transcriptLiveActivity = renderTranscriptLiveActivity(conversation, currentState, liveRun);", label="transcript live activity wiring")
     require(render_js, "if (inlineState.visible) {", label="transcript live activity suppression guard")
@@ -2338,7 +2342,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "const timelineSession = selectedThreadPrimaryTimelineSessionModel(conversation, currentState, liveRun);", label="selected-thread transcript collapse shared model wiring")
     require(render_js, "const { collapseSessionEvents } = timelineSession;", label="selected-thread transcript collapse state destructuring")
     require(render_js, "if (shouldCollapseSelectedThreadSessionEvent(item, currentState, conversation, liveRun)) {", label="selected-thread transcript session-event suppression guard")
-    require(render_js, "collapseSessionEvents: liveOwned,", label="healthy selected-thread session-event collapse ownership")
+    require(render_js, "const primarySessionOwned = isSelectedThreadPrimarySessionOwned(currentState, conversation, liveRun);", label="primary selected-thread timeline ownership wiring")
+    require(render_js, "collapseSessionEvents: primarySessionOwned,", label="selected-thread session-event collapse ownership")
     require(render_js, 'const sessionEvent = renderSessionTimelineEvent(item);', label="session timeline event projection wiring")
     require(render_js, "if (sessionEvent) {", label="session timeline event branch")
     require(render_js, "const renderedItems = items", label="transcript render item join")
@@ -2508,6 +2513,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(store_js, "export function deriveSelectedThreadShellPhaseLabel", label="canonical selected-thread shell phase helper")
     require(store_js, "export function deriveSelectedThreadTimelineMilestones", label="canonical selected-thread timeline milestones helper")
     require(store_js, "export function isSelectedThreadSessionOwned", label="selected-thread session ownership helper")
+    require(store_js, "export function isSelectedThreadPrimarySessionOwned", label="selected-thread primary timeline ownership helper")
+    require(store_js, 'return authority.state === "healthy" || authority.state === "provisional";', label="selected-thread primary timeline ownership contract")
     require(store_js, "const provisionalOwned =", label="selected-thread session ownership provisional gate")
     require(store_js, "sessionStatus.selectedThreadProvisional ||", label="selected-thread provisional ownership suppression")
     require(store_js, "sessionStatus.selectedThreadRestore ||", label="selected-thread restore ownership suppression")

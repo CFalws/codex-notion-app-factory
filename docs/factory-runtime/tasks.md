@@ -111,3 +111,4 @@
 - Iteration 304: promote healthy selected-thread progression into one primary transcript live item while suppressing the older healthy inline session block and keeping header, rail, and composer as compact secondary mirrors.
 - Iteration 338: move restore, reconnect, and polling-fallback selected-thread truth into the primary center timeline session block and suppress secondary autonomy and execution cards whenever a selected-session state is already present.
 - Iteration 337: keep review quorum, verify quorum, and ready progression on one selected-thread `session_status` authority helper and clear or downgrade those cues immediately on reconnect, switch, deselection, missing iteration data, or polling fallback.
+- Iteration 339: collapse healthy and provisional selected-thread phase progression into one canonical inline session item and suppress duplicate selected-thread SSE session-event rows while that canonical item owns the center timeline.

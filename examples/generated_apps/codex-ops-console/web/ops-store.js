@@ -1080,6 +1080,11 @@ export function deriveSelectedThreadSessionAuthorityModel(currentState, conversa
   };
 }
 
+export function isSelectedThreadPrimarySessionOwned(currentState, conversation = null, liveRun = null) {
+  const authority = deriveSelectedThreadSessionAuthorityModel(currentState, conversation, liveRun);
+  return authority.state === "healthy" || authority.state === "provisional";
+}
+
 export function deriveSelectedThreadSessionSnapshot(currentState, conversation = null, liveRun = null) {
   const authority = deriveSelectedThreadSessionAuthorityModel(currentState, conversation, liveRun);
   const sessionStatus = authority.sessionStatus;
