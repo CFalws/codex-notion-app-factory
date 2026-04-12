@@ -1,12 +1,12 @@
 # Factory Runtime Deploy Plan
 
-## Iteration 269
+## Iteration 272
 
-This deploy plan validates that the conversation footer already behaves as one canonical selected-thread live dock around the bottom-fixed composer.
+This deploy plan validates that the canonical selected-thread footer dock now exposes healthy phase progression directly around the bottom-fixed composer.
 
 ## Deployment Impact
 
-This iteration keeps transport and authority behavior intact and records the already-present canonical footer-dock contract. The gate should pass only when the selected-thread session strip remains the sole active footer state surface, the composer-owner row stays merged or hidden instead of reappearing as a duplicate owner, and send readiness continues to follow selected-thread authority rather than polling fallback.
+This iteration keeps transport and authority behavior intact and narrows only the healthy footer presentation. The gate should pass only when the selected-thread session strip remains the sole composer-adjacent live surface, healthy selected-thread runs expose explicit phase-led dock chips and short detail copy through the existing SSE or session bootstrap authority path, and switch or restore or reconnect or polling fallback still downgrade or clear that same dock without reintroducing duplicate owner surfaces.
 
 ## Rollout Notes
 
@@ -14,10 +14,10 @@ This iteration keeps transport and authority behavior intact and records the alr
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
 3. Open the operator console on desktop and phone widths with a selected thread that can enter healthy live progress and separate paths that can exercise restore, switch, handoff, and degraded fallback.
 4. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh`.
-5. Confirm the footer state remains on the selected-thread session strip rather than a split strip-plus-owner-row presentation.
-6. Confirm the composer-owner row stays hidden as merged state whenever the footer dock is active.
-7. Confirm send-button targeting and blocking remain tied to the same selected-thread authority model through healthy, restore, handoff, switch, and degraded paths.
-8. Confirm no early `/api/jobs/{id}` or `/goals` authority is needed to shape footer state on healthy selected-thread paths.
+5. Confirm healthy selected-thread runs now show explicit phase-led dock chips such as `PROPOSAL`, `REVIEW`, `VERIFY`, `AUTO APPLY`, `READY`, or `APPLIED` instead of suppressed or generic footer wording.
+6. Confirm the dock stays the only composer-adjacent live surface and the composer-owner row remains merged rather than reappearing as a duplicate owner.
+7. Confirm dock phase labels advance through the intended selected-thread SSE or session bootstrap path with no early `/api/jobs/{id}` or `/goals` authority shaping healthy footer state.
+8. Confirm switch, restore, handoff, reconnect, polling fallback, and terminal paths still downgrade or clear the same dock without stale healthy phase labels surviving.
 9. Confirm the bottom-fixed composer dock remains continuously usable through healthy and exception paths.
 10. Treat the proposal as ready only after the deployed verifier passes and the runtime contract check is rerun in an environment with the missing dependencies.
 Iteration 245 deploy gate expectation: healthy selected-thread runs are acceptable only when the center-header session summary itself reports `SSE OWNER`, degraded runs visibly downgrade to `RECONNECT` or `POLLING`, and switch or terminal idle clears the header ownership signal immediately.
@@ -34,3 +34,4 @@ Iteration 266 deploy gate expectation: healthy and restore selected-thread propo
 Iteration 267 deploy gate expectation: the deployed browser verifier already covers healthy, restore, degraded, switch, and cancelled-switch selected-thread scenarios together and accepts success only when the selected-thread session stays authoritative through the intended path without silent polling-owned recovery, stale ownership, or empty-state flashes.
 Iteration 268 deploy gate expectation: the healthy selected-thread timeline card already serves as the sole visible live drill-down surface in this branch, while autonomy and execution detail remain suppressed on that healthy path and explicit secondary-detail visibility returns only on degraded, restore, handoff, switching, and exception paths.
 Iteration 269 deploy gate expectation: the footer already behaves as one canonical selected-thread live dock in this branch, with the session strip carrying footer state, the composer-owner row staying hidden as merged state, and send readiness remaining tied to selected-thread authority instead of any polling-owned fallback.
+Iteration 272 deploy gate expectation: the canonical footer dock stays visible on healthy selected-thread runs in this branch, leads with explicit phase progression labels from the selected-thread SSE or session bootstrap path, and still downgrades or clears through the same authority model on restore, switch, handoff, reconnect, polling fallback, or terminal paths.

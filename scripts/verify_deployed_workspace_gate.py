@@ -626,32 +626,33 @@ def assert_browser_runtime_surface(
                     selectedCardLiveFollow.hidden &&
                     (selectedCardLiveFollow.textContent || "").trim() === "" &&
                     sessionStrip &&
-                    sessionStrip.hidden &&
-                    sessionStrip.dataset.footerSurface === "suppressed" &&
-                    sessionStrip.dataset.liveOwned === "false" &&
-                    sessionStrip.dataset.sessionOwner === "none" &&
-                    sessionStrip.dataset.sessionPresentation === "suppressed" &&
-                    sessionStrip.dataset.footerDockOwned === "false" &&
+                    !sessionStrip.hidden &&
+                    sessionStrip.dataset.footerSurface === "dock" &&
+                    sessionStrip.dataset.liveOwned === "true" &&
+                    sessionStrip.dataset.sessionOwner === "selected-thread" &&
+                    sessionStrip.dataset.sessionPresentation !== "suppressed" &&
+                    sessionStrip.dataset.footerDockOwned === "true" &&
                     sessionStrip.dataset.footerDockMilestones === "true" &&
                     sessionStrip.dataset.footerDockPhase === inlineBlock.dataset.liveBlockPhase &&
                     sessionStrip.dataset.footerDockSource === "sse" &&
-                    sessionStrip.dataset.composerTransportOwned === "false" &&
+                    sessionStrip.dataset.composerTransportOwned === "true" &&
                     sessionStrip.dataset.phaseProvenance === "sse" &&
                     threadScroller &&
                     sessionStrip.dataset.phaseValue === inlineBlock.dataset.liveBlockPhase &&
                     threadScroller.dataset.phaseValue === inlineBlock.dataset.liveBlockPhase &&
                     threadScroller.dataset.phaseProvenance === "sse" &&
                     sessionStripState &&
-                    sessionStripState.hidden &&
-                    stripChips.length === 0 &&
-                    sessionStripState.dataset.sessionStripRole === "suppressed" &&
-                    sessionStripState.dataset.sessionStripLabel === "SUPPRESSED" &&
+                    !sessionStripState.hidden &&
+                    stripChips.length >= 2 &&
+                    sessionStripState.dataset.sessionStripRole === "live-dock" &&
+                    sessionStripState.dataset.sessionStripLabel === inlineBlock.dataset.liveBlockPhase &&
+                    sessionStripState.textContent.includes(inlineBlock.dataset.liveBlockPhase || "") &&
                     sessionStripMeta &&
-                    sessionStripMeta.hidden &&
-                    sessionStripMeta.textContent.trim() === "" &&
+                    !sessionStripMeta.hidden &&
+                    sessionStripMeta.textContent.trim().length > 0 &&
                     sessionStripDetail &&
-                    sessionStripDetail.hidden &&
-                    sessionStripDetail.textContent.trim() === "" &&
+                    !sessionStripDetail.hidden &&
+                    sessionStripDetail.textContent.includes(inlineBlock.dataset.liveBlockPhase || "") &&
                     composerUtilityMenu &&
                     composerUtilityMenu.dataset.composerUtilityOpen === "false" &&
                     composerUtilityMenu.dataset.composerUtilityState === "closed" &&
@@ -1561,7 +1562,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.sessionStrip.dataset.composerState = ownerState.state;', label="composer strip state dataset")
     require(render_js, 'dom.sessionStrip.dataset.composerTransport = transportState.key;', label="composer strip transport dataset")
     require(render_js, 'dom.sessionStrip.dataset.composerTransportSource = transportState.source;', label="composer strip transport source dataset")
-    require(render_js, 'dom.sessionStrip.dataset.composerTransportOwned = healthyComposerAuthority ? "false" : stripLiveOwned ? "true" : "false";', label="composer strip transport ownership dataset")
+    require(render_js, 'dom.sessionStrip.dataset.composerTransportOwned = stripLiveOwned ? "true" : "false";', label="composer strip transport ownership dataset")
     require(render_js, 'dom.sessionStrip.dataset.composerTransportReason = transportState.reason;', label="composer strip transport reason dataset")
     require(render_js, 'dom.sessionStrip.dataset.composerTargetConversationId = ownerState.conversationId;', label="composer strip target dataset")
     require(render_js, 'dom.sessionStrip.dataset.restoreStage = sessionStatus.restoreStage || "none";', label="composer strip restore stage dataset")
@@ -1690,30 +1691,29 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "const proposalState = proposalChip(liveRun);", label="composer strip proposal chip helper wiring")
     require(render_js, "const liveOwned =", label="composer strip ownership decoupled from strip visibility")
     require(render_js, 'const footerDock = selectedThreadFooterDockModel(currentState, conversation, liveRun, footerFollow);', label="composer strip footer dock helper wiring")
-    require(render_js, 'const showHealthyStripFollowOnly = healthyComposerAuthority && footerFollow.visible;', label="healthy composer strip follow-only guard")
-    require(render_js, 'dom.sessionStrip.hidden = !sessionConversationId || (healthyComposerAuthority && !footerFollow.visible);', label="composer strip selected-target visibility")
-    require(render_js, 'dom.sessionStrip.dataset.sessionOwner = healthyComposerAuthority ? "none" : stripLiveOwned ? "selected-thread" : "none";', label="composer strip selected-thread owner dataset")
-    require(render_js, 'dom.sessionStrip.dataset.sessionPresentation = healthyComposerAuthority ? "suppressed" : presentation;', label="composer strip presentation dataset")
+    require(render_js, 'dom.sessionStrip.hidden = !sessionConversationId;', label="composer strip selected-target visibility")
+    require(render_js, 'dom.sessionStrip.dataset.sessionOwner = stripLiveOwned ? "selected-thread" : "none";', label="composer strip selected-thread owner dataset")
+    require(render_js, 'dom.sessionStrip.dataset.sessionPresentation = presentation;', label="composer strip presentation dataset")
     require(render_js, 'dom.sessionStrip.dataset.followState = footerFollow.visible ? footerFollow.followState : stripLiveOwned ? sessionStatus.followState || "live" : transportState.owned ? "owned" : "idle";', label="composer strip follow-state dataset")
     require(render_js, 'dom.sessionStrip.dataset.followCount = String(footerFollow.visible ? footerFollow.unseenCount : 0);', label="composer strip follow-count dataset")
     require(render_js, 'dom.sessionStrip.dataset.footerDockOwned = stripProgressOwned ? "true" : "false";', label="composer strip footer-dock ownership dataset")
     require(render_js, 'dom.sessionStrip.dataset.footerDockPhase = footerDock.phaseLabel || "IDLE";', label="composer strip footer-dock phase dataset")
     require(render_js, 'dom.sessionStrip.dataset.footerDockSource = footerDock.source || "none";', label="composer strip footer-dock source dataset")
     require(render_js, 'dom.sessionStrip.dataset.footerDockMilestones = footerDock.visible && footerDock.chips.length > 1 ? "true" : "false";', label="composer strip footer-dock milestone dataset")
-    require(render_js, 'dom.sessionStrip.dataset.composerTransportOwned = healthyComposerAuthority ? "false" : stripLiveOwned ? "true" : "false";', label="composer strip transport ownership dataset")
-    require(render_js, 'dom.sessionStripState.hidden = healthyComposerAuthority;', label="composer strip state hidden on healthy path")
-    require(render_js, 'dom.sessionStripState.dataset.sessionStripRole = healthyComposerAuthority ? "suppressed" : stripState.role;', label="composer strip state role dataset")
-    require(render_js, 'dom.sessionStripState.dataset.sessionStripLabel = healthyComposerAuthority ? "SUPPRESSED" : stripState.label;', label="composer strip state label dataset")
-    require(render_js, 'dom.sessionStripState.dataset.sessionStripTone = healthyComposerAuthority ? "muted" : stripState.tone;', label="composer strip state tone dataset")
-    require(render_js, 'dom.sessionStripMeta.hidden = healthyComposerAuthority;', label="footer strip target visibility")
-    require(render_js, 'dom.sessionStripMeta.textContent = healthyComposerAuthority ? "" : ownerState.target;', label="composer strip target copy")
+    require(render_js, 'dom.sessionStrip.dataset.composerTransportOwned = stripLiveOwned ? "true" : "false";', label="composer strip transport ownership dataset")
+    require(render_js, 'dom.sessionStripState.hidden = false;', label="composer strip state visible on healthy path")
+    require(render_js, 'dom.sessionStripState.dataset.sessionStripRole = stripState.role;', label="composer strip state role dataset")
+    require(render_js, 'dom.sessionStripState.dataset.sessionStripLabel = stripState.label;', label="composer strip state label dataset")
+    require(render_js, 'dom.sessionStripState.dataset.sessionStripTone = stripState.tone;', label="composer strip state tone dataset")
+    require(render_js, 'dom.sessionStripMeta.hidden = false;', label="footer strip target visibility")
+    require(render_js, 'dom.sessionStripMeta.textContent = ownerState.target;', label="composer strip target copy")
     require(render_js, 'label: "SWITCHING",', label="composer strip switching row")
     require(render_js, 'label: "TARGET",', label="composer strip context row")
     require(render_js, 'label: transportState.label,', label="composer strip degraded phase row")
     require(render_js, "chips: footerDock.chips,", label="composer strip footer-dock chip row")
-    require(render_js, 'dom.sessionStripState.innerHTML = healthyComposerAuthority ? "" : sessionStripStateChipMarkup(stripState.chips || stripState);', label="composer strip chip render")
-    require(render_js, 'dom.sessionStripDetail.hidden = healthyComposerAuthority;', label="footer strip detail visibility")
-    require(render_js, 'dom.sessionStripDetail.textContent = healthyComposerAuthority', label="composer strip footer-dock detail copy")
+    require(render_js, 'dom.sessionStripState.innerHTML = sessionStripStateChipMarkup(stripState.chips || stripState);', label="composer strip chip render")
+    require(render_js, 'dom.sessionStripDetail.hidden = false;', label="footer strip detail visibility")
+    require(render_js, 'dom.sessionStripDetail.textContent = footerDock.visible', label="composer strip footer-dock detail copy")
     require(render_js, '!handoffVisible && !degradedVisible && (!phaseProgression.visible || !liveAutonomy.visible)', label="transcript live activity unified visibility guard")
     require(render_js, "const { liveAutonomy, phaseProgression, milestoneModel } = sessionSurface;", label="transcript live activity shared session surface destructuring")
     require(render_js, 'const phaseLabel = degradedVisible', label="transcript live activity unified phase label")

@@ -437,8 +437,8 @@ function selectedThreadFooterDockModel(currentState, conversation, liveRun, foot
   const runStateLabel = compactPhaseDetailCopy(liveRun, "SESSION ACTIVE");
   const chips = liveOwned
     ? [
-        { label: String(authority.ownerLabel || "SSE OWNER").toUpperCase(), tone: "healthy", role: "live-owner" },
         { label: phaseLabel, tone: "neutral", role: "live-phase" },
+        { label: String(authority.ownerLabel || "SSE OWNER").toUpperCase(), tone: "healthy", role: "live-owner" },
         ...(proposalLabel ? [{ label: proposalLabel, tone: proposalLabel === "BLOCKED" ? "warning" : "neutral", role: "live-proposal" }] : []),
         footerFollow?.visible
           ? {
@@ -462,10 +462,10 @@ function selectedThreadFooterDockModel(currentState, conversation, liveRun, foot
     phaseLabel,
     chips,
     detail: footerFollow?.visible
-      ? footerFollow.detailLabel
+      ? joinSessionChromeTokens(phaseLabel, footerFollow.detailLabel)
       : proposalLabel
-        ? joinSessionChromeTokens(String(authority.ownerLabel || "SSE OWNER").toUpperCase(), proposalLabel, runStateLabel)
-        : joinSessionChromeTokens(String(authority.ownerLabel || "SSE OWNER").toUpperCase(), runStateLabel),
+        ? joinSessionChromeTokens(phaseLabel, proposalLabel, runStateLabel)
+        : joinSessionChromeTokens(phaseLabel, runStateLabel),
     source: String(authority.source || sessionSurface.milestoneModel.source || sessionSurface.source || "sse").toLowerCase(),
     liveOwned,
   };
@@ -2245,9 +2245,8 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const stripLiveOwned = Boolean(footerDock.visible);
   const healthyComposerAuthority =
     authority.state === "healthy" && stripLiveOwned && timelineAuthority.visible && timelineAuthority.presentation === "healthy";
-  const stripProgressOwned = stripLiveOwned && !healthyComposerAuthority;
-  const showHealthyStripFollowOnly = healthyComposerAuthority && footerFollow.visible;
-  if (!healthyComposerAuthority) {
+  const stripProgressOwned = stripLiveOwned;
+  if (!stripLiveOwned) {
     if (dom.composerUtilityMenu) {
       dom.composerUtilityMenu.dataset.composerUtilityOpen = "false";
       dom.composerUtilityMenu.dataset.composerUtilityState = "closed";
@@ -2265,17 +2264,11 @@ export function renderSessionStrip(dom, currentState, conversation) {
     }
   }
   const stripState = sessionStripStateRow(ownerState, transportState, liveRun, presentation, liveOwned, footerFollow, footerDock);
-  dom.sessionStrip.hidden = !sessionConversationId || (healthyComposerAuthority && !footerFollow.visible);
-  dom.sessionStrip.dataset.footerSurface = !sessionConversationId
-    ? "cleared"
-    : healthyComposerAuthority
-      ? showHealthyStripFollowOnly
-        ? "follow-only"
-        : "suppressed"
-      : "merged";
+  dom.sessionStrip.hidden = !sessionConversationId;
+  dom.sessionStrip.dataset.footerSurface = !sessionConversationId ? "cleared" : stripLiveOwned ? "dock" : "merged";
   dom.sessionStrip.dataset.liveOwned = stripProgressOwned ? "true" : "false";
-  dom.sessionStrip.dataset.sessionOwner = healthyComposerAuthority ? "none" : stripLiveOwned ? "selected-thread" : "none";
-  dom.sessionStrip.dataset.sessionPresentation = healthyComposerAuthority ? "suppressed" : presentation;
+  dom.sessionStrip.dataset.sessionOwner = stripLiveOwned ? "selected-thread" : "none";
+  dom.sessionStrip.dataset.sessionPresentation = presentation;
   dom.sessionStrip.dataset.sessionTerminal = liveRun.terminal ? "true" : "false";
   dom.sessionStrip.dataset.sessionCollapsed = shouldCollapse ? "true" : "false";
   dom.sessionStrip.dataset.streamState = status;
@@ -2304,33 +2297,31 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStrip.dataset.composerState = ownerState.state;
   dom.sessionStrip.dataset.composerTransport = transportState.key;
   dom.sessionStrip.dataset.composerTransportSource = transportState.source;
-  dom.sessionStrip.dataset.composerTransportOwned = healthyComposerAuthority ? "false" : stripLiveOwned ? "true" : "false";
+  dom.sessionStrip.dataset.composerTransportOwned = stripLiveOwned ? "true" : "false";
   dom.sessionStrip.dataset.composerTransportReason = transportState.reason;
   dom.sessionStrip.dataset.composerTargetConversationId = ownerState.conversationId;
   dom.sessionStrip.dataset.restoreStage = sessionStatus.restoreStage || "none";
   dom.sessionStrip.dataset.restorePath = sessionStatus.restorePath || "none";
   dom.sessionStrip.dataset.restoreProvenance = sessionStatus.restoreProvenance || "none";
-  dom.sessionStripState.hidden = healthyComposerAuthority;
-  dom.sessionStripState.dataset.sessionStripRole = healthyComposerAuthority ? "suppressed" : stripState.role;
-  dom.sessionStripState.dataset.sessionStripLabel = healthyComposerAuthority ? "SUPPRESSED" : stripState.label;
-  dom.sessionStripState.dataset.sessionStripTone = healthyComposerAuthority ? "muted" : stripState.tone;
-  dom.sessionStripState.innerHTML = healthyComposerAuthority ? "" : sessionStripStateChipMarkup(stripState.chips || stripState);
-  dom.sessionStripMeta.hidden = healthyComposerAuthority;
-  dom.sessionStripMeta.textContent = healthyComposerAuthority ? "" : ownerState.target;
-  dom.sessionStripDetail.hidden = healthyComposerAuthority;
-  dom.sessionStripDetail.textContent = healthyComposerAuthority
-    ? ""
-    : footerDock.visible
-      ? footerDock.detail
-      : sessionStripDetailCopy(
-          ownerState,
-          transportState,
-          sessionIndicator,
-          liveRun,
-          proposalState,
-          liveOwned,
-          footerFollow,
-        );
+  dom.sessionStripState.hidden = false;
+  dom.sessionStripState.dataset.sessionStripRole = stripState.role;
+  dom.sessionStripState.dataset.sessionStripLabel = stripState.label;
+  dom.sessionStripState.dataset.sessionStripTone = stripState.tone;
+  dom.sessionStripState.innerHTML = sessionStripStateChipMarkup(stripState.chips || stripState);
+  dom.sessionStripMeta.hidden = false;
+  dom.sessionStripMeta.textContent = ownerState.target;
+  dom.sessionStripDetail.hidden = false;
+  dom.sessionStripDetail.textContent = footerDock.visible
+    ? footerDock.detail
+    : sessionStripDetailCopy(
+        ownerState,
+        transportState,
+        sessionIndicator,
+        liveRun,
+        proposalState,
+        liveOwned,
+        footerFollow,
+      );
   if (dom.sessionStripToggle) {
     dom.sessionStripToggle.hidden = !footerFollow.visible;
     dom.sessionStripToggle.textContent = footerFollowActionLabel(footerFollow);
