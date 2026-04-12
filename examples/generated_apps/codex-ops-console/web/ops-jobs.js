@@ -89,10 +89,6 @@ export function createJobController(deps) {
           // Keep the last rendered conversation and let the job panel carry the visible error if needed.
         }
       }
-      if (selectedThreadPollingFallbackAllowed()) {
-        await refreshGoalSummary();
-      }
-
       if (!payload) {
         return;
       }
@@ -105,9 +101,6 @@ export function createJobController(deps) {
         stopPolling();
         if (state.currentConversationId && selectedThreadPollingFallbackAllowed(state.currentConversationId) && !isAppendStreamAuthoritative(state, state.currentConversationId)) {
           await fetchConversation(state.currentConversationId, { syncJob: false });
-        }
-        if (selectedThreadPollingFallbackAllowed()) {
-          await refreshGoalSummary();
         }
       }
     } catch (error) {

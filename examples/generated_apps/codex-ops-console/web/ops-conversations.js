@@ -226,6 +226,12 @@ export function createConversationController(deps) {
     if (!conversationId) {
       return true;
     }
+    if (
+      String(conversationId) === String(state.currentConversationId || "") ||
+      String(conversationId) === String(state.savedConversationId || "")
+    ) {
+      return false;
+    }
     if (isSelectedThreadSessionStatusAutonomyAuthoritative(conversationId)) {
       return false;
     }
@@ -1691,9 +1697,6 @@ export function createConversationController(deps) {
     renderConversation(dom, state, conversation, persistSettings);
     syncConversationCardState();
     syncAppendCursor(conversation);
-    if (shouldAllowGoalsPollingFallback({ conversationId: conversation.conversation_id })) {
-      await refreshGoalSummary({ conversationId: conversation.conversation_id });
-    }
     restoreDraft();
     syncDraftStatus();
 

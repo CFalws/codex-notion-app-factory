@@ -527,7 +527,7 @@ export function deriveSelectedThreadLiveAutonomy(currentState, conversation = nu
   const sessionStatusSummary =
     sessionStatusPayload && typeof sessionStatusPayload === "object"
       ? {
-          goalTitle: String(autonomySummary?.goalTitle || "Autonomy Goal"),
+          goalTitle: String(sessionStatusPayload?.goalTitle || autonomySummary?.goalTitle || "Autonomy Goal"),
           goalStatus:
             String(autonomySummary?.goalStatus || "").trim() ||
             (proposalStatus
@@ -552,21 +552,22 @@ export function deriveSelectedThreadLiveAutonomy(currentState, conversation = nu
               ? autonomySummary.degradedSignals
               : [],
           heading:
-            String(autonomySummary?.goalTitle || "Autonomy Goal").trim() +
-            " · " +
-            (
-              String(autonomySummary?.goalStatus || "").trim() ||
-              (proposalStatus || "running")
-            ) +
-            " · iteration " +
-            String(autonomySummary?.iteration || "unknown"),
+            String(sessionStatusPayload?.heading || "").trim() ||
+            String(sessionStatusPayload?.goalTitle || autonomySummary?.goalTitle || "Autonomy Goal").trim() +
+              " · " +
+              (
+                String(sessionStatusPayload?.goalStatus || autonomySummary?.goalStatus || "").trim() ||
+                (proposalStatus || "running")
+              ) +
+              " · iteration " +
+              String(sessionStatusPayload?.iteration || autonomySummary?.iteration || "unknown"),
           source: "session-status",
           generatedAt: String(sessionStatusPayload?.createdAt || autonomySummary?.generatedAt || ""),
           freshnessState: sessionStatus.liveOwned ? "fresh" : "stale-or-missing",
           fallbackAllowed: !sessionStatus.liveOwned,
         }
       : null;
-  const canonicalAutonomySummary = sessionStatus.liveOwned && sessionStatusSummary ? sessionStatusSummary : autonomySummary;
+  const canonicalAutonomySummary = sessionStatusSummary || autonomySummary;
   if (sessionStatus.presentation === "restore") {
     return {
       visible: true,
