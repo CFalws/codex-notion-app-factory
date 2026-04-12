@@ -1,10 +1,10 @@
 # Factory Runtime Tasks
 
-## Iteration 230
+## Iteration 231
 
-- [x] Keep the change bounded to the existing selected-thread append SSE ownership path and matching proposal artifacts.
-- [x] Reuse `appendStream.sessionStatus`, canonical selected-thread session-status derivation, and current render boundaries instead of adding new runtime behavior.
-- [x] Keep the transcript-centered session surface as the only healthy live-owned authority for phase and proposal progression.
-- [x] Prevent healthy `/api/jobs/{id}` and `/api/apps/{appId}/goals` polling reads from becoming visible owners in the selected-thread workspace.
-- [x] Preserve reconnect and polling downgrade as explicit degraded fallback that clears live ownership immediately.
-- [x] Align static checks, browser checks, and proposal artifacts with the selected-thread session-status authority contract.
+- [x] Keep the change bounded to the existing selected-thread append SSE ownership path, current render boundaries, and matching proposal artifacts.
+- [x] Reuse the inline session block, handoff state, selected-thread session-status helper, and existing mirror datasets instead of adding new runtime behavior.
+- [x] Keep the transcript-tail session block as the only healthy live-owned surface for handoff and live autonomy progression.
+- [x] Keep the bottom-fixed composer mounted and chat-first without letting it become a second status surface.
+- [x] Demote header and rail mirrors to compact passive cues while preserving explicit degraded fallback that clears canonical live ownership immediately.
+- [x] Align static checks, browser checks, and proposal artifacts with the unified transcript-tail session-block contract.
