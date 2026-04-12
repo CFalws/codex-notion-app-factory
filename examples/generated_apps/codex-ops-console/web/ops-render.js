@@ -569,11 +569,11 @@ function composerOwnerState(currentState, conversation) {
   if (authority.state === "healthy" && sessionStatus.conversationId) {
     return {
       state: "ready",
-      label: String(authority.phaseLabel || "LIVE").toUpperCase(),
+      label: "READY",
       tone: "healthy",
       conversationId: sessionStatus.conversationId,
       target: compactTargetLabel(sessionStatus.conversationTitle, "CURRENT THREAD"),
-      copy: "OWNER",
+      copy: "SSE OWNER",
       blocked: false,
       blockedReason: "",
     };
@@ -596,12 +596,11 @@ function syncComposerOwnership(dom, currentState, conversation) {
     return;
   }
   const owner = composerOwnerState(currentState, conversation);
-  const authority = deriveSelectedThreadSessionAuthorityModel(currentState, conversation);
   dom.composerOwnerRow.dataset.composerOwner = owner.state;
   dom.composerOwnerRow.dataset.composerOwnerConversationId = owner.conversationId;
   dom.composerOwnerRow.dataset.composerRestoreStage = "none";
-  dom.composerOwnerRow.dataset.composerOwnerMerged = authority.state === "healthy" ? "true" : "false";
-  dom.composerOwnerRow.hidden = owner.state === "idle" || authority.state === "healthy";
+  dom.composerOwnerRow.dataset.composerOwnerMerged = "false";
+  dom.composerOwnerRow.hidden = owner.state === "idle";
   dom.composerOwnerState.textContent = owner.label;
   dom.composerOwnerState.dataset.ownerTone = owner.tone;
   dom.composerOwnerTarget.textContent = owner.target;

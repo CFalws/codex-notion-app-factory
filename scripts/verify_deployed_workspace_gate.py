@@ -671,13 +671,17 @@ def assert_browser_runtime_surface(
                     composerUtilityCluster.dataset.composerUtilityState === "closed" &&
                     composerUtilityCluster.getAttribute("aria-hidden") === "true" &&
                     composerOwnerRow &&
-                    composerOwnerRow.hidden &&
-                    composerOwnerRow.dataset.composerOwnerMerged === "true" &&
+                    !composerOwnerRow.hidden &&
+                    composerOwnerRow.dataset.composerOwnerMerged === "false" &&
                     composerOwnerRow.dataset.composerOwner === "ready" &&
+                    composerOwnerRow.dataset.composerOwnerConversationId === conversationId &&
+                    composerOwnerRow.textContent.includes("READY") &&
+                    composerOwnerRow.textContent.includes("SSE OWNER") &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     sendRequest &&
-                    sendRequest.dataset.composerOwnerState &&
+                    sendRequest.dataset.composerOwnerState === "ready" &&
+                    sendRequest.dataset.composerOwnerConversationId === conversationId &&
                     secondaryPanelToggle &&
                     secondaryPanelToggle.getAttribute("aria-expanded") === "false" &&
                     document.body.dataset.secondaryPanelOpen !== "true" &&
@@ -865,6 +869,9 @@ def assert_browser_runtime_surface(
                     threadPhase &&
                     threadPhase.hidden &&
                     composerOwnerRow &&
+                    !composerOwnerRow.hidden &&
+                    ["resume", "attach"].includes(composerOwnerRow.dataset.composerOwner || "") &&
+                    composerOwnerRow.dataset.composerOwnerConversationId === conversationId &&
                     composerOwnerRow.dataset.composerRestoreStage === "none" &&
                     transition &&
                     transition.dataset.threadTransitionCompact === "true" &&
@@ -957,6 +964,12 @@ def assert_browser_runtime_surface(
                     activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
                     activeSessionRow.dataset.activeSessionSource === "none" &&
+                    composerOwnerRow &&
+                    !composerOwnerRow.hidden &&
+                    composerOwnerRow.dataset.composerOwnerMerged === "false" &&
+                    ["reconnect", "polling"].includes(composerOwnerRow.dataset.composerOwner || "") &&
+                    composerOwnerRow.dataset.composerOwnerConversationId === conversationId &&
+                    !composerOwnerRow.textContent.includes("READY") &&
                     !sessionStrip.hidden &&
                     stripChips.length === 1 &&
                     sessionStripState.dataset.sessionStripRole === "degraded" &&
