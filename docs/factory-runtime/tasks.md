@@ -1,10 +1,10 @@
 # Factory Runtime Tasks
 
-## Iteration 227
+## Iteration 228
 
-- [x] Keep the change bounded to the deployed workspace gate and matching proposal artifacts.
-- [x] Reuse the current append SSE stream, session-status datasets, and passive mirrored-surface contract instead of adding new runtime behavior.
-- [x] Prove that the center timeline is the only healthy live-owned owner while the composer-adjacent strip stays passive with `sse` phase provenance.
-- [x] Prove that job and goals polling do not become visible owners on the healthy selected-thread path.
-- [x] Keep session rotation rejection and degraded-path stale-owner clearing explicit in the deployed gate.
-- [x] Align static checks, browser checks, and proposal artifacts with the deployed single-authority contract.
+- [x] Keep the change bounded to the selected-thread switch path and matching proposal artifacts.
+- [x] Reuse the current thread-transition placeholder, mounted composer shell, and ownership-clearing datasets instead of adding new runtime behavior.
+- [x] Preserve the center conversation shell and bottom-fixed composer through intentional switches.
+- [x] Clear prior thread live, phase, proposal, and follow ownership immediately at switch start.
+- [x] Keep exactly one compact transition placeholder visible until the target snapshot attaches, with no generic empty-state flash.
+- [x] Align static checks, browser checks, and proposal artifacts with the selected-thread switch continuity contract.

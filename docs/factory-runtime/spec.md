@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `227`
-- bounded focus: `prove one authoritative selected-thread SSE session source in deployed verification`
+- current iteration: `228`
+- bounded focus: `preserve one continuous workspace during intentional selected-thread switches`
 
 ## Request
 
@@ -13,22 +13,23 @@
 
 ## Problem
 
-Healthy selected-thread ownership, explicit autonomy milestones, strict rail mirroring, switch continuity, handoff continuity, restore continuity, and the selected-thread session-stream contract are already present locally. The remaining bounded gap is deployed proof: the workspace gate still needs to fail for exactly one reason when the healthy selected-thread SSE path loses sole authority, polling takes over visibly, or stale ownership revives after downgrade.
+Healthy selected-thread ownership, explicit autonomy milestones, strict rail mirroring, handoff continuity, restore continuity, the selected-thread session-stream contract, and deployed single-authority proof are already present. The remaining bounded gap is durable switch continuity: intentional selected-thread changes must keep one mounted workspace surface, clear old-thread ownership immediately, and avoid any empty-state or duplicate-owner flash while the next snapshot attaches.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly realtime workspace and expecting deployed verification to prove that one selected-thread SSE session remains the sole healthy live authority without hidden polling takeover or stale-state revival.
+The primary user is the operator or developer using the phone-friendly realtime workspace and expecting thread changes to feel like one continuous Codex-style session surface instead of a reset, stall, or ambiguous empty workspace.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the iteration bounded to deployed selected-thread session-authority verification.
-- Reuse the current append SSE stream, session-status datasets, and passive mirrored-surface contract; do not broaden transport, UI layout, or store logic.
-- Verify that the center timeline and composer-adjacent phase strip stay attributable to the same selected-thread SSE provenance on the healthy path.
-- Fail when polling or goal refresh becomes the visible owner on the healthy path.
-- Fail when session rotation occurs or when stale live-owned state revives after reconnect or offline downgrade.
+- Keep the iteration bounded to the selected-thread switch path in the conversation-first workspace.
+- Reuse the current thread-transition placeholder, selected-thread ownership datasets, and mounted composer shell; do not broaden transport, store logic, or multi-surface ownership rules.
+- Keep the center conversation shell and bottom-fixed composer mounted through the full switch path.
+- Clear prior thread live, phase, proposal, and follow ownership immediately when switching starts.
+- Show exactly one compact selected-thread transition placeholder until the target snapshot attaches.
+- Keep reconnect, polling fallback, deselection, restore, and terminal behavior on the current fail-open path.
 
 ## Deliverable
 
-Expose one deployed verification contract where the healthy selected-thread SSE session is the sole live authority, mirrored surfaces stay passive, polling remains fallback-only, and authority loss cannot revive stale live-owned state.
+Expose one conversation-first selected-thread workspace where intentional thread switches preserve the mounted shell and composer, clear old-thread ownership immediately, and show only one compact transition placeholder before the new snapshot attaches.
