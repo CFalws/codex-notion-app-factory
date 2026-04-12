@@ -818,6 +818,9 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.footerDockMilestones === "true" &&
                     sessionStrip.dataset.footerDockPhase === inlineBlock.dataset.liveBlockPhase &&
                     sessionStrip.dataset.footerDockSource === "sse" &&
+                    sessionStrip.dataset.footerDockPathVerdict === inlineBlock.dataset.liveBlockPathVerdict &&
+                    sessionStrip.dataset.footerDockVerifier === inlineBlock.dataset.liveBlockVerifierAcceptability &&
+                    sessionStrip.dataset.footerDockBlocker === inlineBlock.dataset.liveBlockBlockerReason &&
                     sessionStrip.dataset.composerTransport === "sse-owner" &&
                     sessionStrip.dataset.composerTransportOwned === "true" &&
                     /^REVIEW \\d+\\/2$/.test(sessionStrip.dataset.reviewQuorum || "") &&
@@ -828,6 +831,9 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.reviewQuorum === threadScroller.dataset.reviewQuorum &&
                     sessionStrip.dataset.verifyQuorum === threadScroller.dataset.verifyQuorum &&
                     sessionStrip.dataset.readyState === threadScroller.dataset.readyState &&
+                    sessionStrip.dataset.footerDockPathVerdict === threadScroller.dataset.pathVerdict &&
+                    sessionStrip.dataset.footerDockVerifier === threadScroller.dataset.verifierAcceptability &&
+                    sessionStrip.dataset.footerDockBlocker === threadScroller.dataset.blockerReason &&
                     sessionStrip.dataset.phaseValue === inlineBlock.dataset.liveBlockPhase &&
                     inlineBlock.dataset.liveBlockReviewQuorum === sessionStrip.dataset.reviewQuorum &&
                     inlineBlock.dataset.liveBlockVerifyQuorum === sessionStrip.dataset.verifyQuorum &&
@@ -841,6 +847,9 @@ def assert_browser_runtime_surface(
                     sessionStripState.dataset.sessionStripLabel === inlineBlock.dataset.liveBlockPhase &&
                     sessionStripState.textContent.includes(inlineBlock.dataset.liveBlockPhase || "") &&
                     sessionStripState.textContent.includes("SSE OWNER") &&
+                    sessionStripState.textContent.includes(inlineBlock.dataset.liveBlockPathVerdict || "") &&
+                    sessionStripState.textContent.includes(inlineBlock.dataset.liveBlockVerifierAcceptability || "") &&
+                    sessionStripState.textContent.includes(`BLOCKER ${inlineBlock.dataset.liveBlockBlockerReason || ""}`) &&
                     !sessionStripState.textContent.includes("HYPOTHESIS") &&
                     !sessionStripState.textContent.includes("REVIEW SIGNAL") &&
                     !sessionStripState.textContent.includes("VERIFY SIGNAL") &&
@@ -852,6 +861,9 @@ def assert_browser_runtime_surface(
                     sessionStripDetail &&
                     !sessionStripDetail.hidden &&
                     sessionStripDetail.textContent.includes(inlineBlock.dataset.liveBlockPhase || "") &&
+                    sessionStripDetail.textContent.includes(inlineBlock.dataset.liveBlockPathVerdict || "") &&
+                    sessionStripDetail.textContent.includes(inlineBlock.dataset.liveBlockVerifierAcceptability || "") &&
+                    sessionStripDetail.textContent.includes(`BLOCKER ${inlineBlock.dataset.liveBlockBlockerReason || ""}`) &&
                     !sessionStripDetail.textContent.includes("HYPOTHESIS") &&
                     !sessionStripDetail.textContent.includes("REVIEW SIGNAL") &&
                     !sessionStripDetail.textContent.includes("VERIFY SIGNAL") &&
@@ -1041,6 +1053,9 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.selectedSessionTransport === "POLLING" &&
                     sessionStrip.dataset.selectedSessionReason === "append-frame-parse-failed" &&
                     sessionStrip.dataset.selectedSessionPhase === "POLLING" &&
+                    sessionStrip.dataset.footerDockPathVerdict === "" &&
+                    sessionStrip.dataset.footerDockVerifier === "" &&
+                    sessionStrip.dataset.footerDockBlocker === "" &&
                     sessionStrip.dataset.reviewQuorum === "" &&
                     sessionStrip.dataset.verifyQuorum === "" &&
                     sessionStrip.dataset.readyState === "" &&
@@ -1067,6 +1082,9 @@ def assert_browser_runtime_surface(
                     threadScroller.dataset.selectedSessionOwned === "false" &&
                     threadScroller.dataset.selectedSessionTransport === "POLLING" &&
                     threadScroller.dataset.selectedSessionReason === "append-frame-parse-failed" &&
+                    threadScroller.dataset.pathVerdict === "" &&
+                    threadScroller.dataset.verifierAcceptability === "" &&
+                    threadScroller.dataset.blockerReason === "" &&
                     threadScroller.dataset.reviewQuorum === "" &&
                     threadScroller.dataset.verifyQuorum === "" &&
                     threadScroller.dataset.readyState === "" &&

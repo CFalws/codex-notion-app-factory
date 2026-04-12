@@ -449,10 +449,20 @@ function selectedThreadFooterDockModel(currentState, conversation, liveRun, foot
   const runStateLabel = compactPhaseDetailCopy(liveRun, "SESSION ACTIVE");
   const dockStateLabel =
     runStateLabel && runStateLabel !== phaseLabel && runStateLabel !== proposalLabel ? runStateLabel : "";
+  const pathVerdictLabel = liveOwned ? String(sessionSurface.pathVerdictLabel || "") : "";
+  const verifierAcceptabilityLabel = liveOwned ? String(sessionSurface.verifierAcceptabilityLabel || "") : "";
+  const blockerReasonLabel = liveOwned ? String(sessionSurface.blockerReasonLabel || "") : "";
   const chips = liveOwned
     ? [
         { label: phaseLabel, tone: "neutral", role: "live-phase" },
         { label: String(authority.ownerLabel || "SSE OWNER").toUpperCase(), tone: "healthy", role: "live-owner" },
+        ...(pathVerdictLabel ? [{ label: pathVerdictLabel, tone: autonomyChipTone(pathVerdictLabel), role: "live-path-verdict" }] : []),
+        ...(verifierAcceptabilityLabel
+          ? [{ label: verifierAcceptabilityLabel, tone: autonomyChipTone(verifierAcceptabilityLabel), role: "live-verifier" }]
+          : []),
+        ...(blockerReasonLabel
+          ? [{ label: `BLOCKER ${blockerReasonLabel}`, tone: blockerTone(String(blockerReasonLabel || "").toLowerCase()), role: "live-blocker" }]
+          : []),
         ...(quorumModel.reviewLabel ? [{ label: quorumModel.reviewLabel, tone: "neutral", role: "live-review-quorum" }] : []),
         ...(quorumModel.verifyLabel ? [{ label: quorumModel.verifyLabel, tone: "neutral", role: "live-verify-quorum" }] : []),
         ...(quorumModel.readyLabel ? [{ label: quorumModel.readyLabel, tone: "healthy", role: "live-ready" }] : []),
@@ -492,6 +502,9 @@ function selectedThreadFooterDockModel(currentState, conversation, liveRun, foot
         : quorumModel.visible
           ? joinSessionChromeTokens(
               phaseLabel,
+              ...(pathVerdictLabel ? [pathVerdictLabel] : []),
+              ...(verifierAcceptabilityLabel ? [verifierAcceptabilityLabel] : []),
+              ...(blockerReasonLabel ? [`BLOCKER ${blockerReasonLabel}`] : []),
               ...(quorumModel.reviewLabel ? [quorumModel.reviewLabel] : []),
               ...(quorumModel.verifyLabel ? [quorumModel.verifyLabel] : []),
               ...(quorumModel.readyLabel ? [quorumModel.readyLabel] : []),
@@ -507,6 +520,9 @@ function selectedThreadFooterDockModel(currentState, conversation, liveRun, foot
     source: String(authority.source || sessionSurface.milestoneModel.source || sessionSurface.source || "sse").toLowerCase(),
     liveOwned,
     milestoneVisible: liveOwned && chips.length > 1,
+    pathVerdictLabel,
+    verifierAcceptabilityLabel,
+    blockerReasonLabel,
     reviewQuorumLabel: liveOwned ? String(quorumModel.reviewLabel || "") : "",
     verifyQuorumLabel: liveOwned ? String(quorumModel.verifyLabel || "") : "",
     readyLabel: liveOwned ? String(quorumModel.readyLabel || "") : "",
@@ -2389,6 +2405,9 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStrip.dataset.footerDockPhase = footerDock.phaseLabel || "IDLE";
   dom.sessionStrip.dataset.footerDockSource = footerDock.source || "none";
   dom.sessionStrip.dataset.footerDockMilestones = footerDock.milestoneVisible ? "true" : "false";
+  dom.sessionStrip.dataset.footerDockPathVerdict = stripLiveOwned ? footerDock.pathVerdictLabel || "" : "";
+  dom.sessionStrip.dataset.footerDockVerifier = stripLiveOwned ? footerDock.verifierAcceptabilityLabel || "" : "";
+  dom.sessionStrip.dataset.footerDockBlocker = stripLiveOwned ? footerDock.blockerReasonLabel || "" : "";
   dom.sessionStrip.dataset.reviewQuorum = stripLiveOwned ? footerDock.reviewQuorumLabel || "" : "";
   dom.sessionStrip.dataset.verifyQuorum = stripLiveOwned ? footerDock.verifyQuorumLabel || "" : "";
   dom.sessionStrip.dataset.readyState = stripLiveOwned ? footerDock.readyLabel || "" : "";
@@ -2475,6 +2494,9 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.threadScroller.dataset.reviewQuorum = stripLiveOwned ? footerDock.reviewQuorumLabel || "" : "";
   dom.threadScroller.dataset.verifyQuorum = stripLiveOwned ? footerDock.verifyQuorumLabel || "" : "";
   dom.threadScroller.dataset.readyState = stripLiveOwned ? footerDock.readyLabel || "" : "";
+  dom.threadScroller.dataset.pathVerdict = stripLiveOwned ? footerDock.pathVerdictLabel || "" : "";
+  dom.threadScroller.dataset.verifierAcceptability = stripLiveOwned ? footerDock.verifierAcceptabilityLabel || "" : "";
+  dom.threadScroller.dataset.blockerReason = stripLiveOwned ? footerDock.blockerReasonLabel || "" : "";
   dom.threadScroller.dataset.sessionCollapsed = shouldCollapse ? "true" : "false";
   dom.threadScroller.dataset.restoreStage = sessionStatus.restoreStage || "none";
   dom.threadScroller.dataset.restorePath = sessionStatus.restorePath || "none";
