@@ -1,17 +1,17 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 283
+## Iteration 286
 
-Bind the bottom-fixed composer target row to the canonical selected-thread authority model so that the composer surface converges on the same ownership contract as the timeline, footer dock, rail, and polling suppression.
+Stabilize the bottom-fixed composer shell so live selected-thread status changes mutate inside one bounded inline region without shifting the textarea-first input layout.
 
-1. Keep the change bounded to composer target-row derivation, browser verification, and proposal artifacts.
-2. Preserve the existing selected-thread `session_status` plus append SSE authority path unchanged.
-3. Reuse the canonical selected-thread authority helpers instead of adding a new composer status source.
-4. Derive the composer target row only from the canonical selected-thread authority model so it can expose `READY`, `SWITCHING`, or `HANDOFF` for the currently selected thread only.
-5. Clear stale old-thread composer ownership immediately on intentional switch, restore, reconnect downgrade, or polling fallback instead of letting those paths keep a merged live-owner row.
-6. Preserve the existing session strip behavior and provisional continuity path unchanged before authoritative bootstrap.
-7. Extend static and deployed verification so the composer row never re-enters healthy ownership from polling, degraded recovery, or stale thread data.
-8. Update proposal artifacts to record the narrowed composer-owner contract.
+1. Keep the change bounded to bottom-fixed composer presentation, verification, and proposal artifacts.
+2. Preserve the existing selected-thread transport and authority contract unchanged.
+3. Keep the composer textarea as the dominant control and send as the primary action.
+4. Constrain the existing inline session strip to one stable height and one bounded text flow so status chips mutate in place instead of reflowing the shell.
+5. Preserve current restore, switching, handoff, and degraded semantics without introducing a second status surface.
+6. Add narrow browser-verifiable continuity checks around the stable composer shell and session strip sizing.
+7. Keep mobile behavior intact by allowing the strip to relax back into a stacked layout only at the narrow breakpoint.
+8. Update proposal artifacts to record the composer continuity contract.
 Iteration 245 does not widen runtime or UI ownership. It records that the selected-thread center header already exposes the canonical ownership chip beside the session summary and that deployed verification already attributes healthy visibility to that selected-thread SSE-owned signal rather than to polling or side-panel inference.
 Iteration 248 keeps transport and header ownership unchanged and restores the same selected-thread certainty directly at the input surface by keeping the composer owner row visible for healthy, handoff, switching, and restore states while preserving explicit degraded or idle clearing.
 Iteration 249 does not widen runtime or UI ownership because the selected-thread rail mirror is already correct in this branch: the sticky active-session row is canonical on the healthy selected-thread SSE path, non-selected rows remain snapshot-only, and the deployed gate already attributes that rail marker to the intended selected-thread authority source.
@@ -31,3 +31,4 @@ Iteration 273 does not widen runtime or transport behavior because selected-thre
 Iteration 274 keeps transport and ownership unchanged and narrows only the remaining healthy duplicate chrome boundary: the healthy header session summary is now suppressed whenever the center timeline is already the authoritative selected-thread session surface, while restore and degraded paths still keep explicit top-level status visibility.
 Iteration 282 keeps transport and provisional continuity unchanged and narrows only the final ownership-promotion boundary: once the selected thread is truly healthy, every selected-thread surface now derives healthy ownership from one shared store invariant instead of separately recomputing that promotion in multiple helpers.
 Iteration 283 keeps transport and healthy promotion unchanged and narrows only the composer target-row boundary: the bottom-fixed composer now reflects the same canonical selected-thread authority as the other session surfaces and clears instead of surfacing stale restore or degraded ownership.
+Iteration 286 keeps transport and ownership unchanged and narrows only the composer ergonomics boundary: the bottom-fixed composer now retains one stable shell and one bounded inline status region so live updates and terminal resolution do not reframe the input surface.

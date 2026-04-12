@@ -1070,13 +1070,14 @@ body[data-secondary-panel-open="true"] .desktop-shell {
 
 .session-strip {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: flex-start;
   gap: 0.55rem;
   width: 100%;
   margin: 0;
   padding: 0.66rem 0.8rem;
+  min-height: 4.75rem;
   border: 1px solid var(--line);
   border-radius: 1rem;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 243, 237, 0.9));
@@ -1118,8 +1119,10 @@ body[data-secondary-panel-open="true"] .desktop-shell {
 
 .session-strip-state {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.4rem;
+  flex: 0 0 auto;
+  min-width: max-content;
 }
 
 .session-chip {
@@ -1173,6 +1176,10 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   display: inline-flex;
   align-items: center;
   min-height: 2rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   padding: 0.24rem 0.5rem;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.72);
@@ -1185,6 +1192,7 @@ body[data-secondary-panel-open="true"] .desktop-shell {
 
 .session-strip-detail {
   font-weight: 600;
+  flex: 1 1 14rem;
 }
 
 .session-strip[data-live-owned="true"] .session-strip-meta {
@@ -1391,8 +1399,10 @@ body[data-secondary-panel-open="true"] .desktop-shell {
 .composer-shell {
   display: grid;
   gap: 0.8rem;
+  grid-template-rows: minmax(4.75rem, auto) auto minmax(4.1rem, auto) auto;
   width: min(100%, 54rem);
   margin: 0 auto;
+  min-height: 15rem;
   padding: 0.95rem 1rem;
   border: 1px solid var(--line);
   border-radius: 1rem;
@@ -1405,7 +1415,11 @@ body[data-secondary-panel-open="true"] .desktop-shell {
 }
 
 .session-strip-draft {
+  flex: 0 1 13rem;
   font-size: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .composer-owner-row {
@@ -1484,12 +1498,16 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   gap: 0.85rem;
 }
 
+.composer-toolbar {
+  min-height: 1.9rem;
+}
+
 .composer-field {
   margin: 0;
 }
 
 .composer-field textarea {
-  min-height: 3.8rem;
+  min-height: 4.1rem;
   max-height: 9rem;
 }
 
@@ -1509,6 +1527,7 @@ body[data-secondary-panel-open="true"] .desktop-shell {
 
 .composer-footer {
   align-items: flex-end;
+  min-height: 2.9rem;
 }
 
 .composer-utility-menu {
@@ -1984,6 +2003,7 @@ body[data-secondary-panel-open="true"] .secondary-panel {
 
   .composer-shell {
     width: 100%;
+    min-height: 14rem;
   }
 
   .secondary-panel,
@@ -2025,8 +2045,10 @@ body[data-secondary-panel-open="true"] .secondary-panel {
   }
 
   .session-strip {
+    min-height: 0;
     flex-direction: column;
     align-items: stretch;
+    flex-wrap: wrap;
   }
 
   .composer-owner-row {
@@ -2041,6 +2063,11 @@ body[data-secondary-panel-open="true"] .secondary-panel {
   .composer-footer,
   .section-head {
     display: grid;
+  }
+
+  .composer-shell {
+    grid-template-rows: auto auto minmax(4.1rem, auto) auto;
+    min-height: 0;
   }
 
   .composer-utility-menu,

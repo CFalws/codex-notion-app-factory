@@ -657,6 +657,8 @@ def assert_browser_runtime_surface(
                     sessionStripDetail &&
                     !sessionStripDetail.hidden &&
                     sessionStripDetail.textContent.includes(inlineBlock.dataset.liveBlockPhase || "") &&
+                    parseFloat(getComputedStyle(sessionStrip).minHeight || "0") >= 70 &&
+                    getComputedStyle(sessionStrip).flexWrap === "nowrap" &&
                     composerUtilityMenu &&
                     composerUtilityMenu.dataset.composerUtilityOpen === "false" &&
                     composerUtilityMenu.dataset.composerUtilityState === "closed" &&
@@ -678,6 +680,10 @@ def assert_browser_runtime_surface(
                     composerOwnerRow.textContent.includes("SSE OWNER") &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
+                    document.querySelector('.composer-shell[data-composer-shell="stable-session-dock"]') &&
+                    parseFloat(getComputedStyle(document.querySelector('.composer-shell[data-composer-shell="stable-session-dock"]')).minHeight || "0") >= 200 &&
+                    document.querySelector("#request-text") &&
+                    parseFloat(getComputedStyle(document.querySelector("#request-text")).minHeight || "0") >= 60 &&
                     sendRequest &&
                     sendRequest.dataset.composerOwnerState === "ready" &&
                     sendRequest.dataset.composerOwnerConversationId === conversationId &&
@@ -1354,6 +1360,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require_absent(html, 'id="session-summary-state"', label="removed session summary state")
     require(html, 'id="conversation-footer-dock"', label="footer dock")
     require(html, 'id="session-strip"', label="session strip")
+    require(html, 'data-composer-shell="stable-session-dock"', label="stable composer shell DOM")
     require(html, 'id="composer-owner-row"', label="composer owner row")
     require(html, 'id="composer-owner-state"', label="composer owner state")
     require(html, 'id="composer-owner-target"', label="composer owner target")
@@ -1413,6 +1420,10 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(styles, '.session-strip[data-stream-state="reconnecting"]', label="reconnecting session strip CSS")
     require(styles, '.session-strip[data-stream-state="offline"]', label="offline session strip CSS")
     require(styles, '.session-strip[data-stream-state="connecting"]', label="connecting session strip CSS")
+    require(styles, "min-height: 4.75rem;", label="stable session strip minimum height")
+    require(styles, "flex-wrap: nowrap;", label="stable session strip no-wrap layout")
+    require(styles, 'grid-template-rows: minmax(4.75rem, auto) auto minmax(4.1rem, auto) auto;', label="stable composer shell row layout")
+    require(styles, "min-height: 15rem;", label="stable composer shell minimum height")
 
     require(render_js, "renderSessionSummary", label="session summary helper")
     require(render_js, "selectedThreadLiveSessionIndicator", label="session live indicator helper")

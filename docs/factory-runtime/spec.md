@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `283`
-- bounded focus: `bind the composer target row to canonical selected-thread authority so it only exposes READY, SWITCHING, or HANDOFF`
+- current iteration: `286`
+- bounded focus: `keep the bottom-fixed composer as one invariant selected-thread session dock during live updates`
 
 ## Request
 
@@ -13,7 +13,7 @@
 
 ## Problem
 
-Healthy selected-thread ownership, explicit autonomy milestones, strict rail mirroring, the selected-thread session-stream contract, deployed single-authority proof, the selected-thread handoff path, streamed autonomy identity, merged footer session-composer status, explicit attach authority, restore continuity, switch continuity, one-owner healthy timeline rendering, preserved transitional transcript continuity, phase-led footer dock presentation, and healthy-path authority gating are already present. The bounded question for this iteration is the remaining composer inference seam: whether the bottom-fixed composer target row can still surface stale old-thread or degraded ownership instead of following the same canonical selected-thread authority model as the rest of the session surfaces.
+Healthy selected-thread ownership, explicit autonomy milestones, strict rail mirroring, the selected-thread session-stream contract, deployed single-authority proof, the selected-thread handoff path, streamed autonomy identity, merged footer session-composer status, explicit attach authority, restore continuity, switch continuity, one-owner healthy timeline rendering, preserved transitional transcript continuity, phase-led footer dock presentation, and healthy-path authority gating are already present. The bounded question for this iteration is composer continuity at the exact input surface: whether live status and proposal cues can keep mutating in place for the selected thread without shifting, detaching, or reframing the bottom-fixed composer shell.
 
 ## Target User
 
@@ -30,7 +30,7 @@ The primary user is the operator or developer using the phone-friendly realtime 
 
 ## Deliverable
 
-Keep selected-thread attach or resume on one canonical provisional session lane as soon as the intended EventSource is open. During that bootstrap window, the center timeline and composer-adjacent footer dock stay mounted with only ATTACH or RESUME plus one carried-forward phase chip, and healthy ownership remains withheld until the selected-thread store models agree on the same conversation in authoritative `sse-live` state. For iteration 283 specifically, bind the bottom composer target row to that same canonical authority so it can show only `READY`, `SWITCHING`, or `HANDOFF`, clear stale old-thread ownership immediately on switch, and stay idle instead of claiming restore or degraded ownership from non-canonical state.
+Keep selected-thread attach or resume on one canonical provisional session lane as soon as the intended EventSource is open. During that bootstrap window, the center timeline and composer-adjacent footer dock stay mounted with only ATTACH or RESUME plus one carried-forward phase chip, and healthy ownership remains withheld until the selected-thread store models agree on the same conversation in authoritative `sse-live` state. For iteration 286 specifically, keep the bottom-fixed composer shell stable for an already-selected thread by reserving one bounded inline status region, preserving textarea-first layout, and letting live status or proposal cues mutate in place without creating a second status strip or a layout jump.
 Iteration 245: the dominant selected-thread header summary is already the machine-readable live-session ownership signal, carrying owner, path, and phase from canonical session_status plus SSE authority while degrading or clearing immediately on reconnect, polling fallback, switch, or idle completion.
 Iteration 248: the bottom-fixed composer keeps a visible selected-thread target row during healthy and transition states, rendering `READY`, `SWITCHING`, or `HANDOFF` from canonical selected-thread session authority and downgrading or clearing immediately on reconnect, polling fallback, switch, or idle resolution.
 Iteration 249: the left-rail active-session row is already the canonical mirror of the currently selected healthy SSE-owned session, exposing owned and canonical cues only for the selected thread and clearing or downgrading immediately on reconnect, polling fallback, idle, terminal, or switch paths.
@@ -50,3 +50,4 @@ Iteration 273: selected-thread `sessionStatus` plus append SSE already remain th
 Iteration 274: healthy selected-thread header summary chrome is now suppressed in this branch whenever the center timeline is already the authoritative healthy session surface; the timeline and footer dock remain the only healthy session-owned status surfaces, while restore, degraded, handoff, and other non-healthy paths still restore explicit top-level status visibility.
 Iteration 282: healthy selected-thread ownership in this branch is now promoted through one explicit store-level invariant; provisional continuity still appears before bootstrap, but healthy ownership becomes visible only when selected-thread session state and append-stream session-status agree on the same conversation in authoritative `sse-live` state, which keeps polling suppression and healthy ownership aligned.
 Iteration 283: the bottom-fixed composer target row now derives only from the canonical selected-thread authority model in this branch; it reports `READY`, `SWITCHING`, or `HANDOFF` for the current selected thread, clears immediately on restore or degraded fallback, and no longer permits stale old-thread or polling-owned live ownership cues.
+Iteration 286: the bottom-fixed composer shell now keeps one stable session-dock frame in this branch, with the inline status strip constrained to a single bounded region, the primary textarea and send action retaining their layout, and live selected-thread status chips mutating in place across healthy updates and terminal resolution.
