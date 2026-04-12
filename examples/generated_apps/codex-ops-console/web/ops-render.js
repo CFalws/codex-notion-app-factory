@@ -660,7 +660,13 @@ function composerTransportState(currentState, conversation, liveRun, handoffStat
 }
 
 function renderSessionSummary(dom, currentState, conversation, liveRun, handoffState = { stage: "idle" }) {
-  if (!dom.threadPhaseChip) {
+  if (
+    !dom.threadSessionSummary ||
+    !dom.threadSessionSummaryScope ||
+    !dom.threadSessionSummaryPath ||
+    !dom.threadSessionSummaryOwner ||
+    !dom.threadSessionSummaryPhase
+  ) {
     return;
   }
 
@@ -705,54 +711,54 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
     Boolean(conversationId) &&
     timelineAuthority.visible &&
     timelineAuthority.presentation === "healthy";
-  if (
-    dom.threadSessionSummary &&
-    dom.threadSessionSummaryScope &&
-    dom.threadSessionSummaryPath &&
-    dom.threadSessionSummaryOwner &&
-    dom.threadSessionSummaryPhase
-  ) {
-    const summaryScope = "SELECTED";
-    const summaryPath = String(authority.pathLabel || sessionSurface.pathVerdict || "EXPECTED").toUpperCase();
-    const summaryOwner = String(authority.ownerLabel || sessionStatus.transportLabel || "SSE OWNER").toUpperCase();
-    dom.threadSessionSummary.hidden = !summaryVisible;
-    dom.threadSessionSummary.dataset.threadSummaryVisible = summaryVisible ? "true" : "false";
-    dom.threadSessionSummary.dataset.threadSummaryPresentation = summaryVisible ? badgePresentation : "cleared";
-    dom.threadSessionSummary.dataset.threadSummaryScope = summaryVisible ? "selected-thread" : "";
-    dom.threadSessionSummary.dataset.threadSummaryPath = summaryVisible ? summaryPath : "";
-    dom.threadSessionSummary.dataset.threadSummaryOwner = summaryVisible ? summaryOwner : "";
-    dom.threadSessionSummary.dataset.threadSummaryPhase = summaryVisible ? healthyPhaseLabel : "";
-    dom.threadSessionSummary.dataset.threadSummarySource = summaryVisible ? badgeSource : "none";
-    dom.threadSessionSummary.dataset.threadSummaryOwned = summaryVisible && authority.owned ? "true" : "false";
-    dom.threadSessionSummary.dataset.threadSummaryConversationId = summaryVisible ? conversationId : "";
-    dom.threadSessionSummary.dataset.threadSummaryReason = summaryVisible ? badgeReason : "idle";
-    dom.threadSessionSummaryScope.textContent = summaryScope;
-    dom.threadSessionSummaryPath.textContent = summaryPath;
-    dom.threadSessionSummaryOwner.textContent = summaryOwner;
-    dom.threadSessionSummaryPhase.textContent = healthyPhaseLabel;
+  const summaryScope = "SELECTED";
+  const summaryPath = String(authority.pathLabel || sessionSurface.pathVerdict || "EXPECTED").toUpperCase();
+  const summaryOwner = String(authority.ownerLabel || sessionStatus.transportLabel || "SSE OWNER").toUpperCase();
+  dom.threadSessionSummary.hidden = !summaryVisible;
+  dom.threadSessionSummary.dataset.threadSummaryVisible = summaryVisible ? "true" : "false";
+  dom.threadSessionSummary.dataset.threadSummaryPresentation = summaryVisible ? badgePresentation : "cleared";
+  dom.threadSessionSummary.dataset.threadSummaryScope = summaryVisible ? "selected-thread" : "";
+  dom.threadSessionSummary.dataset.threadSummaryPath = summaryVisible ? summaryPath : "";
+  dom.threadSessionSummary.dataset.threadSummaryOwner = summaryVisible ? summaryOwner : "";
+  dom.threadSessionSummary.dataset.threadSummaryPhase = summaryVisible ? healthyPhaseLabel : "";
+  dom.threadSessionSummary.dataset.threadSummarySource = summaryVisible ? badgeSource : "none";
+  dom.threadSessionSummary.dataset.threadSummaryOwned = summaryVisible && authority.owned ? "true" : "false";
+  dom.threadSessionSummary.dataset.threadSummaryConversationId = summaryVisible ? conversationId : "";
+  dom.threadSessionSummary.dataset.threadSummaryReason = summaryVisible ? badgeReason : "idle";
+  dom.threadSessionSummary.dataset.liveSessionVisible = summaryVisible ? "true" : "false";
+  dom.threadSessionSummary.dataset.liveSessionPresentation = summaryVisible ? badgePresentation : "cleared";
+  dom.threadSessionSummary.dataset.liveSessionSource = summaryVisible ? badgeSource : "none";
+  dom.threadSessionSummary.dataset.liveSessionOwned = summaryVisible && authority.owned ? "true" : "false";
+  dom.threadSessionSummary.dataset.liveSessionReason = summaryVisible ? badgeReason : "idle";
+  dom.threadSessionSummary.dataset.liveSessionStateLabel = summaryVisible ? badgeStateLabel : "";
+  dom.threadSessionSummary.dataset.liveSessionPhase = summaryVisible ? healthyPhaseLabel : "";
+  dom.threadSessionSummary.dataset.liveSessionDetail = summaryVisible ? badgeDetail : "현재 활성 세션이 없습니다.";
+  dom.threadSessionSummary.dataset.liveSessionProvenance = summaryVisible ? badgeSource : "none";
+  dom.threadSessionSummary.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
+  dom.threadSessionSummary.dataset.centerTimelinePresentation = timelineAuthority.presentation;
+  dom.threadSessionSummary.dataset.restoreStage = sessionStatus.restoreStage || "none";
+  dom.threadSessionSummary.dataset.restorePath = sessionStatus.restorePath || "none";
+  dom.threadSessionSummary.dataset.restoreProvenance = sessionStatus.restoreProvenance || "none";
+  dom.threadSessionSummary.dataset.threadConversationId = conversationId;
+  dom.threadSessionSummary.dataset.threadSummaryTone = summaryVisible ? badgeTone : "muted";
+  dom.threadSessionSummary.title = summaryVisible ? badgeDetail : "현재 활성 세션이 없습니다.";
+  dom.threadSessionSummaryScope.textContent = summaryScope;
+  dom.threadSessionSummaryPath.textContent = summaryPath;
+  dom.threadSessionSummaryOwner.textContent = summaryOwner;
+  dom.threadSessionSummaryPhase.textContent = healthyPhaseLabel;
+  if (dom.threadPhaseChip) {
+    dom.threadPhaseChip.hidden = true;
+    dom.threadPhaseChip.dataset.liveSessionVisible = "false";
+    dom.threadPhaseChip.dataset.liveSessionPresentation = "cleared";
+    dom.threadPhaseChip.dataset.liveSessionOwned = "false";
+    dom.threadPhaseChip.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
+    dom.threadPhaseChip.dataset.centerTimelinePresentation = timelineAuthority.presentation;
+    dom.threadPhaseChip.dataset.restoreStage = sessionStatus.restoreStage || "none";
+    dom.threadPhaseChip.dataset.restorePath = sessionStatus.restorePath || "none";
+    dom.threadPhaseChip.dataset.restoreProvenance = sessionStatus.restoreProvenance || "none";
+    dom.threadPhaseChip.dataset.threadConversationId = conversationId;
+    dom.threadPhaseChip.title = "현재 활성 세션이 없습니다.";
   }
-  dom.threadPhaseChip.hidden = !badgeVisible;
-  dom.threadPhaseChip.textContent = badgeLabel;
-  dom.threadPhaseChip.dataset.tone = badgeTone;
-  dom.threadPhaseChip.dataset.threadPhase = badgeLabel;
-  dom.threadPhaseChip.dataset.threadPhaseSource = badgeSource;
-  dom.threadPhaseChip.dataset.threadPhaseDetail = badgeDetail;
-  dom.threadPhaseChip.dataset.liveSessionVisible = badgeVisible ? "true" : "false";
-  dom.threadPhaseChip.dataset.liveSessionPresentation = badgePresentation;
-  dom.threadPhaseChip.dataset.liveSessionSource = badgeSource;
-  dom.threadPhaseChip.dataset.liveSessionOwned = authority.owned ? "true" : "false";
-  dom.threadPhaseChip.dataset.liveSessionReason = badgeReason;
-  dom.threadPhaseChip.dataset.liveSessionStateLabel = badgeStateLabel;
-  dom.threadPhaseChip.dataset.liveSessionPhase = healthyPhaseLabel;
-  dom.threadPhaseChip.dataset.liveSessionDetail = badgeDetail;
-  dom.threadPhaseChip.dataset.liveSessionProvenance = badgeSource;
-  dom.threadPhaseChip.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
-  dom.threadPhaseChip.dataset.centerTimelinePresentation = timelineAuthority.presentation;
-  dom.threadPhaseChip.dataset.restoreStage = sessionStatus.restoreStage || "none";
-  dom.threadPhaseChip.dataset.restorePath = sessionStatus.restorePath || "none";
-  dom.threadPhaseChip.dataset.restoreProvenance = sessionStatus.restoreProvenance || "none";
-  dom.threadPhaseChip.dataset.threadConversationId = conversationId;
-  dom.threadPhaseChip.title = badgeVisible ? badgeDetail : "현재 활성 세션이 없습니다.";
 }
 
 function isThreadNearBottom(threadScroller) {

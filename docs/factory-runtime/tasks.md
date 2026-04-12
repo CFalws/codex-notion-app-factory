@@ -1,10 +1,10 @@
 # Factory Runtime Tasks
 
-## Iteration 236
+## Iteration 238
 
-- [x] Keep the change bounded to the center-pane recent-thread rail DOM, CSS, render wiring, and matching proposal artifacts.
-- [x] Remove center-pane recent-thread navigation instead of adding a replacement control in the main workspace.
-- [x] Preserve left-rail conversation cards and the mobile nav sheet as the only selected-thread switch owners.
-- [x] Keep switch and restore continuity in conversation mode through the existing inline `timeline-transition` item and mounted composer shell.
-- [x] Preserve degraded fallback clearing, footer docking, and canonical live-ownership behavior.
-- [x] Align static checks, browser checks, and proposal artifacts with the transcript-only center-pane contract.
+- [x] Keep the change bounded to the existing header render seam, selected-thread authority model, and matching proposal artifacts.
+- [x] Use the existing chip-first `thread-session-summary` as the only visible center-header session surface.
+- [x] Force the legacy `thread-phase-chip` out of the visible header path so it can no longer act as a second live-status owner.
+- [x] Preserve transcript inline session ownership, footer dock behavior, left-rail cues, and switch or restore continuity on the current intended path.
+- [x] Keep degraded reconnect or polling fallback and terminal clear transitions explicit in the single header capsule.
+- [x] Align static checks, browser checks, and proposal artifacts with the unified header capsule contract.

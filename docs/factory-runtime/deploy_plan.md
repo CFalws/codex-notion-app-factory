@@ -1,22 +1,22 @@
 # Factory Runtime Deploy Plan
 
-## Iteration 236
+## Iteration 238
 
-This deploy plan validates that thread navigation is owned by the left rail or mobile nav sheet while the center pane remains transcript-first.
+This deploy plan validates the unified selected-thread header capsule as the only visible live-session surface in the center header.
 
 ## Deployment Impact
 
-This iteration keeps runtime behavior otherwise intact and removes center-pane recent-thread navigation chrome. The gate should pass only when the center pane stays transcript-first, selected-thread switch and restore still use one inline transition item, the composer shell remains mounted, and degraded fallback still clears healthy ownership immediately instead of looking like live continuity.
+This iteration keeps runtime behavior otherwise intact and collapses the center header into one compact session capsule. The gate should pass only when that capsule remains strictly derived from selected-thread `conversation.session_status`, the legacy phase badge stays non-visible, and degraded or terminal transitions clear or downgrade the header immediately without affecting the existing transcript inline session block.
 
 ## Rollout Notes
 
 1. Apply the proposal commit onto `main`.
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
 3. Open the operator console on desktop and phone widths with at least one selected-thread conversation.
-4. Open a selected-thread conversation and trigger an intentional thread switch and a saved restore or resume path from the left rail or mobile nav sheet.
-5. Confirm the center conversation shell stays mounted and the bottom composer remains fixed through each transition.
-6. Confirm exactly one inline `timeline-transition` item represents attach or restore progress inside the canonical conversation timeline.
-7. Confirm the center pane no longer renders recent-thread navigation chrome and remains focused on transcript, live session surfaces, and the composer.
-8. Confirm the composer target row and session strip stay synchronized with the same transition state.
-9. Confirm reconnect downgrade, polling fallback, switch, deselection, restore failure, and terminal transitions clear healthy ownership immediately with no stale revival.
-10. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible path passes only when the selected-thread workspace remains conversation-first, single-owner, and free of center-pane navigation duplication.
+4. Open a selected-thread conversation and trigger healthy SSE-owned progress, reconnect downgrade, polling fallback, terminal resolution, and a switch or restore path on desktop and phone widths.
+5. Confirm the center header shows one compact chip-first session capsule carrying scope, path, owner, and phase together.
+6. Confirm the legacy phase badge does not remain visible as a second center-header live-status surface.
+7. Confirm the transcript inline session block, footer dock, left-rail cues, and switch or restore continuity remain unchanged.
+8. Confirm the header capsule reflects selected-thread `conversation.session_status` state without append-coupled lag.
+9. Confirm switch, terminal resolution, reconnect downgrade, polling fallback, and deselection clear or downgrade the header capsule immediately with no stale retention.
+10. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible path passes only when the selected-thread workspace remains conversation-first, single-owner, and free of split center-header status ownership.

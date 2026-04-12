@@ -754,6 +754,19 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   color: var(--success);
 }
 
+.thread-session-summary[data-thread-summary-presentation="handoff"] .session-summary-chip,
+.thread-session-summary[data-thread-summary-presentation="restore"] .session-summary-chip {
+  border-color: rgba(31, 120, 224, 0.2);
+  background: rgba(31, 120, 224, 0.08);
+  color: var(--accent-ink);
+}
+
+.thread-session-summary[data-thread-summary-presentation="degraded"] .session-summary-chip {
+  border-color: rgba(178, 114, 24, 0.24);
+  background: rgba(178, 114, 24, 0.08);
+  color: var(--warning);
+}
+
 .thread-phase-chip {
   display: inline-flex;
   align-items: center;
