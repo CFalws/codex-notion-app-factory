@@ -1,5 +1,13 @@
 # Factory Runtime Tasks
 
+## Iteration 334
+
+- [x] Keep transport, selected-session authority, switch continuity, center conversation shell, and bottom-fixed composer unchanged.
+- [x] Make the selected conversation row the sole healthy and handoff live-owner rail surface.
+- [x] Repurpose the sticky active-session row as an explicit fallback cue only for degraded, restore, reconnect, polling fallback, and switching states.
+- [x] Tighten static and deployed verification so healthy selected-thread success fails if both rail surfaces remain visible together.
+- Iteration 334: remove duplicate healthy rail chrome so the selected row becomes the only healthy left-rail realtime owner cue.
+
 ## Iteration 333
 
 - [x] Keep transport, polling fallback precedence, and the current switch runtime model unchanged unless a real switch authority gap appears.

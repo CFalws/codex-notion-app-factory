@@ -1,5 +1,10 @@
 # Factory Runtime Deploy Plan
 
+## Iteration 334
+
+- Run the deployed healthy, degraded, restore, reconnect, polling fallback, and switching selected-thread scenarios and confirm the rail shows exactly one explicit cue per path.
+- Treat deployment readiness as blocked if healthy selected-thread success still shows both the sticky row and selected-row live owner together, or if degraded and transition paths lose every explicit rail cue.
+
 ## Iteration 333
 
 - Run the deployed selected-thread switch scenario and confirm the selected-session snapshot reports `switching` across the selected row, composer strip, composer owner state, send control, and thread scroller while the compact placeholder is active.

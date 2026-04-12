@@ -771,24 +771,24 @@ def assert_browser_runtime_surface(
                     conversationMeta.hidden &&
                     conversationMeta.textContent.trim() === "" &&
                     activeSessionRow &&
-                    !activeSessionRow.hidden &&
-                    activeSessionRow.dataset.activeSessionOwned === "true" &&
-                    activeSessionRow.dataset.activeSessionCanonical === "true" &&
-                    activeSessionRow.dataset.activeSessionSource === "sse" &&
-                    activeSessionRow.dataset.activeSessionConversationId === conversationId &&
-                    activeSessionRow.dataset.activeSessionPhase === inlineBlock.dataset.liveBlockPhase &&
-                    ["live", "new", "paused"].includes(activeSessionRow.dataset.activeSessionState || "") &&
+                    activeSessionRow.hidden &&
+                    activeSessionRow.dataset.activeSessionOwned === "false" &&
+                    activeSessionRow.dataset.activeSessionCanonical === "false" &&
+                    activeSessionRow.dataset.activeSessionSource === "none" &&
+                    activeSessionRow.dataset.activeSessionConversationId === "" &&
+                    activeSessionRow.dataset.activeSessionPhase === "IDLE" &&
+                    activeSessionRow.dataset.activeSessionState === "idle" &&
                     visibleConversationOwnerRows.length === 1 &&
                     selectedCardLiveOwnerRow &&
                     !selectedCardLiveOwnerRow.hidden &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerVisible === "true" &&
                     selectedCard.dataset.liveOwnerEmphasis === "strong" &&
-                    selectedCardLiveOwnerRow.dataset.liveOwnerState === activeSessionRow.dataset.activeSessionState &&
+                    ["live", "new", "paused"].includes(selectedCardLiveOwnerRow.dataset.liveOwnerState || "") &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerConversationId === conversationId &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerSource === "sse" &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerPhase === inlineBlock.dataset.liveBlockPhase &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerEmphasis === "strong" &&
-                    selectedCardLiveOwnerRow.dataset.liveOwnerShadow === "true" &&
+                    selectedCardLiveOwnerRow.dataset.liveOwnerShadow === "false" &&
                     selectedCard.dataset.livePhaseVisible === "true" &&
                     selectedCard.dataset.livePhaseSource === "sse" &&
                     selectedCard.dataset.livePhaseValue === inlineBlock.dataset.liveBlockPhase &&
@@ -990,8 +990,14 @@ def assert_browser_runtime_surface(
                     threadSessionSummary.dataset.selectedSessionReason === "append-frame-parse-failed" &&
                     threadSessionSummary.dataset.selectedSessionPhase === "POLLING" &&
                     activeSessionRow &&
-                    activeSessionRow.hidden &&
+                    !activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
+                    activeSessionRow.dataset.activeSessionCanonical === "true" &&
+                    activeSessionRow.dataset.activeSessionPresentation === "degraded" &&
+                    activeSessionRow.dataset.activeSessionConversationId === conversationId &&
+                    activeSessionRow.dataset.activeSessionState === "polling" &&
+                    activeSessionRow.dataset.activeSessionPhase === "POLLING" &&
+                    activeSessionRow.dataset.activeSessionFollow === "watch" &&
                     selectedCard &&
                     selectedCard.dataset.selectedSessionState === "degraded" &&
                     selectedCard.dataset.selectedSessionOwned === "false" &&
@@ -1301,9 +1307,14 @@ def assert_browser_runtime_surface(
                     selectedCardLivePhase.hidden &&
                     selectedCardLivePhase.dataset.liveOwnerVisible === "false" &&
                     selectedCardLivePhase.dataset.liveOwnerPhase === "" &&
-                    activeSessionRow.hidden &&
+                    !activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
-                    activeSessionRow.dataset.activeSessionSource === "none" &&
+                    activeSessionRow.dataset.activeSessionCanonical === "true" &&
+                    ["reconnect", "polling"].includes(activeSessionRow.dataset.activeSessionState || "") &&
+                    activeSessionRow.dataset.activeSessionPresentation === "degraded" &&
+                    activeSessionRow.dataset.activeSessionConversationId === conversationId &&
+                    activeSessionRow.dataset.activeSessionFollow === "watch" &&
+                    activeSessionRow.dataset.activeSessionPhase === phase &&
                     threadScroller &&
                     threadScroller.dataset.sessionOwner !== "selected-thread" &&
                     composerOwnerRow &&
@@ -1404,13 +1415,14 @@ def assert_browser_runtime_surface(
                     threadTitle.textContent.trim().length > 0 &&
                     threadTitle.textContent.trim() !== "새 대화를 시작하세요" &&
                     activeSessionRow &&
-                    activeSessionRow.hidden &&
+                    !activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
-                    activeSessionRow.dataset.activeSessionSource === "none" &&
-                    activeSessionRow.dataset.activeSessionState === "idle" &&
-                    activeSessionRow.dataset.activeSessionPhase === "IDLE" &&
-                    activeSessionRow.dataset.activeSessionConversationId === "" &&
-                    activeSessionRow.dataset.activeSessionFollow === "idle" &&
+                    activeSessionRow.dataset.activeSessionCanonical === "true" &&
+                    activeSessionRow.dataset.activeSessionSource === "thread-transition" &&
+                    activeSessionRow.dataset.activeSessionState === "switching" &&
+                    activeSessionRow.dataset.activeSessionPhase === "SWITCHING" &&
+                    activeSessionRow.dataset.activeSessionConversationId === targetConversationId &&
+                    activeSessionRow.dataset.activeSessionFollow === "target" &&
                     selectedCard &&
                     selectedCard.dataset.selectedSessionState === "switching" &&
                     selectedCard.dataset.selectedSessionPresentation === "switching" &&
@@ -1590,13 +1602,14 @@ def assert_browser_runtime_surface(
                     transition.dataset.threadTransitionCompact === "true" &&
                     transition.dataset.threadTransitionConversationId === targetConversationId &&
                     activeSessionRow &&
-                    activeSessionRow.hidden &&
+                    !activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
-                    activeSessionRow.dataset.activeSessionSource === "none" &&
-                    activeSessionRow.dataset.activeSessionState === "idle" &&
-                    activeSessionRow.dataset.activeSessionPhase === "IDLE" &&
-                    activeSessionRow.dataset.activeSessionConversationId === "" &&
-                    activeSessionRow.dataset.activeSessionFollow === "idle" &&
+                    activeSessionRow.dataset.activeSessionCanonical === "true" &&
+                    activeSessionRow.dataset.activeSessionSource === "thread-transition" &&
+                    activeSessionRow.dataset.activeSessionState === "switching" &&
+                    activeSessionRow.dataset.activeSessionPhase === "SWITCHING" &&
+                    activeSessionRow.dataset.activeSessionConversationId === targetConversationId &&
+                    activeSessionRow.dataset.activeSessionFollow === "target" &&
                     sessionStrip &&
                     sessionStripState &&
                     sessionStripState.querySelectorAll(".session-chip").length === 1 &&
@@ -1730,13 +1743,14 @@ def assert_browser_runtime_surface(
                     selectedCardLivePhase.dataset.liveOwnerVisible === "false" &&
                     selectedCardLivePhase.dataset.liveOwnerPhase === "" &&
                     activeSessionRow &&
-                    activeSessionRow.hidden &&
+                    !activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
-                    activeSessionRow.dataset.activeSessionSource === "none" &&
-                    activeSessionRow.dataset.activeSessionState === "idle" &&
-                    activeSessionRow.dataset.activeSessionPhase === "IDLE" &&
-                    activeSessionRow.dataset.activeSessionConversationId === "" &&
-                    activeSessionRow.dataset.activeSessionFollow === "idle" &&
+                    activeSessionRow.dataset.activeSessionCanonical === "true" &&
+                    activeSessionRow.dataset.activeSessionSource === "thread-transition" &&
+                    activeSessionRow.dataset.activeSessionState === "switching" &&
+                    activeSessionRow.dataset.activeSessionPhase === "SWITCHING" &&
+                    activeSessionRow.dataset.activeSessionConversationId === targetConversationId &&
+                    activeSessionRow.dataset.activeSessionFollow === "target" &&
                     secondarySessionFacts &&
                     secondarySessionFacts.hidden &&
                     secondarySessionFacts.dataset.secondaryFactsPresentation === "suppressed" &&

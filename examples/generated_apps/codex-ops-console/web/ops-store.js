@@ -426,68 +426,81 @@ export function deriveSelectedThreadActiveSessionRowModel(currentState, conversa
   const conversationTitle = sessionStatus.conversationTitle || "현재 대화";
   if (authority.state === "switching") {
     return {
-      visible: false,
-      conversationId: "",
-      presentation: "cleared",
-      rowState: "idle",
-      ownerLabel: "OWNER",
-      stateLabel: "SESSION",
-      followLabel: "LIVE",
-      title: "선택된 대화",
-      meta: "selected thread",
+      visible: true,
+      conversationId: String(sessionStatus.targetConversationId || ""),
+      presentation: "switching",
+      rowState: "switching",
+      ownerLabel: "ATTACH",
+      stateLabel: "SWITCHING",
+      followLabel: "TARGET",
+      title: String(sessionStatus.targetTitle || "선택한 대화").trim() || "선택한 대화",
+      meta: "selected thread · switching · snapshot attach pending",
       rowOwned: false,
-      canonical: false,
-      rowSource: "none",
-      rowPhase: "IDLE",
+      canonical: true,
+      rowSource: "thread-transition",
+      rowPhase: "SWITCHING",
       rowUnseenCount: 0,
       clearReason: "thread-switch",
     };
   }
-  if (authority.state === "handoff") {
+  if (authority.state === "restore") {
     return {
       visible: true,
       conversationId: String(sessionStatus.conversationId || ""),
-      presentation: "handoff",
-      rowState: sessionSnapshot.rowState,
-      ownerLabel: sessionSnapshot.transportLabel || "SSE OWNER",
-      stateLabel: "HANDOFF",
-      followLabel: "LIVE",
+      presentation: "restore",
+      rowState: sessionStatus.restoreResume ? "resume" : "attach",
+      ownerLabel: sessionSnapshot.transportLabel || (sessionStatus.restoreResume ? "RESUME" : "ATTACH"),
+      stateLabel: "RESTORE",
+      followLabel: sessionStatus.restoreResume ? "RESUME" : "ATTACH",
       title: conversationTitle,
-      meta: "selected thread · handoff · awaiting first append",
-      rowOwned: true,
+      meta: sessionStatus.restoreResume
+        ? "selected thread · restore · sse resume pending"
+        : "selected thread · restore · sse attach pending",
+      rowOwned: false,
       canonical: true,
-      rowSource: sessionSnapshot.rowSource,
-      rowPhase: sessionSnapshot.rowPhase,
+      rowSource: "sse",
+      rowPhase: sessionSnapshot.phaseLabel || (sessionStatus.restoreResume ? "RESUME" : "ATTACH"),
       rowUnseenCount: 0,
       clearReason: "none",
     };
   }
-  if (authority.state === "healthy") {
-    const rowState = sessionSnapshot.rowState || "live";
-    const followLabel = rowState === "new" ? "NEW" : rowState === "paused" ? "PAUSED" : "LIVE";
-    const rowPhase = sessionSnapshot.rowPhase || "LIVE";
-    const rowUnseenCount = Math.max(Number(sessionSnapshot.rowUnseenCount || 0), 0);
-    const meta =
-      rowState === "new" && rowUnseenCount > 0
-        ? `selected thread · ${rowPhase.toLowerCase()} · ${rowUnseenCount} new`
-        : rowState === "paused"
-          ? `selected thread · ${rowPhase.toLowerCase()} · follow paused`
-          : `selected thread · ${rowPhase.toLowerCase()} · sse owner`;
+  if (authority.state === "provisional") {
     return {
       visible: true,
       conversationId: String(sessionStatus.conversationId || ""),
-      presentation: "owned",
-      rowState,
-      ownerLabel: sessionSnapshot.transportLabel || "SSE OWNER",
-      stateLabel: rowPhase,
-      followLabel,
+      presentation: "provisional",
+      rowState: sessionStatus.provisionalResume ? "resume" : "attach",
+      ownerLabel: sessionSnapshot.transportLabel || (sessionStatus.provisionalResume ? "RESUME" : "ATTACH"),
+      stateLabel: sessionStatus.provisionalResume ? "RESUME" : "ATTACH",
+      followLabel: "PENDING",
       title: conversationTitle,
-      meta,
-      rowOwned: true,
+      meta: sessionStatus.provisionalResume
+        ? "selected thread · provisional · sse resume pending"
+        : "selected thread · provisional · sse attach pending",
+      rowOwned: false,
       canonical: true,
-      rowSource: sessionSnapshot.rowSource,
-      rowPhase,
-      rowUnseenCount,
+      rowSource: "sse",
+      rowPhase: sessionSnapshot.phaseLabel || (sessionStatus.provisionalResume ? "RESUME" : "ATTACH"),
+      rowUnseenCount: 0,
+      clearReason: "none",
+    };
+  }
+  if (authority.state === "degraded") {
+    return {
+      visible: true,
+      conversationId: String(sessionStatus.conversationId || ""),
+      presentation: "degraded",
+      rowState: sessionStatus.transportState === "reconnect" ? "reconnect" : "polling",
+      ownerLabel: sessionSnapshot.transportLabel || "POLLING",
+      stateLabel: sessionSnapshot.phaseLabel || sessionSnapshot.transportLabel || "POLLING",
+      followLabel: "WATCH",
+      title: conversationTitle,
+      meta: `selected thread · ${String(sessionSnapshot.transportLabel || "polling").toLowerCase()} · fallback visible`,
+      rowOwned: false,
+      canonical: true,
+      rowSource: sessionSnapshot.source || "polling",
+      rowPhase: sessionSnapshot.phaseLabel || sessionSnapshot.transportLabel || "POLLING",
+      rowUnseenCount: 0,
       clearReason: "none",
     };
   }
@@ -511,8 +524,8 @@ export function deriveSelectedThreadActiveSessionRowModel(currentState, conversa
 }
 
 export function deriveSelectedThreadConversationRowLiveModel(currentState, conversation = null) {
-  const rowModel = deriveSelectedThreadActiveSessionRowModel(currentState, conversation);
-  if (!rowModel.visible) {
+  const sessionSnapshot = deriveSelectedThreadSessionSnapshot(currentState, conversation);
+  if (!sessionSnapshot.rowOwned || !sessionSnapshot.conversationId || sessionSnapshot.rowSource !== "sse") {
     return {
       visible: false,
       conversationId: "",
@@ -528,43 +541,43 @@ export function deriveSelectedThreadConversationRowLiveModel(currentState, conve
   }
 
   const markerLabel =
-    rowModel.rowState === "handoff"
+    sessionSnapshot.rowState === "handoff"
       ? "HANDOFF"
-      : rowModel.rowState === "new"
+      : sessionSnapshot.rowState === "new"
         ? "NEW"
-        : rowModel.rowState === "paused"
+        : sessionSnapshot.rowState === "paused"
           ? "PAUSED"
           : "LIVE";
   const cueLabel =
-    rowModel.rowState === "handoff"
+    sessionSnapshot.rowState === "handoff"
       ? "FIRST"
-      : rowModel.rowState === "new"
-        ? `+${Math.max(Number(rowModel.rowUnseenCount || 0), 1)}`
-        : rowModel.rowState === "paused"
-          ? Number(rowModel.rowUnseenCount || 0) > 0
-            ? `+${Number(rowModel.rowUnseenCount || 0)}`
+      : sessionSnapshot.rowState === "new"
+        ? `+${Math.max(Number(sessionSnapshot.rowUnseenCount || 0), 1)}`
+        : sessionSnapshot.rowState === "paused"
+          ? Number(sessionSnapshot.rowUnseenCount || 0) > 0
+            ? `+${Number(sessionSnapshot.rowUnseenCount || 0)}`
             : "OFF"
           : "FOLLOW";
   const cueKind =
-    rowModel.rowState === "handoff"
+    sessionSnapshot.rowState === "handoff"
       ? "handoff"
-      : rowModel.rowState === "new"
+      : sessionSnapshot.rowState === "new"
         ? "unread"
-        : rowModel.rowState === "paused"
+        : sessionSnapshot.rowState === "paused"
           ? "paused"
           : "follow";
 
   return {
     visible: true,
-    conversationId: String(rowModel.conversationId || ""),
+    conversationId: String(sessionSnapshot.conversationId || ""),
     markerLabel,
     cueLabel,
     cueKind,
-    rowState: String(rowModel.rowState || "live"),
-    rowPhase: String(rowModel.rowPhase || "LIVE"),
-    rowSource: String(rowModel.rowSource || "sse"),
-    rowOwned: Boolean(rowModel.rowOwned),
-    rowUnseenCount: Math.max(Number(rowModel.rowUnseenCount || 0), 0),
+    rowState: String(sessionSnapshot.rowState || "live"),
+    rowPhase: String(sessionSnapshot.rowPhase || "LIVE"),
+    rowSource: String(sessionSnapshot.rowSource || "sse"),
+    rowOwned: Boolean(sessionSnapshot.rowOwned),
+    rowUnseenCount: Math.max(Number(sessionSnapshot.rowUnseenCount || 0), 0),
   };
 }
 

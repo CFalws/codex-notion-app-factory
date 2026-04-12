@@ -1351,6 +1351,8 @@ export function createConversationController(deps) {
         selectedRowModel.rowOwned &&
         selectedRowModel.rowSource === "sse" &&
         selectedRowModel.conversationId === selectedConversationId;
+      const selectedRowLiveEmphasis =
+        showSelectedRowLiveMarker && (!activeRowModel.visible || activeRowModel.canonical) ? "strong" : "soft";
       const shadowSelectedRowLiveMarker =
         showSelectedRowLiveMarker && Boolean(activeRowModel.visible && activeRowModel.canonical);
       card.classList.toggle("active", isSelected);
@@ -1375,7 +1377,7 @@ export function createConversationController(deps) {
       card.dataset.selectedSessionConversationId = isSelected ? sessionSnapshot.conversationId : "";
       if (showSelectedRowLiveMarker) {
         card.dataset.liveOwner = "true";
-        card.dataset.liveOwnerEmphasis = shadowSelectedRowLiveMarker ? "strong" : "soft";
+        card.dataset.liveOwnerEmphasis = selectedRowLiveEmphasis;
         card.dataset.liveOwnerShadow = String(shadowSelectedRowLiveMarker);
         card.dataset.liveOwnerState = selectedRowModel.rowState;
         card.dataset.liveOwnerSource = selectedRowModel.rowSource;
@@ -1401,7 +1403,7 @@ export function createConversationController(deps) {
         liveOwnerRow.dataset.liveOwnerSource = showSelectedRowLiveMarker ? selectedRowModel.rowSource : "none";
         liveOwnerRow.dataset.liveOwnerPhase = showSelectedRowLiveMarker ? selectedRowModel.rowPhase : "IDLE";
         liveOwnerRow.dataset.liveOwnerUnseenCount = String(showSelectedRowLiveMarker ? selectedRowModel.rowUnseenCount : 0);
-        liveOwnerRow.dataset.liveOwnerEmphasis = showSelectedRowLiveMarker && shadowSelectedRowLiveMarker ? "strong" : "soft";
+        liveOwnerRow.dataset.liveOwnerEmphasis = showSelectedRowLiveMarker ? selectedRowLiveEmphasis : "soft";
         liveOwnerRow.dataset.liveOwnerShadow = showSelectedRowLiveMarker ? String(shadowSelectedRowLiveMarker) : "false";
         liveOwnerDetail.textContent = showSelectedRowLiveMarker ? selectedRowModel.markerLabel : "LIVE";
         liveOwnerFollow.hidden = !showSelectedRowLiveMarker;

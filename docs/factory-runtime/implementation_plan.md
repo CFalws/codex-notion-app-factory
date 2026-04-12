@@ -1,5 +1,12 @@
 # Factory Runtime Implementation Plan
 
+## Iteration 334
+
+- Keep selected-session authority, switch continuity, center-pane rendering, and fixed composer behavior unchanged.
+- Move healthy and handoff rail ownership to the selected conversation row by decoupling it from the sticky active-session row.
+- Reuse the sticky active-session row only for degraded, restore, reconnect, polling fallback, and switching cues where the selected row is no longer a sufficient explicit signal.
+- Tighten static and deployed verification so healthy selected-thread success fails if both rail surfaces remain visible together.
+
 ## Iteration 333
 
 - Keep the current selected-thread switch runtime model unchanged if the branch already exposes `switching` through the selected-session authority path.

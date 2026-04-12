@@ -1,5 +1,11 @@
 # Factory Runtime Spec
 
+## Iteration 334
+
+- The selected conversation row must become the sole healthy live-owner rail surface on the selected-thread SSE-owned path.
+- The sticky active-session row must stay suppressed on healthy selected-thread ownership and remain available only as one explicit bounded rail cue for degraded, restore, reconnect, polling fallback, or switching states.
+- Deployed verification must fail if healthy selected-thread success still shows both rail surfaces together or if non-healthy selected-thread paths lose every explicit rail cue.
+
 ## Iteration 333
 
 - Intentional selected-thread switching must be explicit as one session-scoped transition state rather than an inferred snapshot attach gap.
