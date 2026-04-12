@@ -8,3 +8,4 @@
 - [x] Preserve switching, handoff, degraded, and idle clear behavior unchanged.
 - [x] Keep non-selected rows snapshot-only.
 - [x] Align proposal artifacts with the canonical left-rail active-session mirror contract.
+- Iteration 245: confirm the selected-thread center header already exposes the canonical ownership chip and keep deployed verification bound to that machine-readable selected-thread signal without adding another live-status surface.

@@ -20,3 +20,4 @@ This iteration keeps transport and authority behavior intact and corrects the le
 8. Confirm non-selected rows remain snapshot-only and do not appear live-owned.
 9. Confirm thread switch, reconnect downgrade, polling fallback, terminal resolution, and deselection visibly downgrade or clear active-session ownership with no stale retention.
 10. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible path passes only when the selected-thread workspace remains conversation-first, single-owner, and the active-session row is canonical only on the intended selected-thread SSE path.
+Iteration 245 deploy gate expectation: healthy selected-thread runs are acceptable only when the center-header session summary itself reports `SSE OWNER`, degraded runs visibly downgrade to `RECONNECT` or `POLLING`, and switch or terminal idle clears the header ownership signal immediately.

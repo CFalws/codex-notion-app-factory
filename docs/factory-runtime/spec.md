@@ -32,3 +32,4 @@ The primary user is the operator or developer using the phone-friendly realtime 
 ## Deliverable
 
 Expose one conversation-first selected-thread workspace where the sticky left-rail active-session row is an explicit canonical mirror of selected-thread owner, phase, and follow state from `session_status` plus SSE, while degraded and switched paths still clear it immediately and non-selected rows remain snapshot-only.
+Iteration 245: the dominant selected-thread header summary is already the machine-readable live-session ownership signal, carrying owner, path, and phase from canonical session_status plus SSE authority while degrading or clearing immediately on reconnect, polling fallback, switch, or idle completion.

@@ -10,3 +10,4 @@ Make the left-rail active-session row an explicit canonical mirror of selected-t
 4. Keep switching, handoff, degraded, and idle clear behavior unchanged.
 5. Keep non-selected rows snapshot-only.
 6. Align proposal artifacts with the canonical left-rail active-session mirror contract.
+Iteration 245 does not widen runtime or UI ownership. It records that the selected-thread center header already exposes the canonical ownership chip beside the session summary and that deployed verification already attributes healthy visibility to that selected-thread SSE-owned signal rather than to polling or side-panel inference.
