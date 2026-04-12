@@ -407,6 +407,16 @@ def assert_browser_runtime_surface(
   window.__verifyMalformedAppendInjected = false;
   window.__verifyMalformedAppendReason = "";
   window.__verifyMalformedScenarioActive = false;
+  window.__verifyFirstLoadBootstrapActive = false;
+  window.__verifyBootstrapComplete = false;
+  window.__verifyBootstrapEvidence = [];
+  window.__verifyRecordBootstrapEvidence = (kind, detail = {}) => {
+    window.__verifyBootstrapEvidence.push({
+      index: window.__verifyBootstrapEvidence.length,
+      kind,
+      detail,
+    });
+  };
   window.__verifyOrderedEvidence = [];
   window.__verifyRecordEvidence = (kind, detail = {}) => {
     window.__verifyOrderedEvidence.push({
@@ -447,9 +457,22 @@ def assert_browser_runtime_surface(
       }
       this.addEventListener("session.bootstrap", (event) => {
         try {
-          window.__verifySseEvents.push({ event: "session.bootstrap", data: JSON.parse(event.data || "{}") });
+          const data = JSON.parse(event.data || "{}");
+          window.__verifySseEvents.push({ event: "session.bootstrap", data });
+          if (window.__verifyFirstLoadBootstrapActive && !window.__verifyBootstrapComplete) {
+            window.__verifyRecordBootstrapEvidence("bootstrap-event", {
+              conversationId: String(data?.conversation_id || ""),
+              resumeCursor: Number(data?.resume_from_append_id || 0),
+              attachMode: String(data?.attach_mode || ""),
+            });
+          }
         } catch (_) {
           window.__verifySseEvents.push({ event: "session.bootstrap", data: {} });
+        }
+      });
+      this.addEventListener("error", () => {
+        if (window.__verifyFirstLoadBootstrapActive && !window.__verifyBootstrapComplete) {
+          window.__verifyRecordBootstrapEvidence("bootstrap-sse-error", { url: this.__verifyUrl });
         }
       });
       this.addEventListener("conversation.append", (event) => {
@@ -508,14 +531,36 @@ def assert_browser_runtime_surface(
                 timeout=30000,
             )
             page.evaluate("() => { window.__verifyFetchMark = window.__verifyFetchLog.length; window.__verifySseMark = window.__verifySseEvents.length; }")
+            page.evaluate(
+                """conversationId => {
+                  window.__verifyFirstLoadBootstrapActive = true;
+                  window.__verifyBootstrapComplete = false;
+                  window.__verifyBootstrapEvidence = [];
+                  if (typeof window.__verifyRecordBootstrapEvidence === "function") {
+                    window.__verifyRecordBootstrapEvidence("selected-thread-target", { conversationId: String(conversationId || "") });
+                  }
+                }""",
+                conversation_id,
+            )
             page.click(f'[data-conversation-id="{conversation_id}"]')
             page.wait_for_function(
                 """([appId, conversationId]) => {
+                  const recordBootstrapEvidence = (kind, detail = {}) => {
+                    const evidence = Array.isArray(window.__verifyBootstrapEvidence) ? window.__verifyBootstrapEvidence : [];
+                    if (evidence.some(item => item && item.kind === kind)) {
+                      return;
+                    }
+                    if (typeof window.__verifyRecordBootstrapEvidence === "function") {
+                      window.__verifyRecordBootstrapEvidence(kind, detail);
+                    }
+                  };
                   const threadPhase = document.querySelector("#thread-phase-chip");
                   const sendRequest = document.querySelector("#send-request");
                   const sessionStrip = document.querySelector("#session-strip");
                   const threadScroller = document.querySelector("#thread-scroller");
                   const composerDock = document.querySelector("#conversation-footer-dock");
+                  const activeSessionRow = document.querySelector("#active-session-row");
+                  const selectedCard = document.querySelector(`.conversation-card[data-conversation-id="${conversationId}"][data-selected="true"]`);
                   const emptyState = document.querySelector(".timeline-empty");
                   const fetchMark = Number(window.__verifyFetchMark || 0);
                   const sseMark = Number(window.__verifySseMark || 0);
@@ -531,10 +576,71 @@ def assert_browser_runtime_surface(
                   const goalsFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
                     entry => String(entry.url || "").includes(`/api/apps/${appId}/goals`)
                   );
+                  const liveConversationId = String(sessionStrip?.dataset.liveConversationId || threadScroller?.dataset.liveConversationId || "");
+                  const activeConversationId = String(activeSessionRow?.dataset.activeSessionConversationId || "");
+                  const stripReason = String(sessionStrip?.dataset.composerTransportReason || "");
+                  const scrollerReason = String(threadScroller?.dataset.selectedSessionReason || "");
+                  if (bootstrapEvents.length >= 1) {
+                    recordBootstrapEvidence("bootstrap-event-seen", {
+                      count: bootstrapEvents.length,
+                      conversationId,
+                    });
+                  }
+                  if (selectedCard && liveConversationId === conversationId) {
+                    recordBootstrapEvidence("bootstrap-markers", {
+                      liveConversationId,
+                      activeConversationId,
+                    });
+                  }
+                  if ((liveConversationId && liveConversationId !== conversationId) || (activeConversationId && activeConversationId !== conversationId)) {
+                    recordBootstrapEvidence("bootstrap-mismatched-conversation", {
+                      liveConversationId,
+                      activeConversationId,
+                      conversationId,
+                    });
+                  }
+                  if (
+                    sessionStrip &&
+                    threadScroller &&
+                    (Number(sessionStrip.dataset.resumeCursor || "0") < 0 ||
+                      Number(threadScroller.dataset.resumeCursor || "0") < 0 ||
+                      sessionStrip.dataset.resumeCursor !== "0" ||
+                      threadScroller.dataset.resumeCursor !== "0")
+                  ) {
+                    recordBootstrapEvidence("bootstrap-regressing-cursor", {
+                      stripResumeCursor: String(sessionStrip.dataset.resumeCursor || ""),
+                      scrollerResumeCursor: String(threadScroller.dataset.resumeCursor || ""),
+                    });
+                  }
+                  if ([stripReason, scrollerReason].includes("retrying")) {
+                    recordBootstrapEvidence("bootstrap-retrying-fallback", {
+                      stripReason,
+                      scrollerReason,
+                    });
+                  }
+                  if ([stripReason, scrollerReason].includes("session-rotation")) {
+                    recordBootstrapEvidence("bootstrap-session-rotation", {
+                      stripReason,
+                      scrollerReason,
+                    });
+                  }
+                  const evidence = Array.isArray(window.__verifyBootstrapEvidence) ? window.__verifyBootstrapEvidence : [];
+                  const targetIndex = evidence.findIndex(item => item && item.kind === "selected-thread-target");
+                  const bootstrapIndex = evidence.findIndex(item => item && (item.kind === "bootstrap-event" || item.kind === "bootstrap-event-seen"));
+                  const markersIndex = evidence.findIndex(item => item && item.kind === "bootstrap-markers");
+                  const mismatchIndex = evidence.findIndex(item => item && item.kind === "bootstrap-mismatched-conversation");
+                  const regressionIndex = evidence.findIndex(item => item && item.kind === "bootstrap-regressing-cursor");
+                  const retryIndex = evidence.findIndex(item => item && item.kind === "bootstrap-retrying-fallback");
+                  const rotationIndex = evidence.findIndex(item => item && item.kind === "bootstrap-session-rotation");
+                  const sseErrorIndex = evidence.findIndex(item => item && item.kind === "bootstrap-sse-error");
+                  const conversationFetchIndex = conversationFetches.length > 0 ? 0 : -1;
+                  const jobFetchIndex = jobFetches.length > 0 ? 0 : -1;
+                  const goalsFetchIndex = goalsFetches.length > 0 ? 0 : -1;
                   return Boolean(
                     threadPhase &&
                     threadPhase.hidden &&
                     sendRequest &&
+                    selectedCard &&
                     sessionStrip &&
                     sessionStrip.dataset.attachMode === "sse-bootstrap" &&
                     sessionStrip.dataset.bootstrapVersion === "2" &&
@@ -548,7 +654,19 @@ def assert_browser_runtime_surface(
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     document.querySelector(`[data-conversation-id="${conversationId}"]`) &&
+                    liveConversationId === conversationId &&
                     bootstrapEvents.length >= 1 &&
+                    targetIndex === 0 &&
+                    bootstrapIndex > targetIndex &&
+                    markersIndex > bootstrapIndex &&
+                    mismatchIndex === -1 &&
+                    regressionIndex === -1 &&
+                    retryIndex === -1 &&
+                    rotationIndex === -1 &&
+                    sseErrorIndex === -1 &&
+                    conversationFetchIndex === -1 &&
+                    jobFetchIndex === -1 &&
+                    goalsFetchIndex === -1 &&
                     conversationFetches.length === 0 &&
                     jobFetches.length === 0 &&
                     goalsFetches.length === 0 &&
@@ -558,6 +676,9 @@ def assert_browser_runtime_surface(
                 [app_id, conversation_id],
                 timeout=30000,
             )
+            page.evaluate("() => { window.__verifyBootstrapComplete = true; window.__verifyFirstLoadBootstrapActive = false; }")
+            bootstrap_snapshot = page.evaluate(browser_snapshot_script())
+            bootstrap_evidence = page.evaluate("() => window.__verifyBootstrapEvidence || []")
 
             page.fill("#request-text", request_text)
             page.evaluate("() => { window.__verifyFetchMark = window.__verifyFetchLog.length; }")
@@ -1531,6 +1652,8 @@ def assert_browser_runtime_surface(
             )
             cancelled_switch_snapshot = page.evaluate(browser_snapshot_script())
             return {
+                "bootstrap": bootstrap_snapshot,
+                "bootstrap_evidence": bootstrap_evidence,
                 "healthy": healthy_snapshot,
                 "malformed_append": malformed_append_snapshot,
                 "malformed_evidence": malformed_evidence,

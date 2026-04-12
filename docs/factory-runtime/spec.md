@@ -1,5 +1,11 @@
 # Factory Runtime Spec
 
+## Iteration 329
+
+- First-load selected-thread bootstrap must be provable as one ordered deployed-browser path before any broader session-authority promotion work continues.
+- The gate for this iteration is verification-only. It must not change visible ownership, polling fallback precedence, bootstrap authority, composer ergonomics, or proposal and apply rendering.
+- Deployed verification must capture selected-thread identity, ordered bootstrap markers, and stable selected-thread attachment, and it must fail on polling-owned refetch, mismatched conversation attachment, regressing bootstrap cursor, retry fallback, or unexpected session rotation.
+
 ## Iteration 323
 
 - Selected-thread healthy and degraded session facts must not render as a visible secondary-panel authority path when the center timeline and footer dock already expose the current session state.

@@ -1,5 +1,13 @@
 # Factory Runtime Tasks
 
+## Iteration 329
+
+- [x] Keep the iteration verification-only and scoped to first-load selected-thread bootstrap authority.
+- [x] Add one ordered deployed-browser evidence gate for selected-thread target selection, bootstrap event arrival, and selected-thread bootstrap markers.
+- [x] Fail the gate on polling-owned refetch, mismatched conversation attachment, regressing bootstrap cursor, retry fallback, unexpected session rotation, or early EventSource error.
+- [x] Keep composer ergonomics, proposal and apply rendering, malformed shadow cases, and broader authority promotion out of scope.
+- Iteration 329: define one low-risk deployed verification artifact for ordered selected-thread bootstrap authority on first load.
+
 ## Iteration 323
 
 - [x] Keep transport and selected-session ownership unchanged while removing the remaining selected-thread secondary-panel session-facts duplication.

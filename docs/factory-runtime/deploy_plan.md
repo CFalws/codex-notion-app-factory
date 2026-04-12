@@ -1,5 +1,10 @@
 # Factory Runtime Deploy Plan
 
+## Iteration 329
+
+- Run the deployed first-load selected-thread bootstrap scenario and confirm the verifier records ordered target-selection, bootstrap-event, and bootstrap-marker evidence for the same conversation id.
+- Treat deployment readiness as blocked if the first-load selected-thread bootstrap path depends on polling-owned refetch, attaches to a mismatched conversation, regresses the bootstrap cursor, shows retry fallback, shows unexpected session rotation, or emits an EventSource error before bootstrap stabilizes.
+
 ## Iteration 323
 
 - Run the deployed healthy and degraded selected-thread scenarios and confirm the center timeline plus footer dock remain the only visible live-session status surfaces.

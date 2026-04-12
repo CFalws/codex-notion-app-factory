@@ -1,5 +1,12 @@
 # Factory Runtime Implementation Plan
 
+## Iteration 329
+
+- Leave runtime transport, polling fallback, visible authority, and selected-thread rendering unchanged.
+- Add one fixed deployed-browser gate for first-load selected-thread bootstrap only.
+- Record ordered bootstrap evidence for selected-thread identity selection, bootstrap event arrival, and selected-thread marker attachment.
+- Tighten static verification so the deployed gate explicitly fails on polling-owned refetch, mismatched thread attachment, regressing bootstrap cursor, retry fallback, or unexpected session rotation.
+
 ## Iteration 323
 
 - Preserve the existing selected-thread transport and selected-session snapshot authority model.
