@@ -1129,6 +1129,7 @@ function selectedThreadInlineSessionState(conversation, currentState, liveRun, h
     !sessionIndicator.owned &&
     (sessionIndicator.state === "reconnecting" || sessionIndicator.state === "polling");
   const provisionalVisible = sessionStatus.presentation === "provisional";
+  const restoreVisible = sessionStatus.presentation === "restore";
   return {
     conversationId: sessionStatus.conversationId,
     selectedThreadSseOwned: sessionStatus.selectedThreadSse,
@@ -1141,7 +1142,8 @@ function selectedThreadInlineSessionState(conversation, currentState, liveRun, h
     liveVisible,
     degradedVisible,
     provisionalVisible,
-    visible: handoffVisible || liveVisible || degradedVisible || provisionalVisible,
+    restoreVisible,
+    visible: handoffVisible || liveVisible || degradedVisible || provisionalVisible || restoreVisible,
   };
 }
 
@@ -1200,58 +1202,60 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
   const timelineSession = selectedThreadPrimaryTimelineSessionModel(conversation, currentState, liveRun);
   const { inlineState, sessionSurface } = timelineSession;
   const quorumModel = deriveSelectedThreadSessionQuorumModel(currentState, conversation);
-  const { handoffVisible, liveVisible, provisionalVisible } = inlineState;
-  if (!liveVisible && !handoffVisible && !provisionalVisible) {
+  const { handoffVisible, liveVisible, provisionalVisible, restoreVisible, degradedVisible } = inlineState;
+  if (!liveVisible && !handoffVisible && !provisionalVisible && !restoreVisible && !degradedVisible) {
     return "";
   }
   const sessionStatus = sessionSurface.sessionStatus;
   const phaseProgression = sessionSurface.phaseProgression;
-  const phaseLabel = provisionalVisible
+  const phaseLabel = provisionalVisible || restoreVisible
     ? String(sessionSurface.phaseLabel || phaseProgression.label || sessionStatus.transportLabel || "ATTACH").toUpperCase()
     : handoffVisible
-    ? "HANDOFF"
-    : String(sessionSurface.phaseLabel || phaseProgression.label || liveRun?.phase || "LIVE").toUpperCase();
-  const transportLabel = provisionalVisible
+      ? "HANDOFF"
+      : degradedVisible
+        ? String(sessionStatus.transportLabel || sessionSurface.phaseLabel || "POLLING").toUpperCase()
+        : String(sessionSurface.phaseLabel || phaseProgression.label || liveRun?.phase || "LIVE").toUpperCase();
+  const transportLabel = provisionalVisible || restoreVisible
     ? String(sessionStatus.transportLabel || "ATTACH").toUpperCase()
     : handoffVisible
-    ? "HANDOFF"
-    : String(sessionStatus.transportLabel || "SSE OWNER").toUpperCase();
-  const pathVerdict = liveVisible ? String(sessionSurface.pathVerdict || "EXPECTED").toUpperCase() : "";
-  const verifierAcceptability = liveVisible
-    ? String(sessionSurface.verifierAcceptability || "PENDING").toUpperCase()
-    : "";
-  const blockerReason = liveVisible ? String(sessionSurface.blockerReason || "none").toUpperCase() : "";
-  const expectedPath = liveVisible
-    ? String(sessionSurface.liveAutonomy?.summary?.expectedPath || "unknown").toUpperCase()
-    : "";
+      ? "HANDOFF"
+      : degradedVisible
+        ? String(sessionStatus.transportLabel || "POLLING").toUpperCase()
+        : String(sessionStatus.transportLabel || "SSE OWNER").toUpperCase();
+  const pathVerdict = String(sessionSurface.pathVerdict || "").toUpperCase();
+  const verifierAcceptability = String(sessionSurface.verifierAcceptability || "").toUpperCase();
+  const blockerReason = String(sessionSurface.blockerReason || "").toUpperCase();
+  const expectedPath = String(sessionSurface.expectedPath || "").toUpperCase();
   const reviewQuorumLabel = liveVisible ? String(quorumModel.reviewLabel || "") : "";
   const verifyQuorumLabel = liveVisible ? String(quorumModel.verifyLabel || "") : "";
   const readyLabel = liveVisible ? String(quorumModel.readyLabel || "") : "";
-  const detail = provisionalVisible
+  const detail = provisionalVisible || restoreVisible
     ? sessionCompactTarget(currentState, conversation, "CURRENT THREAD")
     : handoffVisible
-    ? sessionCompactTarget(currentState, conversation, "HANDOFF TARGET")
-    : sessionCompactTarget(currentState, conversation, "CURRENT THREAD");
-  const summaryMeta = provisionalVisible
-    ? joinSessionChromeTokens("selected thread", transportLabel, phaseLabel)
+      ? sessionCompactTarget(currentState, conversation, "HANDOFF TARGET")
+      : degradedVisible
+        ? sessionCompactTarget(currentState, conversation, "DEGRADED TARGET")
+        : sessionCompactTarget(currentState, conversation, "CURRENT THREAD");
+  const summaryMeta = provisionalVisible || restoreVisible
+    ? joinSessionChromeTokens("selected thread", transportLabel, phaseLabel, String(sessionStatus.transportReason || "attach pending"))
     : joinSessionChromeTokens(
         "selected thread",
         phaseLabel,
         transportLabel,
-        liveVisible ? expectedPath : "attach pending",
+        degradedVisible ? String(sessionStatus.transportReason || "polling fallback") : liveVisible ? expectedPath : "attach pending",
       );
   const milestoneLane = liveVisible ? renderTranscriptMilestones(currentState, conversation) : "";
   return `
-    <article class="session-inline-block" data-selected-thread-live-block="true" data-selected-thread-degraded-block="false" data-live-block-conversation-id="${escapeHtml(String(sessionStatus.conversationId || ""))}" data-live-block-owned="${liveVisible ? "true" : "false"}" data-live-block-source="${escapeHtml(String(sessionSurface.source || "sse"))}" data-live-block-phase="${escapeHtml(phaseLabel)}" data-live-block-transport="${escapeHtml(transportLabel)}" data-live-block-handoff="${handoffVisible ? "true" : "false"}" data-live-block-provisional="${provisionalVisible ? "true" : "false"}" data-live-block-path-verdict="${escapeHtml(pathVerdict)}" data-live-block-verifier-acceptability="${escapeHtml(verifierAcceptability)}" data-live-block-blocker-reason="${escapeHtml(blockerReason)}" data-live-block-expected-path="${escapeHtml(expectedPath)}" data-live-block-review-quorum="${escapeHtml(reviewQuorumLabel)}" data-live-block-verify-quorum="${escapeHtml(verifyQuorumLabel)}" data-live-block-ready="${escapeHtml(readyLabel)}" data-live-block-reason="${escapeHtml(provisionalVisible ? String(sessionStatus.transportReason || "selected-thread-attach") : handoffVisible ? "handoff" : String(sessionSurface.liveAutonomy?.reason || "healthy"))}">
-      <p class="session-inline-kicker">${provisionalVisible ? "Selected Session Attach" : handoffVisible ? "Pending Handoff" : "Selected Session"}</p>
+    <article class="session-inline-block" data-selected-thread-live-block="true" data-selected-thread-degraded-block="${liveVisible ? "false" : "true"}" data-live-block-conversation-id="${escapeHtml(String(sessionStatus.conversationId || ""))}" data-live-block-owned="${liveVisible ? "true" : "false"}" data-live-block-source="${escapeHtml(String(sessionSurface.source || "sse"))}" data-live-block-phase="${escapeHtml(phaseLabel)}" data-live-block-transport="${escapeHtml(transportLabel)}" data-live-block-handoff="${handoffVisible ? "true" : "false"}" data-live-block-provisional="${provisionalVisible ? "true" : "false"}" data-live-block-restore="${restoreVisible ? "true" : "false"}" data-live-block-path-verdict="${escapeHtml(pathVerdict)}" data-live-block-verifier-acceptability="${escapeHtml(verifierAcceptability)}" data-live-block-blocker-reason="${escapeHtml(blockerReason)}" data-live-block-expected-path="${escapeHtml(expectedPath)}" data-live-block-review-quorum="${escapeHtml(reviewQuorumLabel)}" data-live-block-verify-quorum="${escapeHtml(verifyQuorumLabel)}" data-live-block-ready="${escapeHtml(readyLabel)}" data-live-block-reason="${escapeHtml(provisionalVisible || restoreVisible || degradedVisible ? String(sessionStatus.transportReason || "selected-thread-transition") : handoffVisible ? "handoff" : String(sessionSurface.liveAutonomy?.reason || "healthy"))}">
+      <p class="session-inline-kicker">${provisionalVisible ? "Selected Session Attach" : restoreVisible ? "Selected Session Restore" : degradedVisible ? "Selected Session Fallback" : handoffVisible ? "Pending Handoff" : "Selected Session"}</p>
       <div class="session-inline-row">
         <span class="session-inline-chip">${escapeHtml(transportLabel)}</span>
         <span class="session-inline-chip">${escapeHtml(phaseLabel)}</span>
         ${liveVisible ? '<span class="session-inline-chip">SELECTED</span>' : ""}
-        ${liveVisible ? `<span class="session-inline-chip">${escapeHtml(expectedPath)}</span>` : ""}
-        ${liveVisible ? `<span class="session-inline-chip">${escapeHtml(pathVerdict)}</span>` : ""}
-        ${liveVisible ? `<span class="session-inline-chip">${escapeHtml(verifierAcceptability)}</span>` : ""}
-        ${liveVisible ? `<span class="session-inline-chip">BLOCKER ${escapeHtml(blockerReason)}</span>` : ""}
+        ${expectedPath ? `<span class="session-inline-chip">${escapeHtml(expectedPath)}</span>` : ""}
+        ${pathVerdict ? `<span class="session-inline-chip">${escapeHtml(pathVerdict)}</span>` : ""}
+        ${verifierAcceptability ? `<span class="session-inline-chip">${escapeHtml(verifierAcceptability)}</span>` : ""}
+        ${blockerReason ? `<span class="session-inline-chip">BLOCKER ${escapeHtml(blockerReason)}</span>` : ""}
         ${liveVisible && reviewQuorumLabel ? `<span class="session-inline-chip">${escapeHtml(reviewQuorumLabel)}</span>` : ""}
         ${liveVisible && verifyQuorumLabel ? `<span class="session-inline-chip">${escapeHtml(verifyQuorumLabel)}</span>` : ""}
         ${liveVisible && readyLabel ? `<span class="session-inline-chip">${escapeHtml(readyLabel)}</span>` : ""}
@@ -1372,7 +1376,7 @@ function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
   if (liveOwned) {
     return "";
   }
-  if (handoffVisible) {
+  if (inlineState.visible) {
     return "";
   }
   if (!handoffVisible && !degradedVisible && (!phaseProgression.visible || !liveAutonomy.visible)) {
@@ -2570,7 +2574,7 @@ function syncAutonomyDetailSurface(dom, currentState, conversation, liveRun, han
     return;
   }
   const timelineAuthority = selectedThreadTimelineAuthorityModel(conversation, currentState, liveRun, handoffState);
-  const suppressed = timelineAuthority.visible && timelineAuthority.presentation === "healthy";
+  const suppressed = timelineAuthority.visible;
   autonomyCard.hidden = suppressed;
   autonomyCard.dataset.autonomySurface = suppressed ? "suppressed" : "secondary-detail";
   autonomyCard.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
@@ -2609,7 +2613,7 @@ function syncExecutionStatusSurface(dom, currentState, conversation, liveRun, se
     return;
   }
   const timelineAuthority = selectedThreadTimelineAuthorityModel(conversation, currentState, liveRun, pendingHandoffState(conversation, currentState));
-  const suppressed = timelineAuthority.visible && timelineAuthority.presentation === "healthy";
+  const suppressed = timelineAuthority.visible;
   statusCard.hidden = suppressed;
   statusCard.dataset.executionSurface = suppressed ? "suppressed" : "secondary-detail";
   statusCard.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";

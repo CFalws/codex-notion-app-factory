@@ -927,6 +927,7 @@ export function deriveSelectedThreadSessionSurfaceModel(currentState, conversati
       ? "HANDOFF"
       : String(shellPhaseLabel || phaseProgression.label || "").toUpperCase();
   const summary = liveAutonomy.summary || null;
+  const summaryVisible = Boolean(summary && typeof summary === "object");
   return {
     sessionStatus,
     liveAutonomy,
@@ -938,9 +939,11 @@ export function deriveSelectedThreadSessionSurfaceModel(currentState, conversati
     handoffVisible,
     restoreVisible,
     phaseLabel,
-    pathVerdict: liveOwned ? String(summary?.pathVerdict || "UNKNOWN").toUpperCase() : "",
-    verifierAcceptability: liveOwned ? String(summary?.verifierAcceptability || "PENDING").toUpperCase() : "",
-    blockerReason: liveOwned ? String(summary?.blockerReason || "none").toUpperCase() : "",
+    pathVerdict: summaryVisible ? String(summary?.pathVerdict || "UNKNOWN").toUpperCase() : "",
+    verifierAcceptability: summaryVisible ? String(summary?.verifierAcceptability || "PENDING").toUpperCase() : "",
+    blockerReason: summaryVisible ? String(summary?.blockerReason || "none").toUpperCase() : "",
+    expectedPath: summaryVisible ? String(summary?.expectedPath || "unknown").toUpperCase() : "",
+    degradedSignals: summaryVisible && Array.isArray(summary?.degradedSignals) ? summary.degradedSignals : [],
     reviewQuorumLabel: liveOwned ? String(quorumModel.reviewLabel || "") : "",
     verifyQuorumLabel: liveOwned ? String(quorumModel.verifyLabel || "") : "",
     readyLabel: liveOwned ? String(quorumModel.readyLabel || "") : "",

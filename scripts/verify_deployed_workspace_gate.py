@@ -1070,7 +1070,9 @@ def assert_browser_runtime_surface(
                     threadScroller.dataset.readyState === "" &&
                     threadScroller.dataset.selectedSessionPhase === "POLLING" &&
                     threadScroller.dataset.sessionOwner !== "selected-thread" &&
-                    inlineBlocks.length === 0 &&
+                    inlineBlocks.length === 1 &&
+                    inlineBlocks[0].dataset.liveBlockTransport === "POLLING" &&
+                    inlineBlocks[0].dataset.liveBlockOwned === "false" &&
                     jobFetches.length === 0 &&
                     goalsFetches.length === 0
                   );
@@ -1246,9 +1248,9 @@ def assert_browser_runtime_surface(
                     transition.dataset.threadTransitionRestoreProvenance === "sse-bootstrap" &&
                     executionStatusCard &&
                     executionStatusCard.hidden &&
-                    executionStatusCard.dataset.executionSurface === "center-lane" &&
+                    executionStatusCard.dataset.executionSurface === "suppressed" &&
                     statusOutput &&
-                    statusOutput.dataset.surface === "center-lane" &&
+                    statusOutput.dataset.surface === "suppressed" &&
                     sessionStrip.dataset.phaseValue === transition.dataset.threadTransitionPhaseLabel &&
                     sessionStrip.dataset.phaseProvenance === "sse" &&
                     threadScroller.dataset.phaseValue === transition.dataset.threadTransitionPhaseLabel &&
@@ -1262,7 +1264,9 @@ def assert_browser_runtime_surface(
                     jobFetches.length === 0 &&
                     goalsFetches.length === 0 &&
                     appendIds.length === deduped.size &&
-                    inlineBlocks.length === 0 &&
+                    inlineBlocks.length === 1 &&
+                    inlineBlocks[0].dataset.liveBlockRestore === "true" &&
+                    inlineBlocks[0].dataset.liveBlockOwned === "false" &&
                     !healthy &&
                     !emptyState
                   );
@@ -1275,7 +1279,7 @@ def assert_browser_runtime_surface(
             page.evaluate("() => { window.__verifyForceDegrade = true; window.__verifyTriggerDisconnect(); }")
             page.wait_for_function(
                 """() => {
-                  const degraded = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="false"]');
+                  const degraded = document.querySelector('.session-inline-block[data-selected-thread-degraded-block="true"]');
                   const healthy = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
                   const inlineBlocks = document.querySelectorAll('.session-inline-block[data-selected-thread-live-block="true"], .session-inline-block[data-selected-thread-degraded-block="true"]');
                   const threadSessionSummary = document.querySelector("#thread-session-summary");
@@ -1294,16 +1298,16 @@ def assert_browser_runtime_surface(
                   const statusOutput = document.querySelector("#status-output");
                   const executionStatusCard = statusOutput ? statusOutput.closest(".inspector-card") : null;
                   const stripChips = sessionStripState ? sessionStripState.querySelectorAll(".session-chip") : [];
-                  if (!degraded || healthy || inlineBlocks.length !== 0 || !threadPhase || !activeSessionRow || !sessionStrip || !sessionStripState || !executionStatusCard || !statusOutput) {
+                  if (!degraded || healthy || inlineBlocks.length !== 1 || !threadPhase || !activeSessionRow || !sessionStrip || !sessionStripState || !executionStatusCard || !statusOutput) {
                     return false;
                   }
                   const reason = degraded.dataset.liveReason || "";
-                  const phase = degraded.dataset.liveRunPhase || "";
+                  const phase = degraded.dataset.liveBlockPhase || "";
                   return (
                     ["retrying", "reconnecting", "polling-fallback", "session-rotation"].includes(reason) &&
                     ["RECONNECT", "POLLING"].includes(phase) &&
-                    ["RECONNECT", "POLLING"].includes(degraded.dataset.liveTransport || "") &&
-                    degraded.dataset.liveTransportOwned === "false" &&
+                    ["RECONNECT", "POLLING"].includes(degraded.dataset.liveBlockTransport || "") &&
+                    degraded.dataset.liveBlockOwned === "false" &&
                     secondarySessionFacts &&
                     secondarySessionFacts.hidden &&
                     secondarySessionFacts.dataset.secondaryFactsPresentation === "suppressed" &&
@@ -1318,7 +1322,7 @@ def assert_browser_runtime_surface(
                     threadSessionSummary.dataset.liveSessionVisible === "true" &&
                     threadSessionSummary.dataset.liveSessionPresentation === "degraded" &&
                     threadSessionSummary.dataset.liveSessionOwned === "false" &&
-                    threadSessionSummary.dataset.liveSessionStateLabel === degraded.dataset.liveTransport &&
+                    threadSessionSummary.dataset.liveSessionStateLabel === degraded.dataset.liveBlockTransport &&
                     threadSessionSummary.dataset.centerTimelineAuthority === "true" &&
                     threadSessionSummary.dataset.centerTimelinePresentation === "degraded" &&
                     visibleConversationOwnerRows.length === 0 &&
@@ -1373,11 +1377,11 @@ def assert_browser_runtime_surface(
                     composerUtilityCluster.getAttribute("aria-hidden") === "true" &&
                     ["reconnect", "polling"].includes(sessionStrip.dataset.composerTransport || "") &&
                     sessionStrip.dataset.composerTransportOwned === "false" &&
-                    !executionStatusCard.hidden &&
-                    executionStatusCard.dataset.executionSurface === "secondary-detail" &&
+                    executionStatusCard.hidden &&
+                    executionStatusCard.dataset.executionSurface === "suppressed" &&
                     executionStatusCard.dataset.centerTimelineAuthority === "true" &&
                     executionStatusCard.dataset.centerTimelinePresentation === "degraded" &&
-                    statusOutput.dataset.surface === "secondary-detail" &&
+                    statusOutput.dataset.surface === "suppressed" &&
                     statusOutput.dataset.centerTimelineAuthority === "true" &&
                     statusOutput.dataset.centerTimelinePresentation === "degraded" &&
                     sessionStrip.dataset.composerTransport !== "sse-owner" &&
