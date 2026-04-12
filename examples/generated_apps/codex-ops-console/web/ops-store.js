@@ -1452,10 +1452,25 @@ export function deriveSelectedThreadHealthyLiveRunModel(currentState, conversati
 }
 
 export function isSelectedThreadSessionOwned(currentState, conversationId = "") {
-  const healthyPromotion = deriveSelectedThreadHealthyPromotionModel(currentState, { conversation_id: conversationId });
+  const sessionStatus = deriveSelectedThreadSessionStatus(currentState, { conversation_id: conversationId });
+  const targetConversationId = String(conversationId || sessionStatus.conversationId || "");
+  const healthyPromotion = deriveSelectedThreadHealthyPromotionModel(currentState, { conversation_id: targetConversationId });
+  const provisionalOwned =
+    Boolean(sessionStatus.conversationId) &&
+    (!targetConversationId || String(sessionStatus.conversationId || "") === targetConversationId) &&
+    !sessionStatus.retrying &&
+    !sessionStatus.sessionRotationDetected &&
+    (
+      sessionStatus.selectedThreadProvisional ||
+      sessionStatus.selectedThreadRestore ||
+      (sessionStatus.pendingHandoff && sessionStatus.selectedThreadSse)
+    );
   return Boolean(
-    healthyPromotion.promoted &&
-      (!conversationId || String(healthyPromotion.conversationId || "") === String(conversationId || "")),
+    provisionalOwned ||
+      (
+        healthyPromotion.promoted &&
+        (!targetConversationId || String(healthyPromotion.conversationId || "") === targetConversationId)
+      ),
   );
 }
 

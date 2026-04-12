@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `310`
-- bounded focus: `keep selected-thread switch continuity mounted while making the center timeline the only switch-status surface`
+- current iteration: `311`
+- bounded focus: `treat selected-thread attach or resume as session-owned so polling stays degraded-only`
 
 ## Request
 
@@ -13,7 +13,7 @@
 
 ## Problem
 
-Healthy selected-thread ownership, explicit autonomy milestones, strict rail mirroring, the selected-thread session-stream contract, deployed single-authority proof, the selected-thread handoff path, streamed autonomy identity, merged footer session-composer status, explicit attach authority, restore continuity, switch continuity, central `session_status` authority convergence, and degraded-path timeline ownership are already present. The bounded question for this iteration is refining intentional thread switches so the mounted workspace stays continuous while the center timeline alone owns switch-status visibility.
+Healthy selected-thread ownership, explicit autonomy milestones, strict rail mirroring, the selected-thread session-stream contract, deployed single-authority proof, the selected-thread handoff path, streamed autonomy identity, merged footer session-composer status, explicit attach authority, restore continuity, switch continuity, central `session_status` authority convergence, and degraded-path timeline ownership are already present. The bounded question for this iteration is closing the provisional polling seam so selected-thread attach or resume stays on one session-owned path instead of briefly splitting into poll-driven job state.
 
 ## Target User
 
@@ -23,14 +23,14 @@ The primary user is the operator or developer using the phone-friendly realtime 
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the change bounded to the existing selected-thread switch rendering contract and its deployed browser verification contract.
-- Preserve degraded fallback behavior, healthy rail mirrors, transcript primary ownership, header summary continuity, and fixed-composer continuity unchanged outside intentional switch presentation.
-- Keep the transcript shell and bottom composer dock mounted while making the center timeline the only explicit switch-status surface.
+- Keep the change bounded to the existing selected-thread transport ownership boundary between provisional attach or resume and job polling fallback.
+- Preserve degraded fallback behavior, healthy rail mirrors, transcript primary ownership, header summary continuity, switch continuity, and fixed-composer continuity unchanged.
+- Keep attach, resume, and send flows on the selected-thread session-status plus bootstrap path until healthy SSE ownership settles or an explicit degraded reason appears.
 - Avoid introducing a second status source, new polling-owned healthy readiness, or new exception-path regressions.
 
 ## Deliverable
 
-Keep selected-thread attach or resume on one canonical provisional session lane as soon as the intended EventSource is open. During that bootstrap window, the center timeline and composer-adjacent footer dock stay mounted with only ATTACH or RESUME plus one carried-forward phase chip, and healthy ownership remains withheld until the selected-thread store models agree on the same conversation in authoritative `sse-live` state. For iteration 310 specifically, keep an intentional selected-thread switch on one mounted workspace shell: the center timeline shows exactly one compact switching or attach placeholder, stale old-thread ownership clears immediately, the bottom composer dock stays mounted, the generic empty state never flashes, and auxiliary header, footer, detail-drawer, or rail chrome do not mirror switch status while the new snapshot attaches.
+Keep selected-thread attach or resume on one canonical provisional session lane as soon as the intended EventSource is open. During that bootstrap window, the center timeline and composer-adjacent footer dock stay mounted with only ATTACH or RESUME plus one carried-forward phase chip, and healthy ownership remains withheld until the selected-thread store models agree on the same conversation in authoritative `sse-live` state. For iteration 311 specifically, treat selected-thread provisional attach or resume and pending handoff as session-owned enough to suppress job polling, so send and restore flows stay on the same session-status plus bootstrap path until SSE live ownership arrives or an explicit degraded fallback reason forces polling.
 Iteration 245: the dominant selected-thread header summary is already the machine-readable live-session ownership signal, carrying owner, path, and phase from canonical session_status plus SSE authority while degrading or clearing immediately on reconnect, polling fallback, switch, or idle completion.
 Iteration 248: the bottom-fixed composer keeps a visible selected-thread target row during healthy and transition states, rendering `READY`, `SWITCHING`, or `HANDOFF` from canonical selected-thread session authority and downgrading or clearing immediately on reconnect, polling fallback, switch, or idle resolution.
 Iteration 249: the left-rail active-session row is already the canonical mirror of the currently selected healthy SSE-owned session, exposing owned and canonical cues only for the selected thread and clearing or downgrading immediately on reconnect, polling fallback, idle, terminal, or switch paths.

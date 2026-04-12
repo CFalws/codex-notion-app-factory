@@ -1,15 +1,14 @@
 # Factory Runtime Tasks
 
-## Iteration 310
+## Iteration 311
 
-- [x] Keep the iteration bounded to the existing intentional selected-thread switch path and deployed browser verification.
+- [x] Keep the iteration bounded to the selected-thread provisional attach or resume ownership boundary and the existing job polling fallback gate.
 - [x] Preserve the existing selected-thread `session_status` plus append SSE transport, promotion, and degraded fallback contract.
-- [x] Keep the transcript shell and bottom composer dock mounted during intentional thread switches.
-- [x] Make the center timeline the only explicit switch-status surface by rendering one compact switching placeholder and suppressing auxiliary switch mirrors.
-- [x] Prove that switch and cancelled-switch paths clear stale old-thread ownership in the same render frame and never flash the generic empty state.
-- [x] Avoid introducing any new authority source, parallel transition controller state, or duplicate switch-status chrome.
+- [x] Treat provisional attach, provisional resume, restore, and pending handoff on the selected thread as session-owned for polling suppression.
+- [x] Keep polling activation limited to explicit degraded paths such as retrying, reconnect downgrade, session rotation, or true snapshot fallback.
+- [x] Avoid introducing any new authority source, parallel transport controller state, or duplicate healthy chrome.
 - [x] Update proposal artifacts to record the intended-path verifier result.
-- Iteration 310: keep intentional selected-thread switches mounted and continuous while making the center timeline the only explicit switch-status surface.
+- Iteration 311: suppress poll-driven transient ownership during healthy selected-thread attach or resume.
 - Iteration 245: confirm the selected-thread center header already exposes the canonical ownership chip and keep deployed verification bound to that machine-readable selected-thread signal without adding another live-status surface.
 - Iteration 248: keep the selected-thread composer owner row visible on healthy and transition paths, render `READY` only on healthy SSE-owned state, and assert degraded paths never retain stale ready ownership.
 - Iteration 249: record that the sticky left-rail active-session row is already the canonical selected-thread SSE mirror and keep non-selected rows snapshot-only with immediate clear or downgrade on degraded paths.
