@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `292`
-- bounded focus: `give the healthy selected conversation row the strongest live-owner treatment in the rail`
+- current iteration: `293`
+- bounded focus: `promote healthy selected-thread session-status to the sole live authority for central proposal and apply state`
 
 ## Request
 
@@ -13,7 +13,7 @@
 
 ## Problem
 
-Healthy selected-thread ownership, explicit autonomy milestones, strict rail mirroring, the selected-thread session-stream contract, deployed single-authority proof, the selected-thread handoff path, streamed autonomy identity, merged footer session-composer status, explicit attach authority, restore continuity, switch continuity, one-owner healthy timeline rendering, preserved transitional transcript continuity, phase-led footer dock presentation, healthy-path authority gating, stable composer continuity, selected-row rail parity, healthy live-surface convergence, selected-row freshness parity, and selected-row phase parity are already present. The bounded question for this iteration is selected-row dominance: whether the currently selected healthy SSE-owned conversation row can carry stronger live-owner treatment at a glance without creating a new authority source or changing which rail surface is canonical.
+Healthy selected-thread ownership, explicit autonomy milestones, strict rail mirroring, the selected-thread session-stream contract, deployed single-authority proof, the selected-thread handoff path, streamed autonomy identity, merged footer session-composer status, explicit attach authority, restore continuity, switch continuity, one-owner healthy timeline rendering, preserved transitional transcript continuity, phase-led footer dock presentation, healthy-path authority gating, stable composer continuity, selected-row rail parity, healthy live-surface convergence, selected-row freshness parity, selected-row phase parity, and strong selected-row healthy emphasis are already present. The bounded question for this iteration is central authority convergence: whether proposal, review, verify, ready, applied, and apply-readiness state on the healthy selected-thread path can come from the same selected-thread `session_status` SSE payload instead of split derivation between `sessionPhase` and session-strip readiness.
 
 ## Target User
 
@@ -23,14 +23,14 @@ The primary user is the operator or developer using the phone-friendly realtime 
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the change bounded to selected-thread ownership derivation, polling suppression, verifier expectations, and durable proposal artifacts.
+- Keep the change bounded to selected-thread live authority derivation, polling suppression, verifier expectations, and durable proposal artifacts.
 - Preserve the existing `session_status` plus append SSE authority path and explicit degraded fallback behavior unchanged.
 - Keep the bottom-fixed composer dock, selected-thread shell, preserved transition shell, and one-owner healthy timeline behavior unchanged once authoritative ownership is reattached.
 - Avoid introducing a second status source, new polling-owned healthy readiness, or new exception-path regressions.
 
 ## Deliverable
 
-Keep selected-thread attach or resume on one canonical provisional session lane as soon as the intended EventSource is open. During that bootstrap window, the center timeline and composer-adjacent footer dock stay mounted with only ATTACH or RESUME plus one carried-forward phase chip, and healthy ownership remains withheld until the selected-thread store models agree on the same conversation in authoritative `sse-live` state. For iteration 289 specifically, keep the center session timeline plus the bottom composer strip as the canonical healthy selected-thread live surface for job, phase, proposal, verifier, and apply progress, while the secondary execution surface stays suppressed on that healthy path and restores only on degraded, reconnect, restore, switch, or other non-healthy paths.
+Keep selected-thread attach or resume on one canonical provisional session lane as soon as the intended EventSource is open. During that bootstrap window, the center timeline and composer-adjacent footer dock stay mounted with only ATTACH or RESUME plus one carried-forward phase chip, and healthy ownership remains withheld until the selected-thread store models agree on the same conversation in authoritative `sse-live` state. For iteration 293 specifically, keep the center session timeline plus the bottom composer strip as the canonical healthy selected-thread live surface for proposal, review, verify, ready, applied, and apply readiness, and derive those healthy cues from selected-thread `session_status` SSE payloads instead of letting polling or parallel phase derivation reclaim those controls.
 Iteration 245: the dominant selected-thread header summary is already the machine-readable live-session ownership signal, carrying owner, path, and phase from canonical session_status plus SSE authority while degrading or clearing immediately on reconnect, polling fallback, switch, or idle completion.
 Iteration 248: the bottom-fixed composer keeps a visible selected-thread target row during healthy and transition states, rendering `READY`, `SWITCHING`, or `HANDOFF` from canonical selected-thread session authority and downgrading or clearing immediately on reconnect, polling fallback, switch, or idle resolution.
 Iteration 249: the left-rail active-session row is already the canonical mirror of the currently selected healthy SSE-owned session, exposing owned and canonical cues only for the selected thread and clearing or downgrading immediately on reconnect, polling fallback, idle, terminal, or switch paths.
@@ -55,3 +55,4 @@ Iteration 288: the currently selected conversation row now mirrors the canonical
 Iteration 289: the healthy selected-thread path already keeps the center session timeline and the bottom composer strip as the canonical live status surfaces in this branch; the secondary execution status surface is already suppressed while healthy SSE authority is present and already returns on degraded, reconnect, restore, switch, and other non-healthy paths.
 Iteration 291: the currently selected conversation row now mirrors one compact live phase chip from the canonical selected-thread session surface in this branch; the chip updates immediately on the healthy SSE-owned path and clears back to snapshot-only rendering on reconnect, polling fallback, restore, switch, or terminal paths.
 Iteration 292: the currently selected healthy SSE-owned conversation row now carries the strongest live-owner treatment in the rail in this branch while `active-session-row` remains canonical; that stronger treatment clears immediately on reconnect, polling fallback, restore, switch, or terminal paths.
+Iteration 293: healthy selected-thread proposal, review, verify, ready, applied, and apply-readiness state now derive from the selected-thread `session_status` SSE payload in this branch; the central live session surface no longer needs a parallel healthy phase path to decide those cues, and jobs polling remains gated behind explicit loss of selected-thread ownership.

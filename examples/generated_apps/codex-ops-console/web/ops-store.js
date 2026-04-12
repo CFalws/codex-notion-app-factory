@@ -1246,6 +1246,211 @@ export function deriveSelectedThreadSessionStripModel(currentState, conversation
   };
 }
 
+export function deriveSelectedThreadHealthyLiveRunModel(currentState, conversation = null) {
+  const healthyPromotion = deriveSelectedThreadHealthyPromotionModel(currentState, conversation);
+  const sessionStatusPayload = currentState.appendStream?.sessionStatus || null;
+  const conversationId = String(conversation?.conversation_id || healthyPromotion.conversationId || "");
+  const payloadConversationId = String(
+    sessionStatusPayload?.conversationId || sessionStatusPayload?.conversation_id || "",
+  );
+  if (
+    !healthyPromotion.promoted ||
+    !sessionStatusPayload ||
+    !conversationId ||
+    payloadConversationId !== conversationId
+  ) {
+    return {
+      visible: false,
+      state: "idle",
+      phase: "IDLE",
+      detail: "",
+      source: "none",
+      tone: "idle",
+      jobId: "",
+      terminal: false,
+      appendId: 0,
+      authoritative: false,
+      reason: healthyPromotion.reason,
+    };
+  }
+
+  const phasePayload = sessionStatusPayload?.phase && typeof sessionStatusPayload.phase === "object"
+    ? sessionStatusPayload.phase
+    : {};
+  const rawPhase = String(phasePayload?.value || "UNKNOWN").toUpperCase();
+  const eventType = String(
+    sessionStatusPayload?.eventType ||
+      sessionStatusPayload?.event_type ||
+      phasePayload?.eventType ||
+      phasePayload?.event_type ||
+      "",
+  );
+  const proposalReady = Boolean(sessionStatusPayload?.proposalReady ?? sessionStatusPayload?.proposal_ready ?? false);
+  const proposalStatus = String(
+    sessionStatusPayload?.proposalStatus || sessionStatusPayload?.proposal_status || "",
+  ).toLowerCase();
+  const pathVerdict = String(
+    sessionStatusPayload?.pathVerdict || sessionStatusPayload?.path_verdict || "UNKNOWN",
+  ).toUpperCase();
+  const blockerReason = String(
+    sessionStatusPayload?.blockerReason || sessionStatusPayload?.blocker_reason || "none",
+  ).toLowerCase();
+  const phaseSource = String(
+    phasePayload?.source || sessionStatusPayload?.source || sessionStatusPayload?.transport?.channel || "sse",
+  ).toLowerCase();
+  const jobId = String(
+    phasePayload?.jobId ||
+      phasePayload?.job_id ||
+      sessionStatusPayload?.latestJobId ||
+      sessionStatusPayload?.latest_job_id ||
+      "",
+  );
+  const appendId = Math.max(
+    Number(
+      phasePayload?.appendId ||
+        phasePayload?.append_id ||
+        sessionStatusPayload?.appendId ||
+        sessionStatusPayload?.append_id ||
+        0,
+    ),
+    0,
+  );
+
+  if (rawPhase === "FAILED" || pathVerdict === "DEGRADED" || blockerReason !== "none") {
+    return {
+      visible: true,
+      state: "failed",
+      phase: "FAILED",
+      detail: "선택된 대화의 authoritative SSE session status가 실패 또는 degraded 상태를 보고했습니다.",
+      source: phaseSource,
+      tone: "done",
+      jobId,
+      terminal: true,
+      appendId,
+      authoritative: true,
+      reason: blockerReason || "degraded",
+    };
+  }
+  if (eventType === "goal.proposal.auto_apply.started") {
+    return {
+      visible: true,
+      state: "auto-apply",
+      phase: "AUTO APPLY",
+      detail: "선택된 대화의 authoritative SSE session status가 자동 적용 단계를 보고했습니다.",
+      source: phaseSource,
+      tone: "waiting",
+      jobId,
+      terminal: false,
+      appendId,
+      authoritative: true,
+      reason: "session-status-phase",
+    };
+  }
+  if (rawPhase === "VERIFY") {
+    return {
+      visible: true,
+      state: "verify-phase",
+      phase: "VERIFY",
+      detail: "선택된 대화의 authoritative SSE session status가 검증 단계를 보고했습니다.",
+      source: phaseSource,
+      tone: "running",
+      jobId,
+      terminal: false,
+      appendId,
+      authoritative: true,
+      reason: "session-status-phase",
+    };
+  }
+  if (rawPhase === "REVIEW") {
+    return {
+      visible: true,
+      state: "review-phase",
+      phase: "REVIEW",
+      detail: "선택된 대화의 authoritative SSE session status가 리뷰 단계를 보고했습니다.",
+      source: phaseSource,
+      tone: "thinking",
+      jobId,
+      terminal: false,
+      appendId,
+      authoritative: true,
+      reason: "session-status-phase",
+    };
+  }
+  if (rawPhase === "PROPOSAL") {
+    return {
+      visible: true,
+      state: "proposal-phase",
+      phase: "PROPOSAL",
+      detail: "선택된 대화의 authoritative SSE session status가 제안 단계를 보고했습니다.",
+      source: phaseSource,
+      tone: "thinking",
+      jobId,
+      terminal: false,
+      appendId,
+      authoritative: true,
+      reason: "session-status-phase",
+    };
+  }
+  if (proposalReady || proposalStatus === "ready_to_apply" || rawPhase === "READY") {
+    return {
+      visible: true,
+      state: "proposal-ready",
+      phase: "READY",
+      detail: "선택된 대화의 authoritative SSE session status가 ready 상태를 보고했습니다.",
+      source: phaseSource,
+      tone: "waiting",
+      jobId,
+      terminal: true,
+      appendId,
+      authoritative: true,
+      reason: "session-status-ready",
+    };
+  }
+  if (proposalStatus === "applied" || rawPhase === "APPLIED") {
+    return {
+      visible: true,
+      state: "applied",
+      phase: "APPLIED",
+      detail: "선택된 대화의 authoritative SSE session status가 applied 상태를 보고했습니다.",
+      source: phaseSource,
+      tone: "done",
+      jobId,
+      terminal: true,
+      appendId,
+      authoritative: true,
+      reason: "session-status-applied",
+    };
+  }
+  if (rawPhase === "LIVE") {
+    return {
+      visible: true,
+      state: "live",
+      phase: "LIVE",
+      detail: "선택된 대화가 authoritative SSE session status에 의해 live session으로 유지되고 있습니다.",
+      source: phaseSource,
+      tone: "running",
+      jobId,
+      terminal: false,
+      appendId,
+      authoritative: true,
+      reason: "session-status-live",
+    };
+  }
+  return {
+    visible: true,
+    state: "unknown",
+    phase: rawPhase || "UNKNOWN",
+    detail: "선택된 대화의 authoritative SSE session status가 아직 명시적 세션 단계를 확정하지 않았습니다.",
+    source: phaseSource,
+    tone: "idle",
+    jobId,
+    terminal: false,
+    appendId,
+    authoritative: true,
+    reason: "session-status-unknown",
+  };
+}
+
 export function isSelectedThreadSessionOwned(currentState, conversationId = "") {
   const healthyPromotion = deriveSelectedThreadHealthyPromotionModel(currentState, { conversation_id: conversationId });
   return Boolean(

@@ -2,6 +2,7 @@ import { DECISION_FIELDS } from "./ops-constants.js";
 import {
   deriveSelectedThreadComposerTargetRowModel,
   deriveSelectedThreadFollowControlModel,
+  deriveSelectedThreadHealthyLiveRunModel,
   deriveSelectedThreadLiveAutonomy,
   deriveSelectedThreadPhaseProgression,
   deriveSelectedThreadSessionAuthorityModel,
@@ -1685,6 +1686,7 @@ function deriveLiveRunState(conversation, currentState) {
   const sessionPhase = selectedThreadSessionPhase(conversation, currentState);
   const pendingOutgoing = currentState.pendingOutgoing || {};
   const sessionPhaseEventType = String(sessionPhase.eventType || "");
+  const sessionStatusLiveRun = deriveSelectedThreadHealthyLiveRunModel(currentState, conversation);
 
   if (!conversation?.conversation_id) {
     return runStateSnapshot({
@@ -1696,6 +1698,20 @@ function deriveLiveRunState(conversation, currentState) {
       tone: "idle",
       jobId: "",
       terminal: false,
+    });
+  }
+
+  if (sessionStatusLiveRun.visible) {
+    return runStateSnapshot({
+      visible: true,
+      state: sessionStatusLiveRun.state,
+      phase: sessionStatusLiveRun.phase,
+      detail: sessionStatusLiveRun.detail,
+      source: sessionStatusLiveRun.source,
+      tone: sessionStatusLiveRun.tone,
+      jobId: sessionStatusLiveRun.jobId || jobId,
+      terminal: sessionStatusLiveRun.terminal,
+      appendId: sessionStatusLiveRun.appendId,
     });
   }
 
