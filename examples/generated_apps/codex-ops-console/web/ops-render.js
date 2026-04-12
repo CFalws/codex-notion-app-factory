@@ -727,11 +727,7 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
     Boolean(conversationId) &&
     timelineAuthority.visible &&
     timelineAuthority.presentation === "provisional";
-  const phaseBadgeVisible =
-    authority.state === "healthy" &&
-    Boolean(conversationId) &&
-    timelineAuthority.visible &&
-    timelineAuthority.presentation === "healthy";
+  const phaseBadgeVisible = false;
   const summaryVisible = authority.summaryVisible && !provisionalTranscriptAuthority && !phaseBadgeVisible;
   const summaryScope = "SELECTED";
   const summaryPath = String(authority.pathLabel || sessionSurface.pathVerdict || "EXPECTED").toUpperCase();
@@ -1189,9 +1185,6 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
   const timelineSession = selectedThreadPrimaryTimelineSessionModel(conversation, currentState, liveRun);
   const { inlineState, sessionSurface } = timelineSession;
   const { handoffVisible, liveVisible, provisionalVisible } = inlineState;
-  if (liveVisible) {
-    return "";
-  }
   if (!liveVisible && !handoffVisible && !provisionalVisible) {
     return "";
   }
@@ -1354,6 +1347,9 @@ function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
   const sessionStrip = deriveSelectedThreadSessionStripModel(currentState, conversation, liveRun);
   const { liveAutonomy, phaseProgression, milestoneModel } = sessionSurface;
   const { handoffVisible, degradedVisible, sessionIndicator } = inlineState;
+  if (liveOwned) {
+    return "";
+  }
   if (handoffVisible) {
     return "";
   }

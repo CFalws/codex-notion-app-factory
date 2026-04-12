@@ -1,5 +1,13 @@
 # Factory Runtime Tasks
 
+## Iteration 322
+
+- [x] Keep transport and selected-session ownership unchanged while removing the last healthy header status surface.
+- [x] Enable the healthy selected-thread inline session timeline block as the center-pane live phase surface.
+- [x] Suppress the healthy transcript live-activity card and healthy title-row phase badge so healthy status remains visible only through the inline session block and footer dock.
+- [x] Tighten static and deployed verification so healthy success fails if duplicate healthy status chrome remains above the transcript.
+- Iteration 322: converge healthy selected-thread live phase visibility onto the inline session block plus footer dock and remove the last duplicate header badge.
+
 ## Iteration 321
 
 - [x] Keep transport and selected-session ownership unchanged while simplifying the healthy selected-thread header chrome.

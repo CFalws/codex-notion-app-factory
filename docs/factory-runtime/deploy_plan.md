@@ -1,5 +1,10 @@
 # Factory Runtime Deploy Plan
 
+## Iteration 322
+
+- Run the deployed healthy selected-thread scenario and confirm the header shows only conversation identity, with the inline session timeline block and footer dock carrying healthy live phase visibility.
+- Treat deployment readiness as blocked if the healthy path still shows a visible header phase badge or a separate healthy transcript live-activity card alongside the inline session block.
+
 ## Iteration 321
 
 - Run the deployed healthy selected-thread scenario and confirm the center pane starts with conversation identity plus one phase badge, with the separate healthy header summary row hidden and the conversation-meta prose cleared.

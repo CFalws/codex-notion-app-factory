@@ -1,5 +1,13 @@
 # Factory Runtime Implementation Plan
 
+## Iteration 322
+
+- Preserve the existing selected-thread transport and selected-session snapshot authority model.
+- Keep degraded, restore, provisional, handoff, and switching rendering unchanged.
+- Remove the healthy title-row phase badge and healthy transcript live-activity card.
+- Reuse the existing inline session timeline block and footer dock as the only healthy selected-thread phase and ownership surfaces in the center pane.
+- Tighten static and deployed verification so healthy success fails if duplicate healthy header or helper-only status chrome remains.
+
 ## Iteration 321
 
 - Preserve the existing selected-thread transport and selected-session snapshot authority model.

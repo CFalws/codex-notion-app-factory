@@ -1,5 +1,11 @@
 # Factory Runtime Spec
 
+## Iteration 322
+
+- The healthy selected-thread center pane must not show a separate header phase badge when the selected-session snapshot is already rendering authoritative live phase visibility in the inline session timeline block and footer dock.
+- The healthy transcript live-activity card must stay suppressed on that path so the conversation surface reads as one realtime session instead of parallel status chrome.
+- Restore, degraded, provisional, handoff, and switching paths must keep their explicit cues unchanged.
+
 ## Iteration 321
 
 - The healthy selected-thread center header must collapse to conversation identity plus at most one compact phase badge driven by the selected-session snapshot.

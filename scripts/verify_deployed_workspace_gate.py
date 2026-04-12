@@ -603,25 +603,23 @@ def assert_browser_runtime_surface(
                     entry => String(entry.url || "").includes(`/api/apps/${appId}/goals`)
                   );
                   return Boolean(
-                    inlineBlocks.length === 0 &&
-                    !inlineBlock &&
-                    liveActivity &&
-                    primaryLiveActivities.length === 1 &&
-                    liveActivity.dataset.liveSessionPrimary === "true" &&
-                    liveActivity.dataset.liveOwned === "true" &&
-                    liveActivity.dataset.liveSessionLane === "selected-thread" &&
-                    liveActivity.dataset.liveTransport === "SSE OWNER" &&
-                    ["EXPECTED", "ACCEPTABLE"].includes(liveActivity.dataset.livePathVerdict || "") &&
-                    (liveActivity.dataset.liveExpectedPath || "").length > 0 &&
-                    ["ACCEPTABLE", "PENDING"].includes(liveActivity.dataset.liveVerifierAcceptability || "") &&
-                    (liveActivity.dataset.liveBlockerReason || "").length > 0 &&
-                    ["PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED"].includes(liveActivity.dataset.liveRunPhase || "") &&
-                    liveActivity.textContent.includes("SELECTED") &&
-                    liveActivity.textContent.includes("SSE OWNER") &&
+                    inlineBlocks.length === 1 &&
+                    inlineBlock &&
+                    !liveActivity &&
+                    primaryLiveActivities.length === 0 &&
+                    inlineBlock.dataset.liveBlockOwned === "true" &&
+                    inlineBlock.dataset.liveBlockTransport === "SSE OWNER" &&
+                    ["PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED"].includes(inlineBlock.dataset.liveBlockPhase || "") &&
+                    ["EXPECTED", "ACCEPTABLE"].includes(inlineBlock.dataset.liveBlockPathVerdict || "") &&
+                    (inlineBlock.dataset.liveBlockExpectedPath || "").length > 0 &&
+                    ["ACCEPTABLE", "PENDING"].includes(inlineBlock.dataset.liveBlockVerifierAcceptability || "") &&
+                    (inlineBlock.dataset.liveBlockBlockerReason || "").length > 0 &&
+                    inlineBlock.textContent.includes("SELECTED") &&
+                    inlineBlock.textContent.includes("SSE OWNER") &&
                     milestoneLane &&
                     milestoneLane.dataset.liveMilestones === "true" &&
                     milestoneLane.dataset.liveMilestonesExplicit === "true" &&
-                    milestoneLane.dataset.liveMilestonesPhase === liveActivity.dataset.liveRunPhase &&
+                    milestoneLane.dataset.liveMilestonesPhase === inlineBlock.dataset.liveBlockPhase &&
                     milestoneLane.querySelector('[data-milestone-key="auto-apply"]') &&
                     threadSessionSummary &&
                     threadSessionSummary.hidden &&
@@ -634,15 +632,13 @@ def assert_browser_runtime_surface(
                     threadSessionSummary.dataset.centerTimelineAuthority === "true" &&
                     threadSessionSummary.dataset.centerTimelinePresentation === "healthy" &&
                     threadPhase &&
-                    !threadPhase.hidden &&
-                    threadPhase.dataset.liveSessionVisible === "true" &&
-                    threadPhase.dataset.liveSessionPresentation === "healthy" &&
-                    threadPhase.dataset.liveSessionOwned === "true" &&
-                    threadPhase.dataset.selectedSessionState === "healthy" &&
-                    threadPhase.dataset.selectedSessionOwned === "true" &&
-                    threadPhase.dataset.selectedSessionTransport === "SSE OWNER" &&
-                    threadPhase.dataset.selectedSessionPhase === liveActivity.dataset.liveRunPhase &&
-                    threadPhase.textContent.trim() === liveActivity.dataset.liveRunPhase &&
+                    threadPhase.hidden &&
+                    threadPhase.dataset.liveSessionVisible === "false" &&
+                    threadPhase.dataset.liveSessionPresentation === "cleared" &&
+                    threadPhase.dataset.liveSessionOwned === "false" &&
+                    threadPhase.dataset.selectedSessionState === "cleared" &&
+                    threadPhase.dataset.selectedSessionOwned === "false" &&
+                    threadPhase.dataset.selectedSessionTransport === "SNAPSHOT" &&
                     threadPhase.dataset.centerTimelineAuthority === "true" &&
                     threadPhase.dataset.centerTimelinePresentation === "healthy" &&
                     conversationMeta &&
@@ -654,7 +650,7 @@ def assert_browser_runtime_surface(
                     activeSessionRow.dataset.activeSessionCanonical === "true" &&
                     activeSessionRow.dataset.activeSessionSource === "sse" &&
                     activeSessionRow.dataset.activeSessionConversationId === conversationId &&
-                    activeSessionRow.dataset.activeSessionPhase === liveActivity.dataset.liveRunPhase &&
+                    activeSessionRow.dataset.activeSessionPhase === inlineBlock.dataset.liveBlockPhase &&
                     ["live", "new", "paused"].includes(activeSessionRow.dataset.activeSessionState || "") &&
                     visibleConversationOwnerRows.length === 1 &&
                     selectedCardLiveOwnerRow &&
@@ -664,12 +660,12 @@ def assert_browser_runtime_surface(
                     selectedCardLiveOwnerRow.dataset.liveOwnerState === activeSessionRow.dataset.activeSessionState &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerConversationId === conversationId &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerSource === "sse" &&
-                    selectedCardLiveOwnerRow.dataset.liveOwnerPhase === liveActivity.dataset.liveRunPhase &&
+                    selectedCardLiveOwnerRow.dataset.liveOwnerPhase === inlineBlock.dataset.liveBlockPhase &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerEmphasis === "strong" &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerShadow === "true" &&
                     selectedCard.dataset.livePhaseVisible === "true" &&
                     selectedCard.dataset.livePhaseSource === "sse" &&
-                    selectedCard.dataset.livePhaseValue === liveActivity.dataset.liveRunPhase &&
+                    selectedCard.dataset.livePhaseValue === inlineBlock.dataset.liveBlockPhase &&
                     selectedCardLiveDetail &&
                     ["LIVE", "NEW", "PAUSED"].includes(selectedCardLiveDetail.textContent.trim()) &&
                     selectedCardLiveFollow &&
@@ -679,8 +675,8 @@ def assert_browser_runtime_surface(
                     selectedCardLivePhase &&
                     !selectedCardLivePhase.hidden &&
                     selectedCardLivePhase.dataset.liveOwnerVisible === "true" &&
-                    selectedCardLivePhase.dataset.liveOwnerPhase === liveActivity.dataset.liveRunPhase &&
-                    selectedCardLivePhase.textContent.trim() === liveActivity.dataset.liveRunPhase &&
+                    selectedCardLivePhase.dataset.liveOwnerPhase === inlineBlock.dataset.liveBlockPhase &&
+                    selectedCardLivePhase.textContent.trim() === inlineBlock.dataset.liveBlockPhase &&
                     sessionStrip &&
                     !sessionStrip.hidden &&
                     sessionStrip.dataset.footerSurface === "dock" &&
@@ -689,21 +685,21 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.sessionPresentation !== "suppressed" &&
                     sessionStrip.dataset.footerDockOwned === "true" &&
                     sessionStrip.dataset.footerDockMilestones === "true" &&
-                    sessionStrip.dataset.footerDockPhase === liveActivity.dataset.liveRunPhase &&
+                    sessionStrip.dataset.footerDockPhase === inlineBlock.dataset.liveBlockPhase &&
                     sessionStrip.dataset.footerDockSource === "sse" &&
                     sessionStrip.dataset.composerTransport === "sse-owner" &&
                     sessionStrip.dataset.composerTransportOwned === "true" &&
                     sessionStrip.dataset.phaseProvenance === "sse" &&
                     threadScroller &&
-                    sessionStrip.dataset.phaseValue === liveActivity.dataset.liveRunPhase &&
-                    threadScroller.dataset.phaseValue === liveActivity.dataset.liveRunPhase &&
+                    sessionStrip.dataset.phaseValue === inlineBlock.dataset.liveBlockPhase &&
+                    threadScroller.dataset.phaseValue === inlineBlock.dataset.liveBlockPhase &&
                     threadScroller.dataset.phaseProvenance === "sse" &&
                     sessionStripState &&
                     !sessionStripState.hidden &&
                     stripChips.length >= 2 &&
                     sessionStripState.dataset.sessionStripRole === "live-dock" &&
-                    sessionStripState.dataset.sessionStripLabel === liveActivity.dataset.liveRunPhase &&
-                    sessionStripState.textContent.includes(liveActivity.dataset.liveRunPhase || "") &&
+                    sessionStripState.dataset.sessionStripLabel === inlineBlock.dataset.liveBlockPhase &&
+                    sessionStripState.textContent.includes(inlineBlock.dataset.liveBlockPhase || "") &&
                     sessionStripState.textContent.includes("SSE OWNER") &&
                     !sessionStripState.textContent.includes("HYPOTHESIS") &&
                     !sessionStripState.textContent.includes("REVIEW SIGNAL") &&
@@ -715,7 +711,7 @@ def assert_browser_runtime_surface(
                     sessionStripMeta.textContent.trim().length > 0 &&
                     sessionStripDetail &&
                     !sessionStripDetail.hidden &&
-                    sessionStripDetail.textContent.includes(liveActivity.dataset.liveRunPhase || "") &&
+                    sessionStripDetail.textContent.includes(inlineBlock.dataset.liveBlockPhase || "") &&
                     !sessionStripDetail.textContent.includes("HYPOTHESIS") &&
                     !sessionStripDetail.textContent.includes("REVIEW SIGNAL") &&
                     !sessionStripDetail.textContent.includes("VERIFY SIGNAL") &&
@@ -759,10 +755,10 @@ def assert_browser_runtime_surface(
                     secondarySessionFacts.dataset.secondaryFactsPresentation === "suppressed" &&
                     secondarySessionFacts.dataset.secondaryFactsOwned === "false" &&
                     secondarySessionFacts.dataset.secondaryFactsTransport === "SUPPRESSED" &&
-                    secondarySessionFacts.dataset.secondaryFactsPhase === liveActivity.dataset.liveRunPhase &&
-                    secondarySessionFacts.dataset.secondaryFactsPath === liveActivity.dataset.livePathVerdict &&
-                    secondarySessionFacts.dataset.secondaryFactsVerifier === liveActivity.dataset.liveVerifierAcceptability &&
-                    secondarySessionFacts.dataset.secondaryFactsBlocker === liveActivity.dataset.liveBlockerReason &&
+                    secondarySessionFacts.dataset.secondaryFactsPhase === inlineBlock.dataset.liveBlockPhase &&
+                    secondarySessionFacts.dataset.secondaryFactsPath === inlineBlock.dataset.liveBlockPathVerdict &&
+                    secondarySessionFacts.dataset.secondaryFactsVerifier === inlineBlock.dataset.liveBlockVerifierAcceptability &&
+                    secondarySessionFacts.dataset.secondaryFactsBlocker === inlineBlock.dataset.liveBlockBlockerReason &&
                     autonomyDetailCard &&
                     autonomyDetailCard.hidden &&
                     autonomyDetailCard.dataset.autonomySurface === "suppressed" &&
