@@ -645,8 +645,8 @@ def assert_browser_runtime_surface(
                     sessionStripState.dataset.sessionStripRole === "live-dock" &&
                     sessionStripState.textContent.includes("SSE OWNER") &&
                     sessionStripDetail &&
-                    sessionStripDetail.hidden &&
-                    sessionStripDetail.textContent.trim() === "" &&
+                    !sessionStripDetail.hidden &&
+                    sessionStripDetail.textContent.trim().length > 0 &&
                     composerUtilityMenu &&
                     composerUtilityMenu.dataset.composerUtilityOpen === "false" &&
                     composerUtilityMenu.dataset.composerUtilityState === "closed" &&
@@ -660,8 +660,8 @@ def assert_browser_runtime_surface(
                     composerUtilityCluster.dataset.composerUtilityState === "closed" &&
                     composerUtilityCluster.getAttribute("aria-hidden") === "true" &&
                     composerOwnerRow &&
-                    !composerOwnerRow.hidden &&
-                    composerOwnerRow.dataset.composerOwnerMerged === "false" &&
+                    composerOwnerRow.hidden &&
+                    composerOwnerRow.dataset.composerOwnerMerged === "true" &&
                     composerOwnerRow.dataset.composerOwner === "ready" &&
                     composerOwnerRow.dataset.composerOwnerConversationId === conversationId &&
                     composerOwnerRow.textContent.includes("READY") &&
@@ -858,7 +858,8 @@ def assert_browser_runtime_surface(
                     threadPhase &&
                     threadPhase.hidden &&
                     composerOwnerRow &&
-                    !composerOwnerRow.hidden &&
+                    composerOwnerRow.hidden &&
+                    composerOwnerRow.dataset.composerOwnerMerged === "true" &&
                     ["resume", "attach"].includes(composerOwnerRow.dataset.composerOwner || "") &&
                     composerOwnerRow.dataset.composerOwnerConversationId === conversationId &&
                     composerOwnerRow.dataset.composerRestoreStage === "none" &&
@@ -954,8 +955,8 @@ def assert_browser_runtime_surface(
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
                     activeSessionRow.dataset.activeSessionSource === "none" &&
                     composerOwnerRow &&
-                    !composerOwnerRow.hidden &&
-                    composerOwnerRow.dataset.composerOwnerMerged === "false" &&
+                    composerOwnerRow.hidden &&
+                    composerOwnerRow.dataset.composerOwnerMerged === "true" &&
                     ["reconnect", "polling"].includes(composerOwnerRow.dataset.composerOwner || "") &&
                     composerOwnerRow.dataset.composerOwnerConversationId === conversationId &&
                     !composerOwnerRow.textContent.includes("READY") &&
@@ -1087,8 +1088,8 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.phaseAuthoritative === "false" &&
                     sessionStrip.dataset.phaseProvenance === "thread-transition" &&
                     composerOwnerRow &&
-                    !composerOwnerRow.hidden &&
-                    composerOwnerRow.dataset.composerOwnerMerged === "false" &&
+                    composerOwnerRow.hidden &&
+                    composerOwnerRow.dataset.composerOwnerMerged === "true" &&
                     composerOwnerRow.dataset.composerOwner === "switching" &&
                     composerOwnerRow.dataset.composerOwnerConversationId === targetConversationId &&
                     composerDock &&
@@ -1712,8 +1713,12 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'const pathVerdict = liveOwned ? sessionSurface.pathVerdict : "";', label="transcript live activity shared path verdict wiring")
     require(render_js, 'const verifierAcceptability = liveOwned ? sessionSurface.verifierAcceptability : "";', label="transcript live activity shared verifier wiring")
     require(render_js, 'const blockerReason = liveOwned ? sessionSurface.blockerReason : "";', label="transcript live activity shared blocker wiring")
-    require(render_js, 'dom.composerOwnerRow.dataset.composerOwnerMerged = "false";', label="composer owner merged dataset")
-    require(render_js, 'dom.composerOwnerRow.hidden = owner.state === "idle";', label="composer owner row hidden only while idle")
+    require(render_js, 'const mergedIntoStrip = Boolean(dom.sessionStrip && !dom.sessionStrip.hidden && owner.conversationId);', label="composer owner merged strip guard")
+    require(render_js, 'dom.composerOwnerRow.dataset.composerOwnerMerged = mergedIntoStrip ? "true" : "false";', label="composer owner merged dataset")
+    require(render_js, 'dom.composerOwnerRow.hidden = mergedIntoStrip || owner.state === "idle";', label="composer owner row hidden when merged")
+    require(render_js, 'dom.sessionStrip.dataset.footerSurface = sessionConversationId ? "merged" : "cleared";', label="footer strip merged surface dataset")
+    require(render_js, 'dom.sessionStripMeta.hidden = false;', label="footer strip target visibility")
+    require(render_js, 'dom.sessionStripDetail.hidden = false;', label="footer strip detail visibility")
     require(render_js, 'return { label: "ACCEPTED", tone: "neutral" };', label="accepted handoff chip")
     require(render_js, '"RECONNECT"', label="reconnecting provenance label")
     require(render_js, '"OPEN"', label="connecting provenance label")

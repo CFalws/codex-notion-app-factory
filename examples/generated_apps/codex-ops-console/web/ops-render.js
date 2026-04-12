@@ -397,22 +397,25 @@ function sessionChromeCopy(ownerState, transportState, sessionIndicator, liveRun
 
 function sessionStripDetailCopy(ownerState, transportState, sessionIndicator, liveRun, proposalState, liveOwned, footerFollow = null) {
   const target = ownerState.target;
+  const proposalLabel = proposalStatusLabel(proposalState);
   if (ownerState.state === "switching") {
-    return target;
+    return joinSessionChromeTokens(target, "ATTACH PENDING");
   }
   if (ownerState.state === "handoff") {
-    return target;
+    return joinSessionChromeTokens(target, "HANDOFF");
   }
   if (footerFollow?.visible) {
     return `${footerFollow.stateLabel} · ${footerFollow.detailLabel}`;
   }
   if (liveOwned) {
-    return target;
+    return proposalLabel ? joinSessionChromeTokens(target, proposalLabel, ownerState.copy) : joinSessionChromeTokens(target, ownerState.copy);
   }
   if (transportState.key === "reconnect" || transportState.key === "polling") {
-    return joinSessionChromeTokens(target, transportState.label, "DEGRADED");
+    return proposalLabel
+      ? joinSessionChromeTokens(target, transportState.label, proposalLabel)
+      : joinSessionChromeTokens(target, transportState.label, "DEGRADED");
   }
-  return target;
+  return proposalLabel ? joinSessionChromeTokens(target, proposalLabel) : target;
 }
 
 function sessionStripStateChipMarkup(chips) {
@@ -430,11 +433,13 @@ function selectedThreadFooterDockModel(currentState, conversation, liveRun, foot
   const sessionSurface = deriveSelectedThreadSessionSurfaceModel(currentState, conversation);
   const liveOwned = authority.state === "healthy";
   const phaseLabel = String(authority.phaseLabel || sessionSurface.phaseLabel || deriveSelectedThreadShellPhaseLabel(currentState, conversation) || liveRun?.phase || "LIVE").toUpperCase();
+  const proposalLabel = proposalStatusLabel(proposalChip(liveRun));
   const runStateLabel = compactPhaseDetailCopy(liveRun, "SESSION ACTIVE");
   const chips = liveOwned
     ? [
         { label: String(authority.ownerLabel || "SSE OWNER").toUpperCase(), tone: "healthy", role: "live-owner" },
         { label: phaseLabel, tone: "neutral", role: "live-phase" },
+        ...(proposalLabel ? [{ label: proposalLabel, tone: proposalLabel === "BLOCKED" ? "warning" : "neutral", role: "live-proposal" }] : []),
         footerFollow?.visible
           ? {
               label: footerFollow.stateLabel,
@@ -456,7 +461,11 @@ function selectedThreadFooterDockModel(currentState, conversation, liveRun, foot
     visible: liveOwned,
     phaseLabel,
     chips,
-    detail: footerFollow?.visible ? footerFollow.detailLabel : joinSessionChromeTokens(String(authority.ownerLabel || "SSE OWNER").toUpperCase(), runStateLabel),
+    detail: footerFollow?.visible
+      ? footerFollow.detailLabel
+      : proposalLabel
+        ? joinSessionChromeTokens(String(authority.ownerLabel || "SSE OWNER").toUpperCase(), proposalLabel, runStateLabel)
+        : joinSessionChromeTokens(String(authority.ownerLabel || "SSE OWNER").toUpperCase(), runStateLabel),
     source: String(authority.source || sessionSurface.milestoneModel.source || sessionSurface.source || "sse").toLowerCase(),
     liveOwned,
   };
@@ -596,11 +605,12 @@ function syncComposerOwnership(dom, currentState, conversation) {
     return;
   }
   const owner = composerOwnerState(currentState, conversation);
+  const mergedIntoStrip = Boolean(dom.sessionStrip && !dom.sessionStrip.hidden && owner.conversationId);
   dom.composerOwnerRow.dataset.composerOwner = owner.state;
   dom.composerOwnerRow.dataset.composerOwnerConversationId = owner.conversationId;
   dom.composerOwnerRow.dataset.composerRestoreStage = "none";
-  dom.composerOwnerRow.dataset.composerOwnerMerged = "false";
-  dom.composerOwnerRow.hidden = owner.state === "idle";
+  dom.composerOwnerRow.dataset.composerOwnerMerged = mergedIntoStrip ? "true" : "false";
+  dom.composerOwnerRow.hidden = mergedIntoStrip || owner.state === "idle";
   dom.composerOwnerState.textContent = owner.label;
   dom.composerOwnerState.dataset.ownerTone = owner.tone;
   dom.composerOwnerTarget.textContent = owner.target;
@@ -2120,6 +2130,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
 
   if (!conversationId && !(threadTransition.active && threadTransition.targetConversationId) && !sessionStatus.conversationId) {
     dom.sessionStrip.hidden = true;
+    dom.sessionStrip.dataset.footerSurface = "cleared";
     dom.sessionStrip.dataset.sessionPresentation = "cleared";
     dom.sessionStrip.dataset.sessionTerminal = "false";
     dom.sessionStrip.dataset.streamState = "offline";
@@ -2254,6 +2265,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
   }
   const stripState = sessionStripStateRow(ownerState, transportState, liveRun, presentation, liveOwned, footerFollow, footerDock);
   dom.sessionStrip.hidden = !sessionConversationId;
+  dom.sessionStrip.dataset.footerSurface = sessionConversationId ? "merged" : "cleared";
   dom.sessionStrip.dataset.liveOwned = stripProgressOwned ? "true" : "false";
   dom.sessionStrip.dataset.sessionOwner = healthyComposerAuthority ? "none" : stripLiveOwned ? "selected-thread" : "none";
   dom.sessionStrip.dataset.sessionPresentation = healthyComposerAuthority ? "suppressed" : presentation;
@@ -2296,7 +2308,9 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStripState.dataset.sessionStripTone = stripState.tone;
 
   dom.sessionStripState.innerHTML = sessionStripStateChipMarkup(stripState.chips || stripState);
+  dom.sessionStripMeta.hidden = false;
   dom.sessionStripMeta.textContent = ownerState.target;
+  dom.sessionStripDetail.hidden = false;
   dom.sessionStripDetail.textContent = footerDock.visible
     ? footerDock.detail
     : sessionStripDetailCopy(
