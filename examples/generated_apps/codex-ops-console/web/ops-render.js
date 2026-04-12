@@ -432,6 +432,7 @@ function selectedThreadFooterDockModel(currentState, conversation, liveRun, foot
   const authority = deriveSelectedThreadSessionAuthorityModel(currentState, conversation, liveRun);
   const sessionSurface = deriveSelectedThreadSessionSurfaceModel(currentState, conversation);
   const liveOwned = authority.state === "healthy";
+  const provisionalVisible = authority.state === "provisional";
   const phaseLabel = String(authority.phaseLabel || sessionSurface.phaseLabel || deriveSelectedThreadShellPhaseLabel(currentState, conversation) || liveRun?.phase || "LIVE").toUpperCase();
   const proposalLabel = proposalStatusLabel(proposalChip(liveRun));
   const runStateLabel = compactPhaseDetailCopy(liveRun, "SESSION ACTIVE");
@@ -456,16 +457,35 @@ function selectedThreadFooterDockModel(currentState, conversation, liveRun, foot
               role: "live-follow",
             }
           : { label: phaseLabel, tone: "neutral", role: "live-phase" },
-      ];
+      ]
+    : provisionalVisible
+      ? [
+          { label: phaseLabel, tone: "neutral", role: "live-phase" },
+          { label: String(authority.ownerLabel || "ATTACH").toUpperCase(), tone: "neutral", role: "live-owner" },
+          ...(proposalLabel ? [{ label: proposalLabel, tone: proposalLabel === "BLOCKED" ? "warning" : "neutral", role: "live-proposal" }] : []),
+        ]
+      : [
+          footerFollow?.visible
+            ? {
+                label: footerFollow.stateLabel,
+                tone: footerFollow.followState === "new" ? "warning" : "neutral",
+                role: "live-follow",
+              }
+            : { label: phaseLabel, tone: "neutral", role: "live-phase" },
+        ];
   return {
-    visible: liveOwned,
+    visible: liveOwned || provisionalVisible,
     phaseLabel,
     chips,
-    detail: footerFollow?.visible
-      ? joinSessionChromeTokens(phaseLabel, footerFollow.detailLabel)
-      : proposalLabel
-        ? joinSessionChromeTokens(phaseLabel, proposalLabel, runStateLabel)
-        : joinSessionChromeTokens(phaseLabel, runStateLabel),
+    detail: provisionalVisible
+      ? proposalLabel
+        ? joinSessionChromeTokens(phaseLabel, String(authority.ownerLabel || "ATTACH").toUpperCase(), proposalLabel)
+        : joinSessionChromeTokens(phaseLabel, String(authority.ownerLabel || "ATTACH").toUpperCase(), "BOOTSTRAP PENDING")
+      : footerFollow?.visible
+        ? joinSessionChromeTokens(phaseLabel, footerFollow.detailLabel)
+        : proposalLabel
+          ? joinSessionChromeTokens(phaseLabel, proposalLabel, runStateLabel)
+          : joinSessionChromeTokens(phaseLabel, runStateLabel),
     source: String(authority.source || sessionSurface.milestoneModel.source || sessionSurface.source || "sse").toLowerCase(),
     liveOwned,
   };
@@ -533,14 +553,37 @@ function composerOwnerState(currentState, conversation) {
     };
   }
 
-  if (authority.state === "restore") {
+  if (authority.state === "restore" || authority.state === "provisional") {
     return {
-      state: sessionStatus.restoreResume ? "resume" : "attach",
-      label: String(authority.ownerLabel || (sessionStatus.restoreResume ? "RESUME" : "ATTACH")).toUpperCase(),
+      state:
+        authority.state === "provisional"
+          ? sessionStatus.provisionalResume
+            ? "resume"
+            : "attach"
+          : sessionStatus.restoreResume
+            ? "resume"
+            : "attach",
+      label: String(
+        authority.ownerLabel ||
+          (authority.state === "provisional"
+            ? sessionStatus.provisionalResume
+              ? "RESUME"
+              : "ATTACH"
+            : sessionStatus.restoreResume
+              ? "RESUME"
+              : "ATTACH"),
+      ).toUpperCase(),
       tone: String(sessionStatus.transportTone || "neutral"),
       conversationId: sessionStatus.conversationId,
       target: compactTargetLabel(sessionStatus.conversationTitle, "CURRENT THREAD"),
-      copy: sessionStatus.restoreResume ? "RESUME" : "ATTACH",
+      copy:
+        authority.state === "provisional"
+          ? sessionStatus.provisionalResume
+            ? "RESUME"
+            : "ATTACH"
+          : sessionStatus.restoreResume
+            ? "RESUME"
+            : "ATTACH",
       blocked: false,
       blockedReason: "",
     };
@@ -629,10 +672,27 @@ function composerTransportState(currentState, conversation, liveRun, handoffStat
   const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
   const sessionIndicator = selectedThreadLiveSessionIndicator(currentState, conversation, liveRun, handoffState);
 
-  if (sessionStatus.presentation === "restore" && sessionStatus.conversationId) {
+  if (
+    (sessionStatus.presentation === "restore" || sessionStatus.presentation === "provisional") &&
+    sessionStatus.conversationId
+  ) {
     return {
-      label: sessionStatus.restoreResume ? "RESUME" : "ATTACH",
-      key: sessionStatus.restoreResume ? "resume" : "attach",
+      label:
+        sessionStatus.presentation === "provisional"
+          ? sessionStatus.provisionalResume
+            ? "RESUME"
+            : "ATTACH"
+          : sessionStatus.restoreResume
+            ? "RESUME"
+            : "ATTACH",
+      key:
+        sessionStatus.presentation === "provisional"
+          ? sessionStatus.provisionalResume
+            ? "resume"
+            : "attach"
+          : sessionStatus.restoreResume
+            ? "resume"
+            : "attach",
       tone: sessionStatus.transportTone,
       source: sessionStatus.restoreProvenance || sessionStatus.transport || "sse",
       owned: false,
@@ -734,7 +794,12 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
     Boolean(conversationId) &&
     timelineAuthority.visible &&
     timelineAuthority.presentation === "healthy";
-  const summaryVisible = authority.summaryVisible && !healthyTranscriptAuthority;
+  const provisionalTranscriptAuthority =
+    authority.state === "provisional" &&
+    Boolean(conversationId) &&
+    timelineAuthority.visible &&
+    timelineAuthority.presentation === "provisional";
+  const summaryVisible = authority.summaryVisible && !healthyTranscriptAuthority && !provisionalTranscriptAuthority;
   const summaryScope = "SELECTED";
   const summaryPath = String(authority.pathLabel || sessionSurface.pathVerdict || "EXPECTED").toUpperCase();
   const summaryOwner = String(authority.ownerLabel || sessionStatus.transportLabel || "SSE OWNER").toUpperCase();
@@ -1100,6 +1165,7 @@ function selectedThreadInlineSessionState(conversation, currentState, liveRun, h
     sessionIndicator.visible &&
     !sessionIndicator.owned &&
     (sessionIndicator.state === "reconnecting" || sessionIndicator.state === "polling");
+  const provisionalVisible = sessionStatus.presentation === "provisional";
   return {
     conversationId: sessionStatus.conversationId,
     selectedThreadSseOwned: sessionStatus.selectedThreadSse,
@@ -1111,7 +1177,8 @@ function selectedThreadInlineSessionState(conversation, currentState, liveRun, h
     retainedTerminalVisible,
     liveVisible,
     degradedVisible,
-    visible: handoffVisible || liveVisible || degradedVisible,
+    provisionalVisible,
+    visible: handoffVisible || liveVisible || degradedVisible || provisionalVisible,
   };
 }
 
@@ -1149,6 +1216,8 @@ function selectedThreadTimelineAuthorityModel(conversation, currentState, liveRu
       ? "healthy"
       : authority.state === "degraded"
         ? "degraded"
+        : authority.state === "provisional"
+          ? "provisional"
         : authority.state === "restore"
           ? "restore"
           : authority.state === "handoff"
@@ -1167,16 +1236,20 @@ function selectedThreadTimelineAuthorityModel(conversation, currentState, liveRu
 function renderInlineSessionBlock(conversation, currentState, liveRun, handoffState) {
   const timelineSession = selectedThreadPrimaryTimelineSessionModel(conversation, currentState, liveRun);
   const { inlineState, sessionSurface } = timelineSession;
-  const { handoffVisible, liveVisible } = inlineState;
-  if (!liveVisible && !handoffVisible) {
+  const { handoffVisible, liveVisible, provisionalVisible } = inlineState;
+  if (!liveVisible && !handoffVisible && !provisionalVisible) {
     return "";
   }
   const sessionStatus = sessionSurface.sessionStatus;
   const phaseProgression = sessionSurface.phaseProgression;
-  const phaseLabel = handoffVisible
+  const phaseLabel = provisionalVisible
+    ? String(sessionSurface.phaseLabel || phaseProgression.label || sessionStatus.transportLabel || "ATTACH").toUpperCase()
+    : handoffVisible
     ? "HANDOFF"
     : String(sessionSurface.phaseLabel || phaseProgression.label || liveRun?.phase || "LIVE").toUpperCase();
-  const transportLabel = handoffVisible
+  const transportLabel = provisionalVisible
+    ? String(sessionStatus.transportLabel || "ATTACH").toUpperCase()
+    : handoffVisible
     ? "HANDOFF"
     : String(sessionStatus.transportLabel || "SSE OWNER").toUpperCase();
   const pathVerdict = liveVisible ? String(sessionSurface.pathVerdict || "EXPECTED").toUpperCase() : "";
@@ -1187,19 +1260,21 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
   const expectedPath = liveVisible
     ? String(sessionSurface.liveAutonomy?.summary?.expectedPath || "unknown").toUpperCase()
     : "";
-  const detail = handoffVisible
+  const detail = provisionalVisible
+    ? sessionCompactTarget(currentState, conversation, "CURRENT THREAD")
+    : handoffVisible
     ? sessionCompactTarget(currentState, conversation, "HANDOFF TARGET")
     : sessionCompactTarget(currentState, conversation, "CURRENT THREAD");
   const summaryMeta = joinSessionChromeTokens(
     "selected thread",
     phaseLabel,
     transportLabel,
-    liveVisible ? expectedPath : "attach pending",
+    liveVisible ? expectedPath : provisionalVisible ? "bootstrap pending" : "attach pending",
   );
   const milestoneLane = liveVisible ? renderTranscriptMilestones(currentState, conversation) : "";
   return `
-    <article class="session-inline-block" data-selected-thread-live-block="true" data-selected-thread-degraded-block="false" data-live-block-conversation-id="${escapeHtml(String(sessionStatus.conversationId || ""))}" data-live-block-owned="true" data-live-block-source="${escapeHtml(String(sessionSurface.source || "sse"))}" data-live-block-phase="${escapeHtml(phaseLabel)}" data-live-block-transport="${escapeHtml(transportLabel)}" data-live-block-handoff="${handoffVisible ? "true" : "false"}" data-live-block-path-verdict="${escapeHtml(pathVerdict)}" data-live-block-verifier-acceptability="${escapeHtml(verifierAcceptability)}" data-live-block-blocker-reason="${escapeHtml(blockerReason)}" data-live-block-expected-path="${escapeHtml(expectedPath)}" data-live-block-reason="${escapeHtml(handoffVisible ? "handoff" : String(sessionSurface.liveAutonomy?.reason || "healthy"))}">
-      <p class="session-inline-kicker">${handoffVisible ? "Pending Handoff" : "Selected Session"}</p>
+    <article class="session-inline-block" data-selected-thread-live-block="true" data-selected-thread-degraded-block="false" data-live-block-conversation-id="${escapeHtml(String(sessionStatus.conversationId || ""))}" data-live-block-owned="${liveVisible ? "true" : "false"}" data-live-block-source="${escapeHtml(String(sessionSurface.source || "sse"))}" data-live-block-phase="${escapeHtml(phaseLabel)}" data-live-block-transport="${escapeHtml(transportLabel)}" data-live-block-handoff="${handoffVisible ? "true" : "false"}" data-live-block-provisional="${provisionalVisible ? "true" : "false"}" data-live-block-path-verdict="${escapeHtml(pathVerdict)}" data-live-block-verifier-acceptability="${escapeHtml(verifierAcceptability)}" data-live-block-blocker-reason="${escapeHtml(blockerReason)}" data-live-block-expected-path="${escapeHtml(expectedPath)}" data-live-block-reason="${escapeHtml(provisionalVisible ? String(sessionStatus.transportReason || "selected-thread-attach") : handoffVisible ? "handoff" : String(sessionSurface.liveAutonomy?.reason || "healthy"))}">
+      <p class="session-inline-kicker">${provisionalVisible ? "Selected Session Attach" : handoffVisible ? "Pending Handoff" : "Selected Session"}</p>
       <div class="session-inline-row">
         <span class="session-inline-chip">${escapeHtml(transportLabel)}</span>
         <span class="session-inline-chip">${escapeHtml(phaseLabel)}</span>
@@ -2243,6 +2318,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
     ownerState.state === "switching" ? "thread-transition" : liveRun.source || sessionPhase.source;
   const liveOwned = authority.state === "healthy";
   const stripLiveOwned = Boolean(footerDock.visible);
+  const selectedFooterLaneVisible = stripLiveOwned && Boolean(sessionConversationId);
   const healthyComposerAuthority =
     authority.state === "healthy" && stripLiveOwned && timelineAuthority.visible && timelineAuthority.presentation === "healthy";
   const stripProgressOwned = stripLiveOwned;
@@ -2267,7 +2343,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStrip.hidden = !sessionConversationId;
   dom.sessionStrip.dataset.footerSurface = !sessionConversationId ? "cleared" : stripLiveOwned ? "dock" : "merged";
   dom.sessionStrip.dataset.liveOwned = stripProgressOwned ? "true" : "false";
-  dom.sessionStrip.dataset.sessionOwner = stripLiveOwned ? "selected-thread" : "none";
+  dom.sessionStrip.dataset.sessionOwner = selectedFooterLaneVisible ? "selected-thread" : "none";
   dom.sessionStrip.dataset.sessionPresentation = presentation;
   dom.sessionStrip.dataset.sessionTerminal = liveRun.terminal ? "true" : "false";
   dom.sessionStrip.dataset.sessionCollapsed = shouldCollapse ? "true" : "false";

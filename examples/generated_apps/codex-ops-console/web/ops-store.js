@@ -152,16 +152,24 @@ export function deriveSelectedThreadSessionStatus(currentState, conversation = n
     Boolean(conversationId) &&
     pendingOutgoing.conversationId === conversationId &&
     (pendingStatus === "sending-user" || pendingStatus === "awaiting-assistant");
+  const selectedThreadProvisional =
+    Boolean(conversationId) &&
+    !threadTransition.active &&
+    selectedThreadSse &&
+    renderSource !== "sse" &&
+    (streamStatus === "connecting" || streamStatus === "live") &&
+    (attachMode === "awaiting-bootstrap" || attachMode === "sse-resume");
   const selectedThreadRestore =
     Boolean(savedConversationId) &&
     conversationId === savedConversationId &&
     !threadTransition.active &&
-    (
-      (!selectedThreadStream && transport === "sse" && (attachMode === "awaiting-bootstrap" || attachMode === "sse-resume")) ||
-      (selectedThreadStream && renderSource !== "sse" && streamStatus === "connecting")
-    );
+    !selectedThreadProvisional &&
+    (!selectedThreadStream && transport === "sse" && (attachMode === "awaiting-bootstrap" || attachMode === "sse-resume"));
   const restoreResume =
     selectedThreadRestore &&
+    (resumeMode === "resuming" || resumeMode === "resumed" || attachMode === "sse-resume");
+  const provisionalResume =
+    selectedThreadProvisional &&
     (resumeMode === "resuming" || resumeMode === "resumed" || attachMode === "sse-resume");
   const phaseOwned =
     phaseValue === "LIVE" ||
@@ -188,7 +196,16 @@ export function deriveSelectedThreadSessionStatus(currentState, conversation = n
     transportLabel = "RECONNECT";
     transportTone = "warning";
     transportReason = "reconnecting";
-  } else if (retrying || sessionRotationDetected || (selectedThreadStream && (transport !== "sse" || renderSource !== "sse"))) {
+  } else if (selectedThreadProvisional) {
+    transportState = provisionalResume ? "resume" : "attach";
+    transportLabel = provisionalResume ? "RESUME" : "ATTACH";
+    transportTone = provisionalResume ? "warning" : "neutral";
+    transportReason = provisionalResume ? "selected-thread-resume" : "selected-thread-attach";
+  } else if (
+    retrying ||
+    sessionRotationDetected ||
+    (selectedThreadStream && (transport !== "sse" || (renderSource !== "sse" && !selectedThreadProvisional)))
+  ) {
     transportState = "polling";
     transportLabel = "POLLING";
     transportTone = sessionRotationDetected ? "danger" : "warning";
@@ -230,6 +247,13 @@ export function deriveSelectedThreadSessionStatus(currentState, conversation = n
   if (switchActive) {
     presentation = "attach";
     clearReason = "thread-switch";
+  } else if (selectedThreadProvisional) {
+    presentation = "provisional";
+    clearReason = "none";
+    liveIndicatorVisible = true;
+    restoreStage = provisionalResume ? "resume-open" : "attach-open";
+    restorePath = provisionalResume ? "resume" : "attach";
+    restoreProvenance = "sse-open";
   } else if (selectedThreadRestore) {
     presentation = "restore";
     clearReason = "none";
@@ -270,8 +294,10 @@ export function deriveSelectedThreadSessionStatus(currentState, conversation = n
     switchActive,
     switchConversationId: targetConversationId,
     switchTargetTitle: targetTitle,
+    selectedThreadProvisional,
     selectedThreadRestore,
     restoreResume,
+    provisionalResume,
     restoreStage,
     restorePath,
     restoreProvenance,
@@ -539,11 +565,11 @@ export function deriveSelectedThreadLiveAutonomy(currentState, conversation = nu
         }
       : null;
   const canonicalAutonomySummary = sessionStatusSummary || autonomySummary;
-  if (sessionStatus.presentation === "restore") {
+  if (sessionStatus.presentation === "restore" || sessionStatus.presentation === "provisional") {
     return {
       visible: true,
       owned: false,
-      presentation: "restore",
+      presentation: sessionStatus.presentation,
       label: sessionStatus.transportLabel || "ATTACH",
       reason: sessionStatus.transportReason,
       source: sessionStatus.transport || "sse",
@@ -625,11 +651,21 @@ export function deriveSelectedThreadPhaseProgression(currentState, conversation 
   const eventType = String(sessionPhase.eventType || sessionPhase.event_type || "");
   const phaseSource = String(sessionPhase.source || "none").toLowerCase();
 
-  if (sessionStatus.presentation === "restore") {
+  if (sessionStatus.presentation === "restore" || sessionStatus.presentation === "provisional") {
+    const sessionStatusPayload = currentState.appendStream?.sessionStatus || null;
+    const fallbackPhaseLabel =
+      sessionStatus.presentation === "provisional"
+        ? canonicalPhaseLabelFromStatus(sessionStatusPayload, sessionStatus.transportLabel || "ATTACH")
+        : sessionStatus.transportLabel || "ATTACH";
     return {
       visible: true,
-      label: sessionStatus.restoreResume ? "RESUME" : "ATTACH",
-      state: sessionStatus.restoreResume ? "resume" : "attach",
+      label: fallbackPhaseLabel,
+      state:
+        sessionStatus.presentation === "provisional"
+          ? "provisional"
+          : sessionStatus.restoreResume
+            ? "resume"
+            : "attach",
       source: "sse",
       authoritative: false,
       owned: false,
@@ -792,6 +828,9 @@ export function deriveSelectedThreadSessionSurfaceModel(currentState, conversati
   const degradedVisible = sessionStatus.transportState === "reconnect" || sessionStatus.transportState === "polling";
   const handoffVisible = Boolean(sessionStatus.pendingHandoff && sessionStatus.selectedThreadSse);
   const restoreVisible = Boolean(sessionStatus.presentation === "restore" && liveAutonomy.visible && phaseProgression.visible);
+  const provisionalVisible = Boolean(
+    sessionStatus.presentation === "provisional" && liveAutonomy.visible && phaseProgression.visible,
+  );
   const phaseLabel = degradedVisible
     ? String(sessionStatus.transportLabel || "POLLING").toUpperCase()
     : handoffVisible
@@ -814,7 +853,7 @@ export function deriveSelectedThreadSessionSurfaceModel(currentState, conversati
     source: String(
       degradedVisible
         ? sessionStatus.transport || "polling"
-        : restoreVisible
+        : restoreVisible || provisionalVisible
           ? phaseProgression.source || liveAutonomy.source || "sse"
           : phaseProgression.source || liveAutonomy.source || "none",
     ).toLowerCase(),
@@ -850,6 +889,17 @@ export function deriveSelectedThreadSessionAuthorityModel(currentState, conversa
     source = "thread-transition";
     reason = "thread-switch";
     clearReason = "thread-switch";
+  } else if (sessionStatus.presentation === "provisional") {
+    state = "provisional";
+    presentation = "provisional";
+    visible = true;
+    ownerLabel = String(sessionStatus.transportLabel || (sessionStatus.provisionalResume ? "RESUME" : "ATTACH")).toUpperCase();
+    badgeStateLabel = ownerLabel;
+    phaseLabel = String(sessionSurface.phaseLabel || ownerLabel).toUpperCase();
+    pathLabel = sessionStatus.provisionalResume ? "RESUME" : "ATTACH";
+    source = String(sessionStatus.restoreProvenance || sessionStrip.source || "sse").toLowerCase();
+    reason = String(sessionStatus.transportReason || "selected-thread-attach");
+    clearReason = "none";
   } else if (sessionStatus.presentation === "restore") {
     state = "restore";
     presentation = "restore";

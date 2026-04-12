@@ -1,12 +1,12 @@
 # Factory Runtime Deploy Plan
 
-## Iteration 274
+## Iteration 275
 
-This deploy plan validates that healthy selected-thread status is rendered only through the center timeline and the composer-adjacent footer dock, not through duplicate header chrome.
+This deploy plan validates that selected-thread attach or resume stays on one provisional session lane through bootstrap, with the center timeline and composer-adjacent footer dock remaining mounted until authoritative `session.bootstrap` or append SSE ownership arrives.
 
 ## Deployment Impact
 
-This iteration keeps transport and authority behavior intact and narrows only the healthy presentation boundary. The gate should pass only when the center timeline and footer dock remain the only healthy selected-thread status surfaces, while restore, reconnect, polling fallback, handoff, and other non-healthy paths still expose explicit top-level status visibility.
+This iteration keeps transport and authority behavior intact and narrows only the bootstrap continuity boundary. The gate should pass only when selected-thread attach or resume stays on one provisional timeline-plus-footer lane without polling-owned presentation, while healthy ownership still appears only after authoritative bootstrap or append SSE and degraded paths still expose explicit fallback visibility.
 
 ## Rollout Notes
 
@@ -14,11 +14,11 @@ This iteration keeps transport and authority behavior intact and narrows only th
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
 3. Open the operator console on desktop and phone widths with a selected thread that can enter healthy live progress and separate paths that can exercise restore, switch, handoff, and degraded fallback.
 4. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh`.
-5. Confirm healthy selected-thread runs expose proposal, review, verify, ready, verifier, blocker, and apply state through the center timeline and footer dock only.
-6. Confirm the healthy header session summary stays hidden while the center timeline is authoritative and the footer dock remains the only composer-adjacent live surface.
-7. Confirm no healthy selected-thread readiness or blocker state appears before selected-thread attachment is authoritative.
-8. Confirm restore, handoff, reconnect, polling fallback, and terminal paths still restore explicit top-level status visibility without looking healthy.
-9. Confirm the bottom-fixed composer dock remains continuously usable through healthy and exception paths.
+5. Confirm selected-thread attach or resume keeps the center timeline and footer dock mounted as one provisional session lane with phase-led continuity and no duplicate restore-only chrome.
+6. Confirm the healthy header session summary stays hidden while the center timeline is authoritative and remains hidden during provisional bootstrap continuity as well.
+7. Confirm no healthy selected-thread readiness, blocker state, or `SSE OWNER` chrome appears before authoritative `session.bootstrap` or append SSE attachment.
+8. Confirm reconnect, retrying, polling fallback, detached restore, handoff, and terminal paths still downgrade explicitly without inheriting provisional healthy-looking state.
+9. Confirm the bottom-fixed composer dock remains continuously usable through provisional, healthy, and exception paths.
 10. Treat the proposal as ready only after the deployed verifier passes and the runtime contract check is rerun in an environment with the missing dependencies.
 Iteration 245 deploy gate expectation: healthy selected-thread runs are acceptable only when the center-header session summary itself reports `SSE OWNER`, degraded runs visibly downgrade to `RECONNECT` or `POLLING`, and switch or terminal idle clears the header ownership signal immediately.
 Iteration 248 deploy gate expectation: the bottom-fixed composer owner row remains visible for the selected thread on healthy and transition paths, shows `READY` only on the healthy selected-thread SSE path, and downgrades or clears immediately on reconnect, polling fallback, switch, or idle resolution.
@@ -37,3 +37,4 @@ Iteration 269 deploy gate expectation: the footer already behaves as one canonic
 Iteration 272 deploy gate expectation: the canonical footer dock stays visible on healthy selected-thread runs in this branch, leads with explicit phase progression labels from the selected-thread SSE or session bootstrap path, and still downgrades or clears through the same authority model on restore, switch, handoff, reconnect, polling fallback, or terminal paths.
 Iteration 273 deploy gate expectation: healthy selected-thread proposal readiness, verifier acceptability, blocker reason, phase progression, and apply readiness already remain selected-thread `sessionStatus` plus append-SSE owned in this branch, while goals and job polling remain absent from healthy ownership until an explicit degraded fallback boundary is crossed.
 Iteration 274 deploy gate expectation: healthy selected-thread runs now keep the header session summary hidden in this branch while the center timeline and footer dock remain authoritative; restore and degraded paths still restore explicit top-level status visibility and continue to reject polling-owned healthy success.
+Iteration 275 deploy gate expectation: once the intended selected-thread EventSource is open in this branch, the center timeline and footer dock remain on one provisional session lane with carried-forward phase and proposal state, but healthy ownership still does not appear until authoritative `session.bootstrap` or append SSE arrives, and reconnect or polling fallback still downgrade explicitly.
