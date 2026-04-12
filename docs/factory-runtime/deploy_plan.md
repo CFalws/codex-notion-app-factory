@@ -1,12 +1,12 @@
 # Factory Runtime Deploy Plan
 
-## Iteration 296
+## Iteration 297
 
-This deploy plan validates that intentional selected-thread switches already behave as one continuous session handoff in this branch, with one compact placeholder, immediate stale-owner clearing, and no polling-owned healthy reclaim.
+This deploy plan validates that healthy selected-thread autonomy, proposal, verifier, blocker, apply-readiness, and live job identity already remain append-SSE `session_status` owned in this branch, with `/api/jobs` and goals polling active only after explicit non-healthy fallback.
 
 ## Deployment Impact
 
-This iteration keeps transport, provisional continuity, healthy promotion, composer targeting, selected-row rail parity, freshness, phase mirrors, and central `session_status` authority convergence intact. The gate should pass only when an intentional selected-thread switch keeps the workspace mounted, shows one compact switching placeholder for the target thread, clears old healthy owner cues immediately, and prevents polling from reclaiming healthy selected-thread ownership during that handoff.
+This iteration keeps transport, provisional continuity, healthy promotion, composer targeting, selected-row rail parity, freshness, phase mirrors, switch continuity, and central `session_status` authority convergence intact. The gate should pass only when healthy selected-thread autonomy and proposal cues update from append-SSE `session_status` without waiting for `/api/jobs` or goals polling, and those poll paths remain inactive until the session explicitly degrades.
 
 ## Rollout Notes
 
@@ -16,11 +16,11 @@ This iteration keeps transport, provisional continuity, healthy promotion, compo
 4. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh`.
 5. Confirm selected-thread attach or resume keeps the center timeline and footer dock mounted as one provisional session lane with only ATTACH or RESUME plus one carried-forward phase chip and no duplicate restore-only chrome.
 6. Confirm the first healthy selected-thread promotion appears only after selected-thread session state and append-stream session-status agree on the same conversation in authoritative `sse-live` state.
-7. Confirm an intentional switch never flashes the generic empty transcript state and never hides the composer dock.
-8. Confirm exactly one compact switching placeholder appears for the target thread and that previous-thread healthy owner cues clear in the same render path across center, footer, and rail surfaces.
+7. Confirm healthy selected-thread autonomy summary, verifier acceptability, blocker reason, expected path, proposal status, and apply readiness appear immediately from append-SSE `session_status` without waiting for `/api/jobs/{id}` or goals polling.
+8. Confirm healthy live job identity and proposal job identity already come from selected-thread `session_status` while the selected thread remains SSE-owned.
 9. Confirm reconnect, polling fallback, restore, switch, terminal, and other non-healthy paths still clear healthy live cues immediately back to degraded or snapshot rendering.
 10. Confirm `active-session-row` remains canonical, selected-row owner and freshness mirrors remain unchanged, and non-selected rows stay snapshot-only.
-11. Confirm no `/api/jobs/{id}` or goals polling resumes during the switching placeholder path unless the session explicitly degrades.
+11. Confirm `/api/jobs/{id}` and `/api/apps/:id/goals` polling resume only after explicit non-healthy fallback and never mutate healthy selected-thread state before that boundary.
 12. Treat the proposal as ready only after the deployed verifier passes and the runtime contract check is rerun in an environment with the missing dependencies.
 Iteration 245 deploy gate expectation: healthy selected-thread runs are acceptable only when the center-header session summary itself reports `SSE OWNER`, degraded runs visibly downgrade to `RECONNECT` or `POLLING`, and switch or terminal idle clears the header ownership signal immediately.
 Iteration 248 deploy gate expectation: the bottom-fixed composer owner row remains visible for the selected thread on healthy and transition paths, shows `READY` only on the healthy selected-thread SSE path, and downgrades or clears immediately on reconnect, polling fallback, switch, or idle resolution.
@@ -48,3 +48,4 @@ Iteration 291 deploy gate expectation: the currently selected conversation row n
 Iteration 292 deploy gate expectation: the currently selected healthy SSE-owned conversation row now carries the strongest live-owner treatment in this branch through the existing selected-thread mirror datasets, and that stronger treatment clears immediately on reconnect, degraded fallback, restore, switch, terminal, and other non-healthy paths while `active-session-row` remains canonical.
 Iteration 293 deploy gate expectation: healthy selected-thread proposal, review, verify, ready, applied, and apply-readiness state now remain `session_status` plus append-SSE owned in this branch, and polling never mutates those central controls until an explicit degraded fallback boundary is crossed.
 Iteration 296 deploy gate expectation: an intentional selected-thread switch already behaves as one continuous session handoff in this branch, with one compact target placeholder, immediate stale-owner clearing, a still-mounted composer dock, no generic empty-state flash, and no polling-owned healthy reclaim while the placeholder is active.
+Iteration 297 deploy gate expectation: healthy selected-thread autonomy, proposal, verifier, blocker, apply-readiness, and live job identity already remain append-SSE `session_status` owned in this branch, and `/api/jobs` plus goals polling stay absent from healthy selected-thread authority until an explicit degraded fallback boundary is crossed.

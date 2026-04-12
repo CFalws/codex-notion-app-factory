@@ -1,16 +1,16 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 296
+## Iteration 297
 
-Record that intentional selected-thread switch continuity is already correct in this branch rather than widening the switch controller or render path unnecessarily.
+Record that healthy selected-thread polling removal is already correct in this branch rather than widening the session-status authority path unnecessarily.
 
-1. Keep the iteration bounded to switch-path verification and proposal artifacts.
-2. Preserve the existing selected-thread transport, healthy-promotion, polling-suppression, and thread-transition controller behavior unchanged.
-3. Verify that an intentional selected-thread switch already starts a thread-transition placeholder instead of a generic empty-state reset.
-4. Verify that previous-thread healthy owner cues already clear in the same render path across the transcript shell, footer dock, active-session row, and selected rail row.
-5. Verify that the mounted composer dock remains visible and blocked behind the target-thread switching model until snapshot or SSE attach completes.
-6. Verify that polling and goals fallback remain absent while the switch placeholder is active.
-7. Avoid introducing any new switch-specific authority source or duplicate placeholder chrome.
+1. Keep the iteration bounded to healthy-path polling-removal verification and proposal artifacts.
+2. Preserve the existing selected-thread transport, healthy-promotion, polling-suppression, and thread-transition behavior unchanged.
+3. Verify that append-SSE `session_status` already supplies healthy autonomy summary, proposal and verifier state, blocker reason, expected path, and apply readiness.
+4. Verify that healthy live job identity and proposal job identity already come from selected-thread `session_status` before any degraded fallback poll result is allowed to mutate visible state.
+5. Verify that `/api/jobs` and `/api/apps/:id/goals` remain gated behind explicit loss of healthy selected-thread ownership.
+6. Verify that reconnect, restore, switch, polling fallback, and no-selection paths still clear healthy cues in the same render pass and then re-enable fallback polling.
+7. Avoid introducing any new authority source or parallel healthy-path controller state.
 8. Update proposal artifacts to record the intended-path no-runtime-change result and the remaining deployed verification dependency.
 Iteration 245 does not widen runtime or UI ownership. It records that the selected-thread center header already exposes the canonical ownership chip beside the session summary and that deployed verification already attributes healthy visibility to that selected-thread SSE-owned signal rather than to polling or side-panel inference.
 Iteration 248 keeps transport and header ownership unchanged and restores the same selected-thread certainty directly at the input surface by keeping the composer owner row visible for healthy, handoff, switching, and restore states while preserving explicit degraded or idle clearing.
@@ -38,3 +38,4 @@ Iteration 291 keeps transport, ownership, and canonical rail authority unchanged
 Iteration 292 keeps transport, ownership, and canonical rail authority unchanged and narrows only the selected-row emphasis boundary: the currently selected healthy SSE-owned conversation row now receives stronger live-owner treatment while non-selected rows remain snapshot-only and `active-session-row` stays canonical.
 Iteration 293 keeps transport, ownership, and canonical session surfaces unchanged and narrows only the remaining central authority seam: healthy proposal, verify, ready, applied, and apply-readiness cues now derive from selected-thread `session_status` SSE state instead of split healthy derivation between session-phase and session-strip helpers.
 Iteration 296 keeps transport, ownership, switch rendering, and polling suppression unchanged because the current branch already satisfies the bounded switch-handoff contract; the work for this iteration is to record that intended-path result explicitly so a later apply decision is based on verified behavior rather than duplicated rewrites.
+Iteration 297 keeps transport, ownership, switch rendering, and healthy-path authority unchanged because the current branch already satisfies the bounded polling-removal contract; the work for this iteration is to record that the selected-thread `session_status` path already owns those healthy cues before any degraded fallback polling is permitted.
