@@ -381,6 +381,14 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   box-shadow: 0 12px 24px rgba(31, 120, 224, 0.14);
 }
 
+.conversation-card.active[data-live-owner="true"][data-live-owner-emphasis="strong"] {
+  border-color: rgba(31, 120, 224, 0.48);
+  background:
+    linear-gradient(135deg, rgba(31, 120, 224, 0.18), rgba(255, 255, 255, 0.2) 58%),
+    rgba(235, 244, 255, 0.96);
+  box-shadow: 0 16px 28px rgba(31, 120, 224, 0.2);
+}
+
 .conversation-card-title,
 .conversation-card-meta,
 .conversation-card-preview {
@@ -440,6 +448,11 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   border-color: rgba(31, 120, 224, 0.14);
   background: rgba(255, 255, 255, 0.74);
   box-shadow: none;
+}
+
+.conversation-card-live-owner-row[data-live-owner-emphasis="strong"] {
+  border-color: rgba(31, 120, 224, 0.24);
+  background: rgba(255, 255, 255, 0.88);
 }
 
 .conversation-card-live-detail,
@@ -532,6 +545,11 @@ body[data-secondary-panel-open="true"] .desktop-shell {
 
 .conversation-card[data-live-owner="true"] .conversation-card-title {
   color: var(--accent-ink);
+}
+
+.conversation-card.active[data-live-owner="true"][data-live-owner-emphasis="strong"] .conversation-card-title,
+.conversation-card.active[data-live-owner="true"][data-live-owner-emphasis="strong"] .conversation-card-session {
+  color: #0f5da8;
 }
 
 .conversation-card[data-live-owner="true"] .conversation-card-marker {

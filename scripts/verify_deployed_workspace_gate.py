@@ -619,10 +619,12 @@ def assert_browser_runtime_surface(
                     selectedCardLiveOwnerRow &&
                     !selectedCardLiveOwnerRow.hidden &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerVisible === "true" &&
+                    selectedCard.dataset.liveOwnerEmphasis === "strong" &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerState === activeSessionRow.dataset.activeSessionState &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerConversationId === conversationId &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerSource === "sse" &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerPhase === inlineBlock.dataset.liveBlockPhase &&
+                    selectedCardLiveOwnerRow.dataset.liveOwnerEmphasis === "strong" &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerShadow === "true" &&
                     selectedCard.dataset.livePhaseVisible === "true" &&
                     selectedCard.dataset.livePhaseSource === "sse" &&
@@ -976,12 +978,14 @@ def assert_browser_runtime_surface(
                     threadSessionSummary.dataset.centerTimelinePresentation === "degraded" &&
                     visibleConversationOwnerRows.length === 0 &&
                     selectedCard &&
+                    selectedCard.dataset.liveOwnerEmphasis === "snapshot" &&
                     selectedCard.dataset.livePhaseVisible === "false" &&
                     selectedCard.dataset.livePhaseSource === "none" &&
                     selectedCard.dataset.livePhaseValue === "" &&
                     selectedCardLiveOwnerRow &&
                     selectedCardLiveOwnerRow.hidden &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerVisible === "false" &&
+                    selectedCardLiveOwnerRow.dataset.liveOwnerEmphasis === "snapshot" &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerState === "idle" &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerShadow === "false" &&
                     selectedCardLivePhase &&
@@ -1291,12 +1295,14 @@ def assert_browser_runtime_surface(
                     threadSessionSummary.hidden &&
                     visibleConversationOwnerRows.length === 0 &&
                     selectedCard &&
+                    selectedCard.dataset.liveOwnerEmphasis === "snapshot" &&
                     selectedCard.dataset.livePhaseVisible === "false" &&
                     selectedCard.dataset.livePhaseSource === "none" &&
                     selectedCard.dataset.livePhaseValue === "" &&
                     selectedCardLiveOwnerRow &&
                     selectedCardLiveOwnerRow.hidden &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerVisible === "false" &&
+                    selectedCardLiveOwnerRow.dataset.liveOwnerEmphasis === "snapshot" &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerState === "idle" &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerShadow === "false" &&
                     selectedCardLivePhase &&
@@ -1879,6 +1885,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, 'state.currentConversationId = "";', label="thread switch clears current conversation before attach")
     require(conversations_js, 'const selectedThreadSseOwned = selectedConversationId && selectedConversationId === liveConversationId && renderSource === "sse";', label="selected card sse ownership guard")
     require(conversations_js, 'card.dataset.liveOwner = "false";', label="selected live owner dataset")
+    require(conversations_js, 'card.dataset.liveOwnerEmphasis = "snapshot";', label="selected live owner emphasis reset")
     require(conversations_js, 'card.dataset.liveOwnerShadow = "false";', label="selected live owner shadow dataset reset")
     require(conversations_js, 'card.dataset.livePhaseVisible = "false";', label="selected live phase visibility reset")
     require(conversations_js, 'card.dataset.livePhaseSource = "none";', label="selected live phase source reset")
@@ -1890,7 +1897,9 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, 'const shadowSelectedRowLiveMarker =', label="selected row live owner shadow guard")
     require(conversations_js, 'selectedRowModel.rowOwned &&', label="selected row sse-owned visibility gate")
     require(conversations_js, 'selectedRowModel.rowSource === "sse" &&', label="selected row sse source visibility gate")
+    require(conversations_js, 'card.dataset.liveOwnerEmphasis = shadowSelectedRowLiveMarker ? "strong" : "soft";', label="selected row card emphasis dataset")
     require(conversations_js, 'card.dataset.liveOwnerShadow = String(shadowSelectedRowLiveMarker);', label="selected row card shadow dataset")
+    require(conversations_js, 'liveOwnerRow.dataset.liveOwnerEmphasis = showSelectedRowLiveMarker && shadowSelectedRowLiveMarker ? "strong" : "soft";', label="selected row owner row emphasis dataset")
     require(conversations_js, 'liveOwnerRow.dataset.liveOwnerShadow = showSelectedRowLiveMarker ? String(shadowSelectedRowLiveMarker) : "false";', label="selected row live owner shadow dataset")
     require(conversations_js, 'liveOwnerDetail.textContent = showSelectedRowLiveMarker ? selectedRowModel.markerLabel : "LIVE";', label="selected row live owner detail label")
     require(conversations_js, 'liveOwnerFollow.dataset.liveOwnerCue = showSelectedRowLiveMarker ? selectedRowModel.cueKind : "idle";', label="selected row live owner cue dataset")
@@ -1902,6 +1911,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionConversationId = visible ? conversationId : "";', label="active session row conversation dataset")
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionFollow = visible ? followLabel.toLowerCase() : "idle";', label="active session row follow dataset")
     require(styles_css, '.conversation-card-live-owner-row[data-live-owner-shadow="true"]', label="selected row live owner shadow styling")
+    require(styles_css, '.conversation-card.active[data-live-owner="true"][data-live-owner-emphasis="strong"]', label="selected row strong live owner card styling")
+    require(styles_css, '.conversation-card-live-owner-row[data-live-owner-emphasis="strong"]', label="selected row strong owner row styling")
     require(styles_css, ".conversation-card-live-phase", label="selected row live phase chip styling")
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionOwned = visible ? String(rowOwned) : "false";', label="active session row ownership dataset")
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionCanonical = visible ? String(Boolean(canonical)) : "false";', label="active session row canonical dataset")

@@ -1,17 +1,17 @@
 # Factory Runtime Tasks
 
-## Iteration 291
+## Iteration 292
 
-- [x] Keep the change bounded to selected-row phase presentation, verification, and proposal artifacts.
+- [x] Keep the change bounded to selected-row visual emphasis, verification, and proposal artifacts.
 - [x] Preserve the existing selected-thread `session_status` plus append SSE authority path unchanged.
 - [x] Keep `active-session-row` canonical and all non-selected rows snapshot-only.
-- [x] Mirror one compact live phase chip into the currently selected row from the canonical selected-thread session surface only on the healthy SSE-owned path.
-- [x] Clear the selected-row phase chip immediately on reconnect, polling fallback, restore, switch, terminal, and other non-healthy paths.
-- [x] Keep selected-row owner parity and freshness parity unchanged.
+- [x] Give only the healthy selected row stronger live-owner treatment from the existing selected-thread mirror datasets.
+- [x] Clear that stronger selected-row treatment immediately on reconnect, polling fallback, restore, switch, terminal, and other non-healthy paths.
+- [x] Keep selected-row owner, freshness, and phase parity unchanged.
 - [x] Keep non-selected conversation rows snapshot-only with no live-owned treatment.
 - [x] Keep jobs polling demoted behind explicit loss of selected-thread ownership.
-- [x] Add verifier coverage for healthy selected-row phase parity and non-healthy clearing.
-- [x] Update proposal artifacts to record the selected-row phase mirror contract.
+- [x] Add verifier coverage for healthy selected-row emphasis and non-healthy clearing.
+- [x] Update proposal artifacts to record the selected-row emphasis contract.
 - Iteration 245: confirm the selected-thread center header already exposes the canonical ownership chip and keep deployed verification bound to that machine-readable selected-thread signal without adding another live-status surface.
 - Iteration 248: keep the selected-thread composer owner row visible on healthy and transition paths, render `READY` only on healthy SSE-owned state, and assert degraded paths never retain stale ready ownership.
 - Iteration 249: record that the sticky left-rail active-session row is already the canonical selected-thread SSE mirror and keep non-selected rows snapshot-only with immediate clear or downgrade on degraded paths.
@@ -35,3 +35,4 @@
 - Iteration 288: keep `active-session-row` canonical but mirror its healthy selected-thread owner cue onto the currently selected conversation row as a compact shadow marker that clears immediately on degrade, reconnect, polling fallback, terminal resolution, or thread switch.
 - Iteration 289: record that healthy selected-thread job, phase, proposal, verifier, and apply visibility already remain collapsed onto the center session timeline plus bottom composer strip, while the secondary execution surface already stays suppressed on the healthy path and returns only on non-healthy paths.
 - Iteration 291: mirror one compact healthy selected-thread live phase chip into the currently selected conversation row so the rail reflects current session stage immediately while non-selected rows remain snapshot-only.
+- Iteration 292: make the healthy selected conversation row visually dominant in the rail through stronger live-owner treatment derived from the existing selected-thread mirror, while `active-session-row` remains canonical and non-selected rows stay snapshot-only.

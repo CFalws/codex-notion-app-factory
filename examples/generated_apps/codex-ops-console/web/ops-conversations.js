@@ -1340,6 +1340,7 @@ export function createConversationController(deps) {
       card.dataset.selected = isSelected ? "true" : "false";
       card.dataset.threadState = isSelected ? (liveThreadState || "active") : snapshotState;
       card.dataset.liveOwner = "false";
+      card.dataset.liveOwnerEmphasis = "snapshot";
       card.dataset.liveOwnerShadow = "false";
       card.dataset.liveOwnerState = "idle";
       card.dataset.liveOwnerSource = "none";
@@ -1350,6 +1351,7 @@ export function createConversationController(deps) {
       card.dataset.livePhaseValue = "";
       if (showSelectedRowLiveMarker) {
         card.dataset.liveOwner = "true";
+        card.dataset.liveOwnerEmphasis = shadowSelectedRowLiveMarker ? "strong" : "soft";
         card.dataset.liveOwnerShadow = String(shadowSelectedRowLiveMarker);
         card.dataset.liveOwnerState = selectedRowModel.rowState;
         card.dataset.liveOwnerSource = selectedRowModel.rowSource;
@@ -1375,6 +1377,7 @@ export function createConversationController(deps) {
         liveOwnerRow.dataset.liveOwnerSource = showSelectedRowLiveMarker ? selectedRowModel.rowSource : "none";
         liveOwnerRow.dataset.liveOwnerPhase = showSelectedRowLiveMarker ? selectedRowModel.rowPhase : "IDLE";
         liveOwnerRow.dataset.liveOwnerUnseenCount = String(showSelectedRowLiveMarker ? selectedRowModel.rowUnseenCount : 0);
+        liveOwnerRow.dataset.liveOwnerEmphasis = showSelectedRowLiveMarker && shadowSelectedRowLiveMarker ? "strong" : "soft";
         liveOwnerRow.dataset.liveOwnerShadow = showSelectedRowLiveMarker ? String(shadowSelectedRowLiveMarker) : "false";
         liveOwnerDetail.textContent = showSelectedRowLiveMarker ? selectedRowModel.markerLabel : "LIVE";
         liveOwnerFollow.hidden = !showSelectedRowLiveMarker;
@@ -1493,6 +1496,7 @@ export function createConversationController(deps) {
               data-live-owner-source="none"
               data-live-owner-phase="IDLE"
               data-live-owner-unseen-count="0"
+              data-live-owner-emphasis="snapshot"
               data-live-owner-shadow="false"
               hidden
             >

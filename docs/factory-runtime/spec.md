@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `291`
-- bounded focus: `mirror healthy selected-thread live phase into the currently selected conversation row`
+- current iteration: `292`
+- bounded focus: `give the healthy selected conversation row the strongest live-owner treatment in the rail`
 
 ## Request
 
@@ -13,7 +13,7 @@
 
 ## Problem
 
-Healthy selected-thread ownership, explicit autonomy milestones, strict rail mirroring, the selected-thread session-stream contract, deployed single-authority proof, the selected-thread handoff path, streamed autonomy identity, merged footer session-composer status, explicit attach authority, restore continuity, switch continuity, one-owner healthy timeline rendering, preserved transitional transcript continuity, phase-led footer dock presentation, healthy-path authority gating, stable composer continuity, selected-row rail parity, and healthy live-surface convergence are already present. The bounded question for this iteration is left-rail phase visibility: whether the currently selected conversation row can expose the current live phase or run-state as one compact derived chip from the canonical selected-thread session surface without creating a second authority source.
+Healthy selected-thread ownership, explicit autonomy milestones, strict rail mirroring, the selected-thread session-stream contract, deployed single-authority proof, the selected-thread handoff path, streamed autonomy identity, merged footer session-composer status, explicit attach authority, restore continuity, switch continuity, one-owner healthy timeline rendering, preserved transitional transcript continuity, phase-led footer dock presentation, healthy-path authority gating, stable composer continuity, selected-row rail parity, healthy live-surface convergence, selected-row freshness parity, and selected-row phase parity are already present. The bounded question for this iteration is selected-row dominance: whether the currently selected healthy SSE-owned conversation row can carry stronger live-owner treatment at a glance without creating a new authority source or changing which rail surface is canonical.
 
 ## Target User
 
@@ -54,3 +54,4 @@ Iteration 286: the bottom-fixed composer shell now keeps one stable session-dock
 Iteration 288: the currently selected conversation row now mirrors the canonical healthy selected-thread owner cue as a compact shadow-rendered chip row while `active-session-row` remains the only canonical rail authority surface, and that shadow cue clears immediately on reconnect, polling fallback, terminal resolution, or thread switch.
 Iteration 289: the healthy selected-thread path already keeps the center session timeline and the bottom composer strip as the canonical live status surfaces in this branch; the secondary execution status surface is already suppressed while healthy SSE authority is present and already returns on degraded, reconnect, restore, switch, and other non-healthy paths.
 Iteration 291: the currently selected conversation row now mirrors one compact live phase chip from the canonical selected-thread session surface in this branch; the chip updates immediately on the healthy SSE-owned path and clears back to snapshot-only rendering on reconnect, polling fallback, restore, switch, or terminal paths.
+Iteration 292: the currently selected healthy SSE-owned conversation row now carries the strongest live-owner treatment in the rail in this branch while `active-session-row` remains canonical; that stronger treatment clears immediately on reconnect, polling fallback, restore, switch, or terminal paths.

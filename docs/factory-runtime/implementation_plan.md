@@ -1,18 +1,18 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 291
+## Iteration 292
 
-Mirror the healthy selected-thread live phase into the currently selected conversation row without changing transport, polling, restore semantics, or rail ownership.
+Give the healthy selected conversation row the strongest live-owner treatment in the left rail without changing transport, polling, restore semantics, or rail ownership.
 
-1. Keep the change bounded to selected-row phase presentation, verifier evidence, and proposal artifacts.
+1. Keep the change bounded to selected-row visual emphasis, verifier evidence, and proposal artifacts.
 2. Preserve the existing selected-thread transport, promotion, and polling-suppression contract unchanged.
 3. Keep `active-session-row` canonical and keep non-selected conversation rows snapshot-only.
-4. Derive one compact selected-row live phase chip from the canonical selected-thread session surface only while the selected thread is healthy and SSE-owned.
-5. Clear that selected-row phase chip immediately on reconnect, polling fallback, restore, switch, terminal, or other non-healthy paths.
-6. Preserve selected-row owner parity and freshness parity unchanged.
+4. Reuse the existing selected-row owner mirror datasets to give the healthy selected row stronger live-owner treatment at a glance.
+5. Clear that stronger selected-row treatment immediately on reconnect, polling fallback, restore, switch, terminal, or other non-healthy paths.
+6. Preserve selected-row owner, freshness, and phase parity unchanged.
 7. Keep jobs polling demoted behind explicit loss of selected-thread ownership.
-8. Add narrow browser-verifiable checks for healthy selected-row phase parity and non-healthy clearing.
-9. Update proposal artifacts to record the selected-row phase mirror contract.
+8. Add narrow browser-verifiable checks for healthy selected-row emphasis and non-healthy clearing.
+9. Update proposal artifacts to record the selected-row emphasis contract.
 Iteration 245 does not widen runtime or UI ownership. It records that the selected-thread center header already exposes the canonical ownership chip beside the session summary and that deployed verification already attributes healthy visibility to that selected-thread SSE-owned signal rather than to polling or side-panel inference.
 Iteration 248 keeps transport and header ownership unchanged and restores the same selected-thread certainty directly at the input surface by keeping the composer owner row visible for healthy, handoff, switching, and restore states while preserving explicit degraded or idle clearing.
 Iteration 249 does not widen runtime or UI ownership because the selected-thread rail mirror is already correct in this branch: the sticky active-session row is canonical on the healthy selected-thread SSE path, non-selected rows remain snapshot-only, and the deployed gate already attributes that rail marker to the intended selected-thread authority source.
@@ -36,3 +36,4 @@ Iteration 286 keeps transport and ownership unchanged and narrows only the compo
 Iteration 288 keeps transport, ownership, and canonical rail authority unchanged and narrows only the selected-row visibility boundary: the currently selected conversation row now mirrors the healthy selected-thread owner cue as a compact shadow marker while the sticky active-session row remains canonical and non-selected rows stay snapshot-only.
 Iteration 289 does not widen runtime or transport behavior because healthy selected-thread session convergence is already correct in this branch: the center timeline and bottom composer strip already remain canonical while the secondary execution surface is already suppressed on the healthy SSE-owned path and restored on non-healthy paths.
 Iteration 291 keeps transport, ownership, and canonical rail authority unchanged and narrows only the selected-row phase boundary: the currently selected conversation row now mirrors one compact healthy selected-thread phase chip from the canonical session surface while non-selected rows remain snapshot-only.
+Iteration 292 keeps transport, ownership, and canonical rail authority unchanged and narrows only the selected-row emphasis boundary: the currently selected healthy SSE-owned conversation row now receives stronger live-owner treatment while non-selected rows remain snapshot-only and `active-session-row` stays canonical.
