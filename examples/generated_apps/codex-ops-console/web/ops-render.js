@@ -402,7 +402,7 @@ function sessionStripDetailCopy(ownerState, transportState, sessionIndicator, li
     return target;
   }
   if (ownerState.state === "handoff") {
-    return joinSessionChromeTokens(target, "HANDOFF");
+    return target;
   }
   if (footerFollow?.visible) {
     return `${footerFollow.stateLabel} · ${footerFollow.detailLabel}`;
@@ -576,7 +576,13 @@ function syncComposerOwnership(dom, currentState, conversation) {
     return;
   }
   const owner = deriveSelectedThreadComposerTargetRowModel(currentState, conversation);
-  const mergedIntoStrip = Boolean(dom.sessionStrip && !dom.sessionStrip.hidden && owner.conversationId);
+  const liveRun = conversation ? deriveLiveRunState(conversation, currentState) : runStateSnapshot({ visible: false });
+  const handoffState = conversation ? pendingHandoffState(conversation, currentState) : { stage: "idle" };
+  const inlineState = conversation
+    ? selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState)
+    : { handoffVisible: false };
+  const mergedIntoStrip =
+    Boolean(dom.sessionStrip && !dom.sessionStrip.hidden && owner.conversationId) || Boolean(inlineState.handoffVisible);
   dom.composerOwnerRow.dataset.composerOwner = owner.state;
   dom.composerOwnerRow.dataset.composerOwnerConversationId = owner.conversationId;
   dom.composerOwnerRow.dataset.composerRestoreStage = "none";
@@ -1106,7 +1112,9 @@ function transcriptLiveTone(liveRun) {
 function selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState = { stage: "idle" }) {
   const appendStream = currentState.appendStream || {};
   const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
-  const handoffVisible = handoffState.stage === "pending-assistant" && sessionStatus.selectedThreadSse;
+  const handoffVisible =
+    (handoffState.stage === "pending-user" || handoffState.stage === "pending-assistant") &&
+    sessionStatus.selectedThreadSse;
   const retainedTerminalVisible = shouldRetainInlineTerminalPhase(
     appendStream,
     liveRun,
@@ -1139,6 +1147,7 @@ function selectedThreadInlineSessionState(conversation, currentState, liveRun, h
     transport: sessionStatus.transport,
     sessionIndicator,
     handoffVisible,
+    handoffStage: handoffVisible ? handoffState.stage : "idle",
     retainedTerminalVisible,
     liveVisible,
     degradedVisible,
@@ -1203,16 +1212,23 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
   const timelineSession = selectedThreadPrimaryTimelineSessionModel(conversation, currentState, liveRun);
   const { inlineState, sessionSurface, collapseSessionEvents, primarySessionOwned } = timelineSession;
   const quorumModel = deriveSelectedThreadSessionQuorumModel(currentState, conversation);
-  const { handoffVisible, liveVisible, provisionalVisible, restoreVisible, degradedVisible } = inlineState;
+  const { handoffVisible, handoffStage, liveVisible, provisionalVisible, restoreVisible, degradedVisible } = inlineState;
   if (!liveVisible && !handoffVisible && !provisionalVisible && !restoreVisible && !degradedVisible) {
     return "";
   }
   const sessionStatus = sessionSurface.sessionStatus;
   const phaseProgression = sessionSurface.phaseProgression;
+  const handoffPhaseLabel = handoffVisible
+    ? liveRun?.state === "generating"
+      ? "GENERATING"
+      : handoffStage === "pending-user"
+        ? "SEND"
+        : "ACCEPTED"
+    : "";
   const phaseLabel = provisionalVisible || restoreVisible
     ? String(sessionSurface.phaseLabel || phaseProgression.label || sessionStatus.transportLabel || "ATTACH").toUpperCase()
     : handoffVisible
-      ? "HANDOFF"
+      ? handoffPhaseLabel
       : degradedVisible
         ? String(sessionStatus.transportLabel || sessionSurface.phaseLabel || "POLLING").toUpperCase()
         : String(sessionSurface.phaseLabel || phaseProgression.label || liveRun?.phase || "LIVE").toUpperCase();
@@ -1233,12 +1249,17 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
   const detail = provisionalVisible || restoreVisible
     ? sessionCompactTarget(currentState, conversation, "CURRENT THREAD")
     : handoffVisible
-      ? sessionCompactTarget(currentState, conversation, "HANDOFF TARGET")
+      ? joinSessionChromeTokens(
+          sessionCompactTarget(currentState, conversation, "HANDOFF TARGET"),
+          handoffPhaseLabel,
+        )
       : degradedVisible
         ? sessionCompactTarget(currentState, conversation, "DEGRADED TARGET")
         : sessionCompactTarget(currentState, conversation, "CURRENT THREAD");
   const summaryMeta = provisionalVisible || restoreVisible
     ? joinSessionChromeTokens("selected thread", transportLabel, phaseLabel, String(sessionStatus.transportReason || "attach pending"))
+    : handoffVisible
+      ? joinSessionChromeTokens("selected thread", transportLabel, phaseLabel, "append handoff")
     : joinSessionChromeTokens(
         "selected thread",
         phaseLabel,
@@ -1247,8 +1268,8 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
       );
   const milestoneLane = liveVisible ? renderTranscriptMilestones(currentState, conversation) : "";
   return `
-    <article class="session-inline-block" data-selected-thread-live-block="true" data-selected-thread-degraded-block="${liveVisible ? "false" : "true"}" data-live-block-conversation-id="${escapeHtml(String(sessionStatus.conversationId || ""))}" data-live-block-owned="${liveVisible ? "true" : "false"}" data-live-block-source="${escapeHtml(String(sessionSurface.source || "sse"))}" data-live-block-phase="${escapeHtml(phaseLabel)}" data-live-block-transport="${escapeHtml(transportLabel)}" data-live-block-handoff="${handoffVisible ? "true" : "false"}" data-live-block-provisional="${provisionalVisible ? "true" : "false"}" data-live-block-restore="${restoreVisible ? "true" : "false"}" data-live-block-canonical="${primarySessionOwned ? "true" : "false"}" data-live-block-duplicates="${collapseSessionEvents ? "collapsed" : "allowed"}" data-live-block-path-verdict="${escapeHtml(pathVerdict)}" data-live-block-verifier-acceptability="${escapeHtml(verifierAcceptability)}" data-live-block-blocker-reason="${escapeHtml(blockerReason)}" data-live-block-expected-path="${escapeHtml(expectedPath)}" data-live-block-review-quorum="${escapeHtml(reviewQuorumLabel)}" data-live-block-verify-quorum="${escapeHtml(verifyQuorumLabel)}" data-live-block-ready="${escapeHtml(readyLabel)}" data-live-block-reason="${escapeHtml(provisionalVisible || restoreVisible || degradedVisible ? String(sessionStatus.transportReason || "selected-thread-transition") : handoffVisible ? "handoff" : String(sessionSurface.liveAutonomy?.reason || "healthy"))}">
-      <p class="session-inline-kicker">${provisionalVisible ? "Selected Session Attach" : restoreVisible ? "Selected Session Restore" : degradedVisible ? "Selected Session Fallback" : handoffVisible ? "Pending Handoff" : "Selected Session"}</p>
+    <article class="session-inline-block" data-selected-thread-live-block="true" data-selected-thread-degraded-block="${liveVisible ? "false" : "true"}" data-live-block-conversation-id="${escapeHtml(String(sessionStatus.conversationId || ""))}" data-live-block-owned="${liveVisible ? "true" : "false"}" data-live-block-source="${escapeHtml(String(sessionSurface.source || "sse"))}" data-live-block-phase="${escapeHtml(phaseLabel)}" data-live-block-transport="${escapeHtml(transportLabel)}" data-live-block-handoff="${handoffVisible ? "true" : "false"}" data-live-block-handoff-state="${escapeHtml(handoffVisible ? handoffStage : "idle")}" data-live-block-provisional="${provisionalVisible ? "true" : "false"}" data-live-block-restore="${restoreVisible ? "true" : "false"}" data-live-block-canonical="${primarySessionOwned || handoffVisible ? "true" : "false"}" data-live-block-duplicates="${collapseSessionEvents || handoffVisible ? "collapsed" : "allowed"}" data-live-block-path-verdict="${escapeHtml(pathVerdict)}" data-live-block-verifier-acceptability="${escapeHtml(verifierAcceptability)}" data-live-block-blocker-reason="${escapeHtml(blockerReason)}" data-live-block-expected-path="${escapeHtml(expectedPath)}" data-live-block-review-quorum="${escapeHtml(reviewQuorumLabel)}" data-live-block-verify-quorum="${escapeHtml(verifyQuorumLabel)}" data-live-block-ready="${escapeHtml(readyLabel)}" data-live-block-reason="${escapeHtml(provisionalVisible || restoreVisible || degradedVisible ? String(sessionStatus.transportReason || "selected-thread-transition") : handoffVisible ? "handoff" : String(sessionSurface.liveAutonomy?.reason || "healthy"))}">
+      <p class="session-inline-kicker">${provisionalVisible ? "Selected Session Attach" : restoreVisible ? "Selected Session Restore" : degradedVisible ? "Selected Session Fallback" : handoffVisible ? "Selected Session Handoff" : "Selected Session"}</p>
       <div class="session-inline-row">
         <span class="session-inline-chip">${escapeHtml(transportLabel)}</span>
         <span class="session-inline-chip">${escapeHtml(phaseLabel)}</span>
@@ -3028,7 +3049,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
         `;
       }
 
-      if (item.pending_assistant && inlineState.handoffVisible) {
+      if ((item.pending_assistant || item.pending_local) && inlineState.handoffVisible) {
         return "";
       }
 

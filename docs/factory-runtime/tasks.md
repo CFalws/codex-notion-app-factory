@@ -112,3 +112,4 @@
 - Iteration 338: move restore, reconnect, and polling-fallback selected-thread truth into the primary center timeline session block and suppress secondary autonomy and execution cards whenever a selected-session state is already present.
 - Iteration 337: keep review quorum, verify quorum, and ready progression on one selected-thread `session_status` authority helper and clear or downgrade those cues immediately on reconnect, switch, deselection, missing iteration data, or polling fallback.
 - Iteration 339: collapse healthy and provisional selected-thread phase progression into one canonical inline session item and suppress duplicate selected-thread SSE session-event rows while that canonical item owns the center timeline.
+- Iteration 340: collapse selected-thread send, accepted, and generating handoff into the same canonical inline session item and suppress pending placeholders plus composer-adjacent handoff copy while that item owns the handoff seam.
