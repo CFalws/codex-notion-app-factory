@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `266`
-- bounded focus: `preserve selected-thread SSE session authority for proposal and phase state across healthy and restore paths without poll-owned reentry`
+- current iteration: `267`
+- bounded focus: `prove selected-thread session-scoped realtime ownership end to end through one deployed browser scenario matrix`
 
 ## Request
 
@@ -13,24 +13,24 @@
 
 ## Problem
 
-Healthy selected-thread ownership, explicit autonomy milestones, strict rail mirroring, the selected-thread session-stream contract, deployed single-authority proof, the selected-thread handoff path, streamed autonomy identity, unified header chrome, merged footer session-composer status, explicit attach authority, restore continuity, switch continuity, and the one-owner healthy timeline are already present. The bounded question for this iteration is authority ambiguity: whether goals-poll or job-poll state can still silently compete with the selected-thread session-status and append-SSE path for proposal, review, verify, ready, or applied visibility while the selected thread is still the intended live owner or explicit restore target.
+Healthy selected-thread ownership, explicit autonomy milestones, strict rail mirroring, the selected-thread session-stream contract, deployed single-authority proof, the selected-thread handoff path, streamed autonomy identity, unified header chrome, merged footer session-composer status, explicit attach authority, restore continuity, switch continuity, and the one-owner healthy timeline are already present. The bounded question for this iteration is intended-path proof completeness: whether the deployed browser verifier already covers the selected thread as one session-scoped realtime owner across healthy streaming, switch transition, restore or resume, pending handoff, and degraded fallback without leaving blind spots where polling-owned success or hidden degraded recovery could still masquerade as correct success.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the active selected-thread conversation to keep one consistent source of truth for proposal and phase progress, especially during healthy live ownership and restore-to-live transitions, without having to infer whether a visible phase chip came from SSE authority or a polling fallback.
+The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the runtime to prove, not merely claim, that the selected-thread conversation behaves like one Codex-style live session owner across healthy streaming, restore, switch, handoff, and degraded paths.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the change bounded to selected-thread session authority, phase derivation, and fallback gating around healthy, restore, and degraded boundaries.
+- Keep the change bounded to deployed verification coverage and durable proposal artifacts.
 - Preserve the existing `session_status` plus SSE authority path and explicit degraded fallback behavior unchanged.
 - Keep the bottom-fixed composer dock, selected-thread shell, and one-owner healthy timeline behavior unchanged.
-- Avoid introducing a second authority source for active selected-thread proposal or phase state while selected-thread SSE ownership or restore authority is still present.
+- Avoid widening transport or UI ownership just to satisfy verification; the verifier must prove the existing intended path.
 
 ## Deliverable
 
-Keep selected-thread proposal, review, verify, ready, and applied visibility sourced from selected-thread session-status and append SSE whenever the selected thread is healthy, attached, or restoring, and reserve goals-poll or job-poll state for explicit degraded fallback only after selected-thread authority is actually absent.
+Keep one deployed browser scenario matrix that proves selected-thread realtime ownership across healthy streaming, restore or resume, degraded fallback, intentional thread switch, and cancelled switch, with explicit negative assertions that polling-owned authority, stale ownership, hidden degraded recovery, or generic empty-state flashes do not pass as healthy success.
 Iteration 245: the dominant selected-thread header summary is already the machine-readable live-session ownership signal, carrying owner, path, and phase from canonical session_status plus SSE authority while degrading or clearing immediately on reconnect, polling fallback, switch, or idle completion.
 Iteration 248: the bottom-fixed composer keeps a visible selected-thread target row during healthy and transition states, rendering `READY`, `SWITCHING`, or `HANDOFF` from canonical selected-thread session authority and downgrading or clearing immediately on reconnect, polling fallback, switch, or idle resolution.
 Iteration 249: the left-rail active-session row is already the canonical mirror of the currently selected healthy SSE-owned session, exposing owned and canonical cues only for the selected thread and clearing or downgrading immediately on reconnect, polling fallback, idle, terminal, or switch paths.
@@ -42,3 +42,4 @@ Iteration 260: selected-thread restore and reselect are already session-scoped i
 Iteration 262: healthy selected-thread composer-adjacent session chrome is now suppressed in this branch; the fixed composer remains attached to the selected session, but the adjacent strip no longer renders duplicate healthy ownership, transport, phase, or detail state while degraded, restore, handoff, terminal, and follow-only exception paths still retain explicit strip visibility.
 Iteration 265: intentional thread switches are already preserved in this branch as one compact selected-thread switching placeholder with a mounted composer dock, immediate stale-owner clearing, and explicit deployed negative assertions against generic empty-state flashes or hidden composer continuity loss.
 Iteration 266: selected-thread session-status and append SSE already remain authoritative in this branch for healthy and restore paths; job polling and goals polling are already gated behind explicit loss of selected-thread ownership, and deployed/static verification already asserts that polling-owned authority does not silently reappear before degradation is explicit.
+Iteration 267: the deployed browser gate already exercises healthy streaming, restore or resume, degraded fallback, intentional switch, and cancelled switch as one selected-thread scenario matrix, and already rejects early polling authority, stale ownership, hidden degraded recovery, or generic empty-state flashes before they can qualify as correct success.

@@ -1,14 +1,14 @@
 # Factory Runtime Tasks
 
-## Iteration 266
+## Iteration 267
 
-- [x] Keep the change bounded to selected-thread session authority, phase derivation, and fallback gating.
+- [x] Keep the change bounded to deployed verification coverage and durable proposal artifacts.
 - [x] Preserve the existing selected-thread `session_status` plus SSE authority path unchanged.
-- [x] Keep healthy and restore selected-thread proposal and phase visibility sourced from session-status plus append SSE.
-- [x] Keep goals-poll and job-poll data reserved for explicit degraded fallback after selected-thread authority is absent.
+- [x] Confirm the deployed browser gate already exercises healthy, restore, degraded, switch, and cancelled-switch selected-thread scenarios together.
+- [x] Keep negative verifier coverage for zero early job or goals polling authority before explicit fallback is required.
+- [x] Keep negative verifier coverage for zero stale ownership, hidden degraded recovery, or generic empty-state flashes on transition paths.
 - [x] Keep the bottom-fixed composer dock, selected-thread shell, and one-owner timeline behavior unchanged.
-- [x] Keep negative verifier coverage for zero silent polling-owned phase authority on healthy, restore, and switching paths.
-- [x] Align proposal artifacts with the already-present selected-thread authority contract.
+- [x] Align proposal artifacts with the already-present deployed scenario-matrix contract.
 - Iteration 245: confirm the selected-thread center header already exposes the canonical ownership chip and keep deployed verification bound to that machine-readable selected-thread signal without adding another live-status surface.
 - Iteration 248: keep the selected-thread composer owner row visible on healthy and transition paths, render `READY` only on healthy SSE-owned state, and assert degraded paths never retain stale ready ownership.
 - Iteration 249: record that the sticky left-rail active-session row is already the canonical selected-thread SSE mirror and keep non-selected rows snapshot-only with immediate clear or downgrade on degraded paths.
@@ -20,3 +20,4 @@
 - Iteration 262: suppress duplicate healthy composer-adjacent session-strip chrome so the center timeline remains the sole visible live session owner while exception-path strip visibility remains explicit.
 - Iteration 265: record that intentional selected-thread switches already keep one compact center placeholder, a mounted composer dock, immediate stale-owner clearing, and explicit browser assertions against empty-state or reset flashes.
 - Iteration 266: record that selected-thread proposal and phase authority already remain session-status plus append-SSE owned across healthy and restore paths, while goals-poll and job-poll visibility remain gated behind explicit degraded fallback.
+- Iteration 267: record that the deployed browser verifier already proves the selected thread as one session-scoped realtime owner across healthy, restore, degraded, switch, and cancelled-switch scenarios with negative assertions against polling-owned success, stale ownership, hidden degraded recovery, and empty-state flashes.

@@ -1,16 +1,16 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 266
+## Iteration 267
 
-Keep selected-thread proposal and phase authority on session-status plus append SSE across healthy and restore paths, with polling visible only as explicit degradation.
+Keep deployed verification as one selected-thread scenario matrix proving session-scoped realtime ownership across healthy, restore, switch, handoff, and degraded paths.
 
-1. Keep the change bounded to selected-thread session authority, phase derivation, and fallback gating.
+1. Keep the change bounded to deployed verification coverage and durable proposal artifacts.
 2. Preserve the existing selected-thread `session_status` plus SSE authority path.
-3. Keep proposal, review, verify, ready, and applied visibility sourced from selected-thread session-status and append SSE whenever the selected thread is healthy, attached, or restoring.
-4. Allow goals-poll and job-poll data to shape visible state only after selected-thread authority is explicitly absent or degraded.
-5. Keep the bottom-fixed composer dock, selected-thread shell, and one-owner timeline behavior unchanged.
-6. Keep negative verifier coverage for zero silent polling-owned phase authority on healthy, restore, and switching paths.
-7. Align proposal artifacts with the already-present selected-thread authority contract.
+3. Prove healthy selected-thread streaming remains SSE authoritative end to end.
+4. Prove restore or resume, switch, and cancelled-switch paths preserve mounted selected-thread continuity without empty-state flashes.
+5. Prove degraded fallback is explicit and never masquerades as healthy ownership.
+6. Keep negative verifier coverage for zero early job or goals polling authority before explicit fallback is required.
+7. Align proposal artifacts with the already-present deployed scenario-matrix contract.
 Iteration 245 does not widen runtime or UI ownership. It records that the selected-thread center header already exposes the canonical ownership chip beside the session summary and that deployed verification already attributes healthy visibility to that selected-thread SSE-owned signal rather than to polling or side-panel inference.
 Iteration 248 keeps transport and header ownership unchanged and restores the same selected-thread certainty directly at the input surface by keeping the composer owner row visible for healthy, handoff, switching, and restore states while preserving explicit degraded or idle clearing.
 Iteration 249 does not widen runtime or UI ownership because the selected-thread rail mirror is already correct in this branch: the sticky active-session row is canonical on the healthy selected-thread SSE path, non-selected rows remain snapshot-only, and the deployed gate already attributes that rail marker to the intended selected-thread authority source.
@@ -22,3 +22,4 @@ Iteration 260 does not widen runtime or verifier ownership because the restore p
 Iteration 262 keeps transport and authority unchanged and narrows only the healthy presentation boundary: the composer-adjacent strip is now suppressed on the healthy selected-thread SSE-owned path so the center timeline remains the sole visible live session owner, while degraded, restore, handoff, terminal, and follow-only paths still retain explicit strip visibility.
 Iteration 265 does not widen runtime or verifier ownership because intentional thread switch continuity is already correct in this branch: the selected-thread shell stays mounted, one compact switching placeholder remains visible, the composer dock stays present, stale ownership clears immediately, and the deployed gate already rejects generic empty-state flashes.
 Iteration 266 does not widen runtime or verifier ownership because selected-thread session authority is already correct in this branch: healthy and restore paths already derive proposal and phase visibility from session-status plus append SSE, and polling-driven goals or job state remains gated behind explicit loss of selected-thread ownership.
+Iteration 267 does not widen runtime or transport behavior because the deployed selected-thread scenario matrix is already correct in this branch: healthy, restore, degraded, switch, and cancelled-switch paths are already exercised together, and the browser gate already rejects polling-owned authority, stale ownership, hidden degraded recovery, and empty-state flashes before success is accepted.
