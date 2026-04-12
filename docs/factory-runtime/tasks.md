@@ -1,5 +1,13 @@
 # Factory Runtime Tasks
 
+## Iteration 321
+
+- [x] Keep transport and selected-session ownership unchanged while simplifying the healthy selected-thread header chrome.
+- [x] Move healthy header status to the conversation-first title row plus one phase badge sourced from the selected-session snapshot.
+- [x] Suppress the separate healthy header summary row and count-heavy conversation meta prose while preserving explicit top-of-thread detail for restore, degraded, handoff, and switching states.
+- [x] Tighten static and deployed verification so healthy success fails if the extra healthy header status path remains visible.
+- Iteration 321: collapse healthy selected-thread header duplication into one compact phase badge on the conversation-first title row.
+
 ## Iteration 320
 
 - [x] Keep transport and selected-session ownership unchanged while extending the snapshot seam to the bottom composer controls.

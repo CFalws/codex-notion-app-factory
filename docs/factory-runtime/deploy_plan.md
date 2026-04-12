@@ -1,5 +1,10 @@
 # Factory Runtime Deploy Plan
 
+## Iteration 321
+
+- Run the deployed healthy selected-thread scenario and confirm the center pane starts with conversation identity plus one phase badge, with the separate healthy header summary row hidden and the conversation-meta prose cleared.
+- Treat deployment readiness as blocked if the healthy path still shows a second visible header status surface or helper-only meta prose above the transcript.
+
 ## Iteration 320
 
 - Run the deployed malformed-append browser scenario and confirm the merged composer owner row and send button datasets degrade through the same selected-session snapshot as the transcript, summary, selected row, scroller, and strip.

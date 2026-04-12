@@ -1,5 +1,13 @@
 # Factory Runtime Implementation Plan
 
+## Iteration 321
+
+- Preserve the existing selected-thread transport and selected-session snapshot authority model.
+- Keep explicit top-of-thread detail for restore, degraded, handoff, and switching states.
+- Collapse healthy header chrome to the conversation title row plus one phase badge backed by the selected-session snapshot.
+- Suppress the separate healthy header summary row and count-heavy conversation meta prose on that path.
+- Tighten static and deployed verification so healthy success fails if the second header status path remains visible.
+
 ## Iteration 320
 
 - Preserve the existing selected-thread transport and snapshot authority model.

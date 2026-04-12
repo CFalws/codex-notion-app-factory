@@ -135,6 +135,7 @@ def browser_snapshot_script() -> str:
     return """
 () => {
   const threadPhase = document.querySelector("#thread-phase-chip");
+  const conversationMeta = document.querySelector("#conversation-meta");
   const threadSessionSummary = document.querySelector("#thread-session-summary");
   const inlineBlocks = Array.from(document.querySelectorAll('.session-inline-block[data-selected-thread-live-block="true"], .session-inline-block[data-selected-thread-degraded-block="true"]'));
   const liveActivity = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
@@ -161,6 +162,10 @@ def browser_snapshot_script() -> str:
       hidden: !!threadPhase.hidden,
       dataset: { ...threadPhase.dataset },
       text: (threadPhase.textContent || "").trim(),
+    } : null,
+    conversationMeta: conversationMeta ? {
+      hidden: !!conversationMeta.hidden,
+      text: (conversationMeta.textContent || "").trim(),
     } : null,
     threadSessionSummary: threadSessionSummary ? {
       hidden: !!threadSessionSummary.hidden,
@@ -565,6 +570,7 @@ def assert_browser_runtime_surface(
                   const liveActivity = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
                   const primaryLiveActivities = document.querySelectorAll('.timeline-item.live-activity[data-live-session-primary="true"]');
                   const threadPhase = document.querySelector("#thread-phase-chip");
+                  const conversationMeta = document.querySelector("#conversation-meta");
                   const threadSessionSummary = document.querySelector("#thread-session-summary");
                   const activeSessionRow = document.querySelector("#active-session-row");
                   const selectedCard = document.querySelector('.conversation-card[data-selected="true"]');
@@ -618,29 +624,30 @@ def assert_browser_runtime_surface(
                     milestoneLane.dataset.liveMilestonesPhase === liveActivity.dataset.liveRunPhase &&
                     milestoneLane.querySelector('[data-milestone-key="auto-apply"]') &&
                     threadSessionSummary &&
-                    !threadSessionSummary.hidden &&
-                    threadSessionSummary.dataset.threadSummaryVisible === "true" &&
-                    threadSessionSummary.dataset.threadSummaryPresentation === "healthy" &&
-                    threadSessionSummary.dataset.threadSummaryOwned === "true" &&
-                    threadSessionSummary.dataset.threadSummaryScope === "selected-thread" &&
-                    ["EXPECTED", "ACCEPTABLE"].includes(threadSessionSummary.dataset.threadSummaryPath || "") &&
-                    threadSessionSummary.dataset.threadSummaryOwner === "SSE OWNER" &&
-                    ["PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED"].includes(threadSessionSummary.dataset.threadSummaryPhase || "") &&
-                    (threadSessionSummary.dataset.threadSummaryReason || "").length > 0 &&
-                    threadSessionSummary.dataset.liveSessionVisible === "true" &&
-                    threadSessionSummary.dataset.liveSessionPresentation === "healthy" &&
-                    threadSessionSummary.dataset.liveSessionOwned === "true" &&
-                    threadSessionSummary.dataset.liveSessionStateLabel === "SESSION" &&
-                    threadSessionSummary.dataset.liveSessionPhase === liveActivity.dataset.liveRunPhase &&
+                    threadSessionSummary.hidden &&
+                    threadSessionSummary.dataset.threadSummaryVisible === "false" &&
+                    threadSessionSummary.dataset.threadSummaryPresentation === "cleared" &&
+                    threadSessionSummary.dataset.threadSummaryOwned === "false" &&
+                    threadSessionSummary.dataset.liveSessionVisible === "false" &&
+                    threadSessionSummary.dataset.liveSessionPresentation === "cleared" &&
+                    threadSessionSummary.dataset.liveSessionOwned === "false" &&
                     threadSessionSummary.dataset.centerTimelineAuthority === "true" &&
                     threadSessionSummary.dataset.centerTimelinePresentation === "healthy" &&
                     threadPhase &&
-                    threadPhase.hidden &&
-                    threadPhase.dataset.liveSessionVisible === "false" &&
-                    threadPhase.dataset.liveSessionPresentation === "cleared" &&
-                    threadPhase.dataset.liveSessionOwned === "false" &&
+                    !threadPhase.hidden &&
+                    threadPhase.dataset.liveSessionVisible === "true" &&
+                    threadPhase.dataset.liveSessionPresentation === "healthy" &&
+                    threadPhase.dataset.liveSessionOwned === "true" &&
+                    threadPhase.dataset.selectedSessionState === "healthy" &&
+                    threadPhase.dataset.selectedSessionOwned === "true" &&
+                    threadPhase.dataset.selectedSessionTransport === "SSE OWNER" &&
+                    threadPhase.dataset.selectedSessionPhase === liveActivity.dataset.liveRunPhase &&
+                    threadPhase.textContent.trim() === liveActivity.dataset.liveRunPhase &&
                     threadPhase.dataset.centerTimelineAuthority === "true" &&
                     threadPhase.dataset.centerTimelinePresentation === "healthy" &&
+                    conversationMeta &&
+                    conversationMeta.hidden &&
+                    conversationMeta.textContent.trim() === "" &&
                     activeSessionRow &&
                     !activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "true" &&
@@ -1822,7 +1829,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.threadSessionSummary.dataset.restoreProvenance = sessionStatus.restoreProvenance || "none";', label="header summary restore provenance dataset")
     require(render_js, 'dom.threadSessionSummary.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="header summary center-timeline authority dataset")
     require(render_js, 'dom.threadSessionSummary.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="header summary center-timeline presentation dataset")
-    require(render_js, 'dom.threadPhaseChip.hidden = true;', label="header badge forced hidden")
+    require(render_js, 'dom.threadPhaseChip.hidden = !phaseBadgeVisible;', label="healthy header badge visibility")
     require(api_runtime_context_py, '"goal_title": str(autonomy_summary.get("goal_title") or autonomy_summary.get("goalTitle") or "Autonomy Goal"),', label="runtime session-status goal title emission")
     require(api_runtime_context_py, '"goal_status": str(autonomy_summary.get("goal_status") or autonomy_summary.get("goalStatus") or "unknown"),', label="runtime session-status goal status emission")
     require(api_runtime_context_py, '"iteration": str(autonomy_summary.get("iteration") or ""),', label="runtime session-status iteration emission")
@@ -1898,7 +1905,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.threadSessionSummary.dataset.liveSessionDetail = summaryVisible ? badgeDetail : "현재 활성 세션이 없습니다.";', label="header summary detail dataset")
     require(render_js, "const healthyTranscriptAuthority =", label="healthy transcript authority header suppression guard")
     require(render_js, "const provisionalTranscriptAuthority =", label="header session summary provisional suppression helper")
-    require(render_js, "const summaryVisible = authority.summaryVisible && !provisionalTranscriptAuthority;", label="header session summary healthy visibility")
+    require(render_js, "const phaseBadgeVisible =", label="header phase badge healthy visibility")
+    require(render_js, "const summaryVisible = authority.summaryVisible && !provisionalTranscriptAuthority && !phaseBadgeVisible;", label="header session summary healthy visibility")
     require(render_js, "dom.threadSessionSummary.hidden = !summaryVisible;", label="header session summary visibility")
     require(render_js, 'dom.threadSessionSummary.dataset.threadSummaryVisible = summaryVisible ? "true" : "false";', label="header session summary visible dataset")
     require(render_js, 'dom.threadSessionSummary.dataset.threadSummaryPresentation = summaryVisible ? badgePresentation : "cleared";', label="header session summary presentation dataset")
@@ -1909,6 +1917,11 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.threadSessionSummary.dataset.threadSummarySource = summaryVisible ? badgeSource : "none";', label="header session summary source dataset")
     require(render_js, 'dom.threadSessionSummary.dataset.threadSummaryOwned = summaryVisible && authority.owned ? "true" : "false";', label="header session summary ownership dataset")
     require(render_js, 'dom.threadSessionSummary.dataset.threadSummaryConversationId = summaryVisible ? conversationId : "";', label="header session summary conversation dataset")
+    require(render_js, 'dom.threadPhaseChip.dataset.selectedSessionState = phaseBadgeVisible ? sessionSnapshot.state : "cleared";', label="header phase badge selected-session state dataset")
+    require(render_js, 'dom.threadPhaseChip.dataset.selectedSessionTransport = phaseBadgeVisible ? sessionSnapshot.transportLabel : "SNAPSHOT";', label="header phase badge selected-session transport dataset")
+    require(render_js, 'dom.threadPhaseChip.dataset.selectedSessionReason = phaseBadgeVisible ? sessionSnapshot.reason : "idle";', label="header phase badge selected-session reason dataset")
+    require(render_js, 'dom.threadPhaseChip.dataset.selectedSessionPhase = phaseBadgeVisible ? sessionSnapshot.phaseLabel : "IDLE";', label="header phase badge selected-session phase dataset")
+    require(render_js, 'dom.conversationMeta.hidden = metaText.length === 0;', label="header meta hidden when empty")
     require(render_js, 'dom.threadSessionSummary.dataset.threadSummaryReason = summaryVisible ? badgeReason : "idle";', label="header session summary reason dataset")
     require(render_js, 'dom.threadSessionSummaryOwner.textContent = summaryOwner;', label="header session summary owner chip copy")
     require(render_js, 'const badgeStateLabel =', label="header badge path-state helper")

@@ -126,8 +126,10 @@ export function updateHeroState(
   if (threadKicker && dom.threadKicker) {
     dom.threadKicker.textContent = threadKicker;
   }
-  if (conversationState && dom.conversationMeta) {
-    dom.conversationMeta.textContent = conversationState;
+  if (dom.conversationMeta && conversationState !== undefined) {
+    const metaText = String(conversationState || "");
+    dom.conversationMeta.textContent = metaText;
+    dom.conversationMeta.hidden = metaText.length === 0;
   }
   if (dom.threadPhaseChip) {
     const phaseLabel = liveRun?.visible ? String(liveRun.phase || "IDLE").toUpperCase() : "IDLE";
@@ -725,7 +727,12 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
     Boolean(conversationId) &&
     timelineAuthority.visible &&
     timelineAuthority.presentation === "provisional";
-  const summaryVisible = authority.summaryVisible && !provisionalTranscriptAuthority;
+  const phaseBadgeVisible =
+    authority.state === "healthy" &&
+    Boolean(conversationId) &&
+    timelineAuthority.visible &&
+    timelineAuthority.presentation === "healthy";
+  const summaryVisible = authority.summaryVisible && !provisionalTranscriptAuthority && !phaseBadgeVisible;
   const summaryScope = "SELECTED";
   const summaryPath = String(authority.pathLabel || sessionSurface.pathVerdict || "EXPECTED").toUpperCase();
   const summaryOwner = String(authority.ownerLabel || sessionStatus.transportLabel || "SSE OWNER").toUpperCase();
@@ -769,17 +776,29 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   dom.threadSessionSummaryOwner.textContent = summaryOwner;
   dom.threadSessionSummaryPhase.textContent = healthyPhaseLabel;
   if (dom.threadPhaseChip) {
-    dom.threadPhaseChip.hidden = true;
-    dom.threadPhaseChip.dataset.liveSessionVisible = "false";
-    dom.threadPhaseChip.dataset.liveSessionPresentation = "cleared";
-    dom.threadPhaseChip.dataset.liveSessionOwned = "false";
+    dom.threadPhaseChip.hidden = !phaseBadgeVisible;
+    dom.threadPhaseChip.textContent = phaseBadgeVisible ? healthyPhaseLabel : "IDLE";
+    dom.threadPhaseChip.dataset.tone = phaseBadgeVisible ? headerPhaseTone(liveRun) : "muted";
+    dom.threadPhaseChip.dataset.threadPhase = phaseBadgeVisible ? healthyPhaseLabel : "IDLE";
+    dom.threadPhaseChip.dataset.threadPhaseSource = phaseBadgeVisible ? badgeSource : "none";
+    dom.threadPhaseChip.dataset.threadPhaseDetail = phaseBadgeVisible ? badgeDetail : "idle";
+    dom.threadPhaseChip.dataset.liveSessionVisible = phaseBadgeVisible ? "true" : "false";
+    dom.threadPhaseChip.dataset.liveSessionPresentation = phaseBadgeVisible ? badgePresentation : "cleared";
+    dom.threadPhaseChip.dataset.liveSessionOwned = phaseBadgeVisible && sessionSnapshot.owned ? "true" : "false";
+    dom.threadPhaseChip.dataset.selectedSessionState = phaseBadgeVisible ? sessionSnapshot.state : "cleared";
+    dom.threadPhaseChip.dataset.selectedSessionPresentation = phaseBadgeVisible ? sessionSnapshot.presentation : "cleared";
+    dom.threadPhaseChip.dataset.selectedSessionOwned = phaseBadgeVisible && sessionSnapshot.owned ? "true" : "false";
+    dom.threadPhaseChip.dataset.selectedSessionTransport = phaseBadgeVisible ? sessionSnapshot.transportLabel : "SNAPSHOT";
+    dom.threadPhaseChip.dataset.selectedSessionReason = phaseBadgeVisible ? sessionSnapshot.reason : "idle";
+    dom.threadPhaseChip.dataset.selectedSessionPhase = phaseBadgeVisible ? sessionSnapshot.phaseLabel : "IDLE";
+    dom.threadPhaseChip.dataset.selectedSessionConversationId = phaseBadgeVisible ? sessionSnapshot.conversationId : "";
     dom.threadPhaseChip.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";
     dom.threadPhaseChip.dataset.centerTimelinePresentation = timelineAuthority.presentation;
     dom.threadPhaseChip.dataset.restoreStage = sessionStatus.restoreStage || "none";
     dom.threadPhaseChip.dataset.restorePath = sessionStatus.restorePath || "none";
     dom.threadPhaseChip.dataset.restoreProvenance = sessionStatus.restoreProvenance || "none";
     dom.threadPhaseChip.dataset.threadConversationId = conversationId;
-    dom.threadPhaseChip.title = "현재 활성 세션이 없습니다.";
+    dom.threadPhaseChip.title = phaseBadgeVisible ? badgeDetail : "현재 활성 세션이 없습니다.";
   }
 }
 
@@ -2865,6 +2884,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   });
 
   const liveRun = deriveLiveRunState(conversation, currentState);
+  const sessionSnapshot = deriveSelectedThreadSessionSnapshot(currentState, conversation, liveRun);
   const sessionStripModel = deriveSelectedThreadSessionStripModel(currentState, conversation, liveRun);
   const inlineState = selectedThreadInlineSessionState(conversation, currentState, liveRun, handoffState);
   const inlineSessionBlock = renderInlineSessionBlock(conversation, currentState, liveRun, handoffState);
@@ -2909,7 +2929,7 @@ export function renderConversation(dom, currentState, conversation, onPersist) {
   updateHeroState(dom, {
     threadTitle: conversation.title || "제목 없는 대화",
     threadKicker: "선택된 대화",
-    conversationState: threadMetaSummary(conversation, liveRun, messages.length, events.length),
+    conversationState: sessionSnapshot.state === "healthy" ? "" : threadMetaSummary(conversation, liveRun, messages.length, events.length),
     liveRun,
   });
   renderSessionSummary(dom, currentState, conversation, liveRun, handoffState);

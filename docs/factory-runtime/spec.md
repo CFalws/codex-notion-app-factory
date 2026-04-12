@@ -1,5 +1,11 @@
 # Factory Runtime Spec
 
+## Iteration 321
+
+- The healthy selected-thread center header must collapse to conversation identity plus at most one compact phase badge driven by the selected-session snapshot.
+- The separate healthy header summary row and count-heavy conversation meta prose must stay suppressed on the healthy selected-thread SSE-owned path.
+- Restore, degraded, handoff, and switching paths must continue to expose explicit top-of-thread detail, and deployed verification must fail if healthy header duplication remains.
+
 ## Iteration 320
 
 - The bottom composer controls must publish the same selected-session snapshot authority as the transcript live activity, header summary, selected rail row, thread scroller, and session strip.
