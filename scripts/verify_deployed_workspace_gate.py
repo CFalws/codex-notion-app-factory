@@ -583,20 +583,20 @@ def assert_browser_runtime_surface(
                     milestoneLane.dataset.liveMilestonesPhase === liveActivity.dataset.liveRunPhase &&
                     milestoneLane.querySelector('[data-milestone-key="auto-apply"]') &&
                     threadSessionSummary &&
-                    threadSessionSummary.hidden &&
-                    threadSessionSummary.dataset.threadSummaryVisible === "false" &&
-                    threadSessionSummary.dataset.threadSummaryPresentation === "cleared" &&
-                    threadSessionSummary.dataset.threadSummaryOwned === "false" &&
-                    threadSessionSummary.dataset.threadSummaryScope === "" &&
-                    threadSessionSummary.dataset.threadSummaryPath === "" &&
-                    threadSessionSummary.dataset.threadSummaryOwner === "" &&
-                    threadSessionSummary.dataset.threadSummaryPhase === "" &&
-                    threadSessionSummary.dataset.threadSummaryReason === "idle" &&
-                    threadSessionSummary.dataset.liveSessionVisible === "false" &&
-                    threadSessionSummary.dataset.liveSessionPresentation === "cleared" &&
-                    threadSessionSummary.dataset.liveSessionOwned === "false" &&
-                    threadSessionSummary.dataset.liveSessionStateLabel === "" &&
-                    threadSessionSummary.dataset.liveSessionPhase === "" &&
+                    !threadSessionSummary.hidden &&
+                    threadSessionSummary.dataset.threadSummaryVisible === "true" &&
+                    threadSessionSummary.dataset.threadSummaryPresentation === "healthy" &&
+                    threadSessionSummary.dataset.threadSummaryOwned === "true" &&
+                    threadSessionSummary.dataset.threadSummaryScope === "selected-thread" &&
+                    ["EXPECTED", "ACCEPTABLE"].includes(threadSessionSummary.dataset.threadSummaryPath || "") &&
+                    threadSessionSummary.dataset.threadSummaryOwner === "SSE OWNER" &&
+                    ["PROPOSAL", "REVIEW", "VERIFY", "AUTO APPLY", "READY", "APPLIED"].includes(threadSessionSummary.dataset.threadSummaryPhase || "") &&
+                    (threadSessionSummary.dataset.threadSummaryReason || "").length > 0 &&
+                    threadSessionSummary.dataset.liveSessionVisible === "true" &&
+                    threadSessionSummary.dataset.liveSessionPresentation === "healthy" &&
+                    threadSessionSummary.dataset.liveSessionOwned === "true" &&
+                    threadSessionSummary.dataset.liveSessionStateLabel === "SESSION" &&
+                    threadSessionSummary.dataset.liveSessionPhase === liveActivity.dataset.liveRunPhase &&
                     threadSessionSummary.dataset.centerTimelineAuthority === "true" &&
                     threadSessionSummary.dataset.centerTimelinePresentation === "healthy" &&
                     threadPhase &&
@@ -1719,7 +1719,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.threadSessionSummary.dataset.liveSessionDetail = summaryVisible ? badgeDetail : "현재 활성 세션이 없습니다.";', label="header summary detail dataset")
     require(render_js, "const healthyTranscriptAuthority =", label="healthy transcript authority header suppression guard")
     require(render_js, "const provisionalTranscriptAuthority =", label="header session summary provisional suppression helper")
-    require(render_js, "const summaryVisible = authority.summaryVisible && !healthyTranscriptAuthority && !provisionalTranscriptAuthority;", label="header session summary healthy suppression")
+    require(render_js, "const summaryVisible = authority.summaryVisible && !provisionalTranscriptAuthority;", label="header session summary healthy visibility")
     require(render_js, "dom.threadSessionSummary.hidden = !summaryVisible;", label="header session summary visibility")
     require(render_js, 'dom.threadSessionSummary.dataset.threadSummaryVisible = summaryVisible ? "true" : "false";', label="header session summary visible dataset")
     require(render_js, 'dom.threadSessionSummary.dataset.threadSummaryPresentation = summaryVisible ? badgePresentation : "cleared";', label="header session summary presentation dataset")

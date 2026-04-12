@@ -800,7 +800,7 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
     Boolean(conversationId) &&
     timelineAuthority.visible &&
     timelineAuthority.presentation === "provisional";
-  const summaryVisible = authority.summaryVisible && !healthyTranscriptAuthority && !provisionalTranscriptAuthority;
+  const summaryVisible = authority.summaryVisible && !provisionalTranscriptAuthority;
   const summaryScope = "SELECTED";
   const summaryPath = String(authority.pathLabel || sessionSurface.pathVerdict || "EXPECTED").toUpperCase();
   const summaryOwner = String(authority.ownerLabel || sessionStatus.transportLabel || "SSE OWNER").toUpperCase();

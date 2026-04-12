@@ -1,13 +1,14 @@
 # Factory Runtime Tasks
 
-## Iteration 305
+## Iteration 307
 
-- [x] Keep the iteration bounded to deployed browser verification of the existing selected-thread workspace model.
+- [x] Keep the iteration bounded to the existing selected-thread header summary render path and deployed browser verification.
 - [x] Preserve the existing selected-thread `session_status` plus append SSE transport, promotion, and degraded fallback contract.
-- [x] Prove that healthy selected-thread workspace ownership is attributable only to the intended transcript and composer surfaces.
-- [x] Add explicit negative assertions that restore, degraded reconnect, switch, polling fallback, handoff, and terminal-adjacent paths clear healthy ownership in the same render frame.
+- [x] Restore one compact machine-readable healthy selected-thread header summary row without changing transcript-primary ownership.
+- [x] Prove that healthy selected-thread phase visibility appears through the intended SSE-owned header row and clears on degraded or terminal transitions in the same render frame.
 - [x] Avoid introducing any new authority source, parallel healthy-path controller state, or duplicate healthy chrome.
 - [x] Update proposal artifacts to record the intended-path verifier result.
+- Iteration 307: land the missing healthy selected-thread header phase row and align the deployed browser gate to require that healthy-path visibility and same-render clearing.
 - Iteration 245: confirm the selected-thread center header already exposes the canonical ownership chip and keep deployed verification bound to that machine-readable selected-thread signal without adding another live-status surface.
 - Iteration 248: keep the selected-thread composer owner row visible on healthy and transition paths, render `READY` only on healthy SSE-owned state, and assert degraded paths never retain stale ready ownership.
 - Iteration 249: record that the sticky left-rail active-session row is already the canonical selected-thread SSE mirror and keep non-selected rows snapshot-only with immediate clear or downgrade on degraded paths.
