@@ -1,5 +1,13 @@
 # Factory Runtime Tasks
 
+## Iteration 345
+
+- [x] Keep transport, polling fallback, rail ownership, switch continuity, and fixed composer behavior unchanged.
+- [x] Make the selected-thread follow control publish explicit selected-thread SSE ownership and selected conversation identity datasets.
+- [x] Keep the follow cue selected-thread-only and clear it immediately on jump-to-latest, switch, reconnect downgrade, idle, or polling fallback.
+- [x] Tighten static and deployed verification so stale or fallback-owned follow cues fail the selected-thread healthy path.
+- Iteration 345: stamp the bottom follow control as selected-thread SSE-owned so NEW and PAUSED unseen append cues stay visible only on the intended healthy lane.
+
 ## Iteration 335
 
 - [x] Keep transport, switching, rail ownership, and composer layout unchanged.

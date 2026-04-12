@@ -1,5 +1,12 @@
 # Factory Runtime Implementation Plan
 
+## Iteration 345
+
+- Keep transport, polling fallback, rail ownership, switch continuity, and the fixed composer layout unchanged.
+- Reuse the existing selected-thread follow-control model and stamp explicit selected-thread SSE ownership plus selected conversation identity onto the bottom follow control datasets.
+- Keep the follow cue selected-thread-only and visible only while detached healthy live appends remain unseen.
+- Tighten static and deployed verification so jump-to-latest clears those ownership datasets immediately and degraded or switched paths cannot retain the healthy follow cue.
+
 ## Iteration 335
 
 - Keep transport, switching, rail ownership, center-pane rendering, and fixed composer layout unchanged.

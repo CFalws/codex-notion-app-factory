@@ -1,5 +1,11 @@
 # Factory Runtime Spec
 
+## Iteration 345
+
+- The selected-thread transcript tail must expose exactly one compact bottom follow control sourced from the healthy selected-session SSE lane.
+- That follow control must publish explicit `NEW` versus `PAUSED` state plus unseen append count and selected conversation identity through machine-readable datasets.
+- Jump-to-latest, switch, reconnect downgrade, polling fallback, idle resolution, and other non-authoritative paths must clear that follow ownership immediately instead of preserving a stale live cue.
+
 ## Iteration 335
 
 - Healthy selected-thread proposal-ready, verifier, and apply cues must remain owned by the existing session-scoped SSE path instead of legacy job polling.

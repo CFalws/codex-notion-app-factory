@@ -1,5 +1,11 @@
 # Factory Runtime Deploy Plan
 
+## Iteration 345
+
+- Run the deployed healthy selected-thread SSE scenario and confirm the bottom follow control appears only for detached selected-thread live progress with `selected-thread-sse` ownership and the selected conversation id on both strip and toggle datasets.
+- Jump to latest and confirm the follow control clears immediately back to hidden or idle with `none` ownership and an empty conversation id.
+- Treat deployment readiness as blocked if switch, reconnect, polling fallback, idle, or non-selected paths retain or inherit the healthy selected-thread follow cue.
+
 ## Iteration 335
 
 - Run the deployed healthy selected-thread SSE scenario and confirm job phase, job meta, and apply readiness datasets are owned by `selected-thread-sse` with `session-status-sse` provenance.

@@ -1155,13 +1155,19 @@ def assert_browser_runtime_surface(
             page.wait_for_function(
                 """conversationId => {
                   const sessionStripToggle = document.querySelector("#session-strip-toggle");
+                  const sessionStrip = document.querySelector("#session-strip");
                   return Boolean(
                     !document.querySelector("#jump-to-latest") &&
+                    sessionStrip &&
+                    sessionStrip.dataset.followAuthority === "selected-thread-sse" &&
+                    sessionStrip.dataset.followConversationId === conversationId &&
                     sessionStripToggle &&
                     !sessionStripToggle.hidden &&
                     sessionStripToggle.dataset.sessionAction === "jump-latest" &&
                     ["new", "paused"].includes(sessionStripToggle.dataset.followState || "") &&
-                    Number(sessionStripToggle.dataset.followCount || "0") >= 0 &&
+                    sessionStripToggle.dataset.followAuthority === "selected-thread-sse" &&
+                    sessionStripToggle.dataset.followConversationId === conversationId &&
+                    Number(sessionStripToggle.dataset.followCount || "0") > 0 &&
                     sessionStripToggle.textContent.trim().length > 0
                   );
                 }""",
@@ -1172,13 +1178,19 @@ def assert_browser_runtime_surface(
             page.wait_for_function(
                 """() => {
                   const sessionStripToggle = document.querySelector("#session-strip-toggle");
+                  const sessionStrip = document.querySelector("#session-strip");
                   return Boolean(
                     !document.querySelector("#jump-to-latest") &&
+                    sessionStrip &&
+                    sessionStrip.dataset.followAuthority === "none" &&
+                    sessionStrip.dataset.followConversationId === "" &&
                     sessionStripToggle &&
                     sessionStripToggle.hidden &&
                     sessionStripToggle.dataset.sessionAction === "toggle-session-rail" &&
                     sessionStripToggle.dataset.followState === "idle" &&
-                    sessionStripToggle.dataset.followCount === "0"
+                    sessionStripToggle.dataset.followCount === "0" &&
+                    sessionStripToggle.dataset.followAuthority === "none" &&
+                    sessionStripToggle.dataset.followConversationId === ""
                   );
                 }""",
                 timeout=30000,
@@ -2151,6 +2163,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(store_js, 'transportLabel = "POLLING";', label="composer strip polling label")
     require(store_js, 'transportLabel = "RECONNECT";', label="composer strip reconnect label")
     require(render_js, "dataset.followState", label="follow-state dataset")
+    require(render_js, "dataset.followAuthority", label="follow-authority dataset")
+    require(render_js, "dataset.followConversationId", label="follow conversation dataset")
     require(render_js, "function isSessionAuthorityEvent(event)", label="selected-thread session authority event helper")
     require(render_js, "function selectedThreadSseAuthorityEvent(conversation, currentState)", label="selected-thread SSE authority event selector")
     require(render_js, "function selectedThreadSseAuthorityStatus(conversation, currentState)", label="selected-thread SSE authority status helper")
@@ -2377,9 +2391,15 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'const footerFollow = selectedThreadFooterFollowState(dom, currentState, conversationId, renderSource);', label="follow control footer follow source")
     require(render_js, "footerFollowActionLabel", label="footer follow action label helper")
     require(render_js, 'dom.sessionStripToggle.textContent = footerFollowActionLabel(footerFollow);', label="footer follow action label render")
+    require(render_js, 'dom.sessionStrip.dataset.followAuthority = footerFollow.visible ? footerFollow.authority || "selected-thread-sse" : "none";', label="follow control strip authority dataset")
+    require(render_js, 'dom.sessionStrip.dataset.followConversationId = footerFollow.visible ? footerFollow.conversationId || "" : "";', label="follow control strip conversation dataset")
+    require(render_js, 'dom.sessionStripToggle.dataset.followAuthority = footerFollow.visible ? footerFollow.authority || "selected-thread-sse" : "none";', label="follow control toggle authority dataset")
+    require(render_js, 'dom.sessionStripToggle.dataset.followConversationId = footerFollow.visible ? footerFollow.conversationId || "" : "";', label="follow control toggle conversation dataset")
     require(render_js, 'dom.sessionStripToggle.dataset.followRenderSource = footerFollow.renderSource || renderSource || "snapshot";', label="follow control render source dataset")
     require(store_js, 'followState === "new"', label="follow control new-state derivation")
     require(store_js, 'followState === "paused"', label="follow control paused-state derivation")
+    require(store_js, 'authority: detachedHealthyFollow ? "selected-thread-sse" : "none",', label="follow control authority derivation")
+    require(store_js, 'presentation: detachedHealthyFollow ? followState : "hidden",', label="follow control presentation derivation")
     require(store_js, "새 live append", label="follow control new copy")
     require(store_js, "live follow paused · unseen", label="follow control paused copy")
     require(render_js, 'dom.sessionStripToggle.hidden = !footerFollow.visible;', label="footer bar follow action visibility")

@@ -414,6 +414,8 @@ export function deriveSelectedThreadFollowControlModel(currentState) {
     unseenCount,
     stateLabel,
     detailLabel,
+    authority: detachedHealthyFollow ? "selected-thread-sse" : "none",
+    presentation: detachedHealthyFollow ? followState : "hidden",
     renderSource: String(sessionStatus.renderSource || "snapshot"),
     clearReason: detachedHealthyFollow ? "none" : String(sessionStatus.clearReason || sessionStatus.transportReason || "idle"),
   };

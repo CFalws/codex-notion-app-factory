@@ -1655,6 +1655,8 @@ function syncJumpToLatest(dom, currentState, conversationId, renderSource) {
   if (dom.sessionStrip) {
     dom.sessionStrip.dataset.followState = footerFollow.visible ? footerFollow.followState : "idle";
     dom.sessionStrip.dataset.followCount = String(footerFollow.visible ? footerFollow.unseenCount : 0);
+    dom.sessionStrip.dataset.followAuthority = footerFollow.visible ? footerFollow.authority || "selected-thread-sse" : "none";
+    dom.sessionStrip.dataset.followConversationId = footerFollow.visible ? footerFollow.conversationId || "" : "";
   }
   if (dom.sessionStripToggle) {
     dom.sessionStripToggle.hidden = !footerFollow.visible;
@@ -1662,6 +1664,8 @@ function syncJumpToLatest(dom, currentState, conversationId, renderSource) {
     dom.sessionStripToggle.dataset.sessionAction = footerFollow.visible ? "jump-latest" : "toggle-session-rail";
     dom.sessionStripToggle.dataset.followState = footerFollow.visible ? footerFollow.followState : "idle";
     dom.sessionStripToggle.dataset.followCount = String(footerFollow.visible ? footerFollow.unseenCount : 0);
+    dom.sessionStripToggle.dataset.followAuthority = footerFollow.visible ? footerFollow.authority || "selected-thread-sse" : "none";
+    dom.sessionStripToggle.dataset.followConversationId = footerFollow.visible ? footerFollow.conversationId || "" : "";
     dom.sessionStripToggle.dataset.followRenderSource = footerFollow.renderSource || renderSource || "snapshot";
     dom.sessionStripToggle.setAttribute("aria-label", footerFollow.visible ? "최신 응답으로 이동" : "세부 보기");
   }
@@ -2298,6 +2302,8 @@ export function renderSessionStrip(dom, currentState, conversation) {
       dom.sessionStripToggle.dataset.sessionAction = "toggle-session-rail";
       dom.sessionStripToggle.dataset.followState = "idle";
       dom.sessionStripToggle.dataset.followCount = "0";
+      dom.sessionStripToggle.dataset.followAuthority = "none";
+      dom.sessionStripToggle.dataset.followConversationId = "";
     }
     if (dom.composerUtilityMenu) {
       dom.composerUtilityMenu.dataset.composerUtilityOpen = "false";
@@ -2401,6 +2407,8 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStrip.dataset.liveRunTone = liveRun.tone;
   dom.sessionStrip.dataset.followState = footerFollow.visible ? footerFollow.followState : stripLiveOwned ? sessionStatus.followState || "live" : transportState.owned ? "owned" : "idle";
   dom.sessionStrip.dataset.followCount = String(footerFollow.visible ? footerFollow.unseenCount : 0);
+  dom.sessionStrip.dataset.followAuthority = footerFollow.visible ? footerFollow.authority || "selected-thread-sse" : "none";
+  dom.sessionStrip.dataset.followConversationId = footerFollow.visible ? footerFollow.conversationId || "" : "";
   dom.sessionStrip.dataset.footerDockOwned = stripProgressOwned ? "true" : "false";
   dom.sessionStrip.dataset.footerDockPhase = footerDock.phaseLabel || "IDLE";
   dom.sessionStrip.dataset.footerDockSource = footerDock.source || "none";
@@ -2452,6 +2460,8 @@ export function renderSessionStrip(dom, currentState, conversation) {
     dom.sessionStripToggle.dataset.sessionAction = footerFollow.visible ? "jump-latest" : "toggle-session-rail";
     dom.sessionStripToggle.dataset.followState = footerFollow.visible ? footerFollow.followState : "idle";
     dom.sessionStripToggle.dataset.followCount = String(footerFollow.visible ? footerFollow.unseenCount : 0);
+    dom.sessionStripToggle.dataset.followAuthority = footerFollow.visible ? footerFollow.authority || "selected-thread-sse" : "none";
+    dom.sessionStripToggle.dataset.followConversationId = footerFollow.visible ? footerFollow.conversationId || "" : "";
     dom.sessionStripToggle.dataset.followRenderSource = footerFollow.renderSource || lastRenderSource || "snapshot";
   }
   if (dom.draftStatus) {
