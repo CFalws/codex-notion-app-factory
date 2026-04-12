@@ -1451,14 +1451,14 @@ def assert_browser_runtime_surface(
                     threadTitle.textContent.trim().length > 0 &&
                     threadTitle.textContent.trim() !== "새 대화를 시작하세요" &&
                     activeSessionRow &&
-                    !activeSessionRow.hidden &&
+                    activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
-                    activeSessionRow.dataset.activeSessionCanonical === "true" &&
-                    activeSessionRow.dataset.activeSessionSource === "thread-transition" &&
-                    activeSessionRow.dataset.activeSessionState === "switching" &&
-                    activeSessionRow.dataset.activeSessionPhase === "SWITCHING" &&
-                    activeSessionRow.dataset.activeSessionConversationId === targetConversationId &&
-                    activeSessionRow.dataset.activeSessionFollow === "target" &&
+                    activeSessionRow.dataset.activeSessionCanonical === "false" &&
+                    activeSessionRow.dataset.activeSessionSource === "none" &&
+                    activeSessionRow.dataset.activeSessionState === "idle" &&
+                    activeSessionRow.dataset.activeSessionPhase === "IDLE" &&
+                    activeSessionRow.dataset.activeSessionConversationId === "" &&
+                    activeSessionRow.dataset.activeSessionFollow === "idle" &&
                     selectedCard &&
                     selectedCard.dataset.selectedSessionState === "switching" &&
                     selectedCard.dataset.selectedSessionPresentation === "switching" &&
@@ -1638,14 +1638,14 @@ def assert_browser_runtime_surface(
                     transition.dataset.threadTransitionCompact === "true" &&
                     transition.dataset.threadTransitionConversationId === targetConversationId &&
                     activeSessionRow &&
-                    !activeSessionRow.hidden &&
+                    activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
-                    activeSessionRow.dataset.activeSessionCanonical === "true" &&
-                    activeSessionRow.dataset.activeSessionSource === "thread-transition" &&
-                    activeSessionRow.dataset.activeSessionState === "switching" &&
-                    activeSessionRow.dataset.activeSessionPhase === "SWITCHING" &&
-                    activeSessionRow.dataset.activeSessionConversationId === targetConversationId &&
-                    activeSessionRow.dataset.activeSessionFollow === "target" &&
+                    activeSessionRow.dataset.activeSessionCanonical === "false" &&
+                    activeSessionRow.dataset.activeSessionSource === "none" &&
+                    activeSessionRow.dataset.activeSessionState === "idle" &&
+                    activeSessionRow.dataset.activeSessionPhase === "IDLE" &&
+                    activeSessionRow.dataset.activeSessionConversationId === "" &&
+                    activeSessionRow.dataset.activeSessionFollow === "idle" &&
                     sessionStrip &&
                     sessionStripState &&
                     sessionStripState.querySelectorAll(".session-chip").length === 1 &&
@@ -1779,14 +1779,14 @@ def assert_browser_runtime_surface(
                     selectedCardLivePhase.dataset.liveOwnerVisible === "false" &&
                     selectedCardLivePhase.dataset.liveOwnerPhase === "" &&
                     activeSessionRow &&
-                    !activeSessionRow.hidden &&
+                    activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
-                    activeSessionRow.dataset.activeSessionCanonical === "true" &&
-                    activeSessionRow.dataset.activeSessionSource === "thread-transition" &&
-                    activeSessionRow.dataset.activeSessionState === "switching" &&
-                    activeSessionRow.dataset.activeSessionPhase === "SWITCHING" &&
-                    activeSessionRow.dataset.activeSessionConversationId === targetConversationId &&
-                    activeSessionRow.dataset.activeSessionFollow === "target" &&
+                    activeSessionRow.dataset.activeSessionCanonical === "false" &&
+                    activeSessionRow.dataset.activeSessionSource === "none" &&
+                    activeSessionRow.dataset.activeSessionState === "idle" &&
+                    activeSessionRow.dataset.activeSessionPhase === "IDLE" &&
+                    activeSessionRow.dataset.activeSessionConversationId === "" &&
+                    activeSessionRow.dataset.activeSessionFollow === "idle" &&
                     secondarySessionFacts &&
                     secondarySessionFacts.hidden &&
                     secondarySessionFacts.dataset.secondaryFactsPresentation === "suppressed" &&
@@ -2444,12 +2444,11 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(store_js, 'markerLabel =', label="selected row marker label mapping")
     require(store_js, 'cueLabel =', label="selected row cue label mapping")
     require(store_js, 'cueKind =', label="selected row cue kind mapping")
-    require(store_js, 'presentation: "switching",', label="active session switching presentation")
-    require(store_js, 'rowState: "switching",', label="active session switching state")
-    require(store_js, 'rowSource: "thread-transition",', label="active session switching source")
-    require(store_js, 'rowPhase: "SWITCHING",', label="active session switching phase")
-    require(store_js, 'followLabel: "ATTACH",', label="active session switching follow label")
-    require(store_js, 'meta: "selected thread · switching · attach pending",', label="active session switching meta copy")
+    require(store_js, 'presentation: "cleared",', label="active session switching cleared presentation")
+    require(store_js, 'rowState: "idle",', label="active session switching cleared state")
+    require(store_js, 'rowSource: "none",', label="active session switching cleared source")
+    require(store_js, 'rowPhase: "IDLE",', label="active session switching cleared phase")
+    require(store_js, 'clearReason: "thread-switch",', label="active session switching clear reason")
     require(store_js, 'presentation: "handoff",', label="active session handoff presentation")
     require(store_js, 'rowState: "handoff",', label="active session handoff state")
     require(store_js, 'stateLabel: "HANDOFF",', label="active session handoff label")
