@@ -6,6 +6,7 @@ import {
   deriveSelectedThreadLiveAutonomy,
   deriveSelectedThreadPhaseProgression,
   deriveSelectedThreadSessionAuthorityModel,
+  deriveSelectedThreadSessionQuorumModel,
   deriveSelectedThreadSessionSnapshot,
   deriveSelectedThreadSessionSurfaceModel,
   deriveSelectedThreadShellPhaseLabel,
@@ -429,6 +430,7 @@ function sessionStripStateChipMarkup(chips) {
 function selectedThreadFooterDockModel(currentState, conversation, liveRun, footerFollow = null) {
   const authority = deriveSelectedThreadSessionAuthorityModel(currentState, conversation, liveRun);
   const sessionSurface = deriveSelectedThreadSessionSurfaceModel(currentState, conversation);
+  const quorumModel = deriveSelectedThreadSessionQuorumModel(currentState, conversation);
   const liveOwned = authority.state === "healthy";
   const provisionalVisible = authority.state === "provisional";
   const phaseLabel = String(
@@ -450,7 +452,10 @@ function selectedThreadFooterDockModel(currentState, conversation, liveRun, foot
     ? [
         { label: phaseLabel, tone: "neutral", role: "live-phase" },
         { label: String(authority.ownerLabel || "SSE OWNER").toUpperCase(), tone: "healthy", role: "live-owner" },
-        ...(proposalLabel ? [{ label: proposalLabel, tone: proposalLabel === "BLOCKED" ? "warning" : "neutral", role: "live-proposal" }] : []),
+        ...(quorumModel.reviewLabel ? [{ label: quorumModel.reviewLabel, tone: "neutral", role: "live-review-quorum" }] : []),
+        ...(quorumModel.verifyLabel ? [{ label: quorumModel.verifyLabel, tone: "neutral", role: "live-verify-quorum" }] : []),
+        ...(quorumModel.readyLabel ? [{ label: quorumModel.readyLabel, tone: "healthy", role: "live-ready" }] : []),
+        ...(!quorumModel.readyLabel && proposalLabel ? [{ label: proposalLabel, tone: proposalLabel === "BLOCKED" ? "warning" : "neutral", role: "live-proposal" }] : []),
         ...(dockStateLabel ? [{ label: dockStateLabel, tone: "neutral", role: "live-state" }] : []),
         footerFollow?.visible
           ? {
@@ -483,7 +488,15 @@ function selectedThreadFooterDockModel(currentState, conversation, liveRun, foot
       ? joinSessionChromeTokens(provisionalOwnerLabel, provisionalPhaseLabel)
       : footerFollow?.visible
         ? joinSessionChromeTokens(phaseLabel, footerFollow.detailLabel)
-        : proposalLabel
+        : quorumModel.visible
+          ? joinSessionChromeTokens(
+              phaseLabel,
+              ...(quorumModel.reviewLabel ? [quorumModel.reviewLabel] : []),
+              ...(quorumModel.verifyLabel ? [quorumModel.verifyLabel] : []),
+              ...(quorumModel.readyLabel ? [quorumModel.readyLabel] : []),
+              ...(dockStateLabel ? [dockStateLabel] : []),
+            )
+          : proposalLabel
           ? dockStateLabel
             ? joinSessionChromeTokens(phaseLabel, proposalLabel, dockStateLabel)
             : joinSessionChromeTokens(phaseLabel, proposalLabel)
@@ -493,6 +506,9 @@ function selectedThreadFooterDockModel(currentState, conversation, liveRun, foot
     source: String(authority.source || sessionSurface.milestoneModel.source || sessionSurface.source || "sse").toLowerCase(),
     liveOwned,
     milestoneVisible: liveOwned && chips.length > 1,
+    reviewQuorumLabel: liveOwned ? String(quorumModel.reviewLabel || "") : "",
+    verifyQuorumLabel: liveOwned ? String(quorumModel.verifyLabel || "") : "",
+    readyLabel: liveOwned ? String(quorumModel.readyLabel || "") : "",
   };
 }
 
@@ -1183,6 +1199,7 @@ function selectedThreadTimelineAuthorityModel(conversation, currentState, liveRu
 function renderInlineSessionBlock(conversation, currentState, liveRun, handoffState) {
   const timelineSession = selectedThreadPrimaryTimelineSessionModel(conversation, currentState, liveRun);
   const { inlineState, sessionSurface } = timelineSession;
+  const quorumModel = deriveSelectedThreadSessionQuorumModel(currentState, conversation);
   const { handoffVisible, liveVisible, provisionalVisible } = inlineState;
   if (!liveVisible && !handoffVisible && !provisionalVisible) {
     return "";
@@ -1207,6 +1224,9 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
   const expectedPath = liveVisible
     ? String(sessionSurface.liveAutonomy?.summary?.expectedPath || "unknown").toUpperCase()
     : "";
+  const reviewQuorumLabel = liveVisible ? String(quorumModel.reviewLabel || "") : "";
+  const verifyQuorumLabel = liveVisible ? String(quorumModel.verifyLabel || "") : "";
+  const readyLabel = liveVisible ? String(quorumModel.readyLabel || "") : "";
   const detail = provisionalVisible
     ? sessionCompactTarget(currentState, conversation, "CURRENT THREAD")
     : handoffVisible
@@ -1222,7 +1242,7 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
       );
   const milestoneLane = liveVisible ? renderTranscriptMilestones(currentState, conversation) : "";
   return `
-    <article class="session-inline-block" data-selected-thread-live-block="true" data-selected-thread-degraded-block="false" data-live-block-conversation-id="${escapeHtml(String(sessionStatus.conversationId || ""))}" data-live-block-owned="${liveVisible ? "true" : "false"}" data-live-block-source="${escapeHtml(String(sessionSurface.source || "sse"))}" data-live-block-phase="${escapeHtml(phaseLabel)}" data-live-block-transport="${escapeHtml(transportLabel)}" data-live-block-handoff="${handoffVisible ? "true" : "false"}" data-live-block-provisional="${provisionalVisible ? "true" : "false"}" data-live-block-path-verdict="${escapeHtml(pathVerdict)}" data-live-block-verifier-acceptability="${escapeHtml(verifierAcceptability)}" data-live-block-blocker-reason="${escapeHtml(blockerReason)}" data-live-block-expected-path="${escapeHtml(expectedPath)}" data-live-block-reason="${escapeHtml(provisionalVisible ? String(sessionStatus.transportReason || "selected-thread-attach") : handoffVisible ? "handoff" : String(sessionSurface.liveAutonomy?.reason || "healthy"))}">
+    <article class="session-inline-block" data-selected-thread-live-block="true" data-selected-thread-degraded-block="false" data-live-block-conversation-id="${escapeHtml(String(sessionStatus.conversationId || ""))}" data-live-block-owned="${liveVisible ? "true" : "false"}" data-live-block-source="${escapeHtml(String(sessionSurface.source || "sse"))}" data-live-block-phase="${escapeHtml(phaseLabel)}" data-live-block-transport="${escapeHtml(transportLabel)}" data-live-block-handoff="${handoffVisible ? "true" : "false"}" data-live-block-provisional="${provisionalVisible ? "true" : "false"}" data-live-block-path-verdict="${escapeHtml(pathVerdict)}" data-live-block-verifier-acceptability="${escapeHtml(verifierAcceptability)}" data-live-block-blocker-reason="${escapeHtml(blockerReason)}" data-live-block-expected-path="${escapeHtml(expectedPath)}" data-live-block-review-quorum="${escapeHtml(reviewQuorumLabel)}" data-live-block-verify-quorum="${escapeHtml(verifyQuorumLabel)}" data-live-block-ready="${escapeHtml(readyLabel)}" data-live-block-reason="${escapeHtml(provisionalVisible ? String(sessionStatus.transportReason || "selected-thread-attach") : handoffVisible ? "handoff" : String(sessionSurface.liveAutonomy?.reason || "healthy"))}">
       <p class="session-inline-kicker">${provisionalVisible ? "Selected Session Attach" : handoffVisible ? "Pending Handoff" : "Selected Session"}</p>
       <div class="session-inline-row">
         <span class="session-inline-chip">${escapeHtml(transportLabel)}</span>
@@ -1232,6 +1252,9 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
         ${liveVisible ? `<span class="session-inline-chip">${escapeHtml(pathVerdict)}</span>` : ""}
         ${liveVisible ? `<span class="session-inline-chip">${escapeHtml(verifierAcceptability)}</span>` : ""}
         ${liveVisible ? `<span class="session-inline-chip">BLOCKER ${escapeHtml(blockerReason)}</span>` : ""}
+        ${liveVisible && reviewQuorumLabel ? `<span class="session-inline-chip">${escapeHtml(reviewQuorumLabel)}</span>` : ""}
+        ${liveVisible && verifyQuorumLabel ? `<span class="session-inline-chip">${escapeHtml(verifyQuorumLabel)}</span>` : ""}
+        ${liveVisible && readyLabel ? `<span class="session-inline-chip">${escapeHtml(readyLabel)}</span>` : ""}
       </div>
       ${milestoneLane}
       <p class="session-inline-body">${escapeHtml(detail)}</p>
@@ -2338,6 +2361,9 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStrip.dataset.footerDockPhase = footerDock.phaseLabel || "IDLE";
   dom.sessionStrip.dataset.footerDockSource = footerDock.source || "none";
   dom.sessionStrip.dataset.footerDockMilestones = footerDock.milestoneVisible ? "true" : "false";
+  dom.sessionStrip.dataset.reviewQuorum = stripLiveOwned ? footerDock.reviewQuorumLabel || "" : "";
+  dom.sessionStrip.dataset.verifyQuorum = stripLiveOwned ? footerDock.verifyQuorumLabel || "" : "";
+  dom.sessionStrip.dataset.readyState = stripLiveOwned ? footerDock.readyLabel || "" : "";
   dom.sessionStrip.dataset.composerState = ownerState.state;
   dom.sessionStrip.dataset.composerTransport = transportState.key;
   dom.sessionStrip.dataset.composerTransportSource = transportState.source;
@@ -2418,6 +2444,9 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.threadScroller.dataset.selectedSessionReason = sessionSnapshot.reason;
   dom.threadScroller.dataset.selectedSessionPhase = sessionSnapshot.phaseLabel;
   dom.threadScroller.dataset.selectedSessionConversationId = sessionSnapshot.conversationId;
+  dom.threadScroller.dataset.reviewQuorum = stripLiveOwned ? footerDock.reviewQuorumLabel || "" : "";
+  dom.threadScroller.dataset.verifyQuorum = stripLiveOwned ? footerDock.verifyQuorumLabel || "" : "";
+  dom.threadScroller.dataset.readyState = stripLiveOwned ? footerDock.readyLabel || "" : "";
   dom.threadScroller.dataset.sessionCollapsed = shouldCollapse ? "true" : "false";
   dom.threadScroller.dataset.restoreStage = sessionStatus.restoreStage || "none";
   dom.threadScroller.dataset.restorePath = sessionStatus.restorePath || "none";

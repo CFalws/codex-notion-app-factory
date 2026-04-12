@@ -818,9 +818,18 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.footerDockSource === "sse" &&
                     sessionStrip.dataset.composerTransport === "sse-owner" &&
                     sessionStrip.dataset.composerTransportOwned === "true" &&
+                    /^REVIEW \\d+\\/2$/.test(sessionStrip.dataset.reviewQuorum || "") &&
+                    /^VERIFY \\d+\\/2$/.test(sessionStrip.dataset.verifyQuorum || "") &&
+                    (sessionStrip.dataset.readyState === "" || sessionStrip.dataset.readyState === "READY") &&
                     sessionStrip.dataset.phaseProvenance === "sse" &&
                     threadScroller &&
+                    sessionStrip.dataset.reviewQuorum === threadScroller.dataset.reviewQuorum &&
+                    sessionStrip.dataset.verifyQuorum === threadScroller.dataset.verifyQuorum &&
+                    sessionStrip.dataset.readyState === threadScroller.dataset.readyState &&
                     sessionStrip.dataset.phaseValue === inlineBlock.dataset.liveBlockPhase &&
+                    inlineBlock.dataset.liveBlockReviewQuorum === sessionStrip.dataset.reviewQuorum &&
+                    inlineBlock.dataset.liveBlockVerifyQuorum === sessionStrip.dataset.verifyQuorum &&
+                    inlineBlock.dataset.liveBlockReady === sessionStrip.dataset.readyState &&
                     threadScroller.dataset.phaseValue === inlineBlock.dataset.liveBlockPhase &&
                     threadScroller.dataset.phaseProvenance === "sse" &&
                     sessionStripState &&
@@ -1030,6 +1039,9 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.selectedSessionTransport === "POLLING" &&
                     sessionStrip.dataset.selectedSessionReason === "append-frame-parse-failed" &&
                     sessionStrip.dataset.selectedSessionPhase === "POLLING" &&
+                    sessionStrip.dataset.reviewQuorum === "" &&
+                    sessionStrip.dataset.verifyQuorum === "" &&
+                    sessionStrip.dataset.readyState === "" &&
                     sessionStrip.dataset.composerTransportOwned === "false" &&
                     sessionStripState &&
                     sessionStripState.dataset.sessionStripRole === "degraded" &&
@@ -1053,6 +1065,9 @@ def assert_browser_runtime_surface(
                     threadScroller.dataset.selectedSessionOwned === "false" &&
                     threadScroller.dataset.selectedSessionTransport === "POLLING" &&
                     threadScroller.dataset.selectedSessionReason === "append-frame-parse-failed" &&
+                    threadScroller.dataset.reviewQuorum === "" &&
+                    threadScroller.dataset.verifyQuorum === "" &&
+                    threadScroller.dataset.readyState === "" &&
                     threadScroller.dataset.selectedSessionPhase === "POLLING" &&
                     threadScroller.dataset.sessionOwner !== "selected-thread" &&
                     inlineBlocks.length === 0 &&

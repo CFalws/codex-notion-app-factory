@@ -114,14 +114,29 @@ class RuntimeApiContext:
         conversation = self.require_conversation(conversation_id)
         phase = self.conversation_session_phase(payload, kind=kind)
         autonomy_summary = dict(conversation.get("autonomy_summary") or {})
+        goal = self._pick_relevant_goal(str(conversation.get("app_id") or ""))
+        iteration = self._latest_goal_iteration(goal)
+        review_quorum = self._summarize_quorum(
+            iteration.get("proposal_reviews") if isinstance(iteration, dict) else [],
+            approved_key="verdict",
+            approved_value="approve",
+        )
+        verify_quorum = self._summarize_quorum(
+            iteration.get("verification_reviews") if isinstance(iteration, dict) else [],
+            approved_key="verdict",
+            approved_value="pass",
+        )
         latest_job_id = str(conversation.get("latest_job_id") or phase.get("job_id") or "")
         latest_payload = payload if isinstance(payload, dict) else {}
         proposal_status = str(conversation.get("proposal_status") or "")
+        proposal_ready_inferred = bool(
+            autonomy_summary.get("blocker_reason") == "none"
+            or autonomy_summary.get("blockerReason") == "none"
+        )
         proposal_ready = bool(
             proposal_status.lower() == "ready_to_apply"
             or latest_payload.get("type") == "proposal.ready"
-            or autonomy_summary.get("blocker_reason") == "none"
-            or autonomy_summary.get("blockerReason") == "none"
+            or (proposal_ready_inferred and verify_quorum["complete"])
         )
         return {
             "version": 1,
@@ -171,6 +186,8 @@ class RuntimeApiContext:
                 if isinstance(autonomy_summary.get("degradedSignals"), list)
                 else []
             ),
+            "review_quorum": review_quorum,
+            "verify_quorum": verify_quorum,
             "proposal_ready": bool(proposal_ready),
             "proposal_status": proposal_status,
             "proposal_job_id": str(conversation.get("proposal_job_id") or ""),
@@ -269,6 +286,27 @@ class RuntimeApiContext:
         if not isinstance(iterations, list) or not iterations:
             return None
         return iterations[-1]
+
+    def _summarize_quorum(
+        self,
+        reviews: Any,
+        *,
+        approved_key: str,
+        approved_value: str,
+        required: int = 2,
+    ) -> dict[str, Any]:
+        items = reviews if isinstance(reviews, list) else []
+        approved = sum(
+            1
+            for item in items
+            if isinstance(item, dict) and str(item.get(approved_key) or "").strip().lower() == approved_value
+        )
+        return {
+            "approved": approved,
+            "required": required,
+            "complete": approved >= required if required > 0 else False,
+            "source": "goal-iteration",
+        }
 
     def _summarize_verifier_acceptability(self, iteration: dict[str, Any] | None) -> str:
         reviews = iteration.get("verification_reviews") if isinstance(iteration, dict) else []

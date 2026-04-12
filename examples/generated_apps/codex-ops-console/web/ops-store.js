@@ -911,6 +911,7 @@ export function deriveSelectedThreadSessionSurfaceModel(currentState, conversati
   const healthyPromotion = deriveSelectedThreadHealthyPromotionModel(currentState, conversation);
   const liveAutonomy = deriveSelectedThreadLiveAutonomy(currentState, conversation);
   const phaseProgression = deriveSelectedThreadPhaseProgression(currentState, conversation);
+  const quorumModel = deriveSelectedThreadSessionQuorumModel(currentState, conversation);
   const milestoneModel = deriveSelectedThreadTimelineMilestones(currentState, conversation);
   const shellPhaseLabel = deriveSelectedThreadShellPhaseLabel(currentState, conversation);
   const liveOwned = Boolean(healthyPromotion.promoted && liveAutonomy.owned && phaseProgression.visible);
@@ -930,6 +931,7 @@ export function deriveSelectedThreadSessionSurfaceModel(currentState, conversati
     sessionStatus,
     liveAutonomy,
     phaseProgression,
+    quorumModel,
     milestoneModel,
     liveOwned,
     degradedVisible,
@@ -939,6 +941,9 @@ export function deriveSelectedThreadSessionSurfaceModel(currentState, conversati
     pathVerdict: liveOwned ? String(summary?.pathVerdict || "UNKNOWN").toUpperCase() : "",
     verifierAcceptability: liveOwned ? String(summary?.verifierAcceptability || "PENDING").toUpperCase() : "",
     blockerReason: liveOwned ? String(summary?.blockerReason || "none").toUpperCase() : "",
+    reviewQuorumLabel: liveOwned ? String(quorumModel.reviewLabel || "") : "",
+    verifyQuorumLabel: liveOwned ? String(quorumModel.verifyLabel || "") : "",
+    readyLabel: liveOwned ? String(quorumModel.readyLabel || "") : "",
     source: String(
       degradedVisible
         ? sessionStatus.transport || "polling"
@@ -1192,9 +1197,81 @@ function canonicalPhaseLabelFromStatus(sessionStatusPayload = {}, fallback = "UN
   return phase || fallback;
 }
 
+function normalizeQuorumEntry(entry) {
+  const payload = entry && typeof entry === "object" ? entry : {};
+  const approved = Math.max(Number(payload.approved || 0), 0);
+  const required = Math.max(Number(payload.required || 0), 0);
+  const complete = Boolean(payload.complete) || (required > 0 && approved >= required);
+  return {
+    approved,
+    required,
+    complete,
+    source: String(payload.source || "none").toLowerCase(),
+  };
+}
+
+export function deriveSelectedThreadSessionQuorumModel(currentState, conversation = null) {
+  const selectedThreadStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
+  const healthyPromotion = deriveSelectedThreadHealthyPromotionModel(currentState, conversation);
+  const appendStream = currentState.appendStream || {};
+  const sessionStatusPayload = appendStream.sessionStatus || null;
+  const conversationId = String(conversation?.conversation_id || selectedThreadStatus.conversationId || "");
+  const currentConversationId = String(currentState.currentConversationId || "");
+  const payloadConversationId = String(sessionStatusPayload?.conversationId || sessionStatusPayload?.conversation_id || "");
+  const selectedPayload =
+    Boolean(conversationId) &&
+    Boolean(payloadConversationId) &&
+    conversationId === currentConversationId &&
+    payloadConversationId === conversationId;
+  const transportState = String(
+    sessionStatusPayload?.transportState || sessionStatusPayload?.transport?.state || "idle",
+  ).toLowerCase();
+  const selectedThreadOwned =
+    Boolean(healthyPromotion.promoted) &&
+    selectedPayload &&
+    transportState === "sse-live" &&
+    selectedThreadStatus.presentation === "owned";
+  if (!selectedThreadOwned || !sessionStatusPayload) {
+    return {
+      visible: false,
+      state:
+        selectedThreadStatus.transportState === "reconnect" || selectedThreadStatus.transportState === "polling"
+          ? "downgraded"
+          : "cleared",
+      review: { approved: 0, required: 0, complete: false, source: "none" },
+      verify: { approved: 0, required: 0, complete: false, source: "none" },
+      proposalReady: false,
+      proposalStatus: "",
+      reviewLabel: "",
+      verifyLabel: "",
+      readyLabel: "",
+      source: "none",
+      clearReason: String(selectedThreadStatus.clearReason || selectedThreadStatus.transportReason || "lost-authority"),
+    };
+  }
+  const review = normalizeQuorumEntry(sessionStatusPayload?.reviewQuorum || sessionStatusPayload?.review_quorum);
+  const verify = normalizeQuorumEntry(sessionStatusPayload?.verifyQuorum || sessionStatusPayload?.verify_quorum);
+  const proposalReady = Boolean(sessionStatusPayload?.proposalReady ?? sessionStatusPayload?.proposal_ready ?? false);
+  const proposalStatus = String(sessionStatusPayload?.proposalStatus || sessionStatusPayload?.proposal_status || "").toLowerCase();
+  return {
+    visible: review.required > 0 || verify.required > 0 || proposalReady || proposalStatus === "ready_to_apply",
+    state: "owned",
+    review,
+    verify,
+    proposalReady,
+    proposalStatus,
+    reviewLabel: review.required > 0 ? `REVIEW ${review.approved}/${review.required}` : "",
+    verifyLabel: verify.required > 0 ? `VERIFY ${verify.approved}/${verify.required}` : "",
+    readyLabel: proposalReady || proposalStatus === "ready_to_apply" ? "READY" : "",
+    source: String(sessionStatusPayload?.source || sessionStatusPayload?.transport?.channel || "append-sse").toLowerCase(),
+    clearReason: "none",
+  };
+}
+
 export function deriveSelectedThreadSessionStripModel(currentState, conversation = null, liveRun = null) {
   const selectedThreadStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
   const healthyPromotion = deriveSelectedThreadHealthyPromotionModel(currentState, conversation);
+  const quorumModel = deriveSelectedThreadSessionQuorumModel(currentState, conversation);
   const appendStream = currentState.appendStream || {};
   const sessionStatusPayload = appendStream.sessionStatus || null;
   const conversationId = String(conversation?.conversation_id || selectedThreadStatus.conversationId || "");
@@ -1263,6 +1340,9 @@ export function deriveSelectedThreadSessionStripModel(currentState, conversation
       proposalStatus: "",
       proposalJobId: "",
       proposalLabel: "",
+      reviewQuorumLabel: "",
+      verifyQuorumLabel: "",
+      readyLabel: "",
       latestJobId: "",
       degradedSignals: [],
       owned: false,
@@ -1322,6 +1402,9 @@ export function deriveSelectedThreadSessionStripModel(currentState, conversation
     proposalStatus,
     proposalJobId,
     proposalLabel,
+    reviewQuorumLabel: owned ? String(quorumModel.reviewLabel || "") : "",
+    verifyQuorumLabel: owned ? String(quorumModel.verifyLabel || "") : "",
+    readyLabel: owned ? String(quorumModel.readyLabel || "") : "",
     latestJobId,
     degradedSignals,
     owned,
