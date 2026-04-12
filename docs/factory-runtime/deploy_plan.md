@@ -1,12 +1,12 @@
 # Factory Runtime Deploy Plan
 
-## Iteration 289
+## Iteration 291
 
-This deploy plan validates that the healthy selected-thread path keeps the center session timeline and bottom composer strip as the canonical live status surfaces while transport, ownership, and broader session-shell behavior remain unchanged.
+This deploy plan validates that the currently selected conversation row mirrors one compact live phase chip from the canonical selected-thread session surface while transport, ownership, and broader session-shell behavior remain unchanged.
 
 ## Deployment Impact
 
-This iteration keeps transport, provisional continuity, healthy promotion, composer targeting, and selected-row rail parity intact and narrows only the selected-thread live-surface convergence boundary. The gate should pass only when healthy selected-thread progress remains on the center timeline plus bottom composer strip and the secondary execution surface stays suppressed until the path explicitly degrades.
+This iteration keeps transport, provisional continuity, healthy promotion, composer targeting, selected-row rail parity, and selected-row freshness intact and narrows only the selected-row phase mirror boundary. The gate should pass only when the currently selected conversation row mirrors the healthy selected-thread phase immediately from the canonical session surface and clears that chip as soon as the healthy path is lost.
 
 ## Rollout Notes
 
@@ -16,10 +16,10 @@ This iteration keeps transport, provisional continuity, healthy promotion, compo
 4. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh`.
 5. Confirm selected-thread attach or resume keeps the center timeline and footer dock mounted as one provisional session lane with only ATTACH or RESUME plus one carried-forward phase chip and no duplicate restore-only chrome.
 6. Confirm the first healthy selected-thread promotion appears only after selected-thread session state and append-stream session-status agree on the same conversation in authoritative `sse-live` state.
-7. Confirm the center session timeline remains the canonical healthy live drill-down surface.
-8. Confirm the bottom composer strip remains the canonical healthy composer-adjacent live surface.
-9. Confirm the secondary execution surface stays suppressed on the healthy selected-thread SSE-owned path and restores only on degraded, reconnect, restore, switch, terminal, and other non-healthy paths.
-10. Confirm `active-session-row` and selected-row rail parity remain unchanged and non-selected conversation rows remain snapshot-only.
+7. Confirm the currently selected conversation row mirrors one compact live phase chip immediately on the healthy selected-thread SSE-owned path.
+8. Confirm that phase chip matches the canonical selected-thread session surface instead of any polling-owned or stale state.
+9. Confirm reconnect, polling fallback, restore, switch, terminal, and other non-healthy paths clear the selected-row phase chip immediately back to snapshot-only rendering.
+10. Confirm `active-session-row` remains canonical, selected-row owner and freshness mirrors remain unchanged, and non-selected rows stay snapshot-only.
 11. Confirm no `/api/jobs/{id}` or goals polling resumes after healthy promotion unless the path explicitly degrades.
 12. Treat the proposal as ready only after the deployed verifier passes and the runtime contract check is rerun in an environment with the missing dependencies.
 Iteration 245 deploy gate expectation: healthy selected-thread runs are acceptable only when the center-header session summary itself reports `SSE OWNER`, degraded runs visibly downgrade to `RECONNECT` or `POLLING`, and switch or terminal idle clears the header ownership signal immediately.
@@ -44,3 +44,4 @@ Iteration 283 deploy gate expectation: the bottom-fixed composer target row now 
 Iteration 286 deploy gate expectation: the bottom-fixed composer shell now keeps one stable session-dock frame in this branch, the inline status strip remains bounded on healthy live updates, the textarea-first layout persists through terminal resolution, and no second status strip appears during selected-thread updates.
 Iteration 288 deploy gate expectation: `active-session-row` remains canonical in this branch while the currently selected conversation row mirrors the healthy selected-thread owner cue as one compact shadow marker, and that selected-row marker clears immediately on reconnect, degraded fallback, terminal resolution, or thread switch without granting live-owned treatment to any non-selected row.
 Iteration 289 deploy gate expectation: the healthy selected-thread path already keeps the center session timeline and bottom composer strip as the canonical live status surfaces in this branch, while the secondary execution surface remains suppressed until degraded, reconnect, restore, switch, terminal, or other non-healthy paths require it again.
+Iteration 291 deploy gate expectation: the currently selected conversation row now mirrors one compact live phase chip from the canonical selected-thread session surface in this branch, updating immediately on the healthy SSE-owned path and clearing back to snapshot-only rendering on reconnect, degraded fallback, restore, switch, terminal, and other non-healthy paths.

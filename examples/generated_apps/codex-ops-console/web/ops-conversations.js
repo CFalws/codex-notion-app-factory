@@ -1285,6 +1285,11 @@ export function createConversationController(deps) {
     const isFollowing = Boolean(liveFollow.isFollowing);
     const activeRowModel = deriveSelectedThreadActiveSessionRowModel(state, state.conversationCache);
     const selectedRowModel = deriveSelectedThreadConversationRowLiveModel(state, state.conversationCache);
+    const selectedRowPhaseLabel = String(
+      deriveSelectedThreadShellPhaseLabel(state, state.conversationCache) || liveRunPhase || selectedRowModel.rowPhase || "",
+    )
+      .trim()
+      .toUpperCase();
 
     let liveLabel = "";
     let liveThreadState = "";
@@ -1320,6 +1325,7 @@ export function createConversationController(deps) {
       const liveOwnerRow = card.querySelector("[data-conversation-live-owner-row]");
       const liveOwnerDetail = card.querySelector("[data-conversation-live-detail]");
       const liveOwnerFollow = card.querySelector("[data-conversation-live-follow]");
+      const liveOwnerPhase = card.querySelector("[data-conversation-live-phase]");
       const snapshotLabel = String(card.dataset.snapshotStateLabel || "IDLE");
       const snapshotState = String(card.dataset.snapshotThreadState || "idle");
       const showSelectedRowLiveMarker =
@@ -1339,6 +1345,9 @@ export function createConversationController(deps) {
       card.dataset.liveOwnerSource = "none";
       card.dataset.liveOwnerPhase = "IDLE";
       card.dataset.liveOwnerUnseenCount = "0";
+      card.dataset.livePhaseVisible = "false";
+      card.dataset.livePhaseSource = "none";
+      card.dataset.livePhaseValue = "";
       if (showSelectedRowLiveMarker) {
         card.dataset.liveOwner = "true";
         card.dataset.liveOwnerShadow = String(shadowSelectedRowLiveMarker);
@@ -1346,6 +1355,9 @@ export function createConversationController(deps) {
         card.dataset.liveOwnerSource = selectedRowModel.rowSource;
         card.dataset.liveOwnerPhase = selectedRowModel.rowPhase;
         card.dataset.liveOwnerUnseenCount = String(selectedRowModel.rowUnseenCount);
+        card.dataset.livePhaseVisible = selectedRowPhaseLabel ? "true" : "false";
+        card.dataset.livePhaseSource = "sse";
+        card.dataset.livePhaseValue = selectedRowPhaseLabel;
       }
       if (marker) {
         marker.hidden = !isSelected;
@@ -1355,7 +1367,7 @@ export function createConversationController(deps) {
         sessionMarker.hidden = !isSelected;
         sessionMarker.textContent = isSelected ? (showLiveMirror ? liveLabel || snapshotLabel : snapshotLabel) : "";
       }
-      if (liveOwnerRow && liveOwnerDetail && liveOwnerFollow) {
+      if (liveOwnerRow && liveOwnerDetail && liveOwnerFollow && liveOwnerPhase) {
         liveOwnerRow.hidden = !showSelectedRowLiveMarker;
         liveOwnerRow.dataset.liveOwnerVisible = showSelectedRowLiveMarker ? "true" : "false";
         liveOwnerRow.dataset.liveOwnerState = showSelectedRowLiveMarker ? selectedRowModel.rowState : "idle";
@@ -1369,6 +1381,10 @@ export function createConversationController(deps) {
         liveOwnerFollow.textContent = showSelectedRowLiveMarker ? selectedRowModel.cueLabel : "";
         liveOwnerFollow.dataset.liveOwnerState = showSelectedRowLiveMarker ? selectedRowModel.rowState : "idle";
         liveOwnerFollow.dataset.liveOwnerCue = showSelectedRowLiveMarker ? selectedRowModel.cueKind : "idle";
+        liveOwnerPhase.hidden = !showSelectedRowLiveMarker || !selectedRowPhaseLabel;
+        liveOwnerPhase.textContent = showSelectedRowLiveMarker ? selectedRowPhaseLabel : "";
+        liveOwnerPhase.dataset.liveOwnerPhase = showSelectedRowLiveMarker ? selectedRowPhaseLabel : "";
+        liveOwnerPhase.dataset.liveOwnerVisible = showSelectedRowLiveMarker && selectedRowPhaseLabel ? "true" : "false";
       }
       if (liveState) {
         liveState.hidden = isSelected;
@@ -1482,6 +1498,7 @@ export function createConversationController(deps) {
             >
               <span class="conversation-card-live-detail" data-conversation-live-detail>LIVE</span>
               <span class="conversation-card-live-follow" data-conversation-live-follow data-live-owner-cue="idle" hidden></span>
+              <span class="conversation-card-live-phase" data-conversation-live-phase data-live-owner-phase="" data-live-owner-visible="false" hidden></span>
             </span>
             <span class="conversation-card-meta-row">
               <span class="conversation-card-meta">${new Date(conversation.updated_at).toLocaleString()}</span>

@@ -536,6 +536,7 @@ def assert_browser_runtime_surface(
                   const selectedCardLiveOwnerRow = selectedCard ? selectedCard.querySelector('[data-conversation-live-owner-row]') : null;
                   const selectedCardLiveDetail = selectedCard ? selectedCard.querySelector('[data-conversation-live-detail]') : null;
                   const selectedCardLiveFollow = selectedCard ? selectedCard.querySelector('[data-conversation-live-follow]') : null;
+                  const selectedCardLivePhase = selectedCard ? selectedCard.querySelector('[data-conversation-live-phase]') : null;
                   const visibleConversationOwnerRows = document.querySelectorAll('[data-conversation-live-owner-row]:not([hidden])');
                   const sessionStrip = document.querySelector("#session-strip");
                   const sessionStripState = document.querySelector("#session-strip-state");
@@ -623,12 +624,20 @@ def assert_browser_runtime_surface(
                     selectedCardLiveOwnerRow.dataset.liveOwnerSource === "sse" &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerPhase === inlineBlock.dataset.liveBlockPhase &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerShadow === "true" &&
+                    selectedCard.dataset.livePhaseVisible === "true" &&
+                    selectedCard.dataset.livePhaseSource === "sse" &&
+                    selectedCard.dataset.livePhaseValue === inlineBlock.dataset.liveBlockPhase &&
                     selectedCardLiveDetail &&
                     ["LIVE", "NEW", "PAUSED"].includes(selectedCardLiveDetail.textContent.trim()) &&
                     selectedCardLiveFollow &&
                     !selectedCardLiveFollow.hidden &&
                     ["follow", "unread", "paused"].includes(selectedCardLiveFollow.dataset.liveOwnerCue || "") &&
                     (selectedCardLiveFollow.textContent || "").trim().length > 0 &&
+                    selectedCardLivePhase &&
+                    !selectedCardLivePhase.hidden &&
+                    selectedCardLivePhase.dataset.liveOwnerVisible === "true" &&
+                    selectedCardLivePhase.dataset.liveOwnerPhase === inlineBlock.dataset.liveBlockPhase &&
+                    selectedCardLivePhase.textContent.trim() === inlineBlock.dataset.liveBlockPhase &&
                     sessionStrip &&
                     !sessionStrip.hidden &&
                     sessionStrip.dataset.footerSurface === "dock" &&
@@ -927,6 +936,7 @@ def assert_browser_runtime_surface(
                   const activeSessionRow = document.querySelector("#active-session-row");
                   const selectedCard = document.querySelector('.conversation-card[data-selected="true"]');
                   const selectedCardLiveOwnerRow = selectedCard ? selectedCard.querySelector('[data-conversation-live-owner-row]') : null;
+                  const selectedCardLivePhase = selectedCard ? selectedCard.querySelector('[data-conversation-live-phase]') : null;
                   const visibleConversationOwnerRows = document.querySelectorAll('[data-conversation-live-owner-row]:not([hidden])');
                   const sessionStrip = document.querySelector("#session-strip");
                   const sessionStripState = document.querySelector("#session-strip-state");
@@ -965,11 +975,19 @@ def assert_browser_runtime_surface(
                     threadSessionSummary.dataset.centerTimelineAuthority === "true" &&
                     threadSessionSummary.dataset.centerTimelinePresentation === "degraded" &&
                     visibleConversationOwnerRows.length === 0 &&
+                    selectedCard &&
+                    selectedCard.dataset.livePhaseVisible === "false" &&
+                    selectedCard.dataset.livePhaseSource === "none" &&
+                    selectedCard.dataset.livePhaseValue === "" &&
                     selectedCardLiveOwnerRow &&
                     selectedCardLiveOwnerRow.hidden &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerVisible === "false" &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerState === "idle" &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerShadow === "false" &&
+                    selectedCardLivePhase &&
+                    selectedCardLivePhase.hidden &&
+                    selectedCardLivePhase.dataset.liveOwnerVisible === "false" &&
+                    selectedCardLivePhase.dataset.liveOwnerPhase === "" &&
                     activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
                     activeSessionRow.dataset.activeSessionSource === "none" &&
@@ -1028,6 +1046,7 @@ def assert_browser_runtime_surface(
                   const threadTitle = document.querySelector("#thread-title");
                   const activeSessionRow = document.querySelector("#active-session-row");
                   const selectedCard = document.querySelector('.conversation-card[data-selected="true"]');
+                  const selectedCardLivePhase = selectedCard ? selectedCard.querySelector('[data-conversation-live-phase]') : null;
                   const selectedCardLiveOwnerRow = selectedCard ? selectedCard.querySelector('[data-conversation-live-owner-row]') : null;
                   const visibleConversationOwnerRows = document.querySelectorAll('[data-conversation-live-owner-row]:not([hidden])');
                   const sessionStrip = document.querySelector("#session-strip");
@@ -1271,11 +1290,19 @@ def assert_browser_runtime_surface(
                     threadSessionSummary &&
                     threadSessionSummary.hidden &&
                     visibleConversationOwnerRows.length === 0 &&
+                    selectedCard &&
+                    selectedCard.dataset.livePhaseVisible === "false" &&
+                    selectedCard.dataset.livePhaseSource === "none" &&
+                    selectedCard.dataset.livePhaseValue === "" &&
                     selectedCardLiveOwnerRow &&
                     selectedCardLiveOwnerRow.hidden &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerVisible === "false" &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerState === "idle" &&
                     selectedCardLiveOwnerRow.dataset.liveOwnerShadow === "false" &&
+                    selectedCardLivePhase &&
+                    selectedCardLivePhase.hidden &&
+                    selectedCardLivePhase.dataset.liveOwnerVisible === "false" &&
+                    selectedCardLivePhase.dataset.liveOwnerPhase === "" &&
                     activeSessionRow &&
                     !activeSessionRow.hidden &&
                     activeSessionRow.dataset.activeSessionOwned === "false" &&
@@ -1853,8 +1880,12 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, 'const selectedThreadSseOwned = selectedConversationId && selectedConversationId === liveConversationId && renderSource === "sse";', label="selected card sse ownership guard")
     require(conversations_js, 'card.dataset.liveOwner = "false";', label="selected live owner dataset")
     require(conversations_js, 'card.dataset.liveOwnerShadow = "false";', label="selected live owner shadow dataset reset")
+    require(conversations_js, 'card.dataset.livePhaseVisible = "false";', label="selected live phase visibility reset")
+    require(conversations_js, 'card.dataset.livePhaseSource = "none";', label="selected live phase source reset")
+    require(conversations_js, 'card.dataset.livePhaseValue = "";', label="selected live phase value reset")
     require(conversations_js, 'const activeRowModel = deriveSelectedThreadActiveSessionRowModel(state, state.conversationCache);', label="active row model wiring")
     require(conversations_js, 'const selectedRowModel = deriveSelectedThreadConversationRowLiveModel(state, state.conversationCache);', label="selected row live model wiring")
+    require(conversations_js, "const selectedRowPhaseLabel = String(", label="selected row live phase label helper")
     require(conversations_js, 'liveOwnerRow.hidden = !showSelectedRowLiveMarker;', label="selected row live owner row visibility")
     require(conversations_js, 'const shadowSelectedRowLiveMarker =', label="selected row live owner shadow guard")
     require(conversations_js, 'selectedRowModel.rowOwned &&', label="selected row sse-owned visibility gate")
@@ -1863,11 +1894,15 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, 'liveOwnerRow.dataset.liveOwnerShadow = showSelectedRowLiveMarker ? String(shadowSelectedRowLiveMarker) : "false";', label="selected row live owner shadow dataset")
     require(conversations_js, 'liveOwnerDetail.textContent = showSelectedRowLiveMarker ? selectedRowModel.markerLabel : "LIVE";', label="selected row live owner detail label")
     require(conversations_js, 'liveOwnerFollow.dataset.liveOwnerCue = showSelectedRowLiveMarker ? selectedRowModel.cueKind : "idle";', label="selected row live owner cue dataset")
+    require(conversations_js, 'liveOwnerPhase.hidden = !showSelectedRowLiveMarker || !selectedRowPhaseLabel;', label="selected row live phase chip visibility")
+    require(conversations_js, 'liveOwnerPhase.dataset.liveOwnerPhase = showSelectedRowLiveMarker ? selectedRowPhaseLabel : "";', label="selected row live phase chip value dataset")
+    require(conversations_js, 'liveOwnerPhase.dataset.liveOwnerVisible = showSelectedRowLiveMarker && selectedRowPhaseLabel ? "true" : "false";', label="selected row live phase chip visibility dataset")
     require(conversations_js, 'card.dataset.liveOwnerState = "idle";', label="selected live owner state dataset")
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionState = visible ? rowState : "idle";', label="active session row state dataset")
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionConversationId = visible ? conversationId : "";', label="active session row conversation dataset")
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionFollow = visible ? followLabel.toLowerCase() : "idle";', label="active session row follow dataset")
     require(styles_css, '.conversation-card-live-owner-row[data-live-owner-shadow="true"]', label="selected row live owner shadow styling")
+    require(styles_css, ".conversation-card-live-phase", label="selected row live phase chip styling")
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionOwned = visible ? String(rowOwned) : "false";', label="active session row ownership dataset")
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionCanonical = visible ? String(Boolean(canonical)) : "false";', label="active session row canonical dataset")
     require(conversations_js, 'dom.activeSessionRow.dataset.activeSessionSource = visible ? rowSource : "none";', label="active session row source dataset")
