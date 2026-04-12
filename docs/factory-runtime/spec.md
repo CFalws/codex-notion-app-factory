@@ -2,8 +2,8 @@
 
 ## Iteration
 
-- current iteration: `262`
-- bounded focus: `collapse healthy selected-thread composer-adjacent session chrome behind the canonical center timeline owner`
+- current iteration: `265`
+- bounded focus: `preserve one compact selected-thread switching placeholder and mounted composer continuity during intentional thread switches`
 
 ## Request
 
@@ -13,24 +13,24 @@
 
 ## Problem
 
-Healthy selected-thread ownership, explicit autonomy milestones, strict rail mirroring, the selected-thread session-stream contract, deployed single-authority proof, the selected-thread handoff path, streamed autonomy identity, unified header chrome, merged footer session-composer status, explicit attach authority, switch continuity, restore continuity, and the one-owner healthy timeline are already present. The bounded question for this iteration is composer-adjacent duplication: whether the healthy selected-thread footer strip still shows duplicate ownership, transport, phase, and autonomy chrome beside the fixed composer even though the center timeline is already the canonical live session surface.
+Healthy selected-thread ownership, explicit autonomy milestones, strict rail mirroring, the selected-thread session-stream contract, deployed single-authority proof, the selected-thread handoff path, streamed autonomy identity, unified header chrome, merged footer session-composer status, explicit attach authority, restore continuity, and the one-owner healthy timeline are already present. The bounded question for this iteration is switch continuity: whether intentional thread changes still risk flashing a generic empty workspace or stale old-thread ownership instead of preserving one compact selected-thread switching placeholder and the mounted composer dock until the incoming thread binds.
 
 ## Target User
 
-The primary user is the operator or developer using the phone-friendly realtime workspace and expecting the selected-thread conversation timeline to read as the one canonical live session surface, with the bottom-fixed composer remaining attached and usable without a second healthy status strip competing for attention beside it.
+The primary user is the operator or developer using the phone-friendly realtime workspace and expecting an intentional thread switch to feel like one continuous selected-thread session surface, with a compact transition placeholder in the center pane and a still-mounted bottom-fixed composer instead of a reset or empty-state flash.
 
 ## Constraints
 
 - Preserve continuity of the existing `factory-runtime` proposal lane.
 - Keep the change inside the allowed proposal paths.
-- Keep the change bounded to the selected-thread presentation boundary between the center live timeline and the composer-adjacent strip.
+- Keep the change bounded to the selected-thread switching presentation in the center pane and composer ownership surface.
 - Preserve the existing `session_status` plus SSE authority path and explicit degraded fallback behavior unchanged.
-- Keep the bottom-fixed composer dock, selected-thread shell, and one-owner timeline behavior unchanged.
-- Avoid adding a new transport, a new panel, or a second healthy live-detail owner beside the composer.
+- Keep the bottom-fixed composer dock, selected-thread shell, and one-owner healthy timeline behavior unchanged.
+- Avoid adding a new transport, a new panel, or a polling-owned fallback chrome during intentional thread switches.
 
 ## Deliverable
 
-Keep the healthy selected-thread center timeline as the sole visible live session owner while suppressing duplicate healthy session-strip chrome beside the composer, and preserve explicit strip visibility only for degraded, restore, handoff, terminal, or follow-only exception paths.
+Keep intentional thread switches on one mounted selected-thread workspace with exactly one compact switching placeholder in the center timeline, immediate old-owner clearing, and a still-mounted bottom-fixed composer until the new snapshot or live session attaches.
 Iteration 245: the dominant selected-thread header summary is already the machine-readable live-session ownership signal, carrying owner, path, and phase from canonical session_status plus SSE authority while degrading or clearing immediately on reconnect, polling fallback, switch, or idle completion.
 Iteration 248: the bottom-fixed composer keeps a visible selected-thread target row during healthy and transition states, rendering `READY`, `SWITCHING`, or `HANDOFF` from canonical selected-thread session authority and downgrading or clearing immediately on reconnect, polling fallback, switch, or idle resolution.
 Iteration 249: the left-rail active-session row is already the canonical mirror of the currently selected healthy SSE-owned session, exposing owned and canonical cues only for the selected thread and clearing or downgrading immediately on reconnect, polling fallback, idle, terminal, or switch paths.
@@ -40,3 +40,4 @@ Iteration 254: intentional thread switches already keep the selected-thread work
 Iteration 259: healthy selected-thread phase progression is already collapsed onto one canonical inline session owner in the transcript timeline, and active SSE session-event cards for those phases are already suppressed while that owner is present.
 Iteration 260: selected-thread restore and reselect are already session-scoped in this branch; restore enters explicit `awaiting-bootstrap` or `sse-resume`, keeps the selected-thread shell and composer mounted, resolves healthy ownership through `session.bootstrap` or append SSE, and already rejects early current-thread job or goals polling in the deployed browser gate.
 Iteration 262: healthy selected-thread composer-adjacent session chrome is now suppressed in this branch; the fixed composer remains attached to the selected session, but the adjacent strip no longer renders duplicate healthy ownership, transport, phase, or detail state while degraded, restore, handoff, terminal, and follow-only exception paths still retain explicit strip visibility.
+Iteration 265: intentional thread switches are already preserved in this branch as one compact selected-thread switching placeholder with a mounted composer dock, immediate stale-owner clearing, and explicit deployed negative assertions against generic empty-state flashes or hidden composer continuity loss.
