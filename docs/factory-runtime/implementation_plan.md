@@ -1,12 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 239
+## Iteration 240
 
-Retire goals-poll authority for the selected conversation so active autonomy state stays session-status-driven.
+Compress selected-thread helper prose into one compact chip-first session surface without changing authority.
 
-1. Keep the change bounded to selected-thread autonomy/session state in `ops-conversations.js`, `ops-store.js`, `ops-render.js`, and the matching runtime session-status payload seam.
-2. Stop using goals polling as an authority for any selected-thread live surface in the active workspace.
-3. Preserve degraded reconnect or polling fallback as an explicit downgrade path instead of silently refreshing selected-thread autonomy identity from polling.
-4. Leave transcript inline session ownership, footer dock behavior, left-rail cues, and switch or restore continuity unchanged.
-5. Keep selected-thread autonomy identity, blocker, verifier, proposal, and apply state coherent from session-status bootstrap plus SSE.
-6. Align static checks, browser checks, and proposal artifacts with the selected-thread session-status-only autonomy contract.
+1. Keep the change bounded to selected-thread presentation in `ops-render.js` and `styles.css`.
+2. Preserve the existing selected-thread `session_status` plus SSE authority path.
+3. Replace sentence-style helper copy in the selected-thread inline session block and transition placeholder with compact target and state cues.
+4. Keep the transcript inline session block as the only in-timeline live progress surface.
+5. Preserve immediate clear or downgrade behavior on switch, terminal, reconnect, and polling fallback paths.
+6. Align proposal artifacts with the compact selected-thread session-surface contract.

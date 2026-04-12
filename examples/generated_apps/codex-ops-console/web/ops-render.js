@@ -170,7 +170,7 @@ function secondaryPanelSessionFactsModel(currentState, conversation, liveRun, ha
       verifier: "PENDING",
       blocker: "NONE",
       follow: "IDLE",
-      detail: "selected thread switching · target snapshot attach pending",
+      detail: joinSessionChromeTokens("SELECTED", "SWITCHING", compactTargetLabel(title, "ATTACH TARGET")),
       meta: joinSessionChromeTokens("selected thread", "switching", "attach pending"),
     };
   }
@@ -187,9 +187,11 @@ function secondaryPanelSessionFactsModel(currentState, conversation, liveRun, ha
       verifier: "PENDING",
       blocker: "NONE",
       follow: "IDLE",
-      detail: sessionStatus.restoreResume
-        ? "saved restore resume · transcript session reattach"
-        : "saved restore attach · transcript session bootstrap",
+      detail: joinSessionChromeTokens(
+        "SELECTED",
+        "RESTORE",
+        compactTargetLabel(title, "CURRENT THREAD"),
+      ),
       meta: joinSessionChromeTokens("selected thread", "restore", String(sessionStatus.restorePath || "attach")),
     };
   }
@@ -206,7 +208,7 @@ function secondaryPanelSessionFactsModel(currentState, conversation, liveRun, ha
       verifier: String(sessionSurface.verifierAcceptability || "PENDING"),
       blocker: String(sessionSurface.blockerReason || "NONE"),
       follow: followControl.visible ? String(followControl.stateLabel || "FOLLOW") : "FOLLOW",
-      detail: "selected thread canonical timeline",
+      detail: joinSessionChromeTokens("SELECTED", "TIMELINE", compactTargetLabel(title, "CURRENT THREAD")),
       meta: "selected thread detail drawer",
     };
   }
@@ -223,7 +225,7 @@ function secondaryPanelSessionFactsModel(currentState, conversation, liveRun, ha
       verifier: "PENDING",
       blocker: "NONE",
       follow: "HANDOFF",
-      detail: "selected thread handoff confirmed · waiting for first assistant append",
+      detail: joinSessionChromeTokens("SELECTED", "HANDOFF", compactTargetLabel(title, "CURRENT THREAD")),
       meta: joinSessionChromeTokens("selected thread", "handoff", "append pending"),
     };
   }
@@ -321,6 +323,19 @@ function compactTargetLabel(value, fallback = "SELECTED") {
     return fallback;
   }
   return simplified.length > 28 ? `${simplified.slice(0, 27).trimEnd()}…` : simplified;
+}
+
+function sessionCompactTarget(currentState, conversation, fallback = "CURRENT THREAD") {
+  const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
+  const autonomy = deriveSelectedThreadLiveAutonomy(currentState, conversation);
+  return compactTargetLabel(
+    conversation?.title ||
+      sessionStatus.conversationTitle ||
+      sessionStatus.switchTargetTitle ||
+      autonomy?.summary?.goalTitle ||
+      fallback,
+    fallback,
+  );
 }
 
 function summaryHint(pathLabel, stateLabel) {
@@ -505,7 +520,7 @@ function composerOwnerState(currentState, conversation) {
       target: compactTargetLabel(sessionStatus.targetTitle || "선택한 대화", "ATTACH TARGET"),
       copy: "ATTACH",
       blocked: true,
-      blockedReason: "selected-thread attach가 끝날 때까지 잠시 기다려 주세요.",
+      blockedReason: "ATTACH PENDING",
     };
   }
 
@@ -1164,8 +1179,14 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
     ? String(sessionSurface.liveAutonomy?.summary?.expectedPath || "unknown").toUpperCase()
     : "";
   const detail = handoffVisible
-    ? "서버 handoff가 확인되어 첫 live assistant append를 기다리는 중입니다."
-    : simplifyText(phaseDetailHint(liveRun) || liveRun?.detail || "선택된 대화의 최신 live 진행 상태를 반영하는 중입니다.");
+    ? sessionCompactTarget(currentState, conversation, "HANDOFF TARGET")
+    : sessionCompactTarget(currentState, conversation, "CURRENT THREAD");
+  const summaryMeta = joinSessionChromeTokens(
+    "selected thread",
+    phaseLabel,
+    transportLabel,
+    liveVisible ? expectedPath : "attach pending",
+  );
   const milestoneLane = liveVisible ? renderTranscriptMilestones(currentState, conversation) : "";
   return `
     <article class="session-inline-block" data-selected-thread-live-block="true" data-selected-thread-degraded-block="false" data-live-block-conversation-id="${escapeHtml(String(sessionStatus.conversationId || ""))}" data-live-block-owned="true" data-live-block-source="${escapeHtml(String(sessionSurface.source || "sse"))}" data-live-block-phase="${escapeHtml(phaseLabel)}" data-live-block-transport="${escapeHtml(transportLabel)}" data-live-block-handoff="${handoffVisible ? "true" : "false"}" data-live-block-path-verdict="${escapeHtml(pathVerdict)}" data-live-block-verifier-acceptability="${escapeHtml(verifierAcceptability)}" data-live-block-blocker-reason="${escapeHtml(blockerReason)}" data-live-block-expected-path="${escapeHtml(expectedPath)}" data-live-block-reason="${escapeHtml(handoffVisible ? "handoff" : String(sessionSurface.liveAutonomy?.reason || "healthy"))}">
@@ -1181,7 +1202,7 @@ function renderInlineSessionBlock(conversation, currentState, liveRun, handoffSt
       </div>
       ${milestoneLane}
       <p class="session-inline-body">${escapeHtml(detail)}</p>
-      <p class="session-inline-meta">selected thread · ${escapeHtml(phaseLabel)} · <span class="timeline-provenance">${escapeHtml(transportLabel)}</span></p>
+      <p class="session-inline-meta">${escapeHtml(summaryMeta)}</p>
     </article>
   `;
 }
@@ -1305,16 +1326,10 @@ function renderTranscriptLiveActivity(conversation, currentState, liveRun) {
       : String(sessionSurface.phaseLabel || phaseProgression.label || liveRun.phase || "LIVE").toUpperCase();
   const tone = degradedVisible ? "warning" : handoffVisible ? "neutral" : liveOwned ? transcriptLiveTone(liveRun) : "warning";
   const detail = degradedVisible
-    ? sessionIndicator.reason === "session-rotation"
-      ? "세션 회전이 감지되어 선택된 대화의 live SSE 소유권이 끊겼습니다. fallback 경로로 상태를 복구하는 중입니다."
-      : sessionIndicator.reason === "retrying"
-        ? "선택된 대화의 live SSE 연결이 재시도 중입니다. fallback 경로로 현재 상태를 이어받는 중입니다."
-        : sessionIndicator.state === "reconnecting"
-          ? "선택된 대화의 append stream을 다시 붙이는 중입니다. 복구가 끝나면 live SSE 소유권으로 되돌아갑니다."
-          : "선택된 대화의 live SSE 소유권이 약화되어 polling fallback으로 상태를 유지하는 중입니다."
+    ? sessionCompactTarget(currentState, conversation, "DEGRADED TARGET")
     : handoffVisible
-      ? "서버 handoff가 확인되어 첫 live assistant append를 기다리는 중입니다."
-      : simplifyText(phaseDetailHint(liveRun) || liveRun.detail || "");
+      ? sessionCompactTarget(currentState, conversation, "HANDOFF TARGET")
+      : sessionCompactTarget(currentState, conversation, "CURRENT THREAD");
   const appendStream = currentState.appendStream || {};
   const appendId = Number(appendStream.lastLiveAppendId || appendStream.lastAppendId || 0);
   const autonomySummary = liveAutonomy.summary;
@@ -1944,11 +1959,6 @@ function renderThreadTransition(currentState, sessionStatus = deriveSelectedThre
   const targetTitle = restoreMode
     ? String(sessionStatus.conversationTitle || "저장된 대화").trim()
     : String(sessionStatus.switchTargetTitle || sessionStatus.targetTitle || "선택한 대화").trim();
-  const detail = restoreMode
-    ? phaseLabel === "RESUME"
-      ? "저장된 선택 대화에 다시 연결하는 중입니다. append SSE 복구가 완료되면 같은 세션이 이어집니다."
-      : "저장된 선택 대화에 attach 중입니다. 첫 bootstrap이 완료되면 같은 세션이 live 상태로 이어집니다."
-    : "이전 thread의 live 소유권을 정리했고, 새 선택 대화의 snapshot attach를 기다리는 중입니다.";
   const meta = restoreMode
     ? `selected thread restore · ${phaseLabel.toLowerCase()} pending`
     : "selected thread switching · snapshot attach pending";
@@ -1962,7 +1972,7 @@ function renderThreadTransition(currentState, sessionStatus = deriveSelectedThre
           <span class="timeline-transition-chip">${escapeHtml(phaseLabel)}</span>
           <span class="timeline-transition-chip">${escapeHtml(targetTitle.toUpperCase())}</span>
         </div>
-        <p class="timeline-body">${escapeHtml(detail)}</p>
+        <p class="timeline-transition-target">${escapeHtml(compactTargetLabel(targetTitle.toUpperCase(), "ATTACH TARGET"))}</p>
         <p class="timeline-meta">${escapeHtml(meta)}</p>
       </article>
     `;
@@ -1975,7 +1985,7 @@ function renderThreadTransition(currentState, sessionStatus = deriveSelectedThre
         <span class="timeline-transition-chip">${escapeHtml(phaseLabel)}</span>
         <span class="timeline-transition-chip">${escapeHtml(targetTitle.toUpperCase())}</span>
       </div>
-      <p class="timeline-body">${escapeHtml(detail)}</p>
+      <p class="timeline-transition-target">${escapeHtml(compactTargetLabel(targetTitle.toUpperCase(), "ATTACH TARGET"))}</p>
       <p class="timeline-meta">${escapeHtml(meta)}</p>
     </article>
   `;
