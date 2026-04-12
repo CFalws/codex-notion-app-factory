@@ -1,5 +1,11 @@
 # Factory Runtime Spec
 
+## Iteration 333
+
+- Intentional selected-thread switching must be explicit as one session-scoped transition state rather than an inferred snapshot attach gap.
+- The selected-thread workspace shell and fixed composer must stay mounted, the old thread's live-owned markers must clear immediately, and exactly one compact switching placeholder must remain visible until the target attaches or the path degrades.
+- Deployed verification must prove that the selected-session snapshot itself reports `switching` during handoff and clears that state again on attach resolution without polling-owned healthy fallback.
+
 ## Iteration 329
 
 - First-load selected-thread bootstrap must be provable as one ordered deployed-browser path before any broader session-authority promotion work continues.

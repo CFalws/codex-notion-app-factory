@@ -1,5 +1,10 @@
 # Factory Runtime Deploy Plan
 
+## Iteration 333
+
+- Run the deployed selected-thread switch scenario and confirm the selected-session snapshot reports `switching` across the selected row, composer strip, composer owner state, send control, and thread scroller while the compact placeholder is active.
+- Treat deployment readiness as blocked if the switch path requires empty-state inference, leaves old live ownership visible, fails to clear the `switching` snapshot on attach resolution, or regains healthy ownership through polling-owned fallback.
+
 ## Iteration 329
 
 - Run the deployed first-load selected-thread bootstrap scenario and confirm the verifier records ordered target-selection, bootstrap-event, and bootstrap-marker evidence for the same conversation id.

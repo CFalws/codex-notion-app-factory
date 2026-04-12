@@ -1,5 +1,11 @@
 # Factory Runtime Implementation Plan
 
+## Iteration 333
+
+- Keep the current selected-thread switch runtime model unchanged if the branch already exposes `switching` through the selected-session authority path.
+- Tighten deployed verification so intentional switch handoff is proven through selected-session snapshot datasets across the selected row, strip, composer owner state, send control, and thread scroller.
+- Prove that the explicit `switching` snapshot clears again on target attach resolution without empty-state reset, hidden composer dock, or poll-owned takeover.
+
 ## Iteration 329
 
 - Leave runtime transport, polling fallback, visible authority, and selected-thread rendering unchanged.

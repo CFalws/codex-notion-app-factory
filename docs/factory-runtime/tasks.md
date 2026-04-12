@@ -1,5 +1,13 @@
 # Factory Runtime Tasks
 
+## Iteration 333
+
+- [x] Keep transport, polling fallback precedence, and the current switch runtime model unchanged unless a real switch authority gap appears.
+- [x] Make intentional selected-thread switching machine-verifiable through the selected-session snapshot rather than placeholder timing alone.
+- [x] Prove the `switching` snapshot clears on target attach resolution without empty-state reset, hidden composer dock, or poll-owned takeover.
+- [x] Record the result as a bounded switch-continuity proof iteration.
+- Iteration 333: treat selected-thread switching as an explicit session-scoped snapshot state in verification and prove it resolves cleanly through the mounted workspace shell.
+
 ## Iteration 329
 
 - [x] Keep the iteration verification-only and scoped to first-load selected-thread bootstrap authority.

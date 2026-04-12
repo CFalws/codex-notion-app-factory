@@ -307,6 +307,7 @@ def assert_browser_runtime_surface(
     maxTransitionCount: 0,
     sawHiddenComposerDock: false,
     sawClearedWorkspacePlaceholder: false,
+    sawResolvedTargetAttach: false,
   };
   window.__verifySampleSwitchMonitor = () => {
     const monitor = window.__verifySwitchMonitor;
@@ -324,6 +325,9 @@ def assert_browser_runtime_surface(
     monitor.maxTransitionCount = Math.max(Number(monitor.maxTransitionCount || 0), transitions.length);
     if (!targetAttached && emptyState) {
       monitor.sawEmptyState = true;
+    }
+    if (targetAttached && transitions.length === 0) {
+      monitor.sawResolvedTargetAttach = true;
     }
     if (composerDock) {
       const style = getComputedStyle(composerDock);
@@ -346,6 +350,7 @@ def assert_browser_runtime_surface(
       maxTransitionCount: 0,
       sawHiddenComposerDock: false,
       sawClearedWorkspacePlaceholder: false,
+      sawResolvedTargetAttach: false,
     };
     window.__verifySwitchObserver = new MutationObserver(() => {
       window.__verifySampleSwitchMonitor();
@@ -1406,6 +1411,12 @@ def assert_browser_runtime_surface(
                     activeSessionRow.dataset.activeSessionPhase === "IDLE" &&
                     activeSessionRow.dataset.activeSessionConversationId === "" &&
                     activeSessionRow.dataset.activeSessionFollow === "idle" &&
+                    selectedCard &&
+                    selectedCard.dataset.selectedSessionState === "switching" &&
+                    selectedCard.dataset.selectedSessionPresentation === "switching" &&
+                    selectedCard.dataset.selectedSessionTransport === "ATTACH" &&
+                    selectedCard.dataset.selectedSessionReason === "thread-switch" &&
+                    selectedCard.dataset.selectedSessionPhase === "SWITCHING" &&
                     sessionStrip &&
                     !sessionStrip.hidden &&
                     sessionStripState &&
@@ -1416,6 +1427,11 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.composerState === "switching" &&
                     sessionStrip.dataset.composerTransport === "attach" &&
                     sessionStrip.dataset.composerTargetConversationId === targetConversationId &&
+                    sessionStrip.dataset.selectedSessionState === "switching" &&
+                    sessionStrip.dataset.selectedSessionPresentation === "switching" &&
+                    sessionStrip.dataset.selectedSessionTransport === "ATTACH" &&
+                    sessionStrip.dataset.selectedSessionReason === "thread-switch" &&
+                    sessionStrip.dataset.selectedSessionPhase === "SWITCHING" &&
                     composerUtilityMenu &&
                     composerUtilityMenu.dataset.composerUtilityOpen === "false" &&
                     composerUtilityMenu.dataset.composerUtilityState === "closed" &&
@@ -1440,14 +1456,29 @@ def assert_browser_runtime_surface(
                     composerOwnerRow.dataset.composerOwnerMerged === "true" &&
                     composerOwnerRow.dataset.composerOwner === "switching" &&
                     composerOwnerRow.dataset.composerOwnerConversationId === targetConversationId &&
+                    composerOwnerRow.dataset.selectedSessionState === "switching" &&
+                    composerOwnerRow.dataset.selectedSessionPresentation === "switching" &&
+                    composerOwnerRow.dataset.selectedSessionTransport === "ATTACH" &&
+                    composerOwnerRow.dataset.selectedSessionReason === "thread-switch" &&
+                    composerOwnerRow.dataset.selectedSessionPhase === "SWITCHING" &&
                     composerDock &&
                     ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
                     sendRequest &&
                     sendRequest.dataset.composerOwnerState === "switching" &&
                     sendRequest.dataset.composerOwnerConversationId === targetConversationId &&
+                    sendRequest.dataset.selectedSessionState === "switching" &&
+                    sendRequest.dataset.selectedSessionPresentation === "switching" &&
+                    sendRequest.dataset.selectedSessionTransport === "ATTACH" &&
+                    sendRequest.dataset.selectedSessionReason === "thread-switch" &&
+                    sendRequest.dataset.selectedSessionPhase === "SWITCHING" &&
                     threadScroller &&
                     threadScroller.dataset.threadTransitionState === "switching" &&
                     threadScroller.dataset.threadTransitionConversationId === targetConversationId &&
+                    threadScroller.dataset.selectedSessionState === "switching" &&
+                    threadScroller.dataset.selectedSessionPresentation === "switching" &&
+                    threadScroller.dataset.selectedSessionTransport === "ATTACH" &&
+                    threadScroller.dataset.selectedSessionReason === "thread-switch" &&
+                    threadScroller.dataset.selectedSessionPhase === "SWITCHING" &&
                     document.querySelector("#conversation-timeline").dataset.workspacePlaceholder === "conversation" &&
                     document.querySelector("#conversation-timeline").dataset.workspacePlaceholder !== "empty" &&
                     document.querySelector("#conversation-timeline").dataset.workspaceConversationId === targetConversationId &&
@@ -1467,6 +1498,7 @@ def assert_browser_runtime_surface(
                     switchMonitor.maxTransitionCount === 1 &&
                     switchMonitor.sawHiddenComposerDock === false &&
                     switchMonitor.sawClearedWorkspacePlaceholder === false &&
+                    switchMonitor.sawResolvedTargetAttach === false &&
                     inlineBlocks.length === 0 &&
                     !healthy &&
                     !degraded &&
@@ -1477,6 +1509,59 @@ def assert_browser_runtime_surface(
                 timeout=30000,
             )
             switch_snapshot = page.evaluate(browser_snapshot_script())
+            page.wait_for_function(
+                """([appId, targetConversationId]) => {
+                  const transition = document.querySelector('[data-thread-transition="switching"]');
+                  const selectedCard = document.querySelector('.conversation-card[data-selected="true"]');
+                  const composerDock = document.querySelector("#conversation-footer-dock");
+                  const composerOwnerRow = document.querySelector("#composer-owner-row");
+                  const sendRequest = document.querySelector("#send-request");
+                  const threadScroller = document.querySelector("#thread-scroller");
+                  const empty = document.querySelector(".timeline-empty");
+                  const fetchMark = Number(window.__verifyFetchMark || 0);
+                  const jobFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
+                    entry => String(entry.url || "").includes("/api/jobs/")
+                  );
+                  const goalsFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
+                    entry => String(entry.url || "").includes(`/api/apps/${appId}/goals`)
+                  );
+                  const switchMonitor = window.__verifySwitchMonitor || {};
+                  return Boolean(
+                    !transition &&
+                    selectedCard &&
+                    selectedCard.dataset.conversationId === targetConversationId &&
+                    selectedCard.dataset.selected === "true" &&
+                    selectedCard.dataset.selectedSessionState !== "switching" &&
+                    composerDock &&
+                    ["sticky", "fixed"].includes(getComputedStyle(composerDock).position) &&
+                    composerOwnerRow &&
+                    composerOwnerRow.dataset.selectedSessionState !== "switching" &&
+                    sendRequest &&
+                    sendRequest.dataset.selectedSessionState !== "switching" &&
+                    threadScroller &&
+                    threadScroller.dataset.threadTransitionState === "idle" &&
+                    threadScroller.dataset.threadTransitionConversationId === "" &&
+                    threadScroller.dataset.selectedSessionState !== "switching" &&
+                    document.querySelector("#conversation-timeline").dataset.workspacePlaceholder === "conversation" &&
+                    document.querySelector("#conversation-timeline").dataset.workspaceConversationId === targetConversationId &&
+                    document.querySelector("#conversation-timeline").dataset.workspaceOwnerCleared === "false" &&
+                    threadScroller.dataset.workspaceOwnerCleared === "false" &&
+                    !empty &&
+                    switchMonitor.active === true &&
+                    switchMonitor.targetConversationId === targetConversationId &&
+                    switchMonitor.sawEmptyState === false &&
+                    switchMonitor.maxTransitionCount === 1 &&
+                    switchMonitor.sawHiddenComposerDock === false &&
+                    switchMonitor.sawClearedWorkspacePlaceholder === false &&
+                    switchMonitor.sawResolvedTargetAttach === true &&
+                    jobFetches.length === 0 &&
+                    goalsFetches.length === 0
+                  );
+                }""",
+                [app_id, switch_conversation_id],
+                timeout=30000,
+            )
+            switch_resolved_snapshot = page.evaluate(browser_snapshot_script())
 
             page.evaluate(
                 """switchConversationId => {
@@ -1521,9 +1606,19 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.composerState === "switching" &&
                     sessionStrip.dataset.composerTargetConversationId === targetConversationId &&
                     sessionStrip.dataset.liveOwned === "false" &&
+                    sessionStrip.dataset.selectedSessionState === "switching" &&
+                    sessionStrip.dataset.selectedSessionPresentation === "switching" &&
+                    sessionStrip.dataset.selectedSessionTransport === "ATTACH" &&
+                    sessionStrip.dataset.selectedSessionReason === "thread-switch" &&
+                    sessionStrip.dataset.selectedSessionPhase === "SWITCHING" &&
                     threadScroller &&
                     threadScroller.dataset.threadTransitionState === "switching" &&
                     threadScroller.dataset.threadTransitionConversationId === targetConversationId &&
+                    threadScroller.dataset.selectedSessionState === "switching" &&
+                    threadScroller.dataset.selectedSessionPresentation === "switching" &&
+                    threadScroller.dataset.selectedSessionTransport === "ATTACH" &&
+                    threadScroller.dataset.selectedSessionReason === "thread-switch" &&
+                    threadScroller.dataset.selectedSessionPhase === "SWITCHING" &&
                     document.querySelector("#conversation-timeline").dataset.workspacePlaceholder === "conversation" &&
                     document.querySelector("#conversation-timeline").dataset.workspaceConversationId === targetConversationId &&
                     document.querySelector("#conversation-timeline").dataset.workspaceOwnerCleared === "true" &&
@@ -1534,6 +1629,7 @@ def assert_browser_runtime_surface(
                     switchMonitor.maxTransitionCount === 1 &&
                     switchMonitor.sawHiddenComposerDock === false &&
                     switchMonitor.sawClearedWorkspacePlaceholder === false &&
+                    switchMonitor.sawResolvedTargetAttach === false &&
                     !empty
                   );
                 }""",
@@ -1589,9 +1685,19 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.phaseAuthoritative === "false" &&
                     sessionStrip.dataset.phaseProvenance === "thread-transition" &&
                     sessionStrip.dataset.liveOwned === "false" &&
+                    sessionStrip.dataset.selectedSessionState === "switching" &&
+                    sessionStrip.dataset.selectedSessionPresentation === "switching" &&
+                    sessionStrip.dataset.selectedSessionTransport === "ATTACH" &&
+                    sessionStrip.dataset.selectedSessionReason === "thread-switch" &&
+                    sessionStrip.dataset.selectedSessionPhase === "SWITCHING" &&
                     threadScroller &&
                     threadScroller.dataset.threadTransitionState === "switching" &&
                     threadScroller.dataset.threadTransitionConversationId === targetConversationId &&
+                    threadScroller.dataset.selectedSessionState === "switching" &&
+                    threadScroller.dataset.selectedSessionPresentation === "switching" &&
+                    threadScroller.dataset.selectedSessionTransport === "ATTACH" &&
+                    threadScroller.dataset.selectedSessionReason === "thread-switch" &&
+                    threadScroller.dataset.selectedSessionPhase === "SWITCHING" &&
                     document.querySelector("#conversation-timeline").dataset.workspacePlaceholder === "conversation" &&
                     document.querySelector("#conversation-timeline").dataset.workspaceConversationId === targetConversationId &&
                     document.querySelector("#conversation-timeline").dataset.workspaceOwnerCleared === "true" &&
@@ -1604,6 +1710,11 @@ def assert_browser_runtime_surface(
                     threadSessionSummary.hidden &&
                     visibleConversationOwnerRows.length === 0 &&
                     selectedCard &&
+                    selectedCard.dataset.selectedSessionState === "switching" &&
+                    selectedCard.dataset.selectedSessionPresentation === "switching" &&
+                    selectedCard.dataset.selectedSessionTransport === "ATTACH" &&
+                    selectedCard.dataset.selectedSessionReason === "thread-switch" &&
+                    selectedCard.dataset.selectedSessionPhase === "SWITCHING" &&
                     selectedCard.dataset.liveOwnerEmphasis === "snapshot" &&
                     selectedCard.dataset.livePhaseVisible === "false" &&
                     selectedCard.dataset.livePhaseSource === "none" &&
@@ -1643,6 +1754,7 @@ def assert_browser_runtime_surface(
                     switchMonitor.maxTransitionCount === 1 &&
                     switchMonitor.sawHiddenComposerDock === false &&
                     switchMonitor.sawClearedWorkspacePlaceholder === false &&
+                    switchMonitor.sawResolvedTargetAttach === false &&
                     jobFetches.length === 0 &&
                     goalsFetches.length === 0
                   );
@@ -1660,6 +1772,7 @@ def assert_browser_runtime_surface(
                 "resume": resume_snapshot,
                 "degraded": degraded_snapshot,
                 "switch": switch_snapshot,
+                "switch_resolved": switch_resolved_snapshot,
                 "switch_cancelled": cancelled_switch_snapshot,
             }
         except playwright_timeout as exc:
