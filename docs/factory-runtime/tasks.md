@@ -1,5 +1,13 @@
 # Factory Runtime Tasks
 
+## Iteration 347
+
+- [x] Keep transport, follow ownership, footer autonomy ownership, switch continuity, and degraded fallback behavior unchanged.
+- [x] Suppress the healthy selected-thread header summary when the center inline session block already owns the healthy timeline.
+- [x] Preserve explicit summary visibility for switch, restore, reconnect, and polling fallback paths.
+- [x] Tighten static and deployed verification so healthy selected-thread success fails if duplicate header live chrome survives.
+- Iteration 347: remove the last healthy header summary duplication so the center inline session block plus footer strip remain the only visible healthy live session surfaces.
+
 ## Iteration 345
 
 - [x] Keep transport, polling fallback, rail ownership, switch continuity, and fixed composer behavior unchanged.

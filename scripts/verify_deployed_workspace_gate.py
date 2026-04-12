@@ -2234,7 +2234,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "const healthyTranscriptAuthority =", label="healthy transcript authority header suppression guard")
     require(render_js, "const provisionalTranscriptAuthority =", label="header session summary provisional suppression helper")
     require(render_js, "const phaseBadgeVisible =", label="header phase badge healthy visibility")
-    require(render_js, "const summaryVisible = authority.summaryVisible && !provisionalTranscriptAuthority && !phaseBadgeVisible;", label="header session summary healthy visibility")
+    require(render_js, "const summaryVisible =\n    authority.summaryVisible &&\n    !healthyTranscriptAuthority &&\n    !provisionalTranscriptAuthority &&\n    !phaseBadgeVisible;", label="header session summary healthy visibility")
     require(render_js, "dom.threadSessionSummary.hidden = !summaryVisible;", label="header session summary visibility")
     require(render_js, 'dom.threadSessionSummary.dataset.threadSummaryVisible = summaryVisible ? "true" : "false";', label="header session summary visible dataset")
     require(render_js, 'dom.threadSessionSummary.dataset.threadSummaryPresentation = summaryVisible ? badgePresentation : "cleared";', label="header session summary presentation dataset")

@@ -1,5 +1,11 @@
 # Factory Runtime Spec
 
+## Iteration 347
+
+- Healthy selected-thread SSE ownership must keep the canonical center inline session block and the bottom composer strip as the only visible live session surfaces.
+- Header summary and secondary-detail live chrome must stay suppressed on that healthy selected-thread path and return only for switch, restore, reconnect, or polling fallback paths.
+- Verification must fail if stale healthy summary chrome survives alongside the canonical center plus footer session lane.
+
 ## Iteration 345
 
 - The selected-thread transcript tail must expose exactly one compact bottom follow control sourced from the healthy selected-session SSE lane.

@@ -1,5 +1,11 @@
 # Factory Runtime Deploy Plan
 
+## Iteration 347
+
+- Run the deployed healthy selected-thread SSE scenario and confirm the header summary remains hidden while the inline session block and bottom composer strip carry the live session chips.
+- Run switch, restore, reconnect, and polling fallback scenarios and confirm those non-healthy paths still restore or preserve their explicit summary and degraded surfaces as before.
+- Treat deployment readiness as blocked if healthy selected-thread success still shows duplicate header live summary chrome beside the canonical center plus footer session lane.
+
 ## Iteration 345
 
 - Run the deployed healthy selected-thread SSE scenario and confirm the bottom follow control appears only for detached selected-thread live progress with `selected-thread-sse` ownership and the selected conversation id on both strip and toggle datasets.

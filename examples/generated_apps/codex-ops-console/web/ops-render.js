@@ -766,7 +766,11 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
     timelineAuthority.visible &&
     timelineAuthority.presentation === "provisional";
   const phaseBadgeVisible = false;
-  const summaryVisible = authority.summaryVisible && !provisionalTranscriptAuthority && !phaseBadgeVisible;
+  const summaryVisible =
+    authority.summaryVisible &&
+    !healthyTranscriptAuthority &&
+    !provisionalTranscriptAuthority &&
+    !phaseBadgeVisible;
   const summaryScope = "SELECTED";
   const summaryPath = String(authority.pathLabel || sessionSurface.pathVerdict || "EXPECTED").toUpperCase();
   const summaryOwner = String(authority.ownerLabel || sessionStatus.transportLabel || "SSE OWNER").toUpperCase();

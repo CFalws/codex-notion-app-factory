@@ -1,5 +1,12 @@
 # Factory Runtime Implementation Plan
 
+## Iteration 347
+
+- Keep transport, footer autonomy ownership, follow ownership, switch continuity, and degraded fallback behavior unchanged.
+- Tighten the healthy selected-thread suppression boundary so the header session summary no longer mirrors the same live SSE-owned truth already carried by the inline session block and footer strip.
+- Leave restore, switch, reconnect, polling fallback, and other non-healthy paths on their existing explicit summary and degraded surfaces.
+- Tighten static and deployed verification so healthy selected-thread success fails if the duplicate header summary remains visible.
+
 ## Iteration 345
 
 - Keep transport, polling fallback, rail ownership, switch continuity, and the fixed composer layout unchanged.

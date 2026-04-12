@@ -408,7 +408,7 @@ def main() -> int:
     require(render_js, "const healthyTranscriptAuthority =", label="header healthy timeline authority helper")
     require(render_js, "const provisionalTranscriptAuthority =", label="header provisional timeline authority helper")
     require(render_js, "const phaseBadgeVisible =", label="header healthy phase badge visibility")
-    require(render_js, "const summaryVisible = authority.summaryVisible && !provisionalTranscriptAuthority && !phaseBadgeVisible;", label="header healthy summary visibility")
+    require(render_js, "const summaryVisible =\n    authority.summaryVisible &&\n    !healthyTranscriptAuthority &&\n    !provisionalTranscriptAuthority &&\n    !phaseBadgeVisible;", label="header healthy summary visibility")
     require(render_js, "dom.threadSessionSummaryOwner", label="header session summary owner chip wiring")
     require(render_js, 'dom.threadSessionSummary.dataset.liveSessionVisible = summaryVisible ? "true" : "false";', label="header summary visible dataset")
     require(render_js, 'dom.threadSessionSummary.dataset.liveSessionPresentation = summaryVisible ? badgePresentation : "cleared";', label="header summary presentation dataset")
