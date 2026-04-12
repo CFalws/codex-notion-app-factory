@@ -1,14 +1,14 @@
 # Factory Runtime Tasks
 
-## Iteration 311
+## Iteration 312
 
-- [x] Keep the iteration bounded to the selected-thread provisional attach or resume ownership boundary and the existing job polling fallback gate.
+- [x] Keep the iteration bounded to deployed-browser verification and static proof of the existing provisional selected-thread ownership contract.
 - [x] Preserve the existing selected-thread `session_status` plus append SSE transport, promotion, and degraded fallback contract.
-- [x] Treat provisional attach, provisional resume, restore, and pending handoff on the selected thread as session-owned for polling suppression.
-- [x] Keep polling activation limited to explicit degraded paths such as retrying, reconnect downgrade, session rotation, or true snapshot fallback.
-- [x] Avoid introducing any new authority source, parallel transport controller state, or duplicate healthy chrome.
+- [x] Prove initial bootstrap, send/bootstrap continuation, and restore/resume with explicit `session.bootstrap` evidence and ATTACH or RESUME datasets.
+- [x] Prove that `/api/jobs` and goals fetches do not take over selected-thread authority on those provisional paths before healthy SSE ownership arrives.
+- [x] Continue allowing immediate polling fallback on explicit degraded paths only.
 - [x] Update proposal artifacts to record the intended-path verifier result.
-- Iteration 311: suppress poll-driven transient ownership during healthy selected-thread attach or resume.
+- Iteration 312: prove provisional selected-thread attach or resume stays on one deployed session-owned lane with no poll takeover.
 - Iteration 245: confirm the selected-thread center header already exposes the canonical ownership chip and keep deployed verification bound to that machine-readable selected-thread signal without adding another live-status surface.
 - Iteration 248: keep the selected-thread composer owner row visible on healthy and transition paths, render `READY` only on healthy SSE-owned state, and assert degraded paths never retain stale ready ownership.
 - Iteration 249: record that the sticky left-rail active-session row is already the canonical selected-thread SSE mirror and keep non-selected rows snapshot-only with immediate clear or downgrade on degraded paths.

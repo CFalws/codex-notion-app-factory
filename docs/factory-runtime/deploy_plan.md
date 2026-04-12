@@ -1,12 +1,12 @@
 # Factory Runtime Deploy Plan
 
-## Iteration 311
+## Iteration 312
 
-This deploy plan validates that the deployed browser gate now proves selected-thread provisional attach or resume remains session-owned and does not briefly fall back to poll-driven job state before healthy SSE ownership arrives.
+This deploy plan validates that the deployed browser gate explicitly proves selected-thread send/bootstrap and restore/resume stay on one provisional session-owned lane with no poll-driven transient takeover before healthy SSE ownership arrives.
 
 ## Deployment Impact
 
-This iteration keeps transport, provisional continuity, healthy promotion, composer targeting, selected-row rail parity, freshness, phase mirrors, switch continuity, and central `session_status` authority convergence intact. The gate should pass only when the deployed verifier shows that send, bootstrap, and restore stay on the selected-thread session-status plus bootstrap path without a poll-driven transient status takeover before healthy SSE ownership settles.
+This iteration keeps transport, provisional continuity, healthy promotion, composer targeting, selected-row rail parity, freshness, phase mirrors, switch continuity, and central `session_status` authority convergence intact. The gate should pass only when the deployed verifier shows ordered `session.bootstrap` evidence plus ATTACH or RESUME datasets on selected-thread surfaces and no `/api/jobs` or goals takeover before healthy SSE ownership settles.
 
 ## Rollout Notes
 
@@ -16,8 +16,8 @@ This iteration keeps transport, provisional continuity, healthy promotion, compo
 4. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh`.
 5. Confirm selected-thread attach or resume keeps the center timeline and footer dock mounted as one provisional session lane with only ATTACH or RESUME plus one carried-forward phase chip and no duplicate restore-only chrome.
 6. Confirm the first healthy selected-thread promotion appears only after selected-thread session state and append-stream session-status agree on the same conversation in authoritative `sse-live` state.
-7. Confirm a selected-thread send or restore keeps the mounted session workspace on the session-status plus bootstrap path and does not show a poll-driven transient status takeover before healthy SSE ownership arrives.
-8. Confirm `/api/jobs/{id}` and `/api/apps/:id/goals` polling remain absent during provisional attach, provisional resume, restore attach or resume, and pending handoff for the selected thread.
+7. Confirm initial selected-thread bootstrap records ordered `session.bootstrap` evidence and ATTACH datasets with zero `/api/jobs` and goals takeover before healthy SSE ownership arrives.
+8. Confirm selected-thread send/bootstrap continuation and restore/resume do the same, including resumed append-stream URLs where expected.
 9. Confirm reconnect, polling fallback, restore failure, switch, terminal, and other non-healthy paths still activate degraded fallback immediately and visibly when expected.
 10. Confirm `active-session-row` remains canonical, selected-row owner and freshness mirrors remain unchanged, and non-selected rows stay snapshot-only.
 11. Treat the proposal as ready only after the deployed verifier passes and the runtime contract check is rerun in an environment with the missing dependencies.

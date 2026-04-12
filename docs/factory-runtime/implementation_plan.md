@@ -1,16 +1,16 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 311
+## Iteration 312
 
-Keep selected-thread provisional attach or resume session-owned so job polling stays a degraded-only fallback.
+Tighten static and deployed verification so provisional selected-thread attach or resume is explicitly proven as a session-owned no-poll lane.
 
-1. Keep the iteration bounded to the selected-thread session ownership predicate shared by send, bootstrap, restore, and job-poll fallback.
+1. Keep the iteration bounded to deployed-browser verification and static proof of the existing selected-thread provisional ownership contract.
 2. Preserve the existing selected-thread transport, healthy promotion, transcript-primary ownership, switch continuity, and bottom-fixed composer continuity unchanged.
-3. Treat provisional attach, provisional resume, restore attach or resume, and pending handoff on the selected thread as session-owned so eager job polling does not start on that intended path.
-4. Continue to allow polling immediately for explicit degraded paths such as retrying, session rotation, reconnect downgrade, snapshot fallback, or other non-owned transport states.
-5. Align static and deployed verification to the updated ownership gate without widening the UI surface model.
+3. Prove initial bootstrap, send/bootstrap continuation, and restore/resume with ordered `session.bootstrap` evidence plus ATTACH or RESUME datasets on the selected-thread surfaces.
+4. Prove zero `/api/jobs` and goals fetch takeover on those provisional paths before healthy SSE ownership settles.
+5. Continue to allow degraded reconnect, retrying, session rotation, and explicit fallback paths to activate polling immediately when expected.
 6. Avoid introducing any new authority source, primary live surface, or controller state.
-7. Update proposal artifacts to record the landed ownership-boundary result and the remaining deployed verification dependency.
+7. Update proposal artifacts to record the landed verification-boundary result and the remaining deployed verification dependency.
 Iteration 245 does not widen runtime or UI ownership. It records that the selected-thread center header already exposes the canonical ownership chip beside the session summary and that deployed verification already attributes healthy visibility to that selected-thread SSE-owned signal rather than to polling or side-panel inference.
 Iteration 248 keeps transport and header ownership unchanged and restores the same selected-thread certainty directly at the input surface by keeping the composer owner row visible for healthy, handoff, switching, and restore states while preserving explicit degraded or idle clearing.
 Iteration 249 does not widen runtime or UI ownership because the selected-thread rail mirror is already correct in this branch: the sticky active-session row is canonical on the healthy selected-thread SSE path, non-selected rows remain snapshot-only, and the deployed gate already attributes that rail marker to the intended selected-thread authority source.
