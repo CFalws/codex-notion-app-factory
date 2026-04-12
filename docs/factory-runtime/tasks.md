@@ -1,15 +1,16 @@
 # Factory Runtime Tasks
 
-## Iteration 286
+## Iteration 288
 
-- [x] Keep the change bounded to bottom-fixed composer presentation, verification, and proposal artifacts.
+- [x] Keep the change bounded to selected-row rail presentation, verification, and proposal artifacts.
 - [x] Preserve the existing selected-thread `session_status` plus append SSE authority path unchanged.
-- [x] Keep the textarea as the dominant control and send as the primary action.
-- [x] Stabilize the inline session strip so live chips mutate in place without creating a second status strip or layout jump.
-- [x] Preserve current restore, switching, handoff, and degraded semantics unchanged.
-- [x] Add narrow verifier coverage for stable composer shell and bounded inline strip sizing.
-- [x] Keep mobile behavior intact by relaxing the strip back into a stacked layout only at the narrow breakpoint.
-- [x] Update proposal artifacts to record the composer continuity contract.
+- [x] Keep `active-session-row` unchanged as the canonical rail authority surface.
+- [x] Mirror the healthy selected-thread owner cue onto the currently selected conversation row only.
+- [x] Render the selected-row cue as a compact shadow marker instead of a second canonical rail surface.
+- [x] Clear the selected-row cue immediately on degraded, reconnect, terminal, polling fallback, or switching paths.
+- [x] Keep non-selected conversation rows snapshot-only with no live-owned treatment.
+- [x] Add narrow verifier coverage for healthy selected-row parity and non-healthy clearing.
+- [x] Update proposal artifacts to record the selected-row parity contract.
 - Iteration 245: confirm the selected-thread center header already exposes the canonical ownership chip and keep deployed verification bound to that machine-readable selected-thread signal without adding another live-status surface.
 - Iteration 248: keep the selected-thread composer owner row visible on healthy and transition paths, render `READY` only on healthy SSE-owned state, and assert degraded paths never retain stale ready ownership.
 - Iteration 249: record that the sticky left-rail active-session row is already the canonical selected-thread SSE mirror and keep non-selected rows snapshot-only with immediate clear or downgrade on degraded paths.
@@ -30,3 +31,4 @@
 - Iteration 282: promote healthy selected-thread ownership exactly once through one canonical store-level gate so provisional continuity remains intact before bootstrap, but every healthy selected-thread surface and polling suppression decision now shares the same promotion invariant.
 - Iteration 283: bind the bottom-fixed composer target row to canonical selected-thread authority so it exposes only `READY`, `SWITCHING`, or `HANDOFF` for the selected thread and clears immediately on restore, reconnect, or polling fallback.
 - Iteration 286: keep the bottom-fixed composer as one invariant selected-thread session dock so live status and proposal cues update in place without shifting, detaching, or reframing the input surface during healthy live updates or terminal resolution.
+- Iteration 288: keep `active-session-row` canonical but mirror its healthy selected-thread owner cue onto the currently selected conversation row as a compact shadow marker that clears immediately on degrade, reconnect, polling fallback, terminal resolution, or thread switch.

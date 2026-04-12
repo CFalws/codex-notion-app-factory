@@ -434,6 +434,14 @@ body[data-secondary-panel-open="true"] .desktop-shell {
   background: rgba(255, 255, 255, 0.88);
 }
 
+.conversation-card-live-owner-row[data-live-owner-shadow="true"] {
+  gap: 0.3rem;
+  padding: 0.3rem 0.4rem;
+  border-color: rgba(31, 120, 224, 0.14);
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: none;
+}
+
 .conversation-card-live-detail,
 .conversation-card-live-follow {
   display: inline-flex;
@@ -456,6 +464,13 @@ body[data-secondary-panel-open="true"] .desktop-shell {
 
 .conversation-card-live-follow {
   color: var(--accent-ink);
+}
+
+.conversation-card-live-owner-row[data-live-owner-shadow="true"] .conversation-card-live-detail,
+.conversation-card-live-owner-row[data-live-owner-shadow="true"] .conversation-card-live-follow {
+  min-height: 1.42rem;
+  padding: 0.12rem 0.38rem;
+  font-size: 0.62rem;
 }
 
 .conversation-card-preview[data-preview-lines="1"] {

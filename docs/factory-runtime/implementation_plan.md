@@ -1,17 +1,18 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 286
+## Iteration 288
 
-Stabilize the bottom-fixed composer shell so live selected-thread status changes mutate inside one bounded inline region without shifting the textarea-first input layout.
+Mirror the canonical selected-thread live owner cue onto the currently selected rail row without changing transport, polling, restore semantics, or non-selected snapshot behavior.
 
-1. Keep the change bounded to bottom-fixed composer presentation, verification, and proposal artifacts.
-2. Preserve the existing selected-thread transport and authority contract unchanged.
-3. Keep the composer textarea as the dominant control and send as the primary action.
-4. Constrain the existing inline session strip to one stable height and one bounded text flow so status chips mutate in place instead of reflowing the shell.
-5. Preserve current restore, switching, handoff, and degraded semantics without introducing a second status surface.
-6. Add narrow browser-verifiable continuity checks around the stable composer shell and session strip sizing.
-7. Keep mobile behavior intact by allowing the strip to relax back into a stacked layout only at the narrow breakpoint.
-8. Update proposal artifacts to record the composer continuity contract.
+1. Keep the change bounded to the selected conversation row presentation, verifier coverage, and proposal artifacts.
+2. Preserve the existing selected-thread transport, promotion, and polling-suppression contract unchanged.
+3. Keep `active-session-row` unchanged as the canonical rail authority surface.
+4. Mirror the same healthy selected-thread SSE-owned cue onto the selected conversation row only when that row represents the current selected thread.
+5. Render the selected-row marker as a compact shadow cue so canonical ownership still visually belongs to `active-session-row`.
+6. Clear the selected-row cue immediately on reconnect, degraded fallback, terminal resolution, or thread switch.
+7. Keep non-selected conversation rows snapshot-only with no live-owned treatment.
+8. Add narrow browser-verifiable parity checks for healthy selected-thread visibility and negative checks for degraded and switching paths.
+9. Update proposal artifacts to record the selected-row parity contract.
 Iteration 245 does not widen runtime or UI ownership. It records that the selected-thread center header already exposes the canonical ownership chip beside the session summary and that deployed verification already attributes healthy visibility to that selected-thread SSE-owned signal rather than to polling or side-panel inference.
 Iteration 248 keeps transport and header ownership unchanged and restores the same selected-thread certainty directly at the input surface by keeping the composer owner row visible for healthy, handoff, switching, and restore states while preserving explicit degraded or idle clearing.
 Iteration 249 does not widen runtime or UI ownership because the selected-thread rail mirror is already correct in this branch: the sticky active-session row is canonical on the healthy selected-thread SSE path, non-selected rows remain snapshot-only, and the deployed gate already attributes that rail marker to the intended selected-thread authority source.
@@ -32,3 +33,4 @@ Iteration 274 keeps transport and ownership unchanged and narrows only the remai
 Iteration 282 keeps transport and provisional continuity unchanged and narrows only the final ownership-promotion boundary: once the selected thread is truly healthy, every selected-thread surface now derives healthy ownership from one shared store invariant instead of separately recomputing that promotion in multiple helpers.
 Iteration 283 keeps transport and healthy promotion unchanged and narrows only the composer target-row boundary: the bottom-fixed composer now reflects the same canonical selected-thread authority as the other session surfaces and clears instead of surfacing stale restore or degraded ownership.
 Iteration 286 keeps transport and ownership unchanged and narrows only the composer ergonomics boundary: the bottom-fixed composer now retains one stable shell and one bounded inline status region so live updates and terminal resolution do not reframe the input surface.
+Iteration 288 keeps transport, ownership, and canonical rail authority unchanged and narrows only the selected-row visibility boundary: the currently selected conversation row now mirrors the healthy selected-thread owner cue as a compact shadow marker while the sticky active-session row remains canonical and non-selected rows stay snapshot-only.

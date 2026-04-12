@@ -1325,18 +1325,23 @@ export function createConversationController(deps) {
       const showSelectedRowLiveMarker =
         isSelected &&
         selectedRowModel.visible &&
-        selectedRowModel.conversationId === selectedConversationId &&
-        !Boolean(activeRowModel.visible);
+        selectedRowModel.rowOwned &&
+        selectedRowModel.rowSource === "sse" &&
+        selectedRowModel.conversationId === selectedConversationId;
+      const shadowSelectedRowLiveMarker =
+        showSelectedRowLiveMarker && Boolean(activeRowModel.visible && activeRowModel.canonical);
       card.classList.toggle("active", isSelected);
       card.dataset.selected = isSelected ? "true" : "false";
       card.dataset.threadState = isSelected ? (liveThreadState || "active") : snapshotState;
       card.dataset.liveOwner = "false";
+      card.dataset.liveOwnerShadow = "false";
       card.dataset.liveOwnerState = "idle";
       card.dataset.liveOwnerSource = "none";
       card.dataset.liveOwnerPhase = "IDLE";
       card.dataset.liveOwnerUnseenCount = "0";
       if (showSelectedRowLiveMarker) {
         card.dataset.liveOwner = "true";
+        card.dataset.liveOwnerShadow = String(shadowSelectedRowLiveMarker);
         card.dataset.liveOwnerState = selectedRowModel.rowState;
         card.dataset.liveOwnerSource = selectedRowModel.rowSource;
         card.dataset.liveOwnerPhase = selectedRowModel.rowPhase;
@@ -1358,6 +1363,7 @@ export function createConversationController(deps) {
         liveOwnerRow.dataset.liveOwnerSource = showSelectedRowLiveMarker ? selectedRowModel.rowSource : "none";
         liveOwnerRow.dataset.liveOwnerPhase = showSelectedRowLiveMarker ? selectedRowModel.rowPhase : "IDLE";
         liveOwnerRow.dataset.liveOwnerUnseenCount = String(showSelectedRowLiveMarker ? selectedRowModel.rowUnseenCount : 0);
+        liveOwnerRow.dataset.liveOwnerShadow = showSelectedRowLiveMarker ? String(shadowSelectedRowLiveMarker) : "false";
         liveOwnerDetail.textContent = showSelectedRowLiveMarker ? selectedRowModel.markerLabel : "LIVE";
         liveOwnerFollow.hidden = !showSelectedRowLiveMarker;
         liveOwnerFollow.textContent = showSelectedRowLiveMarker ? selectedRowModel.cueLabel : "";
@@ -1471,6 +1477,7 @@ export function createConversationController(deps) {
               data-live-owner-source="none"
               data-live-owner-phase="IDLE"
               data-live-owner-unseen-count="0"
+              data-live-owner-shadow="false"
               hidden
             >
               <span class="conversation-card-live-detail" data-conversation-live-detail>LIVE</span>
