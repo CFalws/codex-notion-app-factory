@@ -1,5 +1,10 @@
 # Factory Runtime Deploy Plan
 
+## Iteration 318
+
+- Run the deployed malformed-append browser scenario and confirm the selected-session snapshot downgrades first across thread summary, selected row, thread scroller, and composer dock.
+- Treat deployment readiness as blocked if any of those surfaces still requires poll inference or retains stale healthy ownership before the snapshot degrades.
+
 ## Iteration 312
 
 This deploy plan validates that the deployed browser gate explicitly proves selected-thread send/bootstrap and restore/resume stay on one provisional session-owned lane with no poll-driven transient takeover before healthy SSE ownership arrives.

@@ -1,5 +1,11 @@
 # Factory Runtime Spec
 
+## Iteration 318
+
+- Selected-thread healthy, degraded, and handoff ownership must be representable through one compact selected-session snapshot derived from the existing realtime transport path.
+- The transcript summary, selected rail row, and composer dock must expose that same snapshot through stable DOM datasets.
+- Deployed malformed-append verification must assert ordering through the snapshot seam instead of inferring state transitions from separate surface-specific fields.
+
 ## Iteration
 
 - current iteration: `312`

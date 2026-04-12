@@ -1,6 +1,7 @@
 import {
   deriveSelectedThreadActiveSessionRowModel,
   deriveSelectedThreadConversationRowLiveModel,
+  deriveSelectedThreadSessionSnapshot,
   deriveSelectedThreadShellPhaseLabel,
 } from "./ops-store.js";
 
@@ -368,6 +369,7 @@ export function createConversationController(deps) {
     state.appendStream.resumeCursor = 0;
     state.appendStream.reconnectAttempt = 0;
     state.appendStream.reconnectTimerId = 0;
+    state.appendStream.degradedReason = "";
     resetSessionPhase();
     resetSessionStatus();
     if (!conversationId) {
@@ -409,6 +411,7 @@ export function createConversationController(deps) {
     state.appendStream.resumeMode = "fallback";
     state.appendStream.resumeCursor = Math.max(Number(state.appendStream.lastAppendId || 0), 0);
     state.appendStream.reconnectAttempt = 0;
+    state.appendStream.degradedReason = String(reason || "snapshot-fallback");
     state.appendStream.lastRenderSource =
       reason === "snapshot-fallback"
         ? String(state.appendStream.lastRenderSource || "snapshot").toLowerCase() === "sse"
@@ -419,6 +422,7 @@ export function createConversationController(deps) {
       state.appendStream.sessionStatus = {
         ...state.appendStream.sessionStatus,
         transportState: "polling-fallback",
+        transportReason: state.appendStream.degradedReason,
         attachMode: "snapshot-fallback",
         transport: {
           ...(state.appendStream.sessionStatus.transport || {}),
@@ -430,6 +434,13 @@ export function createConversationController(deps) {
     ensurePollingForJob();
     renderSessionStrip(dom, state, state.conversationCache);
     syncConversationCardState();
+  }
+
+  function degradeAppendStreamOnMalformedAppend(conversationId, reason) {
+    if (!conversationId || state.currentConversationId !== conversationId || state.appendStream?.conversationId !== conversationId) {
+      return;
+    }
+    transitionAppendStreamToFallback(conversationId, reason);
   }
 
   function scheduleAppendStreamResume(conversationId, attempt = 1) {
@@ -447,6 +458,7 @@ export function createConversationController(deps) {
     state.appendStream.resumeMode = "scheduled";
     state.appendStream.resumeCursor = Math.max(Number(state.appendStream.lastAppendId || 0), 0);
     state.appendStream.reconnectAttempt = attempt;
+    state.appendStream.degradedReason = "";
     if (state.appendStream.sessionStatus) {
       state.appendStream.sessionStatus = {
         ...state.appendStream.sessionStatus,
@@ -827,6 +839,7 @@ export function createConversationController(deps) {
         );
         state.appendStream.status = "live";
         state.appendStream.lastRenderSource = "sse";
+        state.appendStream.degradedReason = "";
         state.appendStream.attachMode = String(payload.attach_mode || (isResumeAttempt ? "sse-resume" : "sse-bootstrap"));
         state.appendStream.bootstrapVersion = String(payload.version || "");
         state.appendStream.resumeMode = isResumeAttempt ? "resumed" : "bootstrap";
@@ -864,9 +877,11 @@ export function createConversationController(deps) {
       }
       try {
         const payload = JSON.parse(event.data || "{}");
-        appendLiveItem(payload);
+        if (!appendLiveItem(payload)) {
+          degradeAppendStreamOnMalformedAppend(conversationId, "append-frame-apply-failed");
+        }
       } catch (_) {
-        // Keep the existing timeline and let the next poll-driven refresh recover if needed.
+        degradeAppendStreamOnMalformedAppend(conversationId, "append-frame-parse-failed");
       }
     });
 
@@ -887,6 +902,7 @@ export function createConversationController(deps) {
       state.appendStream.attachMode = "sse-resume";
       state.appendStream.resumeMode = "awaiting-resume";
       state.appendStream.resumeCursor = Math.max(Number(state.appendStream.lastAppendId || 0), 0);
+      state.appendStream.degradedReason = "";
       if (state.appendStream.sessionStatus) {
         state.appendStream.sessionStatus = {
           ...state.appendStream.sessionStatus,
@@ -1285,6 +1301,7 @@ export function createConversationController(deps) {
     const isFollowing = Boolean(liveFollow.isFollowing);
     const activeRowModel = deriveSelectedThreadActiveSessionRowModel(state, state.conversationCache);
     const selectedRowModel = deriveSelectedThreadConversationRowLiveModel(state, state.conversationCache);
+    const sessionSnapshot = deriveSelectedThreadSessionSnapshot(state, state.conversationCache);
     const selectedRowPhaseLabel = String(
       deriveSelectedThreadShellPhaseLabel(state, state.conversationCache) || liveRunPhase || selectedRowModel.rowPhase || "",
     )
@@ -1349,6 +1366,13 @@ export function createConversationController(deps) {
       card.dataset.livePhaseVisible = "false";
       card.dataset.livePhaseSource = "none";
       card.dataset.livePhaseValue = "";
+      card.dataset.selectedSessionState = isSelected ? sessionSnapshot.state : "cleared";
+      card.dataset.selectedSessionPresentation = isSelected ? sessionSnapshot.presentation : "cleared";
+      card.dataset.selectedSessionOwned = isSelected && sessionSnapshot.rowOwned ? "true" : "false";
+      card.dataset.selectedSessionTransport = isSelected ? sessionSnapshot.transportLabel : "SNAPSHOT";
+      card.dataset.selectedSessionReason = isSelected ? sessionSnapshot.reason : "idle";
+      card.dataset.selectedSessionPhase = isSelected ? sessionSnapshot.phaseLabel : "IDLE";
+      card.dataset.selectedSessionConversationId = isSelected ? sessionSnapshot.conversationId : "";
       if (showSelectedRowLiveMarker) {
         card.dataset.liveOwner = "true";
         card.dataset.liveOwnerEmphasis = shadowSelectedRowLiveMarker ? "strong" : "soft";

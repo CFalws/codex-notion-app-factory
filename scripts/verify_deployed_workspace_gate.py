@@ -368,6 +368,15 @@ def assert_browser_runtime_surface(
       const url = typeof request === "string" ? request : request?.url || "";
       const method = typeof request === "object" && request?.method ? request.method : (args[1]?.method || "GET");
       window.__verifyFetchLog.push({ url, method });
+      if (
+        window.__verifyMalformedScenarioActive &&
+        (
+          String(url || "").includes("/api/jobs/") ||
+          String(url || "").includes("/api/apps/")
+        )
+      ) {
+        window.__verifyRecordEvidence("poll-recovery-fetch", { url: String(url || "") });
+      }
       const delayedConversationId = String(window.__verifyDelayedConversationId || "");
       const shouldDelay =
         delayedConversationId &&
@@ -389,6 +398,18 @@ def assert_browser_runtime_surface(
   }
   window.__verifyForceDegrade = false;
   window.__verifyDegraded = false;
+  window.__verifyInjectMalformedAppend = false;
+  window.__verifyMalformedAppendInjected = false;
+  window.__verifyMalformedAppendReason = "";
+  window.__verifyMalformedScenarioActive = false;
+  window.__verifyOrderedEvidence = [];
+  window.__verifyRecordEvidence = (kind, detail = {}) => {
+    window.__verifyOrderedEvidence.push({
+      index: window.__verifyOrderedEvidence.length,
+      kind,
+      detail,
+    });
+  };
   window.__verifyLatestEventSource = null;
   window.__verifyTriggerDisconnect = () => {
     const source = window.__verifyLatestEventSource;
@@ -435,6 +456,20 @@ def assert_browser_runtime_surface(
           });
         } catch (_) {
           window.__verifyAppendLog.push({ conversationId: "", appendId: 0 });
+        }
+        if (window.__verifyInjectMalformedAppend && !window.__verifyMalformedAppendInjected) {
+          window.__verifyInjectMalformedAppend = false;
+          window.__verifyMalformedAppendInjected = true;
+          window.__verifyMalformedAppendReason = "append-frame-parse-failed";
+          window.__verifyRecordEvidence("malformed-append-injected", {
+            reason: "append-frame-parse-failed",
+            url: this.__verifyUrl,
+          });
+          try {
+            this.dispatchEvent(new MessageEvent("conversation.append", { data: '{"broken":' }));
+          } catch (_) {
+            // Let the app continue on the real append if synthetic malformed dispatch fails.
+          }
         }
         if (!window.__verifyForceDegrade || window.__verifyDegraded) {
           return;
@@ -749,6 +784,124 @@ def assert_browser_runtime_surface(
                 timeout=120000,
             )
             healthy_snapshot = page.evaluate(browser_snapshot_script())
+
+            page.fill("#request-text", "Trigger malformed append verification on the selected thread.")
+            page.evaluate(
+                "() => { window.__verifyInjectMalformedAppend = true; window.__verifyMalformedAppendInjected = false; window.__verifyMalformedAppendReason = ''; window.__verifyMalformedScenarioActive = true; window.__verifyOrderedEvidence = []; window.__verifyFetchMark = window.__verifyFetchLog.length; }"
+            )
+            page.click("#send-request")
+            page.wait_for_function(
+                """([appId, conversationId]) => {
+                  const recordEvidence = (kind, detail = {}) => {
+                    const ordered = Array.isArray(window.__verifyOrderedEvidence) ? window.__verifyOrderedEvidence : [];
+                    if (ordered.some(item => item && item.kind === kind)) {
+                      return;
+                    }
+                    if (typeof window.__verifyRecordEvidence === "function") {
+                      window.__verifyRecordEvidence(kind, detail);
+                    }
+                  };
+                  const degraded = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="false"]');
+                  const healthy = document.querySelector('.timeline-item.live-activity[data-live-activity-turn="true"][data-live-owned="true"]');
+                  const threadSessionSummary = document.querySelector("#thread-session-summary");
+                  const activeSessionRow = document.querySelector("#active-session-row");
+                  const selectedCard = document.querySelector('.conversation-card[data-selected="true"]');
+                  const selectedCardLiveOwnerRow = selectedCard ? selectedCard.querySelector('[data-conversation-live-owner-row]') : null;
+                  const selectedCardLivePhase = selectedCard ? selectedCard.querySelector('[data-conversation-live-phase]') : null;
+                  const sessionStrip = document.querySelector("#session-strip");
+                  const sessionStripState = document.querySelector("#session-strip-state");
+                  const composerOwnerRow = document.querySelector("#composer-owner-row");
+                  const threadScroller = document.querySelector("#thread-scroller");
+                  const inlineBlocks = document.querySelectorAll('.session-inline-block[data-selected-thread-live-block="true"], .session-inline-block[data-selected-thread-degraded-block="true"]');
+                  const visibleConversationOwnerRows = document.querySelectorAll('[data-conversation-live-owner-row]:not([hidden])');
+                  const fetchMark = Number(window.__verifyFetchMark || 0);
+                  const jobFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
+                    entry => String(entry.url || "").includes("/api/jobs/")
+                  );
+                  const goalsFetches = (window.__verifyFetchLog || []).slice(fetchMark).filter(
+                    entry => String(entry.url || "").includes(`/api/apps/${appId}/goals`)
+                  );
+                  if (healthy) {
+                    recordEvidence("stale-healthy-visible", { phase: String(healthy.dataset.liveRunPhase || "") });
+                  }
+                  if (
+                    degraded &&
+                    degraded.dataset.liveReason === "append-frame-parse-failed" &&
+                    !healthy
+                  ) {
+                    recordEvidence("malformed-degraded-visible", {
+                      reason: String(degraded.dataset.liveReason || ""),
+                      transport: String(degraded.dataset.liveTransport || ""),
+                    });
+                  }
+                  const evidence = Array.isArray(window.__verifyOrderedEvidence) ? window.__verifyOrderedEvidence : [];
+                  const malformedIndex = evidence.findIndex(item => item && item.kind === "malformed-append-injected");
+                  const degradedIndex = evidence.findIndex(item => item && item.kind === "malformed-degraded-visible");
+                  const pollIndex = evidence.findIndex(item => item && item.kind === "poll-recovery-fetch");
+                  const staleHealthyIndex = evidence.findIndex(item => item && item.kind === "stale-healthy-visible");
+                  return Boolean(
+                    window.__verifyMalformedAppendInjected === true &&
+                    window.__verifyMalformedAppendReason === "append-frame-parse-failed" &&
+                    malformedIndex === 0 &&
+                    degradedIndex === 1 &&
+                    (pollIndex === -1 || pollIndex > degradedIndex) &&
+                    (staleHealthyIndex === -1 || staleHealthyIndex > degradedIndex) &&
+                    degraded &&
+                    !healthy &&
+                    degraded.dataset.liveReason === "append-frame-parse-failed" &&
+                    degraded.dataset.liveOwned === "false" &&
+                    degraded.dataset.liveTransportOwned === "false" &&
+                    degraded.dataset.liveRunPhase === "POLLING" &&
+                    degraded.dataset.liveTransport === "POLLING" &&
+                    threadSessionSummary &&
+                    threadSessionSummary.dataset.selectedSessionState === "degraded" &&
+                    threadSessionSummary.dataset.selectedSessionOwned === "false" &&
+                    threadSessionSummary.dataset.selectedSessionTransport === "POLLING" &&
+                    threadSessionSummary.dataset.selectedSessionReason === "append-frame-parse-failed" &&
+                    threadSessionSummary.dataset.selectedSessionPhase === "POLLING" &&
+                    activeSessionRow &&
+                    activeSessionRow.hidden &&
+                    activeSessionRow.dataset.activeSessionOwned === "false" &&
+                    selectedCard &&
+                    selectedCard.dataset.selectedSessionState === "degraded" &&
+                    selectedCard.dataset.selectedSessionOwned === "false" &&
+                    selectedCard.dataset.selectedSessionTransport === "POLLING" &&
+                    selectedCard.dataset.selectedSessionReason === "append-frame-parse-failed" &&
+                    selectedCard.dataset.selectedSessionPhase === "POLLING" &&
+                    selectedCardLiveOwnerRow &&
+                    selectedCardLiveOwnerRow.hidden &&
+                    selectedCardLivePhase &&
+                    selectedCardLivePhase.hidden &&
+                    visibleConversationOwnerRows.length === 0 &&
+                    sessionStrip &&
+                    sessionStrip.dataset.selectedSessionState === "degraded" &&
+                    sessionStrip.dataset.selectedSessionOwned === "false" &&
+                    sessionStrip.dataset.selectedSessionTransport === "POLLING" &&
+                    sessionStrip.dataset.selectedSessionReason === "append-frame-parse-failed" &&
+                    sessionStrip.dataset.selectedSessionPhase === "POLLING" &&
+                    sessionStrip.dataset.composerTransportOwned === "false" &&
+                    sessionStripState &&
+                    sessionStripState.dataset.sessionStripRole === "degraded" &&
+                    composerOwnerRow &&
+                    composerOwnerRow.hidden &&
+                    threadScroller &&
+                    threadScroller.dataset.selectedSessionState === "degraded" &&
+                    threadScroller.dataset.selectedSessionOwned === "false" &&
+                    threadScroller.dataset.selectedSessionTransport === "POLLING" &&
+                    threadScroller.dataset.selectedSessionReason === "append-frame-parse-failed" &&
+                    threadScroller.dataset.selectedSessionPhase === "POLLING" &&
+                    threadScroller.dataset.sessionOwner !== "selected-thread" &&
+                    inlineBlocks.length === 0 &&
+                    jobFetches.length === 0 &&
+                    goalsFetches.length === 0
+                  );
+                }""",
+                [app_id, conversation_id],
+                timeout=30000,
+            )
+            malformed_append_snapshot = page.evaluate(browser_snapshot_script())
+            malformed_evidence = page.evaluate("() => window.__verifyOrderedEvidence || []")
+            page.evaluate("() => { window.__verifyMalformedScenarioActive = false; }")
 
             page.click("#secondary-panel-toggle")
             page.wait_for_function(
@@ -1362,6 +1515,8 @@ def assert_browser_runtime_surface(
             cancelled_switch_snapshot = page.evaluate(browser_snapshot_script())
             return {
                 "healthy": healthy_snapshot,
+                "malformed_append": malformed_append_snapshot,
+                "malformed_evidence": malformed_evidence,
                 "resume": resume_snapshot,
                 "degraded": degraded_snapshot,
                 "switch": switch_snapshot,

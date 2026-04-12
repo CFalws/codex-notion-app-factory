@@ -1,5 +1,11 @@
 # Factory Runtime Implementation Plan
 
+## Iteration 318
+
+- Re-land the malformed selected-thread append downgrade baseline if this proposal branch is behind the accepted lane.
+- Add one store-level selected-session snapshot helper and reuse it across the header summary, selected row mirror, and composer dock.
+- Tighten the deployed malformed-append browser assertions around that unified snapshot and its ordered degraded transition evidence.
+
 ## Iteration 312
 
 Tighten static and deployed verification so provisional selected-thread attach or resume is explicitly proven as a session-owned no-poll lane.

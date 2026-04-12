@@ -6,6 +6,7 @@ import {
   deriveSelectedThreadLiveAutonomy,
   deriveSelectedThreadPhaseProgression,
   deriveSelectedThreadSessionAuthorityModel,
+  deriveSelectedThreadSessionSnapshot,
   deriveSelectedThreadSessionSurfaceModel,
   deriveSelectedThreadShellPhaseLabel,
   deriveSelectedThreadSessionStatus,
@@ -761,6 +762,7 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   const authority = deriveSelectedThreadSessionAuthorityModel(currentState, conversation, liveRun);
   const sessionStatus = authority.sessionStatus;
   const sessionSurface = authority.sessionSurface;
+  const sessionSnapshot = deriveSelectedThreadSessionSnapshot(currentState, conversation, liveRun);
   const timelineAuthority = selectedThreadTimelineAuthorityModel(conversation, currentState, liveRun, handoffState);
   const conversationId = String(conversation?.conversation_id || sessionStatus.conversationId || "");
   const switchingSelectedThread = Boolean(threadTransition.active && threadTransition.targetConversationId);
@@ -781,9 +783,9 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
         : authority.state === "handoff"
           ? "neutral"
           : "muted";
-  const badgeSource = String(authority.source || "none");
-  const badgePresentation = String(authority.presentation || "cleared");
-  const badgeReason = String(authority.reason || "idle");
+  const badgeSource = String(sessionSnapshot.source || authority.source || "none");
+  const badgePresentation = String(sessionSnapshot.presentation || authority.presentation || "cleared");
+  const badgeReason = String(sessionSnapshot.reason || authority.reason || "idle");
   const badgeDetail =
     authority.state === "degraded"
       ? `${healthyPhaseLabel} VIA ${String(authority.ownerLabel || "POLLING").toUpperCase()}`
@@ -817,6 +819,13 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
   dom.threadSessionSummary.dataset.threadSummaryOwned = summaryVisible && authority.owned ? "true" : "false";
   dom.threadSessionSummary.dataset.threadSummaryConversationId = summaryVisible ? conversationId : "";
   dom.threadSessionSummary.dataset.threadSummaryReason = summaryVisible ? badgeReason : "idle";
+  dom.threadSessionSummary.dataset.selectedSessionState = summaryVisible ? sessionSnapshot.state : "cleared";
+  dom.threadSessionSummary.dataset.selectedSessionPresentation = summaryVisible ? sessionSnapshot.presentation : "cleared";
+  dom.threadSessionSummary.dataset.selectedSessionOwned = summaryVisible && sessionSnapshot.owned ? "true" : "false";
+  dom.threadSessionSummary.dataset.selectedSessionTransport = summaryVisible ? sessionSnapshot.transportLabel : "SNAPSHOT";
+  dom.threadSessionSummary.dataset.selectedSessionReason = summaryVisible ? sessionSnapshot.reason : "idle";
+  dom.threadSessionSummary.dataset.selectedSessionPhase = summaryVisible ? sessionSnapshot.phaseLabel : "IDLE";
+  dom.threadSessionSummary.dataset.selectedSessionConversationId = summaryVisible ? sessionSnapshot.conversationId : "";
   dom.threadSessionSummary.dataset.liveSessionVisible = summaryVisible ? "true" : "false";
   dom.threadSessionSummary.dataset.liveSessionPresentation = summaryVisible ? badgePresentation : "cleared";
   dom.threadSessionSummary.dataset.liveSessionSource = summaryVisible ? badgeSource : "none";
@@ -2218,6 +2227,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const ownerState = composerOwnerState(currentState, conversation);
   const transportState = composerTransportState(currentState, conversation, liveRun, handoffState);
   const authority = deriveSelectedThreadSessionAuthorityModel(currentState, conversation, liveRun);
+  const sessionSnapshot = deriveSelectedThreadSessionSnapshot(currentState, conversation, liveRun);
   const sessionIndicator = selectedThreadLiveSessionIndicator(currentState, conversation, liveRun, handoffState);
   const proposalState = proposalChip(liveRun);
   const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
@@ -2398,6 +2408,13 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStrip.dataset.composerTransportSource = transportState.source;
   dom.sessionStrip.dataset.composerTransportOwned = stripLiveOwned ? "true" : "false";
   dom.sessionStrip.dataset.composerTransportReason = transportState.reason;
+  dom.sessionStrip.dataset.selectedSessionState = sessionSnapshot.state;
+  dom.sessionStrip.dataset.selectedSessionPresentation = sessionSnapshot.presentation;
+  dom.sessionStrip.dataset.selectedSessionOwned = sessionSnapshot.owned ? "true" : "false";
+  dom.sessionStrip.dataset.selectedSessionTransport = sessionSnapshot.transportLabel;
+  dom.sessionStrip.dataset.selectedSessionReason = sessionSnapshot.reason;
+  dom.sessionStrip.dataset.selectedSessionPhase = sessionSnapshot.phaseLabel;
+  dom.sessionStrip.dataset.selectedSessionConversationId = sessionSnapshot.conversationId;
   dom.sessionStrip.dataset.composerTargetConversationId = ownerState.conversationId;
   dom.sessionStrip.dataset.restoreStage = sessionStatus.restoreStage || "none";
   dom.sessionStrip.dataset.restorePath = sessionStatus.restorePath || "none";
@@ -2459,6 +2476,13 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.threadScroller.dataset.liveRunPhase = liveRun.phase;
   dom.threadScroller.dataset.liveRunSource = liveRun.source;
   dom.threadScroller.dataset.liveRunJob = liveRun.jobId || "";
+  dom.threadScroller.dataset.selectedSessionState = sessionSnapshot.state;
+  dom.threadScroller.dataset.selectedSessionPresentation = sessionSnapshot.presentation;
+  dom.threadScroller.dataset.selectedSessionOwned = sessionSnapshot.owned ? "true" : "false";
+  dom.threadScroller.dataset.selectedSessionTransport = sessionSnapshot.transportLabel;
+  dom.threadScroller.dataset.selectedSessionReason = sessionSnapshot.reason;
+  dom.threadScroller.dataset.selectedSessionPhase = sessionSnapshot.phaseLabel;
+  dom.threadScroller.dataset.selectedSessionConversationId = sessionSnapshot.conversationId;
   dom.threadScroller.dataset.sessionCollapsed = shouldCollapse ? "true" : "false";
   dom.threadScroller.dataset.restoreStage = sessionStatus.restoreStage || "none";
   dom.threadScroller.dataset.restorePath = sessionStatus.restorePath || "none";

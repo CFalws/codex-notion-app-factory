@@ -41,6 +41,7 @@ export const state = {
     resumeCursor: 0,
     reconnectAttempt: 0,
     reconnectTimerId: 0,
+    degradedReason: "",
     sessionPhase: {
       value: "UNKNOWN",
       authoritative: false,
@@ -125,6 +126,7 @@ export function deriveSelectedThreadSessionStatus(currentState, conversation = n
   const transport = String(appendStream.transport || "polling").toLowerCase();
   const renderSource = String(appendStream.lastRenderSource || "snapshot").toLowerCase();
   const streamStatus = String(appendStream.status || "offline").toLowerCase();
+  const degradedReason = String(appendStream.degradedReason || "").trim();
   const pendingStatus = String(pendingOutgoing.status || "idle");
   const phaseValue = String(sessionPhase.value || "UNKNOWN").toUpperCase();
   const phaseSource = String(sessionPhase.source || "none").toLowerCase();
@@ -209,7 +211,11 @@ export function deriveSelectedThreadSessionStatus(currentState, conversation = n
     transportState = "polling";
     transportLabel = "POLLING";
     transportTone = sessionRotationDetected ? "danger" : "warning";
-    transportReason = sessionRotationDetected ? "session-rotation" : retrying ? "retrying" : "polling-fallback";
+    transportReason = sessionRotationDetected
+      ? "session-rotation"
+      : retrying
+        ? "retrying"
+        : degradedReason || "polling-fallback";
   } else if (selectedThreadSseAuthoritative) {
     transportState = "sse";
     transportLabel = "SSE OWNER";
@@ -414,12 +420,9 @@ export function deriveSelectedThreadFollowControlModel(currentState) {
 }
 
 export function deriveSelectedThreadActiveSessionRowModel(currentState, conversation = null) {
-  const authority = deriveSelectedThreadSessionAuthorityModel(currentState, conversation);
-  const sessionStatus = authority.sessionStatus;
-  const followControl = deriveSelectedThreadFollowControlModel(currentState);
-  const phaseLabel = String(authority.phaseLabel || deriveSelectedThreadShellPhaseLabel(currentState, conversation) || "")
-    .trim()
-    .toUpperCase();
+  const sessionSnapshot = deriveSelectedThreadSessionSnapshot(currentState, conversation);
+  const authority = sessionSnapshot.authority;
+  const sessionStatus = sessionSnapshot.sessionStatus;
   const conversationTitle = sessionStatus.conversationTitle || "현재 대화";
   if (authority.state === "switching") {
     return {
@@ -445,44 +448,44 @@ export function deriveSelectedThreadActiveSessionRowModel(currentState, conversa
       visible: true,
       conversationId: String(sessionStatus.conversationId || ""),
       presentation: "handoff",
-      rowState: "handoff",
-      ownerLabel: sessionStatus.transportLabel || "SSE OWNER",
+      rowState: sessionSnapshot.rowState,
+      ownerLabel: sessionSnapshot.transportLabel || "SSE OWNER",
       stateLabel: "HANDOFF",
       followLabel: "LIVE",
       title: conversationTitle,
       meta: "selected thread · handoff · awaiting first append",
       rowOwned: true,
       canonical: true,
-      rowSource: "sse",
-      rowPhase: "HANDOFF",
+      rowSource: sessionSnapshot.rowSource,
+      rowPhase: sessionSnapshot.rowPhase,
       rowUnseenCount: 0,
       clearReason: "none",
     };
   }
   if (authority.state === "healthy") {
-    const rowState = followControl.visible ? followControl.followState : "live";
-    const followLabel = followControl.visible ? followControl.stateLabel : "LIVE";
-    const rowPhase = phaseLabel || "LIVE";
-    const rowUnseenCount = followControl.visible ? Math.max(Number(followControl.unseenCount || 0), 0) : 0;
+    const rowState = sessionSnapshot.rowState || "live";
+    const followLabel = rowState === "new" ? "NEW" : rowState === "paused" ? "PAUSED" : "LIVE";
+    const rowPhase = sessionSnapshot.rowPhase || "LIVE";
+    const rowUnseenCount = Math.max(Number(sessionSnapshot.rowUnseenCount || 0), 0);
     const meta =
-      followControl.followState === "new" && rowUnseenCount > 0
+      rowState === "new" && rowUnseenCount > 0
         ? `selected thread · ${rowPhase.toLowerCase()} · ${rowUnseenCount} new`
-        : followControl.followState === "paused"
-          ? `selected thread · ${rowPhase.toLowerCase()} · ${followControl.detailLabel}`
+        : rowState === "paused"
+          ? `selected thread · ${rowPhase.toLowerCase()} · follow paused`
           : `selected thread · ${rowPhase.toLowerCase()} · sse owner`;
     return {
       visible: true,
       conversationId: String(sessionStatus.conversationId || ""),
       presentation: "owned",
       rowState,
-      ownerLabel: sessionStatus.transportLabel || "SSE OWNER",
+      ownerLabel: sessionSnapshot.transportLabel || "SSE OWNER",
       stateLabel: rowPhase,
       followLabel,
       title: conversationTitle,
       meta,
       rowOwned: true,
       canonical: true,
-      rowSource: "sse",
+      rowSource: sessionSnapshot.rowSource,
       rowPhase,
       rowUnseenCount,
       clearReason: "none",
@@ -1093,6 +1096,58 @@ export function deriveSelectedThreadSessionAuthorityModel(currentState, conversa
     summaryVisible: visible,
     badgeVisible: false,
     healthyPromotion,
+    sessionStatus,
+    sessionSurface,
+    sessionStrip,
+  };
+}
+
+export function deriveSelectedThreadSessionSnapshot(currentState, conversation = null, liveRun = null) {
+  const authority = deriveSelectedThreadSessionAuthorityModel(currentState, conversation, liveRun);
+  const sessionStatus = authority.sessionStatus;
+  const sessionSurface = authority.sessionSurface;
+  const sessionStrip = authority.sessionStrip;
+  const followControl = deriveSelectedThreadFollowControlModel(currentState);
+  const phaseLabel = String(
+    authority.phaseLabel || deriveSelectedThreadShellPhaseLabel(currentState, conversation) || sessionSurface.phaseLabel || "IDLE",
+  )
+    .trim()
+    .toUpperCase();
+  const transportLabel = String(
+    authority.ownerLabel || sessionStatus.transportLabel || sessionStrip.stateLabel || "SNAPSHOT",
+  )
+    .trim()
+    .toUpperCase();
+  const owned = Boolean(authority.owned && authority.state === "healthy");
+  const handoff = authority.state === "handoff";
+  let rowState = "idle";
+  let rowUnseenCount = 0;
+  if (handoff) {
+    rowState = "handoff";
+  } else if (owned) {
+    rowState = followControl.visible ? followControl.followState : "live";
+    rowUnseenCount = followControl.visible ? Math.max(Number(followControl.unseenCount || 0), 0) : 0;
+  }
+  return {
+    conversationId: String(sessionStatus.conversationId || conversation?.conversation_id || ""),
+    state: String(authority.state || "cleared"),
+    presentation: String(authority.presentation || "cleared"),
+    visible: Boolean(authority.visible),
+    owned,
+    authoritative: Boolean(authority.authoritative),
+    transportLabel,
+    transportKey: String(sessionStatus.transportState || sessionStatus.transport || "snapshot"),
+    transportOwned: owned,
+    reason: String(authority.reason || sessionStatus.transportReason || "idle"),
+    source: String(authority.source || sessionSurface.source || sessionStatus.transport || "none"),
+    phaseLabel: phaseLabel || "IDLE",
+    handoff,
+    rowState,
+    rowOwned: owned || handoff,
+    rowSource: owned || handoff ? "sse" : "none",
+    rowPhase: owned || handoff ? phaseLabel || "LIVE" : "IDLE",
+    rowUnseenCount,
+    authority,
     sessionStatus,
     sessionSurface,
     sessionStrip,

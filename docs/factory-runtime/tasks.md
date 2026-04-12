@@ -1,5 +1,13 @@
 # Factory Runtime Tasks
 
+## Iteration 318
+
+- [x] Restore the missing malformed selected-thread append downgrade seam in this proposal branch so the unified snapshot reflects a real degraded transition.
+- [x] Introduce one unified selected-thread session snapshot in store state derivation.
+- [x] Make the header summary, selected rail row, and bottom composer publish that same selected-session snapshot through stable DOM datasets.
+- [x] Extend the deployed malformed-append verifier path to assert ordered downgrade through the unified snapshot instead of mixed per-surface inference.
+- Iteration 318: converge malformed selected-thread downgrade proof on one authoritative selected-session snapshot seam.
+
 ## Iteration 312
 
 - [x] Keep the iteration bounded to deployed-browser verification and static proof of the existing provisional selected-thread ownership contract.
