@@ -1,10 +1,10 @@
 # Factory Runtime Tasks
 
-## Iteration 241
+## Iteration 242
 
-- [x] Keep the change bounded to selected-thread footer follow ownership in `index.html`, `ops-dom.js`, `app.js`, `ops-render.js`, `styles.css`, and verifier artifacts.
+- [x] Keep the change bounded to left-rail active-session row ownership attribution in `ops-store.js` and verifier artifacts.
 - [x] Preserve the existing selected-thread `session_status` plus SSE authority path unchanged.
-- [x] Remove the separate floating jump-to-latest surface from the selected-thread workspace.
-- [x] Render NEW or PAUSED follow state and unseen-count metadata only through the footer-dock action affordance.
-- [x] Preserve immediate clear or downgrade behavior on switch, terminal, reconnect, and polling fallback paths.
-- [x] Align proposal artifacts with the footer-dock-only selected-thread follow contract.
+- [x] Mark healthy selected-thread active-session visibility as canonical and owned.
+- [x] Preserve switching, handoff, degraded, and idle clear behavior unchanged.
+- [x] Keep non-selected rows snapshot-only.
+- [x] Align proposal artifacts with the canonical left-rail active-session mirror contract.

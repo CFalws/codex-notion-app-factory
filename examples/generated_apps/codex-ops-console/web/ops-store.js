@@ -404,35 +404,6 @@ export function deriveSelectedThreadActiveSessionRowModel(currentState, conversa
       followLabel,
       title: conversationTitle,
       meta,
-      rowOwned: false,
-      canonical: false,
-      rowSource: "sse",
-      rowPhase,
-      rowUnseenCount,
-      clearReason: "none",
-    };
-  }
-  if (sessionStatus.liveOwned) {
-    const rowState = followControl.visible ? followControl.followState : "live";
-    const followLabel = followControl.visible ? followControl.stateLabel : "LIVE";
-    const rowPhase = phaseLabel || "LIVE";
-    const rowUnseenCount = followControl.visible ? Math.max(Number(followControl.unseenCount || 0), 0) : 0;
-    const meta =
-      followControl.followState === "new" && rowUnseenCount > 0
-        ? `selected thread · ${rowPhase.toLowerCase()} · ${rowUnseenCount} new`
-        : followControl.followState === "paused"
-          ? `selected thread · ${rowPhase.toLowerCase()} · ${followControl.detailLabel}`
-          : `selected thread · ${rowPhase.toLowerCase()} · sse owner`;
-    return {
-      visible: true,
-      conversationId: String(sessionStatus.conversationId || ""),
-      presentation: "owned",
-      rowState,
-      ownerLabel: sessionStatus.transportLabel || "SSE OWNER",
-      stateLabel: rowPhase,
-      followLabel,
-      title: conversationTitle,
-      meta,
       rowOwned: true,
       canonical: true,
       rowSource: "sse",

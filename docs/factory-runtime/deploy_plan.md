@@ -1,12 +1,12 @@
 # Factory Runtime Deploy Plan
 
-## Iteration 241
+## Iteration 242
 
-This deploy plan validates that the footer dock becomes the sole selected-thread follow owner while the existing session-status bootstrap plus SSE authority path remains unchanged.
+This deploy plan validates that the left-rail active-session row is an explicit canonical mirror of the selected-thread session-status plus SSE path.
 
 ## Deployment Impact
 
-This iteration keeps transport and authority behavior intact and removes the detached follow surface. The gate should pass only when healthy selected-thread follow state appears only in the footer dock, the floating jump-to-latest control is absent, and degraded or switched paths clear footer follow ownership immediately.
+This iteration keeps transport and authority behavior intact and corrects the left-rail ownership contract. The gate should pass only when the sticky active-session row is visibly canonical and owned on the healthy selected-thread SSE path, while degraded or switched paths clear that row immediately and non-selected rows remain snapshot-only.
 
 ## Rollout Notes
 
@@ -14,9 +14,9 @@ This iteration keeps transport and authority behavior intact and removes the det
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
 3. Open the operator console on desktop and phone widths with at least one selected-thread conversation.
 4. Open a selected-thread conversation and trigger healthy SSE-owned progress, reconnect downgrade, polling fallback, terminal resolution, and a switch or restore path on desktop and phone widths.
-5. Confirm the floating jump-to-latest control is absent on desktop and phone widths.
-6. Confirm NEW or PAUSED follow state and unseen-count metadata appear only on the footer-dock action affordance.
-7. Confirm the transcript inline session block remains the only in-timeline live progress surface.
-8. Confirm the unified header capsule, footer dock, and left-rail cues remain coherent on the same selected-thread authority path.
-9. Confirm thread switch, reconnect downgrade, polling fallback, terminal resolution, and deselection visibly downgrade or clear footer follow ownership with no stale retention.
-10. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible path passes only when the selected-thread workspace remains conversation-first, single-owner, compact, and free of detached follow controls.
+5. Confirm the sticky active-session row is visible for the healthy selected thread and reports owned plus canonical state from the selected-thread SSE path.
+6. Confirm the transcript inline session block remains the only in-timeline live progress surface.
+7. Confirm the unified header capsule, footer dock, and left-rail cues remain coherent on the same selected-thread authority path.
+8. Confirm non-selected rows remain snapshot-only and do not appear live-owned.
+9. Confirm thread switch, reconnect downgrade, polling fallback, terminal resolution, and deselection visibly downgrade or clear active-session ownership with no stale retention.
+10. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible path passes only when the selected-thread workspace remains conversation-first, single-owner, and the active-session row is canonical only on the intended selected-thread SSE path.

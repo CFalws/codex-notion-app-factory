@@ -617,8 +617,8 @@ def assert_browser_runtime_surface(
                     threadPhase.dataset.centerTimelinePresentation === "healthy" &&
                     activeSessionRow &&
                     !activeSessionRow.hidden &&
-                    activeSessionRow.dataset.activeSessionOwned === "false" &&
-                    activeSessionRow.dataset.activeSessionCanonical === "false" &&
+                    activeSessionRow.dataset.activeSessionOwned === "true" &&
+                    activeSessionRow.dataset.activeSessionCanonical === "true" &&
                     activeSessionRow.dataset.activeSessionSource === "sse" &&
                     activeSessionRow.dataset.activeSessionConversationId === conversationId &&
                     activeSessionRow.dataset.activeSessionPhase === inlineBlock.dataset.liveBlockPhase &&

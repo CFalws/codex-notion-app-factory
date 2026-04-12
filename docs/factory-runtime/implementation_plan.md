@@ -1,12 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 241
+## Iteration 242
 
-Absorb selected-thread NEW or PAUSED follow affordance into the footer dock without changing authority.
+Make the left-rail active-session row an explicit canonical mirror of selected-thread session-status plus SSE authority.
 
-1. Keep the change bounded to footer-dock follow presentation, DOM wiring, and verifier artifacts.
+1. Keep the change bounded to `deriveSelectedThreadActiveSessionRowModel` and matching verifier expectations.
 2. Preserve the existing selected-thread `session_status` plus SSE authority path.
-3. Remove the separate floating jump-to-latest surface.
-4. Render NEW or PAUSED follow state and unseen-count metadata only through the footer-dock action affordance.
-5. Preserve immediate clear or downgrade behavior on switch, terminal, reconnect, and polling fallback paths.
-6. Align proposal artifacts with the single-owner footer follow contract.
+3. Mark healthy selected-thread active-session visibility as canonical and owned when it is sourced from the selected-thread SSE path.
+4. Keep switching, handoff, degraded, and idle clear behavior unchanged.
+5. Keep non-selected rows snapshot-only.
+6. Align proposal artifacts with the canonical left-rail active-session mirror contract.
