@@ -729,12 +729,12 @@ function renderSessionSummary(dom, currentState, conversation, liveRun, handoffS
         : authority.state === "handoff"
           ? `${healthyPhaseLabel} VIA HANDOFF`
           : "SESSION IDLE";
-  const summaryVisible = authority.summaryVisible;
   const healthyTranscriptAuthority =
     authority.state === "healthy" &&
     Boolean(conversationId) &&
     timelineAuthority.visible &&
     timelineAuthority.presentation === "healthy";
+  const summaryVisible = authority.summaryVisible && !healthyTranscriptAuthority;
   const summaryScope = "SELECTED";
   const summaryPath = String(authority.pathLabel || sessionSurface.pathVerdict || "EXPECTED").toUpperCase();
   const summaryOwner = String(authority.ownerLabel || sessionStatus.transportLabel || "SSE OWNER").toUpperCase();
