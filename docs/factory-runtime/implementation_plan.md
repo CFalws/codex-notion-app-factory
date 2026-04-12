@@ -1,5 +1,12 @@
 # Factory Runtime Implementation Plan
 
+## Iteration 323
+
+- Preserve the existing selected-thread transport and selected-session snapshot authority model.
+- Keep restore, handoff, switching, and snapshot detail rendering unchanged.
+- Suppress the secondary session-facts panel for selected-thread healthy and degraded paths so it no longer competes with the center timeline and footer dock.
+- Tighten static and deployed verification so selected-thread healthy or degraded success fails if secondary-panel session facts remain visible.
+
 ## Iteration 322
 
 - Preserve the existing selected-thread transport and selected-session snapshot authority model.

@@ -1,5 +1,13 @@
 # Factory Runtime Tasks
 
+## Iteration 323
+
+- [x] Keep transport and selected-session ownership unchanged while removing the remaining selected-thread secondary-panel session-facts duplication.
+- [x] Suppress the secondary session-facts drawer for selected-thread healthy and degraded paths so the center timeline and footer dock stay authoritative.
+- [x] Preserve restore, handoff, switching, and snapshot detail on their existing explicit paths.
+- [x] Tighten static and deployed verification so selected-thread healthy or degraded success fails if secondary-panel session facts remain visible.
+- Iteration 323: suppress selected-thread secondary-panel session facts so the center timeline plus footer dock remain the only live-session status surfaces on healthy and degraded paths.
+
 ## Iteration 322
 
 - [x] Keep transport and selected-session ownership unchanged while removing the last healthy header status surface.

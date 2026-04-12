@@ -545,6 +545,7 @@ def main() -> int:
     require(render_js, "autonomyDetailMeta", label="secondary panel autonomy detail meta wiring")
     require(render_js, "renderSecondaryPanelSessionFacts", label="secondary panel session facts helper")
     require(render_js, "secondaryPanelSessionFactsModel", label="secondary panel session facts model")
+    require(render_js, 'presentation: "suppressed"', label="secondary panel selected-thread healthy or degraded suppression")
     require(render_js, 'dom.secondarySessionFacts.dataset.secondaryFactsPresentation = facts.presentation;', label="secondary panel facts presentation dataset")
     require(render_js, 'dom.secondarySessionFacts.dataset.secondaryFactsOwned = facts.owned ? "true" : "false";', label="secondary panel facts ownership dataset")
     require(render_js, 'dom.secondarySessionFacts.dataset.secondaryFactsTransport = facts.transport;', label="secondary panel facts transport dataset")

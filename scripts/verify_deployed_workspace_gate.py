@@ -1143,10 +1143,10 @@ def assert_browser_runtime_surface(
                     ["RECONNECT", "POLLING"].includes(degraded.dataset.liveTransport || "") &&
                     degraded.dataset.liveTransportOwned === "false" &&
                     secondarySessionFacts &&
-                    secondarySessionFacts.dataset.secondaryFactsPresentation === "degraded" &&
+                    secondarySessionFacts.hidden &&
+                    secondarySessionFacts.dataset.secondaryFactsPresentation === "suppressed" &&
                     secondarySessionFacts.dataset.secondaryFactsOwned === "false" &&
-                    secondarySessionFacts.dataset.secondaryFactsTransport === degraded.dataset.liveTransport &&
-                    secondarySessionFacts.dataset.secondaryFactsPhase === phase &&
+                    secondarySessionFacts.dataset.secondaryFactsTransport === "SUPPRESSED" &&
                     threadSessionSummary &&
                     !threadSessionSummary.hidden &&
                     threadSessionSummary.dataset.threadSummaryVisible === "true" &&

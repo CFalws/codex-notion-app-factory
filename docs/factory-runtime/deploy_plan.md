@@ -1,5 +1,10 @@
 # Factory Runtime Deploy Plan
 
+## Iteration 323
+
+- Run the deployed healthy and degraded selected-thread scenarios and confirm the center timeline plus footer dock remain the only visible live-session status surfaces.
+- Treat deployment readiness as blocked if the secondary session-facts drawer becomes visible or authoritative on selected-thread healthy or degraded paths.
+
 ## Iteration 322
 
 - Run the deployed healthy selected-thread scenario and confirm the header shows only conversation identity, with the inline session timeline block and footer dock carrying healthy live phase visibility.

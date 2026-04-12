@@ -236,20 +236,19 @@ function secondaryPanelSessionFactsModel(currentState, conversation, liveRun, ha
   }
 
   if (authority.state === "degraded") {
-    const degradedTransport = String(authority.ownerLabel || sessionStatus.transportLabel || "POLLING").toUpperCase();
     return {
-      presentation: "degraded",
+      presentation: "suppressed",
       conversationId: String(sessionStatus.conversationId || ""),
       title,
       owned: false,
-      transport: degradedTransport,
-      phase: String(sessionSurface.phaseLabel || degradedTransport),
-      path: "DEGRADED",
-      verifier: "PENDING",
-      blocker: "NONE",
+      transport: "SUPPRESSED",
+      phase: String(sessionSurface.phaseLabel || "POLLING"),
+      path: String(sessionSurface.pathVerdict || "DEGRADED"),
+      verifier: String(sessionSurface.verifierAcceptability || "PENDING"),
+      blocker: String(sessionSurface.blockerReason || "NONE"),
       follow: "IDLE",
-      detail: joinSessionChromeTokens("selected thread", degradedTransport.toLowerCase(), sessionStatus.transportReason || "fallback"),
-      meta: joinSessionChromeTokens("selected thread", degradedTransport.toLowerCase(), "detail only"),
+      detail: "selected thread detail drawer",
+      meta: "selected thread detail drawer",
     };
   }
 

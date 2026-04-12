@@ -1,5 +1,11 @@
 # Factory Runtime Spec
 
+## Iteration 323
+
+- Selected-thread healthy and degraded session facts must not render as a visible secondary-panel authority path when the center timeline and footer dock already expose the current session state.
+- The secondary session-facts drawer may stay available for restore, handoff, switching, and snapshot-only detail, but it must stay suppressed on the selected-thread healthy and degraded paths.
+- Deployed verification must fail if secondary-panel session facts appear before or alongside the main selected-thread live-session surfaces on those paths.
+
 ## Iteration 322
 
 - The healthy selected-thread center pane must not show a separate header phase badge when the selected-session snapshot is already rendering authoritative live phase visibility in the inline session timeline block and footer dock.
