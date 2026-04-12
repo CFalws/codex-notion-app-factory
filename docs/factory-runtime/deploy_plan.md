@@ -1,5 +1,11 @@
 # Factory Runtime Deploy Plan
 
+## Iteration 335
+
+- Run the deployed healthy selected-thread SSE scenario and confirm job phase, job meta, and apply readiness datasets are owned by `selected-thread-sse` with `session-status-sse` provenance.
+- Run degraded or non-selected fallback scenarios and confirm polling remains explicitly labeled as fallback authority instead of silently appearing healthy.
+- Treat deployment readiness as blocked if healthy selected-thread proposal or apply visibility still reports polling-owned authority or if degraded fallback loses its explicit polling label.
+
 ## Iteration 334
 
 - Run the deployed healthy, degraded, restore, reconnect, polling fallback, and switching selected-thread scenarios and confirm the rail shows exactly one explicit cue per path.

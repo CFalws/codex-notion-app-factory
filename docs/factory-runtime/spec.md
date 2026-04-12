@@ -1,5 +1,11 @@
 # Factory Runtime Spec
 
+## Iteration 335
+
+- Healthy selected-thread proposal-ready, verifier, and apply cues must remain owned by the existing session-scoped SSE path instead of legacy job polling.
+- The selected-thread timeline, selected rail row, and bottom composer apply affordance must agree on one healthy selected-thread authority path, with explicit degraded fallback labeling when SSE ownership is lost.
+- Deployed verification must fail if healthy selected-thread proposal or apply visibility is still attributable to polling-owned state instead of the intended session-status SSE path.
+
 ## Iteration 334
 
 - The selected conversation row must become the sole healthy live-owner rail surface on the selected-thread SSE-owned path.

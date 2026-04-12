@@ -719,6 +719,9 @@ def assert_browser_runtime_surface(
                   const autonomyDetail = document.querySelector("#autonomy-detail");
                   const statusOutput = document.querySelector("#status-output");
                   const executionStatusCard = statusOutput ? statusOutput.closest(".inspector-card") : null;
+                  const jobPhase = document.querySelector("#job-phase");
+                  const jobMeta = document.querySelector("#job-meta");
+                  const applyProposalButton = document.querySelector("#apply-proposal");
                   const sessionEvents = document.querySelectorAll('.timeline-item.session-event[data-append-source="sse"]');
                   const milestoneLane = inlineBlock ? inlineBlock.querySelector('[data-live-milestones="true"]') : null;
                   const fetchMark = Number(window.__verifyFetchMark || 0);
@@ -903,6 +906,18 @@ def assert_browser_runtime_surface(
                     statusOutput.dataset.surface === "suppressed" &&
                     statusOutput.dataset.centerTimelineAuthority === "true" &&
                     statusOutput.dataset.centerTimelinePresentation === "healthy" &&
+                    jobPhase &&
+                    jobPhase.dataset.statusAuthority === "selected-thread-sse" &&
+                    jobPhase.dataset.statusAuthoritySource === "session-status-sse" &&
+                    jobPhase.dataset.statusAuthorityConversationId === conversationId &&
+                    jobMeta &&
+                    jobMeta.dataset.statusAuthority === "selected-thread-sse" &&
+                    jobMeta.dataset.statusAuthoritySource === "session-status-sse" &&
+                    jobMeta.dataset.statusAuthorityConversationId === conversationId &&
+                    applyProposalButton &&
+                    applyProposalButton.dataset.proposalAuthority === "selected-thread-sse" &&
+                    applyProposalButton.dataset.proposalAuthoritySource === "session-status-sse" &&
+                    applyProposalButton.dataset.proposalAuthorityConversationId === conversationId &&
                     sessionEvents.length === 0 &&
                     !document.querySelector("#jump-to-latest") &&
                     jobFetches.length === 0 &&
@@ -1948,9 +1963,13 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.jobPhase.dataset.surface = suppressed ? "suppressed" : "secondary-detail";', label="job phase surface dataset")
     require(render_js, 'dom.jobPhase.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="job phase center-timeline authority dataset")
     require(render_js, 'dom.jobPhase.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="job phase center-timeline presentation dataset")
+    require(render_js, 'dom.jobPhase.dataset.statusAuthority = statusAuthority;', label="job phase authority dataset")
+    require(render_js, 'dom.jobPhase.dataset.statusAuthoritySource = statusAuthoritySource;', label="job phase authority source dataset")
     require(render_js, 'dom.jobMeta.dataset.surface = suppressed ? "suppressed" : "secondary-detail";', label="job meta surface dataset")
     require(render_js, 'dom.jobMeta.dataset.centerTimelineAuthority = timelineAuthority.visible ? "true" : "false";', label="job meta center-timeline authority dataset")
     require(render_js, 'dom.jobMeta.dataset.centerTimelinePresentation = timelineAuthority.presentation;', label="job meta center-timeline presentation dataset")
+    require(render_js, 'dom.jobMeta.dataset.statusAuthority = statusAuthority;', label="job meta authority dataset")
+    require(render_js, 'dom.jobMeta.dataset.statusAuthoritySource = statusAuthoritySource;', label="job meta authority source dataset")
     require(render_js, "if (inlineState.visible) {", label="composer strip suppression guard")
     require(render_js, "renderInlineSessionBlock", label="inline session block helper")
     require(render_js, "const provisionalVisible = sessionStatus.presentation === \"provisional\";", label="inline provisional visibility helper")
@@ -2119,10 +2138,20 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "const phase = selectedThreadSseOwned", label="job activity phase ownership switch")
     require(render_js, 'String(liveRun.phase || "IDLE").toUpperCase()', label="job activity SSE phase label")
     require(render_js, 'phaseLabel(jobPayload?.status || latestEvent?.status || "", latestEvent?.type || "")', label="job activity polling fallback phase label")
+    require(render_js, 'const statusAuthority = selectedThreadSseOwned ? "selected-thread-sse" : "polling-fallback";', label="job phase authority ownership switch")
+    require(render_js, 'const statusAuthoritySource = selectedThreadSseOwned', label="job phase authority source switch")
     require(render_js, "currentState.latestProposalJobId =", label="apply readiness from selected-thread live state")
     require(render_js, "const sessionStrip = deriveSelectedThreadSessionStripModel(currentState, conversation, liveRun);", label="selected-thread session strip apply authority")
     require(render_js, 'sessionStrip?.owned && (sessionStrip.proposalReady || sessionStrip.proposalStatus === "ready_to_apply")', label="session-strip proposal readiness apply guard")
-    require(render_js, "updateProposalButton(dom, currentState.latestProposalJobId);", label="apply button updated from selected-thread live state")
+    require(render_js, 'authority: "selected-thread-sse",', label="apply button sse authority metadata")
+    require(render_js, 'source: "session-status-sse",', label="apply button sse source metadata")
+    require(render_js, 'dom.applyProposalButton.dataset.proposalAuthority = String(metadata.authority || "none");', label="apply button authority dataset")
+    require(render_js, 'dom.applyProposalButton.dataset.proposalAuthoritySource = String(metadata.source || "none");', label="apply button authority source dataset")
+    require(render_js, 'dom.applyProposalButton.dataset.proposalAuthorityPhase = String(metadata.phase || "IDLE").toUpperCase();', label="apply button authority phase dataset")
+    require(render_js, 'dom.applyProposalButton.dataset.proposalAuthorityOwned = metadata.owned ? "true" : "false";', label="apply button authority owned dataset")
+    require(render_js, "updateProposalButton(dom, currentState.latestProposalJobId, {", label="apply button updated from selected-thread live state")
+    require(jobs_js, 'authority: "polling-fallback",', label="polling fallback apply authority metadata")
+    require(jobs_js, 'source: "job-poll",', label="polling fallback apply source metadata")
     require(render_js, "dataset.liveSessionState", label="live-session state dataset")
     require(render_js, "dataset.liveSessionSource", label="live-session source dataset")
     require(render_js, "dataset.liveSessionReason", label="live-session reason dataset")

@@ -33,7 +33,13 @@ export function createJobController(deps) {
     setStatus(dom, describeJob(payload));
     setJobMeta(dom, `${payload.status.toUpperCase()} · ${payload.job_id}`);
     state.latestProposalJobId = payload.proposal ? payload.proposal.job_id : "";
-    updateProposalButton(dom, state.latestProposalJobId);
+    updateProposalButton(dom, state.latestProposalJobId, {
+      authority: "polling-fallback",
+      source: "job-poll",
+      conversationId: String(state.currentConversationId || ""),
+      phase: String(payload.status || "IDLE").toUpperCase(),
+      owned: false,
+    });
 
     if (payload.decision_summary) {
       renderLearningSummary(

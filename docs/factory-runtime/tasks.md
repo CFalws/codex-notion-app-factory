@@ -1,5 +1,13 @@
 # Factory Runtime Tasks
 
+## Iteration 335
+
+- [x] Keep transport, switching, rail ownership, and composer layout unchanged.
+- [x] Mark healthy selected-thread job phase and apply readiness as explicit selected-thread SSE authority instead of polling-owned fallback.
+- [x] Preserve polling as a degraded or non-selected fallback path with explicit polling authority markers.
+- [x] Tighten static and deployed verification so healthy selected-thread proposal or apply visibility fails if it is still polling-owned.
+- Iteration 335: make healthy selected-thread proposal and apply authority machine-readable as SSE-owned while keeping polling explicit as fallback only.
+
 ## Iteration 334
 
 - [x] Keep transport, selected-session authority, switch continuity, center conversation shell, and bottom-fixed composer unchanged.

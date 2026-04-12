@@ -1,5 +1,12 @@
 # Factory Runtime Implementation Plan
 
+## Iteration 335
+
+- Keep transport, switching, rail ownership, center-pane rendering, and fixed composer layout unchanged.
+- Leave polling available only as degraded or non-selected fallback authority and make healthy selected-thread proposal or apply ownership explicit through the existing session-status SSE path.
+- Mark job phase, job meta, and apply readiness with machine-readable authority datasets so verification can distinguish healthy selected-thread SSE ownership from polling fallback.
+- Tighten static and deployed verification so healthy selected-thread success fails if proposal, verifier, or apply visibility is still polling-owned.
+
 ## Iteration 334
 
 - Keep selected-session authority, switch continuity, center-pane rendering, and fixed composer behavior unchanged.

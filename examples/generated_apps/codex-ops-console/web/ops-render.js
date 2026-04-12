@@ -2628,6 +2628,23 @@ export function renderJobActivity(dom, conversation, currentJobId, jobPayload = 
     : phaseLabel(jobPayload?.status || latestEvent?.status || "", latestEvent?.type || "");
   dom.jobPhase.textContent = phase;
   dom.jobPhase.className = `activity-phase ${phase.toLowerCase()}`;
+  const statusAuthority = selectedThreadSseOwned ? "selected-thread-sse" : "polling-fallback";
+  const statusAuthoritySource = selectedThreadSseOwned
+    ? "session-status-sse"
+    : jobPayload
+      ? "job-poll"
+      : "snapshot";
+  const statusAuthorityConversationId = selectedThreadSseOwned
+    ? conversationId
+    : String(currentState?.currentConversationId || "");
+  dom.jobPhase.dataset.statusAuthority = statusAuthority;
+  dom.jobPhase.dataset.statusAuthoritySource = statusAuthoritySource;
+  dom.jobPhase.dataset.statusAuthorityConversationId = statusAuthorityConversationId;
+  dom.jobPhase.dataset.statusAuthorityPhase = phase;
+  dom.jobMeta.dataset.statusAuthority = statusAuthority;
+  dom.jobMeta.dataset.statusAuthoritySource = statusAuthoritySource;
+  dom.jobMeta.dataset.statusAuthorityConversationId = statusAuthorityConversationId;
+  dom.jobMeta.dataset.statusAuthorityPhase = phase;
 
   if (currentState && dom.applyProposalButton && selectedThreadSseOwned) {
     const sessionStrip = deriveSelectedThreadSessionStripModel(currentState, conversation, liveRun);
@@ -2636,8 +2653,14 @@ export function renderJobActivity(dom, conversation, currentJobId, jobPayload = 
         ? String(sessionStrip.proposalJobId || sessionStrip.latestJobId || liveRun.jobId || "")
         : liveRun.state === "proposal-ready"
           ? String(liveRun.jobId || conversation?.latest_job_id || "")
-        : "";
-    updateProposalButton(dom, currentState.latestProposalJobId);
+          : "";
+    updateProposalButton(dom, currentState.latestProposalJobId, {
+      authority: "selected-thread-sse",
+      source: "session-status-sse",
+      conversationId,
+      phase,
+      owned: Boolean(sessionStrip?.owned),
+    });
   }
 
   if (!recentEvents.length) {
@@ -2687,8 +2710,13 @@ export function updateSelectedAppCard(dom, app) {
   }
 }
 
-export function updateProposalButton(dom, latestProposalJobId) {
+export function updateProposalButton(dom, latestProposalJobId, metadata = {}) {
   dom.applyProposalButton.disabled = !latestProposalJobId;
+  dom.applyProposalButton.dataset.proposalAuthority = String(metadata.authority || "none");
+  dom.applyProposalButton.dataset.proposalAuthoritySource = String(metadata.source || "none");
+  dom.applyProposalButton.dataset.proposalAuthorityConversationId = String(metadata.conversationId || "");
+  dom.applyProposalButton.dataset.proposalAuthorityPhase = String(metadata.phase || "IDLE").toUpperCase();
+  dom.applyProposalButton.dataset.proposalAuthorityOwned = metadata.owned ? "true" : "false";
 }
 
 export function describeJob(payload) {
