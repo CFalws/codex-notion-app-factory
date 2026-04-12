@@ -1,11 +1,10 @@
 # Factory Runtime Tasks
 
-## Iteration 216
+## Iteration 225
 
-- [x] Keep the change bounded to the selected-thread restore or resume path and existing restore placeholder behavior.
-- [x] Reuse the existing selected-thread session authority, restore transition, active-session row, and composer dock datasets.
-- [x] Keep the center conversation shell and bottom-fixed composer mounted during saved-session restore or resume.
-- [x] Show exactly one compact restore or attach placeholder until authoritative SSE ownership returns.
-- [x] Clear stale live-owner treatment immediately before fallback or degraded rendering appears.
-- [x] Keep switch, degraded reconnect or polling fallback, and terminal paths on the existing clear or fail-open behavior.
-- [x] Align static checks, browser checks, and proposal artifacts with the restore or resume continuity contract.
+- [x] Keep the change bounded to the selected-thread append SSE session-status path and its existing ownership surfaces.
+- [x] Reuse the current append stream, session-status envelopes, and selected-thread ownership datasets instead of adding a second transport.
+- [x] Keep the transcript timeline as the healthy live owner while mirrored surfaces stay passive or degraded-only.
+- [x] Keep `ops-jobs` as fallback-only when the selected thread is already SSE-owned.
+- [x] Preserve reconnect, offline, switch, deselection, and restore behavior on the existing fail-open path.
+- [x] Align static checks, browser checks, and proposal artifacts with the selected-thread session-stream contract.

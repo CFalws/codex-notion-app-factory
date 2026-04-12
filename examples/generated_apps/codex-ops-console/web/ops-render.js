@@ -2205,6 +2205,7 @@ export function renderSessionStrip(dom, currentState, conversation) {
   const stripLiveOwned = Boolean(footerDock.visible);
   const healthyComposerAuthority =
     authority.state === "healthy" && stripLiveOwned && timelineAuthority.visible && timelineAuthority.presentation === "healthy";
+  const stripProgressOwned = stripLiveOwned && !healthyComposerAuthority;
   if (!healthyComposerAuthority) {
     if (dom.composerUtilityMenu) {
       dom.composerUtilityMenu.dataset.composerUtilityOpen = "false";
@@ -2224,9 +2225,9 @@ export function renderSessionStrip(dom, currentState, conversation) {
   }
   const stripState = sessionStripStateRow(ownerState, transportState, liveRun, presentation, liveOwned, footerFollow, footerDock);
   dom.sessionStrip.hidden = !sessionConversationId;
-  dom.sessionStrip.dataset.liveOwned = stripLiveOwned ? "true" : "false";
-  dom.sessionStrip.dataset.sessionOwner = stripLiveOwned ? "selected-thread" : "none";
-  dom.sessionStrip.dataset.sessionPresentation = healthyComposerAuthority ? "healthy" : presentation;
+  dom.sessionStrip.dataset.liveOwned = stripProgressOwned ? "true" : "false";
+  dom.sessionStrip.dataset.sessionOwner = healthyComposerAuthority ? "none" : stripLiveOwned ? "selected-thread" : "none";
+  dom.sessionStrip.dataset.sessionPresentation = healthyComposerAuthority ? "suppressed" : presentation;
   dom.sessionStrip.dataset.sessionTerminal = liveRun.terminal ? "true" : "false";
   dom.sessionStrip.dataset.sessionCollapsed = shouldCollapse ? "true" : "false";
   dom.sessionStrip.dataset.streamState = status;
@@ -2248,14 +2249,14 @@ export function renderSessionStrip(dom, currentState, conversation) {
   dom.sessionStrip.dataset.liveRunTone = liveRun.tone;
   dom.sessionStrip.dataset.followState = footerFollow.visible ? footerFollow.followState : stripLiveOwned ? sessionStatus.followState || "live" : transportState.owned ? "owned" : "idle";
   dom.sessionStrip.dataset.followCount = String(footerFollow.visible ? footerFollow.unseenCount : 0);
-  dom.sessionStrip.dataset.footerDockOwned = stripLiveOwned ? "true" : "false";
+  dom.sessionStrip.dataset.footerDockOwned = stripProgressOwned ? "true" : "false";
   dom.sessionStrip.dataset.footerDockPhase = footerDock.phaseLabel || "IDLE";
   dom.sessionStrip.dataset.footerDockSource = footerDock.source || "none";
   dom.sessionStrip.dataset.footerDockMilestones = footerDock.visible && footerDock.chips.length > 1 ? "true" : "false";
   dom.sessionStrip.dataset.composerState = ownerState.state;
   dom.sessionStrip.dataset.composerTransport = transportState.key;
   dom.sessionStrip.dataset.composerTransportSource = transportState.source;
-  dom.sessionStrip.dataset.composerTransportOwned = stripLiveOwned ? "true" : "false";
+  dom.sessionStrip.dataset.composerTransportOwned = healthyComposerAuthority ? "false" : stripLiveOwned ? "true" : "false";
   dom.sessionStrip.dataset.composerTransportReason = transportState.reason;
   dom.sessionStrip.dataset.composerTargetConversationId = ownerState.conversationId;
   dom.sessionStrip.dataset.restoreStage = sessionStatus.restoreStage || "none";

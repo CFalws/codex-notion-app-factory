@@ -1,22 +1,22 @@
 # Factory Runtime Deploy Plan
 
-## Iteration 216
+## Iteration 225
 
-This deploy plan validates selected-thread restore or resume continuity across the center workspace and composer handoff.
+This deploy plan validates selected-thread session-stream ownership across the append SSE path and conversation-first workspace.
 
 ## Deployment Impact
 
-This iteration keeps transport and ownership unchanged while tightening restore or resume continuity. Saved-session restore or resume should keep the mounted center workspace and composer visible, clear stale ownership immediately, and show exactly one compact restore or attach placeholder until authoritative SSE ownership returns.
+This iteration keeps the existing append SSE transport and selected-thread ownership model, but records the intended path as one session-scoped live stream. Healthy phase, proposal, verifier, and apply state should arrive through the selected-thread append SSE path, while polling remains explicit fallback-only behavior.
 
 ## Rollout Notes
 
 1. Apply the proposal commit onto `main`.
 2. Enable `CODEX_FACTORY_ENABLE_INTERNAL_APPEND_SSE=1` only in the internal runtime where the workspace should consume live append frames.
 3. Open the operator console on desktop and phone widths with at least one selected-thread conversation.
-4. Start from a saved selected-thread conversation and trigger restore or resume by reopening or reselecting that conversation.
-5. Confirm the center conversation shell and bottom-fixed composer stay mounted for the full restore or resume path.
-6. Confirm exactly one compact restore or attach placeholder appears until authoritative SSE ownership returns.
-7. Confirm stale live ownership clears before any degraded or fallback rendering appears.
-8. Confirm no generic empty workspace flashes during restore or resume.
-9. Confirm reconnect downgrade, polling fallback, deselection, and terminal resolution still clear live-owned restore surfaces immediately.
-10. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible path passes only when the restore or resume flow keeps the mounted shell and composer, avoids empty-state flash, limits the placeholder to one compact block, and clears stale ownership immediately before fallback state appears.
+4. Open a selected-thread conversation with an active autonomy run and confirm the append SSE path is attached.
+5. Confirm phase, proposal, verifier, and apply-related changes appear through the selected-thread session timeline and inline milestone strip without polling-owned takeover.
+6. Confirm the header, composer-adjacent context, transcript timeline, and rail markers all reflect the same selected-thread session provenance.
+7. Confirm `ops-jobs` remains fallback-only and does not reclaim ownership while the selected thread is SSE-owned.
+8. Confirm reconnect downgrade, offline fallback, switch, deselection, and restore paths explicitly downgrade or clear ownership with no stale healthy revival.
+9. Confirm the composer-adjacent strip stays passive on the healthy selected-thread path.
+10. Run `BASE_URL=... API_KEY=... WORKSPACE_APP_ID=factory-runtime ./scripts/verify_deployed_console.sh` and confirm the browser-visible path passes only when healthy selected-thread live status is attributable to the append SSE session stream and fallback remains degraded-only.

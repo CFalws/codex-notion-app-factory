@@ -1,13 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 216
+## Iteration 225
 
-Preserve one continuous center session workspace during selected-thread restore or resume.
+Drive selected-thread live status from one session-scoped append SSE stream.
 
-1. Keep the change bounded to the selected-thread restore or resume path, restore placeholder behavior, and verifier expectations.
-2. Reuse the existing selected-thread session authority, restore transition, active-session row, and composer dock datasets instead of adding new transport or polling logic.
-3. Keep the center conversation shell and bottom-fixed composer mounted during saved-session restore or resume.
-4. Show exactly one compact restore or attach placeholder until authoritative SSE ownership returns.
-5. Clear stale live-owner treatment immediately before fallback or degraded rendering appears.
-6. Keep switch, degraded reconnect or polling fallback, and terminal paths on their existing clear or fail-open behavior.
-7. Align static checks, browser checks, and proposal artifacts with the restore or resume continuity contract.
+1. Keep the change bounded to the selected-thread append SSE session-status path and its verifier expectations.
+2. Reuse the existing conversation append stream, session-status envelopes, and selected-thread ownership datasets instead of adding a separate transport.
+3. Keep the transcript timeline as the healthy live owner while mirrored surfaces stay passive or degraded-only.
+4. Keep `ops-jobs` as fallback-only when the selected thread is already SSE-owned.
+5. Preserve reconnect, offline, switch, deselection, and restore behavior on the existing fail-open path.
+6. Align static checks, browser checks, and proposal artifacts with the selected-thread session-stream contract.
