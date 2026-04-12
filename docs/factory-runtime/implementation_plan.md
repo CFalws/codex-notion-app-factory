@@ -1,17 +1,17 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 275
+## Iteration 282
 
-Narrow selected-thread provisional continuity so the center timeline, footer dock, and bottom composer stay on one conversation-first surface during bootstrap without exposing dense autonomy detail before authoritative attachment.
+Promote healthy selected-thread ownership exactly once through one canonical store-level gate so the center timeline, footer dock, rail state, and polling suppression all agree on the same selected-thread owner.
 
-1. Keep the change bounded to selected-thread attach or resume authority derivation plus render, verifier, and proposal artifacts.
-2. Preserve the existing selected-thread `session_status` plus append SSE authority path and reuse the existing helpers rather than adding a new status source.
-3. Reuse the existing provisional selected-thread session state as soon as the intended EventSource is open and bound to the selected conversation, but limit visible pre-bootstrap carry-forward to one phase label.
-4. Keep the center timeline and footer dock mounted from that provisional model so attach or resume reads as one continuous selected-thread lane without turning bootstrap into a second status panel.
-5. Withhold healthy ownership until authoritative `session.bootstrap` or append SSE reattaches the selected-thread lane.
+1. Keep the change bounded to selected-thread ownership derivation, polling suppression, verifier coverage, and proposal artifacts.
+2. Preserve the existing selected-thread `session_status` plus append SSE authority path and reuse the existing helpers rather than adding a new transport or status source.
+3. Keep the existing provisional selected-thread session path unchanged before authoritative bootstrap.
+4. Move the final healthy-promotion decision behind one store helper that requires selected-thread session state and append-stream session-status to agree on the same conversation in authoritative `sse-live` state.
+5. Reuse that helper in selected-thread live autonomy, phase progression, session surface, authority rendering, session strip ownership, and polling suppression.
 6. Preserve explicit degraded, reconnect, polling fallback, handoff, switching, and detached restore visibility when the intended path is absent or lost.
-7. Extend static and deployed verification so provisional bootstrap continuity is accepted only when it stays polling-free, cannot masquerade as healthy ownership, and does not expose proposal, verifier, blocker, or apply detail early.
-8. Update proposal artifacts to record the narrowed provisional bootstrap boundary.
+7. Extend static and deployed verification so healthy ownership cannot appear twice, conflicting owner labels cannot survive promotion, and polling cannot reclaim authority after healthy promotion without an explicit degraded path.
+8. Update proposal artifacts to record the new ownership-promotion invariant.
 Iteration 245 does not widen runtime or UI ownership. It records that the selected-thread center header already exposes the canonical ownership chip beside the session summary and that deployed verification already attributes healthy visibility to that selected-thread SSE-owned signal rather than to polling or side-panel inference.
 Iteration 248 keeps transport and header ownership unchanged and restores the same selected-thread certainty directly at the input surface by keeping the composer owner row visible for healthy, handoff, switching, and restore states while preserving explicit degraded or idle clearing.
 Iteration 249 does not widen runtime or UI ownership because the selected-thread rail mirror is already correct in this branch: the sticky active-session row is canonical on the healthy selected-thread SSE path, non-selected rows remain snapshot-only, and the deployed gate already attributes that rail marker to the intended selected-thread authority source.
@@ -29,4 +29,4 @@ Iteration 269 does not widen runtime or transport behavior because footer owners
 Iteration 272 keeps transport and ownership unchanged and narrows only the healthy footer presentation boundary: the canonical dock now stays visible on healthy selected-thread runs and exposes phase-led chips and detail copy directly from the existing selected-thread session surface instead of generic suppressed footer wording.
 Iteration 273 does not widen runtime or transport behavior because selected-thread status ownership is already correct in this branch: healthy proposal readiness, verifier or blocker state, phase progression, and apply readiness already stay on selected-thread `sessionStatus` plus append SSE, while goals or job polling remain gated behind explicit degraded fallback.
 Iteration 274 keeps transport and ownership unchanged and narrows only the remaining healthy duplicate chrome boundary: the healthy header session summary is now suppressed whenever the center timeline is already the authoritative selected-thread session surface, while restore and degraded paths still keep explicit top-level status visibility.
-Iteration 279 keeps transport and ownership unchanged and narrows only the provisional presentation boundary: once the intended EventSource is open for the selected thread, the workspace stays on one provisional timeline-plus-footer lane, but the visible metadata is restricted to ATTACH or RESUME plus one carried-forward phase chip until authoritative `session.bootstrap` or append SSE arrives.
+Iteration 282 keeps transport and provisional continuity unchanged and narrows only the final ownership-promotion boundary: once the selected thread is truly healthy, every selected-thread surface now derives healthy ownership from one shared store invariant instead of separately recomputing that promotion in multiple helpers.

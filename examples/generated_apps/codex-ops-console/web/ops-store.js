@@ -332,6 +332,56 @@ export function deriveSelectedThreadSessionStatus(currentState, conversation = n
   };
 }
 
+export function deriveSelectedThreadHealthyPromotionModel(currentState, conversation = null) {
+  const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
+  const sessionStatusPayload = currentState.appendStream?.sessionStatus || null;
+  const conversationId = String(sessionStatus.conversationId || conversation?.conversation_id || "");
+  const payloadConversationId = String(
+    sessionStatusPayload?.conversationId || sessionStatusPayload?.conversation_id || "",
+  );
+  const payloadTransportState = String(
+    sessionStatusPayload?.transportState || sessionStatusPayload?.transport?.state || "idle",
+  ).toLowerCase();
+  const payloadSource = String(
+    sessionStatusPayload?.source || sessionStatusPayload?.transport?.channel || "none",
+  ).toLowerCase();
+  const sameConversation =
+    Boolean(conversationId) &&
+    Boolean(payloadConversationId) &&
+    conversationId === payloadConversationId;
+  const selectedThreadAuthoritative =
+    Boolean(sessionStatus.selectedThreadSseOwned) &&
+    sessionStatus.transportState === "sse" &&
+    sessionStatus.presentation === "owned" &&
+    Boolean(sessionStatus.liveOwned) &&
+    Boolean(sessionStatus.phaseOwned);
+  const payloadHealthy = sameConversation && payloadTransportState === "sse-live";
+  const promoted = selectedThreadAuthoritative && payloadHealthy;
+  const reason = promoted
+    ? "selected-thread-healthy-promotion"
+    : !conversationId
+      ? "no-selection"
+      : !payloadConversationId
+        ? "missing-session-status-conversation"
+        : !sameConversation
+          ? "conversation-mismatch"
+          : payloadTransportState !== "sse-live"
+            ? `session-status-${payloadTransportState || "idle"}`
+            : String(sessionStatus.transportReason || sessionStatus.clearReason || "non-authoritative");
+  return {
+    promoted,
+    conversationId,
+    payloadConversationId,
+    sameConversation,
+    selectedThreadAuthoritative,
+    payloadHealthy,
+    payloadTransportState,
+    payloadSource,
+    reason,
+    sessionStatus,
+  };
+}
+
 export function deriveSelectedThreadFollowControlModel(currentState) {
   const sessionStatus = deriveSelectedThreadSessionStatus(currentState, null);
   const liveFollow = currentState.liveFollow || {};
@@ -517,6 +567,7 @@ export function deriveSelectedThreadConversationRowLiveModel(currentState, conve
 
 export function deriveSelectedThreadLiveAutonomy(currentState, conversation = null) {
   const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
+  const healthyPromotion = deriveSelectedThreadHealthyPromotionModel(currentState, conversation);
   const autonomySummary = currentState.autonomySummary;
   const sessionStatusPayload = currentState.appendStream?.sessionStatus || null;
   const phaseValue = String(sessionStatusPayload?.phase?.value || "UNKNOWN").toUpperCase();
@@ -619,14 +670,20 @@ export function deriveSelectedThreadLiveAutonomy(currentState, conversation = nu
   }
   if (sessionStatus.liveOwned) {
     return {
-      visible: true,
-      owned: true,
-      presentation: "owned",
+      visible: healthyPromotion.promoted,
+      owned: healthyPromotion.promoted,
+      presentation: healthyPromotion.promoted ? "owned" : "cleared",
       label: sessionStatus.transportLabel || "SSE OWNER",
-      reason: sessionStatus.transportReason,
-      source: String(canonicalAutonomySummary.source || "sse").toLowerCase(),
-      freshnessState: String(canonicalAutonomySummary.freshnessState || "fresh").toLowerCase(),
-      fallbackAllowed: Boolean(canonicalAutonomySummary.fallbackAllowed ?? false),
+      reason: healthyPromotion.reason,
+      source: healthyPromotion.promoted
+        ? String(canonicalAutonomySummary.source || healthyPromotion.payloadSource || "sse").toLowerCase()
+        : "none",
+      freshnessState: String(
+        canonicalAutonomySummary.freshnessState || (healthyPromotion.promoted ? "fresh" : "stale-or-missing"),
+      ).toLowerCase(),
+      fallbackAllowed: healthyPromotion.promoted
+        ? Boolean(canonicalAutonomySummary.fallbackAllowed ?? false)
+        : true,
       summary: canonicalAutonomySummary,
     };
   }
@@ -645,6 +702,7 @@ export function deriveSelectedThreadLiveAutonomy(currentState, conversation = nu
 
 export function deriveSelectedThreadPhaseProgression(currentState, conversation = null) {
   const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
+  const healthyPromotion = deriveSelectedThreadHealthyPromotionModel(currentState, conversation);
   const appendStream = currentState.appendStream || {};
   const sessionPhase = appendStream.sessionPhase || {};
   const phaseValue = String(sessionPhase.value || "UNKNOWN").toUpperCase();
@@ -742,8 +800,8 @@ export function deriveSelectedThreadPhaseProgression(currentState, conversation 
     state: String(label || "unknown").toLowerCase().replace(/\s+/g, "-"),
     source: phaseSource || "sse",
     authoritative: Boolean(sessionPhase.authoritative),
-    owned: sessionStatus.liveOwned,
-    reason: sessionStatus.transportReason,
+    owned: healthyPromotion.promoted,
+    reason: healthyPromotion.reason,
     appendId: Math.max(Number(sessionPhase.appendId || sessionPhase.append_id || 0), 0),
     jobId: String(sessionPhase.jobId || sessionPhase.job_id || ""),
   };
@@ -820,11 +878,12 @@ export function deriveSelectedThreadTimelineMilestones(currentState, conversatio
 
 export function deriveSelectedThreadSessionSurfaceModel(currentState, conversation = null) {
   const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
+  const healthyPromotion = deriveSelectedThreadHealthyPromotionModel(currentState, conversation);
   const liveAutonomy = deriveSelectedThreadLiveAutonomy(currentState, conversation);
   const phaseProgression = deriveSelectedThreadPhaseProgression(currentState, conversation);
   const milestoneModel = deriveSelectedThreadTimelineMilestones(currentState, conversation);
   const shellPhaseLabel = deriveSelectedThreadShellPhaseLabel(currentState, conversation);
-  const liveOwned = Boolean(sessionStatus.liveOwned && liveAutonomy.owned && phaseProgression.visible);
+  const liveOwned = Boolean(healthyPromotion.promoted && liveAutonomy.owned && phaseProgression.visible);
   const degradedVisible = sessionStatus.transportState === "reconnect" || sessionStatus.transportState === "polling";
   const handoffVisible = Boolean(sessionStatus.pendingHandoff && sessionStatus.selectedThreadSse);
   const restoreVisible = Boolean(sessionStatus.presentation === "restore" && liveAutonomy.visible && phaseProgression.visible);
@@ -862,6 +921,7 @@ export function deriveSelectedThreadSessionSurfaceModel(currentState, conversati
 
 export function deriveSelectedThreadSessionAuthorityModel(currentState, conversation = null, liveRun = null) {
   const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
+  const healthyPromotion = deriveSelectedThreadHealthyPromotionModel(currentState, conversation);
   const sessionSurface = deriveSelectedThreadSessionSurfaceModel(currentState, conversation);
   const sessionStrip = deriveSelectedThreadSessionStripModel(currentState, conversation, liveRun);
   const shellPhaseLabel = String(deriveSelectedThreadShellPhaseLabel(currentState, conversation) || "").toUpperCase();
@@ -923,7 +983,7 @@ export function deriveSelectedThreadSessionAuthorityModel(currentState, conversa
     source = "handoff";
     reason = "pending-handoff";
     clearReason = "none";
-  } else if (!terminalClear && sessionSurface.liveOwned && sessionStrip.visible && sessionStrip.owned) {
+  } else if (!terminalClear && healthyPromotion.promoted && sessionSurface.liveOwned && sessionStrip.visible && sessionStrip.owned) {
     state = "healthy";
     presentation = "healthy";
     visible = true;
@@ -933,8 +993,8 @@ export function deriveSelectedThreadSessionAuthorityModel(currentState, conversa
     badgeStateLabel = "SSE";
     phaseLabel = String(shellPhaseLabel || sessionSurface.phaseLabel || sessionStrip.phaseLabel || "LIVE").toUpperCase();
     pathLabel = String(sessionSurface.pathVerdict || sessionStrip.pathVerdict || "EXPECTED").toUpperCase();
-    source = String(sessionStrip.source || sessionSurface.source || "sse").toLowerCase();
-    reason = String(sessionStatus.transportReason || "selected-thread-following");
+    source = String(sessionStrip.source || sessionSurface.source || healthyPromotion.payloadSource || "sse").toLowerCase();
+    reason = String(healthyPromotion.reason || sessionStatus.transportReason || "selected-thread-following");
     clearReason = "none";
   } else if (
     !terminalClear &&
@@ -975,6 +1035,7 @@ export function deriveSelectedThreadSessionAuthorityModel(currentState, conversa
     clearReason,
     summaryVisible: visible,
     badgeVisible: false,
+    healthyPromotion,
     sessionStatus,
     sessionSurface,
     sessionStrip,
@@ -992,6 +1053,7 @@ function canonicalPhaseLabelFromStatus(sessionStatusPayload = {}, fallback = "UN
 
 export function deriveSelectedThreadSessionStripModel(currentState, conversation = null, liveRun = null) {
   const selectedThreadStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
+  const healthyPromotion = deriveSelectedThreadHealthyPromotionModel(currentState, conversation);
   const appendStream = currentState.appendStream || {};
   const sessionStatusPayload = appendStream.sessionStatus || null;
   const conversationId = String(conversation?.conversation_id || selectedThreadStatus.conversationId || "");
@@ -1081,7 +1143,7 @@ export function deriveSelectedThreadSessionStripModel(currentState, conversation
             : attachMode === "sse-bootstrap"
               ? "ATTACH"
               : "SESSION";
-  const owned = transportState === "sse-live";
+  const owned = Boolean(healthyPromotion.promoted);
   const degraded = transportState === "reconnecting" || transportState === "polling-fallback";
   const restore = attachMode === "sse-resume" || attachMode === "sse-bootstrap";
   const tone = owned ? "healthy" : degraded ? "warning" : restore ? "neutral" : "muted";
@@ -1128,8 +1190,11 @@ export function deriveSelectedThreadSessionStripModel(currentState, conversation
 }
 
 export function isSelectedThreadSessionOwned(currentState, conversationId = "") {
-  const selectedThreadStatus = deriveSelectedThreadSessionStatus(currentState, { conversation_id: conversationId });
-  return Boolean(selectedThreadStatus.authoritative);
+  const healthyPromotion = deriveSelectedThreadHealthyPromotionModel(currentState, { conversation_id: conversationId });
+  return Boolean(
+    healthyPromotion.promoted &&
+      (!conversationId || String(healthyPromotion.conversationId || "") === String(conversationId || "")),
+  );
 }
 
 export function draftKey(appId, conversationId = "") {

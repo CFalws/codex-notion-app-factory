@@ -637,6 +637,7 @@ def assert_browser_runtime_surface(
                     sessionStrip.dataset.footerDockMilestones === "true" &&
                     sessionStrip.dataset.footerDockPhase === inlineBlock.dataset.liveBlockPhase &&
                     sessionStrip.dataset.footerDockSource === "sse" &&
+                    sessionStrip.dataset.composerTransport === "sse-owner" &&
                     sessionStrip.dataset.composerTransportOwned === "true" &&
                     sessionStrip.dataset.phaseProvenance === "sse" &&
                     threadScroller &&
@@ -649,6 +650,7 @@ def assert_browser_runtime_surface(
                     sessionStripState.dataset.sessionStripRole === "live-dock" &&
                     sessionStripState.dataset.sessionStripLabel === inlineBlock.dataset.liveBlockPhase &&
                     sessionStripState.textContent.includes(inlineBlock.dataset.liveBlockPhase || "") &&
+                    sessionStripState.textContent.includes("SSE OWNER") &&
                     sessionStripMeta &&
                     !sessionStripMeta.hidden &&
                     sessionStripMeta.textContent.trim().length > 0 &&
@@ -1909,6 +1911,10 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(store_js, "selectedThreadRestore", label="selected-thread restore state")
     require(store_js, "provisionalResume", label="selected-thread provisional resume state")
     require(store_js, "restoreResume", label="selected-thread restore resume state")
+    require(store_js, "export function deriveSelectedThreadHealthyPromotionModel", label="selected-thread healthy promotion helper")
+    require(store_js, "const selectedThreadAuthoritative =", label="selected-thread healthy promotion authority guard")
+    require(store_js, 'const payloadHealthy = sameConversation && payloadTransportState === "sse-live";', label="selected-thread healthy promotion payload guard")
+    require(store_js, "const promoted = selectedThreadAuthoritative && payloadHealthy;", label="selected-thread healthy promotion invariant")
     require(store_js, "restoreStage", label="selected-thread restore stage")
     require(store_js, "switchActive", label="selected-thread switch activity state")
     require(store_js, "switchConversationId", label="selected-thread switch conversation state")
@@ -1918,6 +1924,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(store_js, 'presentation = "provisional";', label="selected-thread provisional presentation")
     require(store_js, 'presentation = "restore";', label="selected-thread restore presentation")
     require(store_js, "export function deriveSelectedThreadLiveAutonomy", label="canonical selected-thread live autonomy helper")
+    require(store_js, "const healthyPromotion = deriveSelectedThreadHealthyPromotionModel(currentState, conversation);", label="live autonomy healthy promotion helper wiring")
     require(store_js, "const sessionStatusPayload = currentState.appendStream?.sessionStatus || null;", label="store session-status autonomy payload read")
     require(store_js, 'source: "session-status",', label="store session-status autonomy source")
     require(store_js, "const canonicalAutonomySummary = sessionStatusSummary || autonomySummary;", label="store session-status autonomy precedence")
@@ -1925,6 +1932,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(store_js, "export function deriveSelectedThreadShellPhaseLabel", label="canonical selected-thread shell phase helper")
     require(store_js, "export function deriveSelectedThreadTimelineMilestones", label="canonical selected-thread timeline milestones helper")
     require(store_js, "export function isSelectedThreadSessionOwned", label="selected-thread session ownership helper")
+    require(store_js, "healthyPromotion.promoted &&", label="selected-thread session ownership promotion gate")
     require(store_js, 'phaseValue === "LIVE"', label="selected-thread session live phase guard")
     require(store_js, 'phaseValue === "PROPOSAL"', label="selected-thread session proposal phase guard")
     require(store_js, 'phaseValue === "REVIEW"', label="selected-thread session review phase guard")
