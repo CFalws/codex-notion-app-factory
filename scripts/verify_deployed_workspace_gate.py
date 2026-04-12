@@ -549,9 +549,6 @@ def assert_browser_runtime_surface(
                   const selectedCardLiveDetail = selectedCard ? selectedCard.querySelector('[data-conversation-live-detail]') : null;
                   const selectedCardLiveFollow = selectedCard ? selectedCard.querySelector('[data-conversation-live-follow]') : null;
                   const visibleConversationOwnerRows = document.querySelectorAll('[data-conversation-live-owner-row]:not([hidden])');
-                  const selectedRecentThread = document.querySelector('.recent-thread-chip[data-selected="true"]');
-                  const selectedRecentThreadOwner = selectedRecentThread ? selectedRecentThread.querySelector('[data-recent-thread-owner]') : null;
-                  const selectedRecentThreadFollow = selectedRecentThread ? selectedRecentThread.querySelector('[data-recent-thread-follow]') : null;
                   const sessionStrip = document.querySelector("#session-strip");
                   const sessionStripState = document.querySelector("#session-strip-state");
                   const sessionStripDetail = document.querySelector("#session-strip-detail");
@@ -636,8 +633,6 @@ def assert_browser_runtime_surface(
                     selectedCardLiveFollow &&
                     selectedCardLiveFollow.hidden &&
                     (selectedCardLiveFollow.textContent || "").trim() === "" &&
-                    !selectedRecentThreadOwner &&
-                    !selectedRecentThreadFollow &&
                     sessionStrip &&
                     !sessionStrip.hidden &&
                     sessionStrip.dataset.liveOwned === "false" &&
@@ -1335,8 +1330,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(html, 'id="thread-scroller"', label="thread scroller")
     require(html, 'data-session-workspace="conversation-first"', label="conversation-first session workspace")
     require_absent(html, 'id="session-summary-row"', label="removed session summary row")
-    require(html, 'id="recent-thread-rail"', label="recent-thread rail")
-    require(html, 'id="recent-thread-rail-list"', label="recent-thread rail list")
+    require_absent(html, 'id="recent-thread-rail"', label="removed recent-thread rail")
+    require_absent(html, 'id="recent-thread-rail-list"', label="removed recent-thread rail list")
     require_absent(html, 'id="session-live-indicator"', label="removed session live indicator")
     require_absent(html, 'id="session-summary-path"', label="removed session summary path")
     require_absent(html, 'id="session-summary-state"', label="removed session summary state")
@@ -1385,10 +1380,9 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, 'dom.composerUtilityCluster.hidden = true;', label="composer utility cluster hides on non-healthy render")
     require(render_js, 'dom.composerUtilityToggle.setAttribute("aria-expanded", "false");', label="composer utility toggle aria closes on non-healthy render")
     require_absent(styles, ".session-summary-row", label="removed session summary row CSS")
-    require(styles, ".recent-thread-rail", label="recent-thread rail CSS")
-    require(styles, ".recent-thread-rail-list", label="recent-thread rail list CSS")
-    require(styles, ".recent-thread-chip", label="recent-thread chip CSS")
-    require(styles, '.recent-thread-chip[data-thread-state="switching"] .recent-thread-token[data-recent-thread-state]', label="recent-thread switching chip CSS")
+    require_absent(styles, ".recent-thread-rail", label="removed recent-thread rail CSS")
+    require_absent(styles, ".recent-thread-rail-list", label="removed recent-thread rail list CSS")
+    require_absent(styles, ".recent-thread-chip", label="removed recent-thread chip CSS")
     require_absent(styles, ".session-live-indicator", label="removed session live indicator CSS")
     require(styles, ".composer-owner-row", label="composer owner row CSS")
     require(styles, ".composer-owner-chip", label="composer owner chip CSS")
@@ -1783,12 +1777,10 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, "syncSelectedAppSession", label="selected app session sync helper")
     require(conversations_js, 'option.dataset.sessionId = app.session_id || "";', label="selected app session id option dataset")
     require(conversations_js, "rotationDetected", label="selected app session rotation detection")
-    require(conversations_js, "renderRecentThreadRail", label="recent-thread rail render helper")
-    require(conversations_js, "RECENT_THREAD_LIMIT = 4", label="bounded recent-thread rail limit")
-    require(conversations_js, "data-recent-thread-chip", label="recent-thread chip DOM")
-    require(conversations_js, "data-recent-thread-state", label="recent-thread state DOM")
-    require(conversations_js, 'chip.dataset.liveOwner = "false";', label="recent-thread live owner dataset")
-    require_absent(conversations_js, 'follow.textContent = isSwitching ? "ATTACH" : isSelected && showLiveMirror ? liveFollowLabel : "";', label="recent-thread attach follow wiring")
+    require_absent(conversations_js, "renderRecentThreadRail", label="removed recent-thread rail render helper")
+    require_absent(conversations_js, "RECENT_THREAD_LIMIT = 4", label="removed recent-thread rail limit")
+    require_absent(conversations_js, "data-recent-thread-chip", label="removed recent-thread chip DOM")
+    require_absent(conversations_js, "data-recent-thread-state", label="removed recent-thread state DOM")
     require(conversations_js, "syncActiveSessionRow", label="active session row helper")
     require(conversations_js, "data-conversation-live-state", label="selected card live dataset")
     require(conversations_js, "data-conversation-live-owner-row", label="selected card live owner row DOM")

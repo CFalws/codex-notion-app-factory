@@ -34,7 +34,6 @@ export function createConversationController(deps) {
     internalConversationAppendStreamUrl,
     renderSessionStrip,
   } = deps;
-  const RECENT_THREAD_LIMIT = 4;
   const RESUME_RETRY_DELAY_MS = 700;
   const RESUME_BOOTSTRAP_TIMEOUT_MS = 1500;
   const MAX_RESUME_ATTEMPTS = 3;
@@ -1189,10 +1188,6 @@ export function createConversationController(deps) {
     return `${text.slice(0, maxLength - 1).trimEnd()}…`;
   }
 
-  function compactRailTitle(value) {
-    return truncatePreview(value || "대화", 22) || "대화";
-  }
-
   function latestMessagePreview(conversation) {
     const messages = Array.isArray(conversation?.messages) ? conversation.messages : [];
     if (!messages.length) {
@@ -1267,59 +1262,6 @@ export function createConversationController(deps) {
       return "아직 메시지나 이벤트가 없습니다.";
     }
     return eventPreview(events[events.length - 1]);
-  }
-
-  function renderRecentThreadRail(conversations, selectedConversationId = "") {
-    if (!dom.recentThreadRail || !dom.recentThreadRailList || !dom.recentThreadRailCopy) {
-      return;
-    }
-
-    const recentConversations = Array.isArray(conversations) ? conversations.slice(0, RECENT_THREAD_LIMIT) : [];
-    state.recentConversations = recentConversations.map((conversation) => ({
-      conversation_id: conversation.conversation_id,
-      title: conversation.title || "대화",
-      updated_at: conversation.updated_at || "",
-      snapshotState: snapshotThreadState(conversation),
-    }));
-
-    if (!recentConversations.length) {
-      dom.recentThreadRail.hidden = true;
-      dom.recentThreadRail.dataset.recentThreadCount = "0";
-      dom.recentThreadRailList.innerHTML = "";
-      dom.recentThreadRailCopy.textContent = "현재 대화와 최근 대화를 여기에서 바로 전환합니다.";
-      return;
-    }
-
-    dom.recentThreadRail.hidden = false;
-    dom.recentThreadRail.dataset.recentThreadCount = String(recentConversations.length);
-    dom.recentThreadRailCopy.textContent = "현재 대화와 최근 대화를 여기에서 바로 전환합니다.";
-    dom.recentThreadRailList.innerHTML = recentConversations
-      .map((conversation) => {
-        const isSelected = conversation.conversation_id === selectedConversationId;
-        const snapshotState = snapshotThreadState(conversation);
-        const snapshotLabel = snapshotThreadLabel(snapshotState);
-        return `
-          <button
-            type="button"
-            class="recent-thread-chip${isSelected ? " active" : ""}"
-            data-recent-thread-chip="true"
-            data-conversation-id="${conversation.conversation_id}"
-            data-selected="${isSelected ? "true" : "false"}"
-            data-thread-state="${snapshotState}"
-            data-live-owner="false"
-            data-live-owner-state="idle"
-            data-snapshot-thread-state="${snapshotState}"
-            data-snapshot-state-label="${snapshotLabel}"
-          >
-            <span class="recent-thread-chip-title">${escapeHtml(compactRailTitle(conversation.title))}</span>
-            <span class="recent-thread-chip-row">
-              <span class="recent-thread-token" data-recent-thread-marker ${isSelected ? "" : "hidden"}>NOW</span>
-              <span class="recent-thread-token" data-recent-thread-state>${snapshotLabel}</span>
-            </span>
-          </button>
-        `;
-      })
-      .join("");
   }
 
   function syncConversationCardState() {
@@ -1422,27 +1364,6 @@ export function createConversationController(deps) {
       }
     }
 
-    for (const chip of dom.recentThreadRailList?.querySelectorAll("[data-conversation-id]") || []) {
-      const isSelected = chip.dataset.conversationId === selectedConversationId;
-      const marker = chip.querySelector("[data-recent-thread-marker]");
-      const stateLabel = chip.querySelector("[data-recent-thread-state]");
-      const snapshotLabel = String(chip.dataset.snapshotStateLabel || "IDLE");
-      const snapshotState = String(chip.dataset.snapshotThreadState || "idle");
-      chip.classList.toggle("active", isSelected);
-      chip.dataset.selected = isSelected ? "true" : "false";
-      chip.dataset.threadState = snapshotState;
-      chip.dataset.liveOwner = "false";
-      chip.dataset.liveOwnerState = "idle";
-
-      if (marker) {
-        marker.hidden = !isSelected;
-        marker.textContent = "NOW";
-      }
-      if (stateLabel) {
-        stateLabel.textContent = snapshotLabel;
-      }
-    }
-
     syncActiveSessionRow({
       selectedConversationId,
       liveConversationId,
@@ -1509,7 +1430,6 @@ export function createConversationController(deps) {
   function renderConversationList(conversations, selectedConversationId = "") {
     if (!conversations.length) {
       dom.conversationList.innerHTML = '<p class="conversation-list-empty">아직 대화가 없습니다.</p>';
-      renderRecentThreadRail([], "");
       syncConversationCardState();
       return;
     }
@@ -1558,7 +1478,6 @@ export function createConversationController(deps) {
         `;
       })
       .join("");
-    renderRecentThreadRail(conversations, selectedConversationId);
     syncConversationCardState();
   }
 
@@ -1574,7 +1493,6 @@ export function createConversationController(deps) {
       state.currentConversationId = "";
       state.savedConversationId = "";
       dom.conversationList.innerHTML = '<p class="conversation-list-empty">앱을 먼저 고르세요.</p>';
-      renderRecentThreadRail([], "");
       clearAutonomySummary(dom, "앱을 선택하면 최근 autonomous iteration blocker가 여기에 표시됩니다.");
       updateHeroState(dom, {
         threadTitle: "앱을 먼저 고르세요",
@@ -1631,7 +1549,6 @@ export function createConversationController(deps) {
         conversationState: `대화를 불러오지 못했습니다: ${error.message}`,
       });
       dom.conversationList.innerHTML = '<p class="conversation-list-empty">대화를 불러오지 못했습니다.</p>';
-      renderRecentThreadRail([], "");
       clearAutonomySummary(dom, "대화를 불러오지 못해 autonomy summary도 갱신하지 못했습니다.");
       restoreDraft();
     }
@@ -1881,7 +1798,6 @@ export function createConversationController(deps) {
         setStatus(dom, "등록된 앱이 없습니다. 서버의 state/registry/apps를 확인하세요.");
         setJobMeta(dom, "앱이 등록되면 여기에서 작업 상태를 추적합니다.");
         dom.conversationList.innerHTML = '<p class="conversation-list-empty">등록된 앱이 없습니다.</p>';
-        renderRecentThreadRail([], "");
         renderConversation(dom, state, null, persistSettings);
         syncConversationCardState();
         clearLearningSummary(dom);

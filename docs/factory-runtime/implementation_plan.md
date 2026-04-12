@@ -1,12 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 233
+## Iteration 236
 
-Replace switch and restore placeholder ownership with one inline timeline transition item.
+Remove the center-pane recent-thread rail and keep thread switching owned by the left rail or mobile nav sheet.
 
-1. Keep the change bounded to the existing selected-thread switch and restore path, current render boundaries, and matching proposal artifacts.
-2. Reuse the existing inline `timeline-transition` item and mounted composer shell instead of introducing a second transition panel or transport.
-3. Keep the center conversation timeline in conversation mode during switch or restore.
-4. Clear old-thread live ownership immediately and allow exactly one inline transition item to represent attach or restore state.
-5. Keep the composer target row and session strip synchronized to the same transition state while degraded fallback still clears healthy ownership immediately.
-6. Align static checks, browser checks, and proposal artifacts with the inline transition continuity contract.
+1. Keep the change bounded to the center-pane recent-thread rail DOM, CSS, render wiring, and matching proposal artifacts.
+2. Remove center-pane recent-thread navigation instead of introducing a replacement control in the main workspace.
+3. Preserve left-rail conversation cards and the mobile nav sheet as the only selected-thread switch owners.
+4. Keep switch and restore continuity in conversation mode through the existing inline `timeline-transition` item and mounted composer shell.
+5. Preserve degraded fallback clearing, footer docking, and canonical live-ownership behavior.
+6. Align static checks, browser checks, and proposal artifacts with the transcript-only center-pane contract.
