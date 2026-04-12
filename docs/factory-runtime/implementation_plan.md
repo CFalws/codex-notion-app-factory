@@ -1,12 +1,12 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 229
+## Iteration 230
 
-Resolve the selected-thread submit-to-first-append handoff gap.
+Promote selected-thread session status to the single healthy-path realtime authority.
 
-1. Keep the change bounded to the selected-thread handoff path and matching proposal artifacts.
-2. Reuse the existing pending outgoing state, inline session block, composer-adjacent activity bar, and selected-thread SSE ownership datasets instead of adding new runtime behavior.
-3. Preserve the center conversation shell and bottom-fixed composer through the full submit-to-first-append interval.
-4. Keep exactly one handoff owner visible at a time: pending outbound user or temporary assistant placeholder, never both.
-5. Clear the handoff owner immediately on first real assistant SSE append, terminal failure, idle reset, polling fallback, reconnect downgrade, or intentional thread switch.
-6. Align static checks, browser checks, and proposal artifacts with the selected-thread handoff continuity contract.
+1. Keep the change bounded to the existing selected-thread append SSE ownership path and matching proposal artifacts.
+2. Reuse `appendStream.sessionStatus`, canonical selected-thread session-status derivation, and the current render boundaries instead of adding new transport or store seams.
+3. Keep the transcript-centered session surface as the only healthy live-owned authority for phase, proposal, review, verify, and apply progression.
+4. Prevent healthy `/api/jobs/{id}` and `/api/apps/{appId}/goals` polling reads from becoming visible owners in the selected-thread workspace.
+5. Preserve reconnect and polling downgrade as explicit degraded fallback that clears live ownership immediately instead of looking like healthy realtime success.
+6. Align static checks, browser checks, and proposal artifacts with the selected-thread session-status authority contract.

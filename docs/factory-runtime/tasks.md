@@ -1,10 +1,10 @@
 # Factory Runtime Tasks
 
-## Iteration 229
+## Iteration 230
 
-- [x] Keep the change bounded to the selected-thread handoff path and matching proposal artifacts.
-- [x] Reuse the current pending outgoing state, inline session block, composer-adjacent activity bar, and selected-thread SSE ownership datasets instead of adding new runtime behavior.
-- [x] Preserve the center conversation shell and bottom-fixed composer through the full submit-to-first-append interval.
-- [x] Keep exactly one handoff owner visible at a time: pending outbound user or temporary assistant placeholder, never both.
-- [x] Clear the handoff owner immediately on first real assistant SSE append, terminal failure, idle reset, polling fallback, reconnect downgrade, or intentional thread switch.
-- [x] Align static checks, browser checks, and proposal artifacts with the selected-thread handoff continuity contract.
+- [x] Keep the change bounded to the existing selected-thread append SSE ownership path and matching proposal artifacts.
+- [x] Reuse `appendStream.sessionStatus`, canonical selected-thread session-status derivation, and current render boundaries instead of adding new runtime behavior.
+- [x] Keep the transcript-centered session surface as the only healthy live-owned authority for phase and proposal progression.
+- [x] Prevent healthy `/api/jobs/{id}` and `/api/apps/{appId}/goals` polling reads from becoming visible owners in the selected-thread workspace.
+- [x] Preserve reconnect and polling downgrade as explicit degraded fallback that clears live ownership immediately.
+- [x] Align static checks, browser checks, and proposal artifacts with the selected-thread session-status authority contract.
