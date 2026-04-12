@@ -523,17 +523,6 @@ def assert_browser_runtime_surface(
             page.evaluate("() => { window.__verifyFetchMark = window.__verifyFetchLog.length; }")
             page.click("#send-request")
 
-            deadline = time.monotonic() + 60
-            job_id = ""
-            while time.monotonic() < deadline:
-                payload = http_json("GET", f"{base_url}/api/conversations/{conversation_id}", api_key=api_key)
-                job_id = str(payload.get("latest_job_id", "") or "")
-                if job_id:
-                    break
-                time.sleep(1)
-            if not job_id:
-                raise RuntimeError("browser runtime verifier could not observe latest_job_id after composer submit")
-
             page.wait_for_function(
                 """conversationId => {
                   const inlineBlocks = document.querySelectorAll('.session-inline-block[data-selected-thread-live-block="true"], .session-inline-block[data-selected-thread-degraded-block="true"]');
@@ -1299,7 +1288,6 @@ def assert_browser_runtime_surface(
             )
             cancelled_switch_snapshot = page.evaluate(browser_snapshot_script())
             return {
-                "job_id": job_id,
                 "healthy": healthy_snapshot,
                 "resume": resume_snapshot,
                 "degraded": degraded_snapshot,
@@ -1313,14 +1301,26 @@ def assert_browser_runtime_surface(
             browser.close()
 
 
-def wait_for_job(base_url: str, job_id: str, api_key: str, *, timeout_seconds: float = 420.0) -> dict[str, Any]:
+def wait_for_conversation_ready(
+    base_url: str,
+    conversation_id: str,
+    api_key: str,
+    *,
+    timeout_seconds: float = 420.0,
+) -> dict[str, Any]:
     deadline = time.monotonic() + timeout_seconds
     while time.monotonic() < deadline:
-        payload = http_json("GET", f"{base_url}/api/jobs/{job_id}", api_key=api_key)
-        if payload.get("status") in {"completed", "failed"}:
+        payload = http_json("GET", f"{base_url}/api/conversations/{conversation_id}", api_key=api_key)
+        event_types = [str(event.get("type", "")) for event in payload.get("events", [])]
+        for forbidden in ("codex.exec.retrying", "runtime.exception"):
+            if forbidden in event_types:
+                raise RuntimeError(f"unexpected degraded event: {forbidden}")
+        if "job.failed" in event_types:
+            raise RuntimeError("selected-thread conversation failed before proposal.ready")
+        if "proposal.ready" in event_types:
             return payload
         time.sleep(2)
-    raise RuntimeError(f"timed out waiting for job {job_id}")
+    raise RuntimeError(f"timed out waiting for selected-thread proposal.ready on conversation {conversation_id}")
 
 
 def assert_console_contract(ops_url: str, api_key: str) -> None:
@@ -2065,14 +2065,11 @@ def main() -> int:
     if not browser_runtime:
         raise RuntimeError("browser runtime verification is required for the deployed workspace gate")
 
-    job_id = str(browser_runtime["job_id"])
-    job = wait_for_job(base_url, job_id, api_key)
-
     time.sleep(2)
     recorder.stop()
 
-    conversation_after = http_json("GET", f"{base_url}/api/conversations/{conversation_id}", api_key=api_key)
-    terminal_event = "job.completed" if job.get("status") == "completed" else "job.failed"
+    conversation_after = wait_for_conversation_ready(base_url, conversation_id, api_key)
+    terminal_event = "proposal.ready"
     assert_conversation_events(conversation_after, conversation_id=conversation_id, expect_terminal=terminal_event)
     captured_types = assert_sse_capture(recorder, conversation_id)
 
@@ -2088,8 +2085,7 @@ def main() -> int:
                 "app_id": app_id,
                 "conversation_id": conversation_id,
                 "switch_conversation_id": switch_conversation_id,
-                "job_id": job_id,
-                "job_status": job.get("status"),
+                "latest_job_id": str(conversation_after.get("latest_job_id", "") or ""),
                 "sse_phase_events": captured_types,
                 "terminal_event": terminal_event,
                 "browser_runtime": "ok",
