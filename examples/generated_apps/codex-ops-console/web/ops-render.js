@@ -1,5 +1,6 @@
 import { DECISION_FIELDS } from "./ops-constants.js";
 import {
+  deriveSelectedThreadComposerTargetRowModel,
   deriveSelectedThreadFollowControlModel,
   deriveSelectedThreadLiveAutonomy,
   deriveSelectedThreadPhaseProgression,
@@ -646,7 +647,7 @@ function syncComposerOwnership(dom, currentState, conversation) {
   if (!dom.composerOwnerRow || !dom.composerOwnerState || !dom.composerOwnerTarget || !dom.composerOwnerCopy) {
     return;
   }
-  const owner = composerOwnerState(currentState, conversation);
+  const owner = deriveSelectedThreadComposerTargetRowModel(currentState, conversation);
   const mergedIntoStrip = Boolean(dom.sessionStrip && !dom.sessionStrip.hidden && owner.conversationId);
   dom.composerOwnerRow.dataset.composerOwner = owner.state;
   dom.composerOwnerRow.dataset.composerOwnerConversationId = owner.conversationId;

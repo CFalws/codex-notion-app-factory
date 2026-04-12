@@ -565,6 +565,63 @@ export function deriveSelectedThreadConversationRowLiveModel(currentState, conve
   };
 }
 
+export function deriveSelectedThreadComposerTargetRowModel(currentState, conversation = null) {
+  const pendingOutgoing = currentState.pendingOutgoing || {};
+  const authority = deriveSelectedThreadSessionAuthorityModel(currentState, conversation);
+  const sessionStatus = authority.sessionStatus;
+  const conversationTitle = String(sessionStatus.conversationTitle || conversation?.title || "현재 대화").trim() || "현재 대화";
+
+  if (authority.state === "switching" && sessionStatus.targetConversationId) {
+    return {
+      state: "switching",
+      label: "SWITCHING",
+      tone: "warning",
+      conversationId: String(sessionStatus.targetConversationId || ""),
+      target: String(sessionStatus.targetTitle || "선택한 대화").trim() || "선택한 대화",
+      copy: "ATTACH",
+      blocked: true,
+      blockedReason: "ATTACH PENDING",
+    };
+  }
+
+  if (authority.state === "handoff" && sessionStatus.conversationId) {
+    return {
+      state: "handoff",
+      label: "HANDOFF",
+      tone: "neutral",
+      conversationId: String(sessionStatus.conversationId || ""),
+      target: conversationTitle,
+      copy: pendingOutgoing.status === "sending-user" ? "SEND" : "FIRST",
+      blocked: false,
+      blockedReason: "",
+    };
+  }
+
+  if (authority.state === "healthy" && sessionStatus.conversationId) {
+    return {
+      state: "ready",
+      label: "READY",
+      tone: "healthy",
+      conversationId: String(sessionStatus.conversationId || ""),
+      target: conversationTitle,
+      copy: "SSE OWNER",
+      blocked: false,
+      blockedReason: "",
+    };
+  }
+
+  return {
+    state: "idle",
+    label: "IDLE",
+    tone: "muted",
+    conversationId: "",
+    target: "NO TARGET",
+    copy: "SELECT",
+    blocked: false,
+    blockedReason: "",
+  };
+}
+
 export function deriveSelectedThreadLiveAutonomy(currentState, conversation = null) {
   const sessionStatus = deriveSelectedThreadSessionStatus(currentState, conversation);
   const healthyPromotion = deriveSelectedThreadHealthyPromotionModel(currentState, conversation);

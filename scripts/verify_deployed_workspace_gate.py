@@ -869,9 +869,9 @@ def assert_browser_runtime_surface(
                     threadPhase.hidden &&
                     composerOwnerRow &&
                     composerOwnerRow.hidden &&
-                    composerOwnerRow.dataset.composerOwnerMerged === "true" &&
-                    ["resume", "attach"].includes(composerOwnerRow.dataset.composerOwner || "") &&
-                    composerOwnerRow.dataset.composerOwnerConversationId === conversationId &&
+                    composerOwnerRow.dataset.composerOwnerMerged === "false" &&
+                    composerOwnerRow.dataset.composerOwner === "idle" &&
+                    composerOwnerRow.dataset.composerOwnerConversationId === "" &&
                     composerOwnerRow.dataset.composerRestoreStage === "none" &&
                     transition &&
                     transition.dataset.threadTransitionCompact === "true" &&
@@ -966,9 +966,9 @@ def assert_browser_runtime_surface(
                     activeSessionRow.dataset.activeSessionSource === "none" &&
                     composerOwnerRow &&
                     composerOwnerRow.hidden &&
-                    composerOwnerRow.dataset.composerOwnerMerged === "true" &&
-                    ["reconnect", "polling"].includes(composerOwnerRow.dataset.composerOwner || "") &&
-                    composerOwnerRow.dataset.composerOwnerConversationId === conversationId &&
+                    composerOwnerRow.dataset.composerOwnerMerged === "false" &&
+                    composerOwnerRow.dataset.composerOwner === "idle" &&
+                    composerOwnerRow.dataset.composerOwnerConversationId === "" &&
                     !composerOwnerRow.textContent.includes("READY") &&
                     !sessionStrip.hidden &&
                     stripChips.length === 1 &&
@@ -1422,7 +1422,8 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(conversations_js, 'source: authoritativeBootstrapAutonomy ? "session-bootstrap" : "conversation-snapshot"', label="conversation fetch bootstrap authority precedence")
     require(conversations_js, "if (shouldAllowGoalsPollingFallback({ conversationId: conversation.conversation_id })) {", label="conversation fetch goals fallback guard")
     require(render_js, "latestSessionIndicatorEvent", label="session live indicator event helper")
-    require(render_js, "composerOwnerState", label="composer owner state helper")
+    require(render_js, "composerOwnerState", label="composer strip owner state helper")
+    require(store_js, "export function deriveSelectedThreadComposerTargetRowModel(currentState, conversation = null) {", label="composer target row model helper")
     require(render_js, "composerTransportState", label="composer transport state helper")
     require(render_js, "syncComposerOwnership", label="composer ownership sync helper")
     require(render_js, "compactTargetLabel", label="compact target label helper")
@@ -1566,6 +1567,7 @@ def assert_console_contract(ops_url: str, api_key: str) -> None:
     require(render_js, "dataset.sessionOwner", label="session owner dataset")
     require(render_js, "dataset.liveOwned", label="live ownership dataset")
     require(render_js, "dataset.composerOwnerState", label="composer owner state dataset")
+    require(render_js, "const owner = deriveSelectedThreadComposerTargetRowModel(currentState, conversation);", label="composer target row canonical authority wiring")
     require(render_js, 'dom.sessionStrip.dataset.composerState = ownerState.state;', label="composer strip state dataset")
     require(render_js, 'dom.sessionStrip.dataset.composerTransport = transportState.key;', label="composer strip transport dataset")
     require(render_js, 'dom.sessionStrip.dataset.composerTransportSource = transportState.source;', label="composer strip transport source dataset")

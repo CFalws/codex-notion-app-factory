@@ -1,15 +1,15 @@
 # Factory Runtime Tasks
 
-## Iteration 282
+## Iteration 283
 
-- [x] Keep the change bounded to selected-thread ownership derivation, polling suppression, verification, and proposal artifacts.
+- [x] Keep the change bounded to composer target-row derivation, verification, and proposal artifacts.
 - [x] Preserve the existing selected-thread `session_status` plus append SSE authority path unchanged.
-- [x] Keep the existing provisional selected-thread continuity path unchanged before authoritative bootstrap arrives.
-- [x] Move healthy selected-thread promotion behind one shared store invariant that requires selected-thread state and append-stream session-status to agree on the same conversation in authoritative `sse-live` state.
-- [x] Reuse that promotion helper in selected-thread live autonomy, phase progression, session surface, authority rendering, session strip ownership, and polling suppression.
-- [x] Preserve explicit degraded, reconnect, polling fallback, handoff, switch, and detached restore visibility.
-- [x] Extend static and deployed verification to fail if healthy ownership is duplicated, conflicting owner labels survive promotion, or polling reclaims authority without explicit degradation.
-- [x] Update proposal artifacts to record the healthy ownership-promotion invariant.
+- [x] Reuse the canonical selected-thread authority model instead of adding a new composer status source.
+- [x] Bind the composer target row to canonical selected-thread authority so it shows only `READY`, `SWITCHING`, or `HANDOFF` for the currently selected thread.
+- [x] Clear stale old-thread composer ownership immediately on switch, restore, reconnect downgrade, or polling fallback.
+- [x] Preserve the existing session strip and provisional selected-thread continuity behavior unchanged.
+- [x] Extend static and deployed verification to fail if polling, degraded recovery, or stale thread data reclaim composer healthy ownership.
+- [x] Update proposal artifacts to record the narrowed composer-owner contract.
 - Iteration 245: confirm the selected-thread center header already exposes the canonical ownership chip and keep deployed verification bound to that machine-readable selected-thread signal without adding another live-status surface.
 - Iteration 248: keep the selected-thread composer owner row visible on healthy and transition paths, render `READY` only on healthy SSE-owned state, and assert degraded paths never retain stale ready ownership.
 - Iteration 249: record that the sticky left-rail active-session row is already the canonical selected-thread SSE mirror and keep non-selected rows snapshot-only with immediate clear or downgrade on degraded paths.
@@ -28,3 +28,4 @@
 - Iteration 273: record that healthy selected-thread proposal readiness, verifier or blocker state, phase progression, and apply readiness already remain sessionStatus-plus-append-SSE owned, while goals and job polling stay demoted to explicit degraded fallback only.
 - Iteration 274: suppress the remaining healthy top-level header session summary so the center timeline and footer dock are the only healthy selected-thread status surfaces, while non-healthy paths keep explicit duplicate-free status visibility.
 - Iteration 282: promote healthy selected-thread ownership exactly once through one canonical store-level gate so provisional continuity remains intact before bootstrap, but every healthy selected-thread surface and polling suppression decision now shares the same promotion invariant.
+- Iteration 283: bind the bottom-fixed composer target row to canonical selected-thread authority so it exposes only `READY`, `SWITCHING`, or `HANDOFF` for the selected thread and clears immediately on restore, reconnect, or polling fallback.

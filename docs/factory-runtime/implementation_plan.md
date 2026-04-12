@@ -1,17 +1,17 @@
 # Factory Runtime Implementation Plan
 
-## Iteration 282
+## Iteration 283
 
-Promote healthy selected-thread ownership exactly once through one canonical store-level gate so the center timeline, footer dock, rail state, and polling suppression all agree on the same selected-thread owner.
+Bind the bottom-fixed composer target row to the canonical selected-thread authority model so that the composer surface converges on the same ownership contract as the timeline, footer dock, rail, and polling suppression.
 
-1. Keep the change bounded to selected-thread ownership derivation, polling suppression, verifier coverage, and proposal artifacts.
-2. Preserve the existing selected-thread `session_status` plus append SSE authority path and reuse the existing helpers rather than adding a new transport or status source.
-3. Keep the existing provisional selected-thread session path unchanged before authoritative bootstrap.
-4. Move the final healthy-promotion decision behind one store helper that requires selected-thread session state and append-stream session-status to agree on the same conversation in authoritative `sse-live` state.
-5. Reuse that helper in selected-thread live autonomy, phase progression, session surface, authority rendering, session strip ownership, and polling suppression.
-6. Preserve explicit degraded, reconnect, polling fallback, handoff, switching, and detached restore visibility when the intended path is absent or lost.
-7. Extend static and deployed verification so healthy ownership cannot appear twice, conflicting owner labels cannot survive promotion, and polling cannot reclaim authority after healthy promotion without an explicit degraded path.
-8. Update proposal artifacts to record the new ownership-promotion invariant.
+1. Keep the change bounded to composer target-row derivation, browser verification, and proposal artifacts.
+2. Preserve the existing selected-thread `session_status` plus append SSE authority path unchanged.
+3. Reuse the canonical selected-thread authority helpers instead of adding a new composer status source.
+4. Derive the composer target row only from the canonical selected-thread authority model so it can expose `READY`, `SWITCHING`, or `HANDOFF` for the currently selected thread only.
+5. Clear stale old-thread composer ownership immediately on intentional switch, restore, reconnect downgrade, or polling fallback instead of letting those paths keep a merged live-owner row.
+6. Preserve the existing session strip behavior and provisional continuity path unchanged before authoritative bootstrap.
+7. Extend static and deployed verification so the composer row never re-enters healthy ownership from polling, degraded recovery, or stale thread data.
+8. Update proposal artifacts to record the narrowed composer-owner contract.
 Iteration 245 does not widen runtime or UI ownership. It records that the selected-thread center header already exposes the canonical ownership chip beside the session summary and that deployed verification already attributes healthy visibility to that selected-thread SSE-owned signal rather than to polling or side-panel inference.
 Iteration 248 keeps transport and header ownership unchanged and restores the same selected-thread certainty directly at the input surface by keeping the composer owner row visible for healthy, handoff, switching, and restore states while preserving explicit degraded or idle clearing.
 Iteration 249 does not widen runtime or UI ownership because the selected-thread rail mirror is already correct in this branch: the sticky active-session row is canonical on the healthy selected-thread SSE path, non-selected rows remain snapshot-only, and the deployed gate already attributes that rail marker to the intended selected-thread authority source.
@@ -30,3 +30,4 @@ Iteration 272 keeps transport and ownership unchanged and narrows only the healt
 Iteration 273 does not widen runtime or transport behavior because selected-thread status ownership is already correct in this branch: healthy proposal readiness, verifier or blocker state, phase progression, and apply readiness already stay on selected-thread `sessionStatus` plus append SSE, while goals or job polling remain gated behind explicit degraded fallback.
 Iteration 274 keeps transport and ownership unchanged and narrows only the remaining healthy duplicate chrome boundary: the healthy header session summary is now suppressed whenever the center timeline is already the authoritative selected-thread session surface, while restore and degraded paths still keep explicit top-level status visibility.
 Iteration 282 keeps transport and provisional continuity unchanged and narrows only the final ownership-promotion boundary: once the selected thread is truly healthy, every selected-thread surface now derives healthy ownership from one shared store invariant instead of separately recomputing that promotion in multiple helpers.
+Iteration 283 keeps transport and healthy promotion unchanged and narrows only the composer target-row boundary: the bottom-fixed composer now reflects the same canonical selected-thread authority as the other session surfaces and clears instead of surfacing stale restore or degraded ownership.
