@@ -1,16 +1,15 @@
 # Factory Runtime Tasks
 
-## Iteration 293
+## Iteration 296
 
-- [x] Keep the change bounded to healthy selected-thread central authority convergence, verification, and proposal artifacts.
-- [x] Preserve the existing selected-thread `session_status` plus append SSE transport and promotion contract.
-- [x] Keep jobs polling demoted behind explicit loss of selected-thread ownership.
-- [x] Keep reconnect, restore, switch, polling fallback, and terminal paths clearing immediately back to degraded or snapshot presentation.
-- [x] Promote healthy selected-thread proposal, review, verify, ready, and applied live-run cues from `session_status` SSE payloads.
-- [x] Keep apply readiness derived from the selected-thread session strip and prevent polling from reclaiming that control on the healthy path.
-- [x] Avoid introducing any new authority source for rail, footer, or composer surfaces.
-- [x] Add verifier coverage that the healthy central live-run path now comes from selected-thread `session_status`.
-- [x] Update proposal artifacts to record the central authority convergence contract.
+- [x] Keep the iteration bounded to intentional selected-thread switch continuity verification and proposal artifacts.
+- [x] Preserve the existing selected-thread `session_status` plus append SSE transport, promotion, and switch-controller contract.
+- [x] Verify that an intentional switch already renders one compact switching placeholder instead of a generic empty-state reset.
+- [x] Verify that previous-thread healthy owner cues already clear in the same render path across transcript, footer dock, active-session row, and selected rail row.
+- [x] Verify that the composer dock stays mounted and blocked behind the target-thread switching state until attach completes.
+- [x] Verify that polling or goals fallback do not preserve or reclaim healthy selected-thread ownership while the switch placeholder is active.
+- [x] Avoid introducing any new authority source or duplicate switch placeholder chrome.
+- [x] Update proposal artifacts to record the intended-path no-runtime-change result.
 - Iteration 245: confirm the selected-thread center header already exposes the canonical ownership chip and keep deployed verification bound to that machine-readable selected-thread signal without adding another live-status surface.
 - Iteration 248: keep the selected-thread composer owner row visible on healthy and transition paths, render `READY` only on healthy SSE-owned state, and assert degraded paths never retain stale ready ownership.
 - Iteration 249: record that the sticky left-rail active-session row is already the canonical selected-thread SSE mirror and keep non-selected rows snapshot-only with immediate clear or downgrade on degraded paths.
@@ -35,4 +34,5 @@
 - Iteration 289: record that healthy selected-thread job, phase, proposal, verifier, and apply visibility already remain collapsed onto the center session timeline plus bottom composer strip, while the secondary execution surface already stays suppressed on the healthy path and returns only on non-healthy paths.
 - Iteration 291: mirror one compact healthy selected-thread live phase chip into the currently selected conversation row so the rail reflects current session stage immediately while non-selected rows remain snapshot-only.
 - Iteration 292: make the healthy selected conversation row visually dominant in the rail through stronger live-owner treatment derived from the existing selected-thread mirror, while `active-session-row` remains canonical and non-selected rows stay snapshot-only.
- - Iteration 293: promote healthy selected-thread proposal, verify, ready, applied, and apply-readiness cues to a single `session_status` SSE authority path in the central session surface while jobs polling remains explicit degraded fallback only.
+- Iteration 293: promote healthy selected-thread proposal, verify, ready, applied, and apply-readiness cues to a single `session_status` SSE authority path in the central session surface while jobs polling remains explicit degraded fallback only.
+- Iteration 296: record that intentional selected-thread switch continuity is already correct in this branch, with one compact placeholder, immediate stale-owner clearing, mounted composer continuity, and no generic empty-state flash or polling-owned healthy reclaim.
