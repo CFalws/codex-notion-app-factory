@@ -1,5 +1,5 @@
 export const STORAGE_KEY = "codex-ops-console";
-export const FIXED_RUNTIME_URL = "https://codex-factory-vm.tail1b6dd1.ts.net";
+export const FIXED_RUNTIME_URL = "https://multiusage-vm.tail1b6dd1.ts.net";
 export const DRAFTS_KEY = `${STORAGE_KEY}:drafts`;
 export const DECISION_FIELDS = [
   ["goal", "문제"],
